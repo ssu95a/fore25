@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import ru.inversion.fx.form.controls.dsbar.DSInfoBar?>
+<?import ru.inversion.fx.form.controls.JInvButton?>
+<?import ru.inversion.fx.form.controls.JInvTable?>
+<?import ru.inversion.fx.form.controls.JInvTableColumn?>
+<?import javafx.scene.control.ButtonBar?>
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.inversion.fx.form.controls.filter.impl.ViewFilterGroupController">
+   <children>
+      <VBox prefHeight="200.0" prefWidth="100.0" spacing="5.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+         <children>
+            <VBox VBox.vgrow="ALWAYS">
+               <children>
+                  <DSInfoBar fx:id="toolBar" />
+                  <JInvTable fx:id="filterGroupTable" VBox.vgrow="ALWAYS">
+                     <columns>
+                        <JInvTableColumn editable="false" fieldName="ID" prefWidth="75.0" text="%ID.FILTER.GROUP" transientColumn="false" />
+                        <JInvTableColumn editable="false" fieldName="CNAME" prefWidth="400.0" text="%CNAME.FILTER.GROUP" transientColumn="false" />
+                     </columns>
+                  </JInvTable>
+               </children>
+            </VBox>
+            <ButtonBar buttonMinWidth="80.0">
+               <buttons>
+                  <JInvButton fx:id="btOK"/>
+                  <JInvButton fx:id="btCancel"/>
+               </buttons>
+            </ButtonBar>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

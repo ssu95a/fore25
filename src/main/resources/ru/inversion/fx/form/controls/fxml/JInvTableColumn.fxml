@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import ru.inversion.fx.form.controls.JInvTableColumn?>
+<JInvTableColumn transientColumn = "false" prefWidth="75.0" text="" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />

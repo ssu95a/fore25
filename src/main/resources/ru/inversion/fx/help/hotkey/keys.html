@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+        <script type="text/javascript">
+            function generatePage() {
+
+                //Получили xmlModel
+                var xmlDoc = $.parseXML(window.keyHelper.getKeysXml());
+                var xmlModel = $(xmlDoc);
+
+                var content = "";
+
+                //Начало страницы и стиль, открываем теги
+                content += "<!DOCTYPE html><html><head><meta charset='UTF-8'>"
+                         + "<link rel='stylesheet' href='css/keys.css'>"
+                         + "</head><body>";
+
+                //Создание таблицы
+                content += ("<table>");
+
+                //Цикл по всем группам
+                xmlModel.find('KeyGroup').each(function () {
+                    var group = $(this);
+                    content += ("<tr align='left'><th colspan='2'><h3>" +
+                     window.keyHelper.getLocalizeName(group.attr('name')) +
+                      "</h3></th></tr>");
+
+                    // Цикл по клавишам внутри группы
+                    group.find("Key").each(function () {
+                        var key = $(this);
+                        content += ("<tr><td><p><span>" +
+                                key.attr('value') +
+                                "</span></p></td>" +
+                                "<td><p>" +
+                                window.keyHelper.getLocalizeName(key.attr('name')) +
+                                "</p></td></tr>");
+                    });
+
+                });
+
+                //Завершение создания таблицы
+                content += ("</table>");
+
+                //Закрываем теги
+                content += "</body><html>";
+                return content;
+            }
+
+        </script>
+    </body>
+
+</html>

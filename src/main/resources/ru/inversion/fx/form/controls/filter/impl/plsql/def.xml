@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sql_expr_list>
+    <expression name="filter.work.deleteByMark" lang="JDBC">
+        <script><![CDATA[DELETE FROM FRM_FILTER WHERE ID IN (SELECT IDROW FROM mrk_ID WHERE IDMARKER = :markerId)]]></script>
+        <parameters>
+            <parameter name="markerId" mode="IN" sqlType="BIGINT"/>
+        </parameters>
+    </expression>
+    <expression name="filter.group.save" lang="JDBC">
+        <script><![CDATA[INSERT INTO FRM_FILTER_GROUP VALUES (:ID, :CNAME)]]>
+        </script>
+        <parameters>
+            <parameter name="ID" mode="IN" sqlType="NUMERIC"/>
+            <parameter name="CNAME" mode="IN" sqlType="VARCHAR"/>
+        </parameters>
+    </expression>
+    <expression name="filter.group.update" lang="JDBC">
+        <script><![CDATA[UPDATE FRM_FILTER_GROUP SET CNAME = :CNAME, ID = :ID WHERE ID = :OLD_ID]]>
+        </script>
+        <parameters>
+            <parameter name="CNAME" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="ID" mode="IN" sqlType="NUMERIC"/>
+            <parameter name="OLD_ID" mode="IN" sqlType="NUMERIC"/>
+        </parameters>
+    </expression>
+    <expression name="filter.group.delete" lang="JDBC">
+        <script><![CDATA[DELETE FROM FRM_FILTER_GROUP g WHERE g.ID = :ID]]>
+        </script>
+        <parameters>
+            <parameter name="ID" mode="IN" sqlType="NUMERIC"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.setPreference" lang="JDBC">
+        <script><![CDATA[{CALL jf_pkg_util.set_prefupper(:KEY,:VALUE)}]]>
+        </script>
+        <parameters>
+            <parameter name="KEY" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="VALUE" mode="IN" sqlType="VARCHAR"/>
+        </parameters>
+    </expression>
+
+<!--    <expression name="filter.work.saveFilter" lang="JDBC">-->
+<!--        <script><![CDATA[{:IFF_INSERT=call JF_PKG_UTIL.FF_Insert(:FORM_NAME,:USER,:WHERE_NAME,:WHERE_BLK,:AUTO_SETUP,:BLOCK_NAME)}]]>-->
+<!--        </script>-->
+<!--        <parameters>-->
+<!--            <parameter name="FORM_NAME" mode="IN" sqlType="VARCHAR"/>-->
+<!--            <parameter name="USER" mode="IN" sqlType="VARCHAR"/>-->
+<!--            <parameter name="WHERE_NAME" mode="IN" sqlType="VARCHAR"/>-->
+<!--            <parameter name="WHERE_BLK" mode="IN" sqlType="VARCHAR"/>-->
+<!--            <parameter name="AUTO_SETUP" mode="IN" sqlType="VARCHAR"/>-->
+<!--            <parameter name="BLOCK_NAME" mode="IN" sqlType="VARCHAR"/>-->
+<!--            <parameter name="IFF_INSERT" mode="OUT" sqlType="INTEGER"/>-->
+<!--        </parameters>-->
+<!--    </expression>-->
+    <expression name="filter.work.saveFilter" lang="PL">
+        <script><![CDATA[begin
+                     INSERT INTO FRM_FILTER
+                       (cFormName, cUser, cWhereName, cWhereBlk, cAutoSetup, cBlockName)
+                     VALUES
+                       (:FORM_NAME, :USER, :WHERE_NAME, :WHERE_BLK, :AUTO_SETUP, :BLOCK_NAME)
+                     RETURNING ID INTO :IFF_INSERT;
+                end;]]>
+        </script>
+        <parameters>
+<!--            <parameter name="FORM_NAME" mode="IN" sqlType="VARCHAR"/>-->
+<!--            <parameter name="USER" mode="IN" sqlType="VARCHAR"/>-->
+<!--            <parameter name="WHERE_NAME" mode="IN" sqlType="VARCHAR"/>-->
+<!--            <parameter name="WHERE_BLK" mode="IN" sqlType="VARCHAR"/>-->
+            <parameter name="AUTO_SETUP" mode="IN" sqlType="VARCHAR"/>
+<!--            <parameter name="BLOCK_NAME" mode="IN" sqlType="VARCHAR"/>-->
+            <parameter name="IFF_INSERT" mode="OUT" sqlType="INTEGER"/>
+        </parameters>
+    </expression>
+
+    <expression name="filter.work.addGroupLink" lang="JDBC">
+        <script><![CDATA[INSERT INTO V_JF_FRM_FILTER_LINK VALUES (:GROUP_ID,:FILTER_ID)]]>
+        </script>
+        <parameters>
+            <parameter name="GROUP_ID" mode="IN" sqlType="NUMERIC"/>
+            <parameter name="FILTER_ID" mode="IN" sqlType="NUMERIC"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.delGroupLink" lang="JDBC">
+        <script><![CDATA[DELETE FROM V_JF_FRM_FILTER_LINK WHERE idgroup = :GROUP_ID AND idfilter = :FILTER_ID]]>
+        </script>
+        <parameters>
+            <parameter name="GROUP_ID" mode="IN" sqlType="NUMERIC"/>
+            <parameter name="FILTER_ID" mode="IN" sqlType="NUMERIC"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.addAllGroupLink" lang="JDBC">
+        <script><![CDATA[
+                    INSERT INTO V_JF_FRM_FILTER_LINK
+                        SELECT idgroup, idfilter
+                            FROM (SELECT V_JF_Frm_Filter.id          idfilter,
+                                         V_JF_Frm_Filter_Group.id    idgroup,
+                                         V_JF_Frm_Filter_Group.cname grp_name
+                                    FROM V_JF_Frm_Filter, V_JF_Frm_Filter_Group
+                                   WHERE NOT exists
+                                    (SELECT NULL
+                                              FROM V_JF_Frm_Filter_Link
+                                            WHERE V_JF_Frm_Filter_Link.idfilter = V_JF_Frm_Filter.id
+                                              AND V_JF_Frm_Filter_Link.idgroup =
+                                                  V_JF_Frm_Filter_Group.id))
+                    WHERE idfilter = :FILTER_ID
+                ]]>
+        </script>
+        <parameters>
+            <parameter name="FILTER_ID" mode="IN" sqlType="NUMERIC"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.delAllGroupLink" lang="JDBC">
+        <script><![CDATA[DELETE FROM V_JF_FRM_FILTER_LINK WHERE idfilter=:FILTER_ID]]>
+        </script>
+        <parameters>
+            <parameter name="FILTER_ID" mode="IN" sqlType="NUMERIC"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.addODBGrp" lang="JDBC">
+        <script><![CDATA[INSERT INTO V_JF_FRM_FILTER_ODB_GROUP VALUES (:GROUP_ID,:FILTER_ID)]]>
+        </script>
+        <parameters>
+            <parameter name="GROUP_ID" mode="IN" sqlType="NUMERIC"/>
+            <parameter name="FILTER_ID" mode="IN" sqlType="NUMERIC"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.delODBGrp" lang="JDBC">
+        <script><![CDATA[DELETE FROM V_JF_FRM_FILTER_ODB_GROUP a WHERE a.idgroup = :GROUP_ID AND a.idfilter = :FILTER_ID]]>
+        </script>
+        <parameters>
+            <parameter name="GROUP_ID" mode="IN" sqlType="NUMERIC"/>
+            <parameter name="FILTER_ID" mode="IN" sqlType="NUMERIC"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.addAllODBGrp" lang="JDBC">
+        <script><![CDATA[
+                    INSERT INTO V_JF_FRM_FILTER_ODB_GROUP
+                          SELECT idgroup,idfilter FROM (
+                          SELECT V_JF_Frm_Filter.id idfilter,
+                               ODB_Group_USR.grp_id idgroup,
+                               ODB_Group_USR.grp_name grp_name
+                          FROM V_JF_Frm_Filter,
+                               ODB_Group_USR
+                          WHERE NOT exists (SELECT NULL
+                                              FROM V_JF_Frm_Filter_ODB_Group
+                                              WHERE V_JF_Frm_Filter_ODB_Group.idfilter=V_JF_Frm_Filter.id AND
+                                                    V_JF_Frm_Filter_ODB_Group.idgroup=ODB_Group_USR.grp_id)
+                                     ) WHERE idfilter=:FILTER_ID
+                ]]>
+        </script>
+        <parameters>
+            <parameter name="FILTER_ID" mode="IN" sqlType="NUMERIC"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.delAllODBGrp" lang="JDBC">
+        <script><![CDATA[DELETE FROM V_JF_FRM_FILTER_ODB_GROUP WHERE idfilter=:FILTER_ID]]>
+        </script>
+        <parameters>
+            <parameter name="FILTER_ID" mode="IN" sqlType="NUMERIC"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.editFilter" lang="JDBC">
+        <script><![CDATA[
+                    UPDATE V_JF_FRM_FILTER
+                    	SET cformname  = :FORM_NAME,
+                    		cuser      = :USER,
+                    		cwhereblk  = :WHERE_BLK,
+                    		cwherename = :WHERE_NAME,
+                    		cblockname = :BLOCK_NAME
+                      WHERE id = :ID
+                ]]>
+        </script>
+        <parameters>
+            <parameter name="FORM_NAME" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="USER" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="WHERE_BLK" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="WHERE_NAME" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="BLOCK_NAME" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="ID" mode="IN" sqlType="NUMERIC"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.delFilter" lang="JDBC">
+        <script><![CDATA[DELETE FROM V_JF_FRM_FILTER WHERE ID = :FILTER_ID]]></script>
+    </expression>
+    <expression name="filter.work.autoSetupFlt" lang="JDBC">
+        <script><![CDATA[UPDATE V_JF_FRM_FILTER SET cautosetup = :AUTO_SETUP WHERE id = :FILTER_ID]]>
+        </script>
+        <parameters>
+            <parameter name="AUTO_SETUP" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="FILTER_ID" mode="IN" sqlType="NUMERIC"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.cleanAutoSetupFlt" lang="JDBC">
+        <script><![CDATA[UPDATE V_JF_FRM_FILTER SET CAUTOSETUP = NULL WHERE CAUTOSETUP IS NOT NULL AND CAUTOSETUP = :AUTO_SETUP]]>
+        </script>
+        <parameters>
+            <parameter name="AUTO_SETUP" mode="IN" sqlType="VARCHAR"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.copyFilter" lang="JDBC">
+        <script><![CDATA[{CALL JF_PKG_UTIL.FF_COPY(:FILTER_ID,:USER)}]]></script>
+        <parameters>
+            <parameter name="USER" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="FILTER_ID" mode="IN" sqlType="NUMERIC"/>
+        </parameters>
+    </expression>
+
+    <expression name="filter.work.getPreference" lang="PL/pgSQL">
+        <script><![CDATA[call jf_pkg_util.get_prefUpper(:UPPER_PREF, :DEF_VALUE, :_return)]]></script>
+        <parameters>
+            <parameter name="UPPER_PREF" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="DEF_VALUE" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="_return" mode="OUT" sqlType="VARCHAR"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.getPreference" lang="PL/SQL">
+        <script><![CDATA[begin :_return := jf_pkg_util.get_prefUpper(:UPPER_PREF, :DEF_VALUE); end;]]></script>
+        <parameters>
+            <parameter name="UPPER_PREF" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="DEF_VALUE" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="_return" mode="OUT" sqlType="VARCHAR"/>
+        </parameters>
+    </expression>
+    <expression name="filter.work.cleanAllBuffer" lang="JDBC">
+        <script><![CDATA[{CALL IE_Export.Clear_All()}]]></script>
+    </expression>
+</sql_expr_list>

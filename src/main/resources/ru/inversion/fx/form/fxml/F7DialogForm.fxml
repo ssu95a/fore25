@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import ru.inversion.fx.form.controls.JInvButton?>
+<?import ru.inversion.fx.form.controls.JInvComboBox?>
+<?import ru.inversion.fx.form.controls.JInvLabel?>
+
+<VBox alignment="CENTER_RIGHT" prefHeight="650.0" prefWidth="500.0" spacing="5.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.inversion.fx.form.F7DialogFormController">
+    <children>
+        <ScrollPane fx:id="pane" fitToHeight="true" fitToWidth="true" focusTraversable="false" hbarPolicy="NEVER" VBox.vgrow="ALWAYS">
+            <padding>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+            </padding>
+        </ScrollPane>
+        <HBox alignment="CENTER_LEFT" spacing="5.0">
+            <children>
+                <JInvLabel minWidth="-Infinity" text="%FIND" />
+                <JInvComboBox fx:id="find" editable="true" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
+                <JInvButton fx:id="btOK" minWidth="-Infinity" prefWidth="70.0" />
+                <JInvButton fx:id="btCancel" minWidth="-Infinity" prefWidth="70.0" />
+            </children>
+            <VBox.margin>
+                <Insets bottom="5.0" left="5.0" right="5.0" />
+            </VBox.margin>
+        </HBox>
+    </children>
+</VBox>

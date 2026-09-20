@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.layout.*?>
+<?import ru.inversion.fx.form.controls.JInvButton?>
+<?import ru.inversion.fx.form.controls.JInvToolBar?>
+<AnchorPane fx:id="rootAnchorPane" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ru.inversion.fx.form.lov.JInvLOVChoiceDialog">
+   <children>
+      <VBox fx:id="root" prefHeight="540.0" prefWidth="800.0" spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <JInvToolBar fx:id="toolBar" />
+            <StackPane fx:id="tablePane" VBox.vgrow="ALWAYS">
+               <VBox.margin>
+                  <Insets left="5.0" right="5.0" />
+               </VBox.margin>
+            </StackPane>
+            <ButtonBar>
+               <buttons>
+                  <JInvButton fx:id="btOK" />
+                  <JInvButton fx:id="btCancel" />
+               </buttons>
+               <VBox.margin>
+                  <Insets bottom="5.0" left="5.0" right="5.0" />
+               </VBox.margin>
+            </ButtonBar>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

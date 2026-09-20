@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sql_expr_list>
+    <expression name="help.merge" lang="JDBC">
+        <script><![CDATA[MERGE INTO JF_HELP a
+             USING (SELECT :FORM form,
+                           :DESCR descr,
+                           :VER ver,
+                           :CLOCALE CLOCALE,
+                           :HTML_TEXT html_text
+                    FROM dual where rownum = 1 ) b
+             ON (a.form=b.form and a.CLOCALE=b.CLOCALE)
+             WHEN MATCHED THEN
+               UPDATE SET
+                      a.descr=b.descr,
+                      a.ver=b.ver,
+                      a.html_text=b.html_text
+             WHEN NOT MATCHED THEN
+                  INSERT (form, descr, ver, html_text, CLOCALE)
+                  VALUES (b.form, b.descr, b.ver, b.html_text, b.CLOCALE)
+            ]]></script>
+        <parameters>
+            <parameter name="HTML_TEXT" sqlType="CLOB" />
+        </parameters>
+    </expression>
+    <expression name="help.delete.conditional" lang="JDBC">
+        <script><![CDATA[delete from jf_help where form = :oldform and clocale = :clocale and :oldform is not null and :oldform <> :newform]]></script>
+        <parameters>
+        </parameters>
+    </expression>
+    <expression name="help.delete" lang="JDBC">
+        <script><![CDATA[delete from jf_help where form = :form and clocale = :clocale]]></script>
+        <parameters>
+        </parameters>
+    </expression>
+</sql_expr_list>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sql_expr_list>
+    <expression name="loadAll" lang="JDBC">
+        <script><![CDATA[{call JF_PKG_UTIL.GET_ALL_PROPERTIES(:DB_USER,:DB_GLOBAL,:DB_UNIVERSAL,:O_PRP,:O_SMR,:O_DB_USER,:O_DB_GLOBAL,:O_DB_UNIVERSAL)}]]></script>
+        <parameters>
+            <parameter name="DB_USER"        mode="IN"  sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+            <parameter name="DB_GLOBAL"      mode="IN"  sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+            <parameter name="DB_UNIVERSAL"   mode="IN"  sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+            <parameter name="O_PRP"          mode="OUT" sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+            <parameter name="O_SMR"          mode="OUT" sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+            <parameter name="O_DB_USER"      mode="OUT" sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+            <parameter name="O_DB_GLOBAL"    mode="OUT" sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+            <parameter name="O_DB_UNIVERSAL" mode="OUT" sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+        </parameters>
+    </expression>
+
+    <expression name="load" lang="JDBC">
+        <script><![CDATA[call JF_PKG_UTIL.GET_PROPERTIES(:DB_USER,:DB_GLOBAL,:DB_UNIVERSAL,:O_DB_USER,:O_DB_GLOBAL,:O_DB_UNIVERSAL)]]></script>
+        <parameters>
+            <parameter name="DB_USER"        mode="IN"  sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+            <parameter name="DB_GLOBAL"      mode="IN"  sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+            <parameter name="DB_UNIVERSAL"   mode="IN"  sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+            <parameter name="O_DB_USER"      mode="OUT" sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+            <parameter name="O_DB_GLOBAL"    mode="OUT" sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+            <parameter name="O_DB_UNIVERSAL" mode="OUT" sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+        </parameters>
+    </expression>
+
+    <expression name="loadSmr" lang="JDBC">
+        <script><![CDATA[call JF_PKG_UTIL.GET_SMR_PROPERTIES(:O_SMR)]]></script>
+        <parameters>
+            <parameter name="O_SMR" mode="OUT" sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+        </parameters>
+    </expression>
+
+    <expression name="save" lang="JDBC">
+        <script><![CDATA[call JF_PKG_UTIL.PreferencesSave (:PREF_KEY, :PREF_VAL)]]></script>
+        <parameters>
+            <parameter name="PREF_KEY" mode="IN" sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+            <parameter name="PREF_VAL" mode="IN" sqlType="ARRAY" elementType="SYS.ODCIVARCHAR2LIST"/>
+        </parameters>
+    </expression>
+    <expression name="set.user" lang="JDBC">
+        <script><![CDATA[call JF_PKG_UTIL.Set_PrefUpper (:PREF_KEY, :PREF_VAL)]]></script>
+    </expression>
+
+    <expression name="get.user" lang="JDBC">
+        <script><![CDATA[{:_return=call JF_PKG_UTIL.Get_PrefUpper(?, null)}]]></script>
+        <parameters>
+            <parameter name="_return" mode="OUT" sqlType="VARCHAR"/>
+        </parameters>
+    </expression>
+    <expression name="get.user" lang="PL/pgSQL">
+        <script><![CDATA[{call JF_PKG_UTIL.Get_PrefUpper( ?, null::varchar, :_return)}]]></script>
+        <parameters>
+            <parameter name="_return" mode="OUT" sqlType="VARCHAR"/>
+        </parameters>
+    </expression>
+
+
+    <expression name="set.global" lang="JDBC">
+        <script><![CDATA[{call JF_PKG_UTIL.Set_Global_PrefUpper (:PREF_KEY, :PREF_VAL)}]]></script>
+    </expression>
+
+    <expression name="get.global" lang="JDBC">
+        <script><![CDATA[{:_return = call JF_PKG_UTIL.Get_Global_PrefUpper(?, null)}]]></script>
+        <parameters>
+            <parameter name="_return" mode="OUT" sqlType="VARCHAR"/>
+        </parameters>
+    </expression>
+    <expression name="get.global" lang="PL/pgSQL">
+        <script><![CDATA[{call JF_PKG_UTIL.Get_Global_PrefUpper(?, null::varchar,:_return)}]]></script>
+        <parameters>
+            <parameter name="_return" mode="OUT" sqlType="VARCHAR"/>
+        </parameters>
+    </expression>
+
+    <expression name="set.universal" lang="JDBC">
+        <script><![CDATA[{call JF_PKG_UTIL.Set_Universal_Preference (:PREF_KEY, :PREF_VAL)}]]></script>
+    </expression>
+
+    <expression name="get.universal" lang="JDBC">
+        <script><![CDATA[{:_return = call JF_PKG_UTIL.Get_Universal_Preference(?, null)}]]></script>
+        <parameters>
+            <parameter name="_return" mode="OUT" sqlType="VARCHAR"/>
+        </parameters>
+    </expression>
+    <expression name="get.universal" lang="PL/pgSQL">
+        <script><![CDATA[{call JF_PKG_UTIL.Get_Universal_Preference(?, null::varchar,:_return)}]]></script>
+        <parameters>
+            <parameter name="_return" mode="OUT" sqlType="VARCHAR"/>
+        </parameters>
+    </expression>
+
+</sql_expr_list>

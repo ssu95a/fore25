@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.VBox?>
+<?import ru.inversion.fx.form.controls.JInvButton?>
+<?import ru.inversion.fx.form.controls.JInvTable?>
+<?import ru.inversion.fx.form.controls.JInvTableColumn?>
+
+<VBox id="mainPane" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.inversion.fx.form.controls.filter.impl.ChoiceAutoFilterController">
+<children>
+    <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+              <tabs>
+                <Tab fx:id="tabFilters" text="%CHOICE_FILTER_PANE.TAB_FILTERS_TITLE">
+                  <content>
+                      <VBox>
+                         <children>
+                            <JInvTable fx:id="tblFlt" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                              <columns>
+                                  <JInvTableColumn editable="false" fieldName="CWHERENAME" prefWidth="75.0" text="%CHOICE_FILTER_PANE.TBL_FLT_COLUMN_CWHERENAME" transientColumn="false" />
+                                  <JInvTableColumn editable="false" fieldName="CUSER" prefWidth="75.0" text="%CHOICE_FILTER_PANE.TBL_FLT_COLUMN_USER" transientColumn="false" />
+                              </columns>
+                               <columnResizePolicy>
+                                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                               </columnResizePolicy>
+                            </JInvTable>
+                         </children>
+                         <padding>
+                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                         </padding>
+                      </VBox>
+                  </content>
+                </Tab>
+                <Tab fx:id="tabParam" text="%CHOICE_FILTER_PANE.TAB_PARAM_TITLE">
+                  <content>
+                  <VBox fx:id="paneParam" spacing="5.0">
+                     <children>
+                        <JInvTable fx:id="tblPrm" prefHeight="300.0" prefWidth="600.0" VBox.vgrow="ALWAYS">
+                          <columns>
+                              <JInvTableColumn editable="false" fieldName="IPARAMNUM" prefWidth="75.0" text="%CHOICE_FILTER_PANE.TBL_PRM_COLUMN_NOMER" transientColumn="false" />
+                              <JInvTableColumn editable="false" fieldName="CPARAMDESCR" prefWidth="75.0" text="%CHOICE_FILTER_PANE.TBL_PRM_COLUMN_PARAM" transientColumn="false" />
+                              <JInvTableColumn fx:id="colParamValue" editable="false" fieldName="CPARAMDEFAULT_CALC" prefWidth="75.0" text="%CHOICE_FILTER_PANE.TBL_PRM_COLUMN_VAL" />
+                          </columns>
+                           <columnResizePolicy>
+                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                           </columnResizePolicy>
+                           <VBox.margin>
+                              <Insets />
+                           </VBox.margin>
+                        </JInvTable>
+                     </children>
+                     <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </padding>
+                  </VBox>
+                  </content>
+                </Tab>
+              </tabs>
+               <VBox.margin>
+                  <Insets bottom="5.0" />
+               </VBox.margin>
+            </TabPane>
+             <ButtonBar buttonMinWidth="80.0">
+                 <buttons>
+                     <JInvButton fx:id="btOK" />
+                     <JInvButton fx:id="btCancel" />
+                 </buttons>
+                 <VBox.margin>
+                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                 </VBox.margin>
+             </ButtonBar>
+         </children>
+      </VBox>

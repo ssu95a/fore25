@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import ru.inversion.fx.form.controls.JInvBigDecimalSpinner?>
+<?import ru.inversion.fx.form.controls.JInvButton?>
+<?import ru.inversion.fx.form.controls.JInvLabel?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.inversion.fx.jinvtblexport.controller.ViewPrintController">
+   <children>
+      <Pane prefHeight="57.0" VBox.vgrow="ALWAYS">
+         <children>
+            <JInvLabel fx:id="titleReport" prefHeight="27.0" prefWidth="335.0" text="%REPORT_TITLE" />
+            <JInvBigDecimalSpinner fx:id="copies" layoutX="246.0" layoutY="30.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="27.0" prefWidth="90.0" />
+            <JInvLabel layoutX="129.0" layoutY="30.0" prefHeight="27.0" prefWidth="116.0" text="%COPIES" />
+         </children>
+      </Pane>
+      <Pane VBox.vgrow="ALWAYS">
+         <children>
+            <JInvButton fx:id="btPRINT" layoutY="15.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="80.0" text="%DIALOG.PRINT" />
+            <JInvButton fx:id="btVIEW" layoutX="85.0" layoutY="15.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="80.0" text="%DIALOG.VIEW" />
+            <JInvButton fx:id="btFILE" layoutX="170.0" layoutY="15.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="80.0" text="%DIALOG.FILE" />
+            <JInvButton fx:id="btCLOSE" layoutX="255.0" layoutY="15.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="80.0" text="%DIALOG.CLOSE" />
+         </children>
+      </Pane>
+   </children>
+   <padding>
+      <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+   </padding>
+</VBox>

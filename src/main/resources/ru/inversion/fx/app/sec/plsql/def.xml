@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sql_expr_list>
+    <expression name="isActList" lang="PL/SQL">
+        <script><![CDATA[
+        declare
+           l_actList SYS.ODCINUMBERLIST := :actList;
+           l_retList SYS.ODCINUMBERLIST := SYS.ODCINUMBERLIST();
+        begin
+           for i in 1 .. l_actList.count
+           loop
+               l_retList.extend;
+               l_retList(i) := JF_pkg_Util.odb_Access_Is_Act( l_actList(i) );
+           end loop;
+           :retList := l_retList;
+        end;
+        ]]></script>
+        <parameters>
+            <parameter name="actList" mode="IN"  sqlType="ARRAY" elementType="SYS.ODCINUMBERLIST"/>
+            <parameter name="retList" mode="OUT" sqlType="ARRAY" elementType="SYS.ODCINUMBERLIST" javaType="int"/>
+        </parameters>
+    </expression>
+    <expression name="isActList" lang="PL/pgSQL">
+        <script><![CDATA[
+          declare
+             l_actList _int4;
+             l_retList _int4;
+          begin
+              l_actList := :actList;
+
+              for i in 1 .. array_length(l_actList, 1 ) loop
+                 l_retList[i] := JF_pkg_Util.odb_Access_Is_Act( l_actList[i] );
+              end loop;
+
+              :retList := l_retList;
+          end;
+        ]]></script>
+        <parameters>
+            <parameter name="actList" mode="IN"  sqlType="ARRAY" elementType="_int4"/>
+            <parameter name="retList" mode="OUT" sqlType="ARRAY" elementType="_int4" javaType="int"/>
+        </parameters>
+    </expression>
+    <expression name="hasRole" lang="JDBC">
+        <script><![CDATA[{:_return = call JF_pkg_Util.Util_In_Role(:CROLE)}]]></script>
+        <parameters>
+            <parameter name="_return" mode="OUT" sqlType="INTEGER" javaType="int"/>
+        </parameters>
+    </expression>
+
+    <expression name="isAct" lang="JDBC">
+        <script><![CDATA[{:_return = call JF_pkg_Util.odb_Access_Is_Act(:ACT_ID)}]]></script>
+        <parameters>
+            <parameter name="_return" mode="OUT" sqlType="INTEGER" javaType="int"/>
+        </parameters>
+    </expression>
+
+    <expression name="getActErr" lang="JDBC">
+        <script><![CDATA[{:_return = call JF_pkg_Util.odb_Access_Get_Act_Err(:ACT_ID)}]]></script>
+        <parameters>
+            <parameter name="_return" mode="OUT" sqlType="VARCHAR"/>
+        </parameters>
+    </expression>
+
+</sql_expr_list>

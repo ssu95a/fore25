@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import ru.inversion.fx.form.controls.*?>
+<AnchorPane fx:id="rootPane" prefWidth="550.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.inversion.fx.form.controls.filter.impl.FilterExportController">
+   <children>
+      <GridPane fx:id="gridPane" hgap="5.0" vgap="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" />
+          <ColumnConstraints hgrow="SOMETIMES" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints maxHeight="50.0" minHeight="-Infinity" prefHeight="80.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="50.0" minHeight="30.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <HBox alignment="TOP_RIGHT" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </padding>
+               <children>
+                  <JInvButton fx:id="btOK" prefWidth="80.0"/>
+                  <JInvButton fx:id="btCancel" prefWidth="80.0"/>
+               </children>
+            </HBox>
+            <AnchorPane maxHeight="25.0" GridPane.rowIndex="1">
+               <GridPane.margin>
+                  <Insets top="5.0" />
+               </GridPane.margin>
+               <children>
+                  <JInvCheckBox fx:id="openAfterExport" layoutX="46.0" layoutY="5.0" selected="true" text="%FILTER_EXPORT_OPEN.FILE.AFTER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+               </children>
+            </AnchorPane>
+            <AnchorPane fx:id="progressPane" maxHeight="20.0" GridPane.rowIndex="2">
+               <GridPane.margin>
+                  <Insets top="5.0" />
+               </GridPane.margin>
+            </AnchorPane>
+            <AnchorPane GridPane.columnSpan="2">
+               <children>
+                  <JInvTextField fx:id="exportPath" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" />
+                  <JInvLabel layoutX="29.0" layoutY="37.0" text="%FILTER_EXPORT_PATH.LABEL" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="5.0" />
+               </children>
+            </AnchorPane>
+         </children>
+      </GridPane>
+   </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+   </padding>
+</AnchorPane>

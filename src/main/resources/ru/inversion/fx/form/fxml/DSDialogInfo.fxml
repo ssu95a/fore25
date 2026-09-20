@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import ru.inversion.fx.form.controls.JInvTextArea?>
+<AnchorPane id="AnchorPane" prefHeight="600.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.inversion.dataset.fx.DSInfoDialogController">
+   <children>
+      <TabPane layoutX="14.0" layoutY="14.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+        <tabs>
+          <Tab text="%QUERY_TITLE">
+            <content>
+                  <JInvTextArea fx:id="edQUERY" editable="false" extensionType="SQL" style="-fx-background-color: #FFFFE0;" wrapText="true">
+                     <font>
+                        <Font name="Monospaced Regular" size="12.0" />
+                     </font>
+                  </JInvTextArea>
+            </content>
+          </Tab>
+          <Tab text="%QUERY_WITH_PARAMS_TITLE">
+            <content>
+                  <JInvTextArea fx:id="edQUERY_WITH_PARAMS" editable="false" extensionType="SQL" wrapText="true">
+                     <font>
+                        <Font name="Monospaced Regular" size="12.0" />
+                     </font>
+                  </JInvTextArea>
+            </content>
+          </Tab>
+          <Tab text="%PROPERTIES_TITLE">
+            <content>
+                  <JInvTextArea fx:id="edPROPERTIES" editable="false" extensionType="TXT" wrapText="true">
+                     <font>
+                        <Font name="Monospaced Regular" size="12.0" />
+                     </font>
+                  </JInvTextArea>
+            </content>
+          </Tab>
+        </tabs>
+      </TabPane>
+   </children>
+</AnchorPane>

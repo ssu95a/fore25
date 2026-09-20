@@ -1,0 +1,888 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <!--
+  Указан родительский пом. Из него берутся настройки репозитория куда и откуда необходимо загружать артефакты, а также
+  общие для всех jar пункты манифеста
+  -->
+  <parent>
+    <groupId>ru.inversion</groupId>
+    <artifactId>inversion-parent</artifactId>
+    <version>1</version>
+    <relativePath/>
+  </parent>
+
+  <artifactId>JInvFore</artifactId>
+  <version>1.0.1</version>
+  <packaging>jar</packaging>
+
+  <!--
+  Расположение исходного кода в svn. Необходимо для подгрузки версии текущей ревизии и принудительного update
+  при сборке и установки этого значения в манифест
+  -->
+  <scm>
+    <connection>scm:svn:svn://canopus:3690/products/core/fx/JInvFore/trunk</connection>
+    <developerConnection>scm:svn:svn://canopus:3690/products/core/fx/JInvFore/trunk</developerConnection>
+    <tag>HEAD</tag>
+    <url>scm:svn:svn://canopus:3690/products/core/fx/JInvFore/trunk</url>
+  </scm>
+
+    <properties>
+        <inversion.embed.sources.skip>true</inversion.embed.sources.skip>
+    </properties>
+
+  <build>
+    <finalName>JInvFore</finalName>
+    <plugins>
+      <!--
+      Идем по зависимостям и распаковываем их в каталог для сборки. Эти классы будут включены в jar файл.
+      Исключаем транзитивные зависимости.
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-dependencies</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+              <excludeTransitive>true</excludeTransitive>
+              <!--Распаковываем все артефакты имеющие такие id.  ru.inversion.tools тянется от MDOM-->
+              <includeGroupIds>ru.inversion,ru.inversion.tools</includeGroupIds>
+<!--              <excludeTypes>pom</excludeTypes>-->
+              <!--Исключаем ijdbc из сборки, хотя он имеет id ru.inversion-->
+              <excludeArtifactIds>ijdbc,crypto-etoken,FXbicomp</excludeArtifactIds>
+              <!--Исключаем папку с исходниками crypto-->
+              <excludes>source/</excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!--
+          Упаковываем распакованный шагом выше классы в jar файл
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${version.jar.plugin}</version>
+        <configuration>
+          <archive>
+              <addMavenDescriptor>false</addMavenDescriptor>
+            <manifest>
+              <classpathPrefix>lib/</classpathPrefix>
+              <addClasspath>true</addClasspath>
+              <classpathLayoutType>custom</classpathLayoutType>
+              <customClasspathLayout>$${artifact.artifactId}.$${artifact.extension}</customClasspathLayout>
+            </manifest>
+            <manifestEntries>
+              <!-- Added ClassPath for Dynamic Jasper -->
+
+              <!--<Class-Path>lib/commons-beanutils-1.9.4.jar
+                  lib/dynamicreports-adhoc-6.12.0.jar
+                  lib/xmlgraphics-commons-2.4.jar
+                  lib/dynamicreports-core-6.12.0.jar
+                  lib/itext-2.1.7.js8.jar
+                  lib/jasperreports-6.16.0.jar
+                  lib/castor-core-1.4.1.jar
+                  lib/castor-xml-1.4.1.jar
+                  lib/ecj-4.4.2.jar
+                  lib/jfreechart-1.0.19.jar
+                  lib/jcommon-1.0.23.jar
+                  lib/commons-digester-2.1.jar
+                  lib/jasperreports-fonts-6.12.2.jar
+                  lib/SparseBitSet-1.2.jar
+                  lib/commons-math3-3.6.1.jar</Class-Path>-->
+
+              <Class-Path>lib/jsr305.jar crypto-etoken.jar lib/ijdbc.jar lib/commons-beanutils.jar lib/dynamicreports-adhoc.jar lib/xmlgraphics-commons.jar lib/dynamicreports-core.jar lib/itext.jar lib/jasperreports.jar lib/castor-core.jar lib/castor-xml.jar lib/ecj.jar lib/jfreechart.jar lib/jcommon.jar lib/commons-digester.jar lib/jasperreports-fonts.jar lib/SparseBitSet.jar lib/commons-math3.jar
+              </Class-Path>
+              <!--
+              Добавляем в манифест версия номер последнего комита
+              -->
+              <SCM-Revision>${buildNumber}</SCM-Revision>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <!--Задача плагина перед началом сборки сделать update исходного кода и запомнить
+        номер последнего комита в переменную buildNumber -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>create</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <doCheck>false</doCheck>
+          <doUpdate>true</doUpdate>
+          <providerImplementations>
+            <svn>javasvn</svn>
+          </providerImplementations>
+          <!--Для того, чтобы обновить исходный код плагину необходимо передавать логин пароль для svn
+          Если не указано, то будет пытаться вытащить из настроек клиента Subversion или ToruaseSvn
+          тут c:\Users\AntonovDI.INVERSION\AppData\Roaming\Subversion\auth\svn.simple\
+
+          Если этих данных нет, то можно сохранить эти переменные в settings.xml для
+          мавена.
+            <profile>
+              <id>default</id>
+              <activation>
+                <activeByDefault>true</activeByDefault>
+              </activation>
+          <properties>
+            <svnLogin>логин</svnLogin>
+            <svnPassword>ываываываываы</svnPassword>
+-->
+
+          <username>${svnLogin}</username>
+          <password>${svnPassword}</password>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>8</source>
+          <target>8</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <profiles>
+
+    <profile>
+      <id>build</id>
+
+      <!--
+          Это основной профиль для сборки приложения. Понадобилось его выделять отдельно для корректного
+          формирования манифеста. Так как мы включаем инверсионные модули в себя, зависимости этих модулей необходимо
+          явно указывать как ядерные зависимости, чтобы dependency плагин их подтягивал в манифест.
+          В свою очередь сами инверсионные зависимости указывать в манифесте не нужно.
+      -->
+
+      <build>
+        <finalName>JInvFore</finalName>
+        <plugins>
+          <plugin>
+            <!--
+            Генерация документации.
+            Документация по плагину см. http://khmarbaise.github.io/doxygen-maven-plugin/usage.html
+
+            DOXYGEN используется только потому, что java doc утилиту стандартную не получилось прикрутить.
+            На тот момент в ней была бага, методы не должны были заканчиваться на Property, а в fx
+            таких методов полно
+            -->
+            <groupId>com.soebes.maven.plugins</groupId>
+            <artifactId>doxygen-maven-plugin</artifactId>
+            <version>1.1.0</version>
+            <executions>
+              <execution>
+                <id>javadoc-jar</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+                <configuration>
+                  <skip>true</skip>
+                  <!--  Для того, чтобы в документацию включался еще и JInvCommon
+                  -->
+                  <input>../JInvCommon/src/main ${project.build.sourceDirectory}</input>
+                  <outputDirectory>${basedir}/target/docs</outputDirectory>
+                  <recursive>true</recursive>
+                  <outputLanguage>Russian</outputLanguage>
+                  <showFiles>false</showFiles>
+                  <classDiagrams>true</classDiagrams>
+                  <optimizeOutputJava>true</optimizeOutputJava>
+                  <extractAll>true</extractAll>
+                  <showDirectories>false</showDirectories>
+                  <dotFontname>Helvetica</dotFontname>
+                  <haveDot>false</haveDot>
+                  <tocExpand>true</tocExpand>
+                  <inlineSources>false</inlineSources>
+                  <searchengine>true</searchengine>
+                  <sourceBrowser>false</sourceBrowser>
+                  <callerGraph>true</callerGraph>
+                  <javadocAutobrief>true</javadocAutobrief>
+                  <callGraph>true</callGraph>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+<!--
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <configuration>
+              <descriptor>src/main/resources/assembly/bin.xml</descriptor>
+              <finalName>JInvFore-htmlDocs</finalName>
+              <appendAssemblyId>false</appendAssemblyId>
+            </configuration>
+            <executions>
+              <execution>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+-->
+            <!--
+                Копируем файлы на сетевой диск.
+            -->
+          <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>${version.resources.plugin}</version>
+            <executions>
+              <execution>
+                <id>copy-resources</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${ru.inversion.copy}</outputDirectory>
+                  <overwrite>true</overwrite>
+                  <resources>
+                    <resource>
+                      <directory>${basedir}/target/</directory>
+                      <includes>
+                        <include>JInvFore.jar</include>
+                        <include>JInvFore-htmlDocs.zip</include>
+                      </includes>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+              <execution>
+                <id>copy-resources.2</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${ru.inversion.copy.2}</outputDirectory>
+                  <overwrite>true</overwrite>
+                  <resources>
+                    <resource>
+                      <directory>${basedir}/target/</directory>
+                      <includes>
+                        <include>JInvFore.jar</include>
+                      </includes>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+              <execution>
+                <id>copy-docs-to-folder</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${ru.inversion.copyserver}/fore</outputDirectory>
+                  <overwrite>true</overwrite>
+                  <resources>
+                    <resource>
+                      <directory>${basedir}/target/docs/doxygen</directory>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.10</version>
+            <executions>
+              <execution>
+                <id>get</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>copy-dependencies</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${ru.inversion.copy}/lib</outputDirectory>
+                  <includeArtifactIds>ijdbc</includeArtifactIds>
+                  <stripVersion>true</stripVersion>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+
+      <dependencies>
+
+        <!--Зависимости на инверсионные модули PROVIDED, чтобы их не было в манифесте так как включаем их код внутрь
+      + все зависимости модулей сторонние, чтобы в манифесте были-->
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <version>7.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--.ICO icon support-->
+<!--        <dependency>-->
+<!--          <groupId>com.twelvemonkeys.imageio</groupId>-->
+<!--          <artifactId>imageio-core</artifactId>-->
+<!--          <version>3.8.2</version>-->
+<!--        </dependency>-->
+
+        <!--<dependency>-->
+        <!--<scope>provided</scope>-->
+        <!--<groupId>${project.groupId}</groupId>-->
+        <!--<artifactId>JInvIconService</artifactId>-->
+        <!--<version>0.9.0</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--<scope>provided</scope>-->
+        <!--<groupId>${project.groupId}</groupId>-->
+        <!--<artifactId>JInvStimul</artifactId>-->
+        <!--<version>1.0.0</version>-->
+        <!--</dependency>-->
+        <dependency>
+          <groupId>com.stimulsoft</groupId>
+          <artifactId>stimulsoft.reports-report</artifactId>
+          <version>2016.3.10</version>
+        </dependency>
+        <dependency>
+          <groupId>com.stimulsoft</groupId>
+          <artifactId>stimulsoft.lib</artifactId>
+          <version>2016.3.10</version>
+        </dependency>
+        <dependency>
+          <groupId>com.stimulsoft</groupId>
+          <artifactId>stimulsoft.reports-base</artifactId>
+          <version>2016.3.10</version>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <!--Профиль разработчика. Инверсионные зависимости в этом случае не являются provided, поэтому их зависисти
+      указывать не нужно. В противном случае ide Netbeans не понимала дерево зависимостей и проекты не собирались
+      Использование данного профиля для сборки ядра не является корректным с точки зрения правильности манифеста-->
+
+      <id>def</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.stimulsoft</groupId>
+          <artifactId>stimulsoft.reports-report</artifactId>
+          <version>2016.3.10</version>
+        </dependency>
+        <dependency>
+          <groupId>com.stimulsoft</groupId>
+          <artifactId>stimulsoft.lib</artifactId>
+          <version>2016.3.10</version>
+        </dependency>
+        <dependency>
+          <groupId>com.stimulsoft</groupId>
+          <artifactId>stimulsoft.reports-base</artifactId>
+          <version>2016.3.10</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
+  <dependencies>
+    <dependency>
+<!--      <scope>provided</scope>-->
+      <groupId>${project.groupId}</groupId>
+      <artifactId>JInvCommon</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <!--Зависимости самого ядра-->
+    <dependency>
+      <groupId>com.google.code.maven-scm-provider-svnjava</groupId>
+      <artifactId>maven-scm-provider-svnjava</artifactId>
+      <version>2.1.2</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-io</artifactId>
+          <groupId>commons-io</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jna</artifactId>
+          <groupId>net.java.dev.jna</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>plexus-utils</artifactId>
+          <groupId>org.codehaus.plexus</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jna-platform</artifactId>
+          <groupId>net.java.dev.jna</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>trilead-ssh2</artifactId>
+          <groupId>com.trilead</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jfxtras</groupId>
+      <artifactId>jfxtras-controls</artifactId>
+      <version>8.0-r6</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.jfxtras</groupId>
+      <artifactId>jfxtras-labs</artifactId>
+      <version>8.0-r6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.controlsfx</groupId>
+      <artifactId>controlsfx</artifactId>
+      <version>8.40.18</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.fxmisc.richtext</groupId>
+      <artifactId>richtextfx</artifactId>
+      <version>0.10.8</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.jacob</groupId>
+      <artifactId>jacob</artifactId>
+      <version>1.21</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.12.0</version>
+    </dependency>
+<!--
+    <dependency>
+      <groupId>org.quartz-scheduler</groupId>
+      <artifactId>quartz</artifactId>
+      <version>2.2.3</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+-->
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.9.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.santuario</groupId>
+      <artifactId>xmlsec</artifactId>
+      <version>2.2.6</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.woodstox</groupId>
+          <artifactId>woodstox-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.15</version>
+    </dependency>
+    <dependency>
+      <groupId>jaxen</groupId>
+      <artifactId>jaxen</artifactId>
+      <version>1.1.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jdom</groupId>
+      <artifactId>jdom2</artifactId>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>com.microsoft.sqlserver</groupId>
+      <artifactId>mssql-jdbc</artifactId>
+      <version>6.2.1.jre8</version>
+      <scope>provided</scope>
+      <!--            <scope>test</scope>-->
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+      <!--            POI 4.1.2 -->
+      <version>4.1.2</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-codec</artifactId>
+          <groupId>commons-codec</groupId>
+        </exclusion>
+      </exclusions>
+      <!--          <version>3.16</version>-->
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml</artifactId>
+      <!--            POI 4.1.2 -->
+      <version>4.1.2</version>
+      <!--            <version>3.16</version>-->
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.xmlbeans</groupId>
+          <artifactId>xmlbeans</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.poi</groupId>
+          <artifactId>poi-ooxml-schemas</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>ooxml-schemas</artifactId>
+      <version>1.4</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.xmlbeans</groupId>
+          <artifactId>xmlbeans</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>commons-dbutils</groupId>
+      <artifactId>commons-dbutils</artifactId>
+      <version>1.7</version>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>5.2.0</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna-platform</artifactId>
+      <version>5.2.0</version>
+    </dependency>
+    <!--
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>org.json</artifactId>
+      <version>chargebee-1.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.itextpdf</groupId>
+      <artifactId>itextpdf</artifactId>
+      <version>5.5.13.1</version>
+    </dependency>
+    -->
+
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>1.47</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-jdk15on</artifactId>
+      <version>1.47</version>
+    </dependency>
+
+<!--      <dependency>-->
+<!--          <groupId>org.bouncycastle</groupId>-->
+<!--          <artifactId>bcprov-jdk18on</artifactId>-->
+<!--          <version>1.83</version>-->
+<!--      </dependency>-->
+<!--      <dependency>-->
+<!--          <groupId>org.bouncycastle</groupId>-->
+<!--          <artifactId>bcpkix-jdk18on</artifactId>-->
+<!--          <version>1.83</version>-->
+<!--      </dependency>-->
+
+<!--
+-->
+
+
+    <dependency>
+      <groupId>org.apache.xmlbeans</groupId>
+      <artifactId>xmlbeans</artifactId>
+      <!--            <version>4.0.0</version>-->
+      <!--            POI 4.1.2 -->
+      <version>3.1.0</version>
+      <!--            <version>2.6.0</version>-->
+    </dependency>
+    <dependency>
+      <!--            POI 4.1.2 -->
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>1.19</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- Dynamic Reports (Jasper Based) -->
+
+    <dependency>
+      <groupId>ru.inversion.crypto.etoken</groupId>
+      <artifactId>crypto-etoken</artifactId>
+      <version>1.7</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>net.sourceforge.dynamicreports</groupId>
+      <artifactId>dynamicreports-core</artifactId>
+      <version>6.12.0</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-io</groupId>
+          <artifactId>commons-io</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>commons-beanutils</artifactId>
+          <groupId>commons-beanutils</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>commons-lang</artifactId>
+          <groupId>commons-lang</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>commons-lang3</artifactId>
+          <groupId>org.apache.commons</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jackson-annotations</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jackson-core</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jackson-databind</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>net.sourceforge.dynamicreports</groupId>
+      <artifactId>dynamicreports-adhoc</artifactId>
+      <version>6.12.0</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- End Dynamic Reports (Jasper Based) -->
+
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-fonts</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.lowagie</groupId>
+      <artifactId>itext</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.20</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.github.java-native</groupId>
+      <artifactId>jssc</artifactId>
+      <version>2.9.4</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>native-lib-loader</artifactId>
+          <groupId>org.scijava</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.scijava</groupId>
+      <artifactId>native-lib-loader</artifactId>
+      <version>2.4.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml-schemas</artifactId>
+      <version>4.1.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.2</version>
+    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>commons-io</groupId>-->
+<!--      <artifactId>commons-io</artifactId>-->
+<!--      <version>2.15.1</version>-->
+<!--      <scope>compile</scope>-->
+<!--    </dependency>-->
+    <dependency>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
+      <version>5.6</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>ru.inversion.tools</groupId>
+      <artifactId>MDom</artifactId>
+      <version>2.0.0</version>
+      <exclusions>
+        <exclusion>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.dataformat</groupId>
+          <artifactId>jackson-dataformat-xml</artifactId>
+        </exclusion>
+          <exclusion>
+            <groupId>org.json</groupId>
+            <artifactId>org.json</artifactId>
+          </exclusion>
+      </exclusions>
+    </dependency>
+      <dependency>
+          <groupId>org.json</groupId>
+          <artifactId>json</artifactId>
+          <version>20250107</version>
+      </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-digester</groupId>
+      <artifactId>commons-digester</artifactId>
+      <version>2.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.googlecode.juniversalchardet</groupId>
+      <artifactId>juniversalchardet</artifactId>
+      <version>1.0.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.quartz-scheduler</groupId>
+      <artifactId>quartz</artifactId>
+      <version>2.0.2</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- Test -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.3.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.3.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-runner</artifactId>
+      <version>1.3.2</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+</project>

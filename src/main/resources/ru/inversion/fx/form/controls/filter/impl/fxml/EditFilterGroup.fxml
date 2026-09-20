@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.*?>
+<?import ru.inversion.fx.form.controls.*?>
+<?import javafx.scene.control.ButtonBar?>
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="180.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.inversion.fx.form.controls.filter.impl.EditFilterGroupController">
+   <children>
+      <VBox prefHeight="200.0" prefWidth="100.0" spacing="5.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+         <children>
+            <GridPane hgap="5.0" vgap="5.0" VBox.vgrow="ALWAYS">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="-Infinity" />
+                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="465.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <StackPane>
+                     <children>
+                        <JInvLabel text="%ID.FILTER.GROUP" StackPane.alignment="CENTER_RIGHT" />
+                     </children>
+                  </StackPane>
+                  <JInvTextField fx:id="idFilterField" fieldName="ID" requiredState="REQUIRED" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
+                  <StackPane alignment="CENTER_RIGHT" GridPane.rowIndex="1">
+                     <children>
+                        <JInvLabel text="%CNAME.FILTER.GROUP" />
+                     </children>
+                  </StackPane>
+                  <JInvTextField fx:id="nameFilterField" fieldName="CNAME" requiredState="REQUIRED" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
+               </children>
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </GridPane>
+            <Separator prefWidth="200.0" />
+             <ButtonBar buttonMinWidth="80.0">
+                 <buttons>
+                     <JInvButton fx:id="btOK"/>
+                     <JInvButton fx:id="btCancel"/>
+                 </buttons>
+             </ButtonBar>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>
