@@ -9,8 +9,5 @@ public enum PropertyType {
    DB_GLOBAL,
    DB_UNIVERSAL,
 
-   LOCAL_USER,
-   LOCAL_SYSTEM,
-
    APP_CACHE
 }

@@ -1,5 +1,7 @@
 package ru.inversion.fore.app.properties;
 
+import ru.inversion.utils.S;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -32,7 +34,9 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
    private static final String FILE_PROPERTIES = "file_properties";
 
    private final RuntimePropertySource runtimeSource;
-   private final List<PropertySource> sources;
+
+   private final List<PropertySource>  sources;
+
 
    /**
     * Уже загруженное effective-состояние.
@@ -45,6 +49,7 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
       this.runtimeSource = Objects.requireNonNull(runtimeSource);
       this.sources = List.copyOf(sources);
    }
+
 
    /**
     * Создаёт стандартный набор bootstrap-свойств Fore.
@@ -64,7 +69,7 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
 
       final Path propertyFile = resolvePropertyFile(applicationId, args);
 
-      return new BootstrapProperties(
+      return new BootstrapProperties (
          runtime,
          List.of (
             runtime,
@@ -72,21 +77,21 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
             new NamedArgumentsSource(args),
             new FilePropertySource(propertyFile),
             new EnvPropertySource(),
-            new PreferencesPropertySource( "preferences-user", Preferences.userRoot() ),
-            new PreferencesPropertySource( "preferences-system", Preferences.systemRoot() )
+            new PreferencesPropertySource( "preferences-user",   Preferences.userRoot().node(applicationId) ),
+            new PreferencesPropertySource( "preferences-system", Preferences.systemRoot().node(applicationId) )
          )
       );
    }
 
 
    /** */
-   private static String applicationId(Class<?> applicationClass) {
-
+   private static String applicationId( Class<?> applicationClass )
+   {
       final String packageName = applicationClass.getPackageName();
       final String prefix      = "ru.inversion.";
 
       if( !packageName.startsWith(prefix) )
-         throw new IllegalArgumentException( "Application class must be in ru.inversion package: " + applicationClass.getName() );
+          throw new IllegalArgumentException( "Application class must be in ru.inversion package: " + applicationClass.getName() );
 
       final String name = packageName.substring(prefix.length());
 
@@ -94,6 +99,7 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
 
       return dot < 0 ? name : name.substring(0, dot);
    }
+
 
    /**
     * Загружает указанные свойства.
@@ -105,47 +111,40 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
     * если при новой загрузке оно больше не найдено ни в одном источнике.</p>
     */
    @Override
-   public PropertySnapshot load(Collection<String> names) {
-
-      if (names == null || names.isEmpty()) {
-         return new PropertySnapshot(PropertyType.BOOTSTRAP, Map.of());
-      }
+   public PropertySnapshot load( Collection<String> names )
+   {
+      if( names == null || names.isEmpty() )
+          return new PropertySnapshot( PropertyType.BOOTSTRAP, Map.of() );
 
       final LinkedHashSet<String> requested = new LinkedHashSet<>();
 
-      for (String name : names) {
-         if (name != null) {
-            requested.add(name);
-         }
+      for( String name : names )
+      {
+         if( !S.isNullOrEmpty(name) )
+              requested.add(name);
       }
 
-      if (requested.isEmpty()) {
-         return new PropertySnapshot(PropertyType.BOOTSTRAP, Map.of());
-      }
+      if( requested.isEmpty() )
+          return new PropertySnapshot(PropertyType.BOOTSTRAP, Map.of());
 
-      final LinkedHashSet<String> unresolved =
-              new LinkedHashSet<>(requested);
+      final LinkedHashSet<String> unresolved = new LinkedHashSet<>(requested);
 
       final Map<String, Object> loaded = new LinkedHashMap<>();
 
-      for (PropertySource source : sources) {
+      for( PropertySource source : sources )
+      {
+         if( unresolved.isEmpty() )
+             break;
 
-         if (unresolved.isEmpty()) {
-            break;
-         }
+         final Map<String, Object> values = source.load(unresolved);
 
-         final Map<String, Object> values =
-                 source.load(unresolved);
+         if( values == null || values.isEmpty() )
+             continue;
 
-         if (values == null || values.isEmpty()) {
-            continue;
-         }
-
-         for (String name : List.copyOf(unresolved)) {
-
-            if (!values.containsKey(name)) {
-               continue;
-            }
+         for( String name : List.copyOf(unresolved) )
+         {
+            if( !values.containsKey(name) )
+                continue;
 
             final Object value = values.get(name);
 
@@ -153,7 +152,8 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
              * По контракту PropertySource null-значения
              * не должны возвращаться.
              */
-            if (value != null) {
+            if( value != null )
+            {
                loaded.put(name, value);
                unresolved.remove(name);
             }
@@ -164,25 +164,27 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
        * Обновляем effective-состояние только для явно
        * запрошенных свойств.
        */
-      for (String name : requested) {
-         properties.remove(name);
+      for( String name : requested ) {
+           properties.remove(name);
       }
 
       properties.putAll(loaded);
 
-      return new PropertySnapshot(PropertyType.BOOTSTRAP, loaded);
+      return new PropertySnapshot( PropertyType.BOOTSTRAP, loaded );
    }
+
 
    /**
     * Возвращает уже загруженное значение.
     *
-    * Метод не выполняет IO и не обращается к PropertySource.
+    * <p>Метод не выполняет IO и не обращается к PropertySource.
     */
    @Override
    @SuppressWarnings("unchecked")
    public <T> T get(String name) {
       return (T) properties.get(name);
    }
+
 
    /**
     * Возвращает уже загруженное значение как String.
@@ -193,11 +195,9 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
    public String getString(String name) {
 
       final Object value = properties.get(name);
-
-      return value == null
-              ? null
-              : value.toString();
+      return value == null ? null : value.toString();
    }
+
 
    /**
     * Проверяет наличие свойства в уже загруженном effective-состоянии.
@@ -207,51 +207,46 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
       return properties.containsKey(name);
    }
 
+
    /**
     * Применяет runtime-изменения.
     *
-    * Runtime source имеет максимальный приоритет.
+    * <p>Runtime source имеет максимальный приоритет.
     */
    @Override
    public void apply(PropertyPatch patch) {
 
-      if (patch == null) {
-         return;
-      }
+      if( patch == null )
+          return;
 
       runtimeSource.apply(patch);
       properties.putAll(patch.values());
    }
 
+
    /**
     * Закрывает все источники свойств.
     */
    @Override
-   public void close() {
+   public void close( ) {
 
       RuntimeException error = null;
 
-      for (PropertySource source : sources) {
+      for( PropertySource source : sources )
+      {
          try {
             source.close();
          }
          catch (Exception ex) {
-
-            if (error == null) {
-               error = new RuntimeException(
-                       "Unable to close property source: " + source.name(),
-                       ex
-               );
-            }
-            else {
-               error.addSuppressed(ex);
-            }
+            if( error == null )
+                error = new RuntimeException( "Unable to close property source: " + source.name(), ex );
+            else
+                error.addSuppressed(ex);
          }
       }
 
-      if (error != null) {
-         throw error;
-      }
+      if( error != null )
+          throw error;
    }
 
    /**
@@ -260,72 +255,53 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
     * Приоритет соответствует старому PRP_AppProperties:
     *
     * <ol>
-    *     <li>-D&lt;appId&gt;.file_properties</li>
+    *     <li>-D&lt;applicationId&gt;.file_properties</li>
     *     <li>-Dfile_properties</li>
-    *     <li>named argument &lt;appId&gt;.file_properties</li>
+    *     <li>named argument &lt;applicationId&gt;.file_properties</li>
     *     <li>named argument file_properties</li>
-    *     <li>${user.home}/&lt;appId&gt;.properties</li>
+    *     <li>${user.home}/&lt;applicationId&gt;.properties</li>
     *     <li>${user.home}/xxiapp.properties</li>
     * </ol>
     */
-   private static Path resolvePropertyFile(
-           String appId,
-           Map<String, String> arguments) {
-
-      final String appFileProperty =
-              appId == null || appId.isBlank()
-                      ? null
-                      : appId + "." + FILE_PROPERTIES;
+   private static Path resolvePropertyFile( String applicationId, Map<String, String> arguments )
+   {
+      final String appFileProperty = applicationId == null || applicationId.isBlank() ? null : applicationId + "." + FILE_PROPERTIES;
 
       String fileName = null;
 
-      if (appFileProperty != null) {
-         fileName = System.getProperty(appFileProperty);
-      }
+      if( appFileProperty != null )
+          fileName = System.getProperty(appFileProperty);
 
-      if (isEmpty(fileName)) {
-         fileName = System.getProperty(FILE_PROPERTIES);
-      }
+      if( S.isNullOrEmpty(fileName) )
+          fileName = System.getProperty(FILE_PROPERTIES);
 
-      if (isEmpty(fileName) && appFileProperty != null) {
-         fileName = arguments.get(appFileProperty);
-      }
+      if( S.isNullOrEmpty(fileName) && appFileProperty != null )
+          fileName = arguments.get(appFileProperty);
 
-      if (isEmpty(fileName)) {
-         fileName = arguments.get(FILE_PROPERTIES);
-      }
+      if( S.isNullOrEmpty(fileName) )
+          fileName = arguments.get(FILE_PROPERTIES);
 
-      if (!isEmpty(fileName)) {
-         return Path.of(fileName);
-      }
+      if( !S.isNullOrEmpty(fileName) )
+          return Path.of(fileName);
 
       final String userHome = System.getProperty("user.home");
 
-      if (isEmpty(userHome)) {
-         return null;
-      }
+      if( S.isNullOrEmpty(userHome) )
+          return null;
 
       final Path home = Path.of(userHome);
 
-      if (appId != null && !appId.isBlank()) {
+      if( applicationId != null && !applicationId.isBlank() )
+      {
+         final Path appFile = home.resolve( applicationId + ".properties" );
 
-         final Path appFile =
-                 home.resolve(appId + ".properties");
-
-         if (Files.isRegularFile(appFile)) {
-            return appFile;
-         }
+         if( Files.isRegularFile(appFile) )
+             return appFile;
       }
 
-      final Path defaultFile =
-              home.resolve("xxiapp.properties");
+      final Path defaultFile = home.resolve("xxiapp.properties");
 
-      return Files.isRegularFile(defaultFile)
-              ? defaultFile
-              : null;
+      return Files.isRegularFile(defaultFile) ? defaultFile : null;
    }
 
-   private static boolean isEmpty(String value) {
-      return value == null || value.isBlank();
-   }
 }

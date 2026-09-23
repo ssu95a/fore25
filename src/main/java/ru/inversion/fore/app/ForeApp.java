@@ -2,8 +2,6 @@ package ru.inversion.fore.app;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import ru.inversion.fx.app.property.IAppProperties;
-import ru.inversion.fx.app.property.PropertiesTypeEnum;
 import ru.inversion.fx.form.ViewContext;
 import ru.inversion.tc.TaskContext;
 
@@ -20,14 +18,6 @@ public abstract class ForeApp extends Application {
    protected ViewContext primaryViewContext;
 
    public abstract String getAppID();
-
-   public abstract IAppProperties getProperties(PropertiesTypeEnum type);
-
-   public <P> P overridePropertyValue(
-           PropertiesTypeEnum type,
-           String property) {
-      return null;
-   }
 
    public abstract TaskContext getCommonTaskContext();
 
