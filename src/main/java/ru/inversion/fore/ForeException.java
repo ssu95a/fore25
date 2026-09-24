@@ -10,7 +10,7 @@ public class ForeException extends RuntimeException implements IExceptionInfo {
    }
 
    public ForeException(String message, Throwable cause) {
-      super(message, cause);
+      super( Tags.PRODUCT_LABEL + message, cause);
    }
 
    @Override

@@ -6,30 +6,19 @@ import ru.inversion.tc.TaskContext;
 import java.util.Map;
 import java.util.ResourceBundle;
 
-/** */
-public record FormContext<T, C extends FormController<?>> (
+public interface FormContext<T> {
 
-   TaskContext taskContext,
+   TaskContext taskContext();
 
-   Window window,
-   Window owner,
+   Window owner();
 
-   T dataObject,
+   T dataObject();
 
-   Map<String, Object> parameters,
+   Map<String, Object> parameters();
 
-   ResourceBundle bundle,
+   ResourceBundle bundle();
 
-   C parentController
-)
-{
-   public FormContext {
-      parameters = parameters == null ? Map.of() : Map.copyOf(parameters);
-   }
+   FormController<?> parentController();
 
-   @SuppressWarnings("unchecked")
-   public <V> V parameter( String name )
-   {
-      return (V) parameters.get(name);
-   }
+   Window window();
 }

@@ -1,6 +1,6 @@
 package ru.inversion.fore.form;
 
-public class FormLaunchException extends FromException {
+public class FormLaunchException extends FormException {
 
    final private String details;
    final private Class<?> controllerClass;

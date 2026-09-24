@@ -120,14 +120,8 @@ public final class BootstrapProperties implements ForeProperties, AutoCloseable 
       for( PropertySource source : sources )
            source.load( names, loaded );
 
-      Set<String> loadedNames = loaded.keySet();
-      Set<String> unusedNames = names.stream().filter(s->!loadedNames.contains(s) ).collect(Collectors.toSet());
-
-      /*
-       * Обновляем effective-состояние только для явно
-       * запрошенных свойств.
-       */
-      properties.keySet().retainAll(unusedNames);
+      for( String name : names )
+         properties.remove(name);
 
       properties.putAll(loaded);
 

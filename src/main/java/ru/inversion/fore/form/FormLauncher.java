@@ -7,7 +7,9 @@ import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import ru.inversion.fore.ForeException;
+import ru.inversion.fore.form.impl.FormContextImpl;
 import ru.inversion.tc.TaskContext;
 
 import java.net.URL;
@@ -125,10 +127,19 @@ public final class FormLauncher<T, C extends FormController<T>> {
 
          final Stage stage = createStage(root);
 
-         final FormContext<T,?> context =
-            new FormContext<> (
+/*
+      TaskContext taskContext,
+      Window owner,
+      T dataObject,
+      Map<String, Object> parameters,
+      ResourceBundle bundle,
+      FormController<?> parentController
+
+ */
+
+         final FormContext<T> context =
+            new FormContextImpl<>(
                taskContext,
-               stage,
                owner,
                dataObject,
                parameters,
@@ -138,22 +149,23 @@ public final class FormLauncher<T, C extends FormController<T>> {
 
          controller.preInitController( context, controllerCallback );
 
-         stage.setOnShowing( event -> {
-            try {
-               controller.guiInitController();
-            } catch (Exception e) {
-               throw new RuntimeException(e);
-            }
-         });
-
-         stage.setOnHidden(event ->
-            controller.completeController()
+         stage.addEventHandler(
+                 WindowEvent.WINDOW_SHOWING,
+                 e -> {
+                    try {
+                       controller.guiInitController();
+                    } catch (Exception ex) {
+                       throw new RuntimeException(ex);
+                    }
+                 }
          );
 
+         stage.addEventHandler( WindowEvent.WINDOW_HIDDEN, event -> controller.completeController() );
+
          if( modal )
-            stage.showAndWait();
+             stage.showAndWait();
          else
-            stage.show();
+             stage.show();
       }
       catch( ForeException fex) {
          throw fex;
