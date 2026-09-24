@@ -187,4 +187,27 @@ public abstract class FormController<T> implements Initializable {
          );
       }
    }
+
+   /** */
+   final void releaseController() throws Exception
+   {
+      closeResources();
+   }
+
+   final void closeControllerResources() throws Exception
+   {
+      try
+      {
+         closeResources();
+      }
+      finally
+      {
+         formContext.close();
+      }
+   }
+
+   /** */
+   protected void closeResources( ) throws Exception
+   {
+   }
 }

@@ -7,16 +7,21 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
-final class FormContextImpl<T> implements FormContext<T> {
+final class FormContextImpl<T> implements FormContext<T>, AutoCloseable {
 
-   private final TaskContext taskContext;
+   private TaskContext taskContext;
+   private boolean     taskContextOwner = false;
+
    private final Window owner;
+   private Window window;
+
    private final T dataObject;
    private final Map<String, Object> parameters;
+
    private final ResourceBundle bundle;
+
    private final FormController<?> parentController;
 
-   private Window window;
 
    FormContextImpl(
            TaskContext taskContext,
@@ -27,6 +32,7 @@ final class FormContextImpl<T> implements FormContext<T> {
            FormController<?> parentController )
    {
       this.taskContext = taskContext;
+
       this.owner = owner;
       this.dataObject = dataObject;
       this.parameters =
@@ -35,12 +41,38 @@ final class FormContextImpl<T> implements FormContext<T> {
       this.parentController = parentController;
    }
 
+
+   /** */
    @Override
-   public TaskContext taskContext()
+   public synchronized TaskContext taskContext()
    {
+      if( taskContext == null ) {
+          taskContext = new TaskContext();
+          taskContextOwner = true;
+      }
       return taskContext;
    }
 
+   boolean isTaskContextOwner()
+   {
+      return taskContextOwner;
+   }
+
+   void takeTaskContextOwnership()
+   {
+      if( taskContext == null )
+          throw new IllegalStateException( "TaskContext is not initialized" );
+
+      taskContextOwner = true;
+   }
+
+   void closeTaskContext() throws Exception
+   {
+      if( taskContextOwner && taskContext != null )
+          taskContext.close();
+   }
+
+   /** */
    @Override
    public Window owner()
    {
@@ -90,5 +122,10 @@ final class FormContextImpl<T> implements FormContext<T> {
          );
 
       this.window = Objects.requireNonNull(window);
+   }
+
+   @Override
+   public void close() throws Exception {
+      closeTaskContext();
    }
 }

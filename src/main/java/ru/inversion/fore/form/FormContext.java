@@ -6,7 +6,7 @@ import ru.inversion.tc.TaskContext;
 import java.util.Map;
 import java.util.ResourceBundle;
 
-public interface FormContext<T> {
+public interface FormContext<T> extends AutoCloseable {
 
    TaskContext taskContext();
 
