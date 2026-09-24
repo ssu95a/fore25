@@ -37,6 +37,8 @@ public final class FormLauncher<T, C extends FormController<T>> {
 
    private FormController<?> parentController;
 
+   private boolean ownTaskContext;
+
    /** */
    public FormLauncher( TaskContext taskContext, Window owner, Class<C> controllerClass ) {
       this.taskContext     = taskContext;
@@ -54,6 +56,12 @@ public final class FormLauncher<T, C extends FormController<T>> {
       );
 
       this.parentController = parentController;
+   }
+
+   public FormLauncher<T,C> ownTaskContext()
+   {
+      ownTaskContext = true;
+      return this;
    }
 
    /** */
@@ -116,14 +124,17 @@ public final class FormLauncher<T, C extends FormController<T>> {
    /** */
    private void prepareForm()
    {
+      C controller = null;
+      FormContextImpl<T> context = null;
+
       try
       {
          final ResourceBundle resolvedBundle = resolveBundle();
          final URL fxml = resolveFxml();
 
-         final C controller = controllerClass.getDeclaredConstructor().newInstance();
+         controller = controllerClass.getDeclaredConstructor().newInstance();
 
-         final FormContextImpl<T> context =
+         context =
               new FormContextImpl<>(
                    taskContext,
                    owner,
@@ -133,12 +144,22 @@ public final class FormLauncher<T, C extends FormController<T>> {
                    parentController
               );
 
+         if( ownTaskContext && taskContext != null )
+             context.takeTaskContextOwnership();
+
          if( !controller.preInitController( context, controllerCallback ))
              return;
 
-         Platform.runLater(() ->runInternal( controller, context, fxml, resolvedBundle ) );
+         final C c = controller;
+         final FormContextImpl<T> x = context;
+
+         Platform.runLater(() ->runInternal( c, x, fxml, resolvedBundle ) );
       }
       catch( Throwable ex ) {
+
+         if( controller != null && context != null )
+             releaseForm(controller, context);
+
          handleLaunchError(ex);
       }
    }
@@ -234,9 +255,17 @@ public final class FormLauncher<T, C extends FormController<T>> {
           */
          stage.addEventHandler(
                  WindowEvent.WINDOW_HIDDEN,
-                 event -> controller.completeController()
+                 event -> {
+                    try
+                    {
+                       controller.completeController();
+                    }
+                    finally
+                    {
+                       releaseForm(controller, context);
+                    }
+                 }
          );
-
 
          /*
           * Последняя фаза инициализации.
@@ -274,6 +303,27 @@ public final class FormLauncher<T, C extends FormController<T>> {
                  "FXML: " + fxml
          );
       }
+   }
+
+   private void releaseForm( C controller, FormContextImpl<T> context )
+   {
+      Thread.startVirtualThread(() -> {
+         try {
+            controller.releaseController();
+         }
+         catch( Throwable ex ) {
+            handleLaunchError(ex);
+         }
+         finally
+         {
+            try {
+               context.close();
+            }
+            catch( Throwable ex ) {
+               handleLaunchError(ex);
+            }
+         }
+      });
    }
 
    /** */

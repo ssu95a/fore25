@@ -22,6 +22,7 @@ final class FormContextImpl<T> implements FormContext<T>, AutoCloseable {
 
    private final FormController<?> parentController;
 
+   private boolean closed;
 
    FormContextImpl(
            TaskContext taskContext,
@@ -43,9 +44,18 @@ final class FormContextImpl<T> implements FormContext<T>, AutoCloseable {
 
 
    /** */
+   private void checkForClosed()
+   {
+      if( closed )
+          throw new IllegalStateException( "Form context is already closed" );
+   }
+
+   /** */
    @Override
    public synchronized TaskContext taskContext()
    {
+      checkForClosed();
+
       if( taskContext == null ) {
           taskContext = new TaskContext();
           taskContextOwner = true;
@@ -125,7 +135,14 @@ final class FormContextImpl<T> implements FormContext<T>, AutoCloseable {
    }
 
    @Override
-   public void close() throws Exception {
-      closeTaskContext();
+   synchronized public void close() throws Exception
+   {
+      if( closed )
+          return;
+
+      closed = true;
+
+      if( taskContextOwner && taskContext != null )
+          taskContext.close();
    }
 }
