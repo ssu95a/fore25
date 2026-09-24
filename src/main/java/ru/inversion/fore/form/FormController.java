@@ -1,5 +1,6 @@
 package ru.inversion.fore.form;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.Initializable;
 import javafx.stage.Stage;
@@ -20,18 +21,21 @@ public abstract class FormController<T> implements Initializable {
 
    private boolean completed;
 
-   private StringProperty titleProperty;
+   protected StringProperty titleProperty = new SimpleStringProperty();
 
    /** */
-   final void preInitController( FormContext<T> context, Consumer<FormResult<T>> resultHandler ) throws Exception
+   final boolean preInitController( FormContext<T> context, Consumer<FormResult<T>> resultHandler ) throws Exception
    {
       this.formContext   = context;
       this.resultHandler = resultHandler;
-      this.titleProperty = ((Stage)getWindow()).titleProperty();
 
-      preInit();
+      return preInit( );
    }
 
+   final void guiInitController() throws Exception
+   {
+      guiInit();
+   }
 
    @Override
    public final void initialize( URL location, ResourceBundle resources )
@@ -44,14 +48,16 @@ public abstract class FormController<T> implements Initializable {
       }
    }
 
-   protected void preInit() throws Exception
+   protected boolean preInit() throws Exception
    { }
 
    protected void init() throws Exception
    { }
 
    protected void guiInit() throws Exception
-   { }
+   {
+      ((Stage)formContext.window()).titleProperty().bindBidirectional(titleProperty);
+   }
 
    /** */
    protected final FormContext<T> fromContext( )

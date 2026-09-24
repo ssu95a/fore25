@@ -97,81 +97,168 @@ public final class FormLauncher<T, C extends FormController<T>> {
     */
    public void runForm( )
    {
-      if( Platform.isFxApplicationThread() )
-          showInternal();
-      else
-          Platform.runLater( this::showInternal );
+      final ResourceBundle resolvedBundle = resolveBundle();
+      final URL fxml = resolveFxml();
+
+      final C controller = controllerClass .getDeclaredConstructor() .newInstance();
+
+      final FormContextImpl<T> context =
+              new FormContextImpl<>(
+                      taskContext,
+                      owner,
+                      dataObject,
+                      parameters,
+                      resolvedBundle,
+                      null
+              );
+
+      /*
+       * НЕ FX thread.
+       */
+
+      if( !controller.preInitController(context, controllerCallback) )
+          return;
+
+      Platform.runLater( () ->
+         runInternal (
+            controller,
+            context,
+            fxml,
+            resolvedBundle
+         )
+      );
    }
 
+
    /** */
-   private void showInternal( )
+   private void runInternal( C controller, FormContextImpl<T> context, URL fxml, ResourceBundle resolvedBundle )
    {
       try
       {
-         final ResourceBundle resolvedBundle = resolveBundle();
-         final URL            fxml           = resolveFxml();
+         /*
+          * Controller уже создан и прошёл preInit().
+          * <>
+          * FXMLLoader должен использовать именно этот экземпляр,
+          * а не создавать новый.
+          */
+         final FXMLLoader loader = new FXMLLoader(fxml, resolvedBundle);
+         loader.setControllerFactory(type -> {
+            if( type == controllerClass )
+                return controller;
+            try {
+               return type.getDeclaredConstructor().newInstance();
+            }
+            catch( Exception ex ) {
+               throw new FormException("Unable to create FXML controller: "+ type.getName(),ex);
+            }
+         });
 
-         final FXMLLoader loader = new FXMLLoader( fxml, resolvedBundle);
 
-         final Parent root  = loader.load();
+         /*
+          * Здесь FXMLLoader:
+          *
+          * 1. создаёт все FXML-компоненты;
+          * 2. выполняет @FXML injection;
+          * 3. вызывает FormController.initialize();
+          * 4. initialize() вызывает наш init().
+          *
+          * Всё выполняется на FX Application Thread.
+          */
+         final Parent root = loader.load();
 
-         final C controller = loader.getController();
 
-         if( controller == null )
-             throw new FormLaunchException( controllerClass, "FXML controller is not defined: " + fxml, "'FXMLLoader.getController()' return null" );
+         /*
+          * Дополнительная проверка, что FXML действительно
+          * использовал ожидаемый экземпляр controller.
+          */
+         final C loadedController = loader.getController();
 
-         if( !controllerClass.isInstance(controller) )
-            throw new IllegalStateException (
-               "Unexpected FXML controller. Expected " + controllerClass.getName() + ", actual " + controller.getClass().getName()
+         if( loadedController == null )
+         {
+            throw new FormLaunchException(
+                    controllerClass,
+                    "FXML controller is not defined: " + fxml,
+                    "FXMLLoader.getController() returned null"
             );
+         }
 
+         if( loadedController != controller )
+         {
+            throw new FormLaunchException(
+                    controllerClass,
+                    "Unexpected FXML controller instance: "
+                            + loadedController.getClass().getName(),
+                    "FXMLLoader did not use the controller instance prepared by FormLauncher"
+            );
+         }
+
+
+         /*
+          * После FXML создаём полноценное окно.
+          *
+          * После createStage():
+          *   Scene есть;
+          *   Stage есть;
+          *   owner установлен;
+          *   modality установлена.
+          */
          final Stage stage = createStage(root);
 
-/*
-      TaskContext taskContext,
-      Window owner,
-      T dataObject,
-      Map<String, Object> parameters,
-      ResourceBundle bundle,
-      FormController<?> parentController
 
- */
+         /*
+          * С этого момента window() становится доступен
+          * через тот же FormContext, который controller
+          * получил ещё перед preInit().
+          */
+         context.setWindow(stage);
 
-         final FormContext<T> context =
-            new FormContextImpl<>(
-               taskContext,
-               owner,
-               dataObject,
-               parameters,
-               resolvedBundle,
-               null
-            );
 
-         controller.preInitController( context, controllerCallback );
-
+         /*
+          * Framework handler не должен занимать setOnHidden(),
+          * чтобы пользовательский controller мог установить
+          * собственный handler.
+          */
          stage.addEventHandler(
-                 WindowEvent.WINDOW_SHOWING,
-                 e -> {
-                    try {
-                       controller.guiInitController();
-                    } catch (Exception ex) {
-                       throw new RuntimeException(ex);
-                    }
-                 }
+                 WindowEvent.WINDOW_HIDDEN,
+                 event -> controller.completeController()
          );
 
-         stage.addEventHandler( WindowEvent.WINDOW_HIDDEN, event -> controller.completeController() );
 
+         /*
+          * Последняя фаза инициализации.
+          *
+          * Здесь:
+          *   FX Application Thread        +
+          *   @FXML fields                 +
+          *   Scene                        +
+          *   Stage / Window               +
+          *   owner                        +
+          *
+          * Но окно ещё не показано.
+          */
+         controller.guiInitController();
+
+
+         /*
+          * И только после полного lifecycle показываем форму.
+          */
          if( modal )
-             stage.showAndWait();
+            stage.showAndWait();
          else
-             stage.show();
+            stage.show();
       }
-      catch( ForeException fex) {
-         throw fex;
+      catch( ForeException ex )
+      {
+         throw ex;
       }
-      catch( Exception ex ) {
-         throw new FormLaunchException( controllerClass, "Error on launch", ex, null );
+      catch( Exception ex )
+      {
+         throw new FormLaunchException(
+                 controllerClass,
+                 "Error on form launch",
+                 ex,
+                 "FXML: " + fxml
+         );
       }
    }
 

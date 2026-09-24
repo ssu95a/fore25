@@ -21,4 +21,10 @@ public interface FormContext<T> {
    FormController<?> parentController();
 
    Window window();
+
+   @SuppressWarnings("unchecked")
+   default <V> V parameter(String name)
+   {
+      return (V)parameters().get(name);
+   }
 }
