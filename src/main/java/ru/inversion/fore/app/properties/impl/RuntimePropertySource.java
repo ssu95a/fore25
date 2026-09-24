@@ -1,9 +1,8 @@
-package ru.inversion.fore.app.properties;
+package ru.inversion.fore.app.properties.impl;
 
-import ru.inversion.utils.S;
+import ru.inversion.fore.app.properties.PropertyPatch;
+import ru.inversion.fore.app.properties.PropertySource;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -15,28 +14,6 @@ public final class RuntimePropertySource implements PropertySource {
    @Override
    public String name() {
       return "runtime";
-   }
-
-   @Override
-   public Map<String, Object> load(Collection<String> names) {
-
-      if( names == null || names.isEmpty() )
-          return Map.of();
-
-      final Map<String, Object> result = new LinkedHashMap<>();
-
-      for (String name : names)
-      {
-         if( S.isNullOrEmpty(name) )
-             continue;
-
-         final Object value = properties.get(name);
-
-         if( value != null )
-            result.put(name, value);
-      }
-
-      return result;
    }
 
    @Override

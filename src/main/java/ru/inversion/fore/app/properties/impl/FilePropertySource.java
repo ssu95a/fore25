@@ -1,4 +1,6 @@
-package ru.inversion.fore.app.properties;
+package ru.inversion.fore.app.properties.impl;
+
+import ru.inversion.fore.app.properties.PropertySource;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -23,7 +25,7 @@ public final class FilePropertySource implements PropertySource {
    }
 
    public FilePropertySource(Path path, Charset charset) {
-      this.path = path;
+      this.path    = path;
       this.charset = charset;
    }
 
@@ -33,22 +35,8 @@ public final class FilePropertySource implements PropertySource {
    }
 
    @Override
-   public Map<String, Object> load(Collection<String> names) {
-
-      if (names == null || names.isEmpty()) {
-         return Map.of();
-      }
-
-      final Map<String, Object> source = properties();
-      final Map<String, Object> result = new LinkedHashMap<>();
-
-      for (String name : names) {
-         if (name != null && source.containsKey(name)) {
-            result.put(name, source.get(name));
-         }
-      }
-
-      return result;
+   public void load( Collection<String> names, Map<String, Object> loadTo ) {
+      PropertySource.super.load(names, loadTo );
    }
 
    @Override

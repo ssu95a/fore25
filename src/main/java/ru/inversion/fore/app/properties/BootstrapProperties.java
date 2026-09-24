@@ -1,16 +1,13 @@
 package ru.inversion.fore.app.properties;
 
+import ru.inversion.fore.app.properties.impl.*;
 import ru.inversion.utils.S;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
 /**
  * Bootstrap-свойства приложения.
@@ -29,7 +26,7 @@ import java.util.prefs.Preferences;
  *     <li>system preferences</li>
  * </ol>
  */
-public final class BootstrapProperties implements AppProperties, AutoCloseable {
+public final class BootstrapProperties implements ForeProperties, AutoCloseable {
 
    private static final String FILE_PROPERTIES = "file_properties";
 
@@ -43,11 +40,11 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
     * <p>
     * get()/getString()/contains() никогда сами не обращаются к источникам.
     */
-   private final Map<String, Object> properties = new LinkedHashMap<>();
+   private final LinkedHashMap<String,Object> properties = new LinkedHashMap<>();
 
    private BootstrapProperties( RuntimePropertySource runtimeSource, List<PropertySource> sources) {
       this.runtimeSource = Objects.requireNonNull(runtimeSource);
-      this.sources = List.copyOf(sources);
+      this.sources       = List.copyOf(sources);
    }
 
 
@@ -77,8 +74,10 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
             new NamedArgumentsSource(args),
             new FilePropertySource(propertyFile),
             new EnvPropertySource(),
-            new PreferencesPropertySource( "preferences-user",   Preferences.userRoot().node(applicationId) ),
-            new PreferencesPropertySource( "preferences-system", Preferences.systemRoot().node(applicationId) )
+            new PreferencesPropertySource( "preferences-user",
+                    Preferences.userRoot().node(applicationId) ),
+            new PreferencesPropertySource( "preferences-system",
+                    Preferences.systemRoot().node(applicationId) )
          )
       );
    }
@@ -116,57 +115,19 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
       if( names == null || names.isEmpty() )
           return new PropertySnapshot( PropertyType.BOOTSTRAP, Map.of() );
 
-      final LinkedHashSet<String> requested = new LinkedHashSet<>();
-
-      for( String name : names )
-      {
-         if( !S.isNullOrEmpty(name) )
-              requested.add(name);
-      }
-
-      if( requested.isEmpty() )
-          return new PropertySnapshot(PropertyType.BOOTSTRAP, Map.of());
-
-      final LinkedHashSet<String> unresolved = new LinkedHashSet<>(requested);
-
       final Map<String, Object> loaded = new LinkedHashMap<>();
 
       for( PropertySource source : sources )
-      {
-         if( unresolved.isEmpty() )
-             break;
+           source.load( names, loaded );
 
-         final Map<String, Object> values = source.load(unresolved);
-
-         if( values == null || values.isEmpty() )
-             continue;
-
-         for( String name : List.copyOf(unresolved) )
-         {
-            if( !values.containsKey(name) )
-                continue;
-
-            final Object value = values.get(name);
-
-            /*
-             * По контракту PropertySource null-значения
-             * не должны возвращаться.
-             */
-            if( value != null )
-            {
-               loaded.put(name, value);
-               unresolved.remove(name);
-            }
-         }
-      }
+      Set<String> loadedNames = loaded.keySet();
+      Set<String> unusedNames = names.stream().filter(s->!loadedNames.contains(s) ).collect(Collectors.toSet());
 
       /*
        * Обновляем effective-состояние только для явно
        * запрошенных свойств.
        */
-      for( String name : requested ) {
-           properties.remove(name);
-      }
+      properties.keySet().retainAll(unusedNames);
 
       properties.putAll(loaded);
 
@@ -282,7 +243,12 @@ public final class BootstrapProperties implements AppProperties, AutoCloseable {
           fileName = arguments.get(FILE_PROPERTIES);
 
       if( !S.isNullOrEmpty(fileName) )
-          return Path.of(fileName);
+      {
+         final Path file = Path.of(fileName);
+
+         if( Files.isRegularFile(file) )
+            return file;
+      }
 
       final String userHome = System.getProperty("user.home");
 

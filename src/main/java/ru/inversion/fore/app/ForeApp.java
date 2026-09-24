@@ -2,36 +2,102 @@ package ru.inversion.fore.app;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import ru.inversion.fx.form.ViewContext;
-import ru.inversion.tc.TaskContext;
+import ru.inversion.fore.app.properties.BootstrapProperties;
 
-import java.util.Locale;
-import java.util.ResourceBundle;
-
+/**
+ * Базовый JavaFX runtime приложения Fore.
+ */
 public abstract class ForeApp extends Application {
 
-   public static final Locale DEFAULT_LOCALE = new Locale("ru");
+   private BootstrapProperties bootstrapProperties;
+   private Stage primaryStage;
 
-   private static final ResourceBundle FORE_BUNDLE =
-           ResourceBundle.getBundle("fore");
 
-   protected ViewContext primaryViewContext;
+   /**
+    * Инициализация runtime до запуска JavaFX UI.
+    */
+   @Override
+   public final void init() throws Exception
+   {
+      bootstrapProperties = BootstrapProperties.create( getClass(), getParameters().getNamed() );
 
-   public abstract String getAppID();
-
-   public abstract TaskContext getCommonTaskContext();
-
-   public Stage getPrimaryStage() {
-      return primaryViewContext == null
-              ? null
-              : primaryViewContext.getStage();
+      initApplication();
    }
 
-   public ViewContext getPrimaryViewContext() {
-      return primaryViewContext;
+
+   /**
+    * Дополнительная инициализация приложения.
+    *
+    * Вызывается после создания BootstrapProperties.
+    */
+   protected void initApplication() throws Exception
+   {
    }
 
-   public ResourceBundle getCommonResourceBundle() {
-      return FORE_BUNDLE;
+
+   /**
+    * Запуск JavaFX приложения.
+    */
+   @Override
+   public final void start( Stage primaryStage ) throws Exception
+   {
+      this.primaryStage = primaryStage;
+
+      startApplication();
+   }
+
+
+   /**
+    * Запуск конкретного приложения.
+    */
+   protected abstract void startApplication() throws Exception;
+
+
+   /**
+    * Bootstrap-свойства приложения.
+    */
+   public final BootstrapProperties getBootstrapProperties()
+   {
+      return bootstrapProperties;
+   }
+
+
+   /**
+    * Primary Stage приложения.
+    */
+   public final Stage getPrimaryStage()
+   {
+      return primaryStage;
+   }
+
+
+   /**
+    * Завершение runtime.
+    */
+   @Override
+   public final void stop() throws Exception
+   {
+      try
+      {
+         stopApplication();
+      }
+      finally
+      {
+         if( bootstrapProperties != null )
+         {
+            bootstrapProperties.close();
+            bootstrapProperties = null;
+         }
+
+         primaryStage = null;
+      }
+   }
+
+
+   /**
+    * Дополнительное завершение приложения.
+    */
+   protected void stopApplication() throws Exception
+   {
    }
 }

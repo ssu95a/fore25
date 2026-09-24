@@ -1,4 +1,4 @@
-package ru.inversion.fx.app;
+package ru.inversion.fore;
 
 /**
  *
@@ -6,7 +6,7 @@ package ru.inversion.fx.app;
  */
 public interface Tags {
 
-    public static final String PRODUCT = "Inv-JFx";
+    public static final String PRODUCT = "fore25";
     
     public static final String PRODUCT_LABEL = "[" + PRODUCT + "] - ";
 }
