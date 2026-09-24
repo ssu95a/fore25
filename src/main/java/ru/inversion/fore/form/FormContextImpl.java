@@ -1,15 +1,13 @@
-package ru.inversion.fore.form.impl;
+package ru.inversion.fore.form;
 
 import javafx.stage.Window;
-import ru.inversion.fore.form.FormContext;
-import ru.inversion.fore.form.FormController;
 import ru.inversion.tc.TaskContext;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
-public final class FormContextImpl<T> implements FormContext<T> {
+final class FormContextImpl<T> implements FormContext<T> {
 
    private final TaskContext taskContext;
    private final Window owner;
@@ -20,14 +18,13 @@ public final class FormContextImpl<T> implements FormContext<T> {
 
    private Window window;
 
-   public FormContextImpl (
-      TaskContext taskContext,
-      Window owner,
-      T dataObject,
-      Map<String, Object> parameters,
-      ResourceBundle bundle,
-      FormController<?> parentController
-   )
+   FormContextImpl(
+           TaskContext taskContext,
+           Window owner,
+           T dataObject,
+           Map<String, Object> parameters,
+           ResourceBundle bundle,
+           FormController<?> parentController )
    {
       this.taskContext = taskContext;
       this.owner = owner;
@@ -39,32 +36,38 @@ public final class FormContextImpl<T> implements FormContext<T> {
    }
 
    @Override
-   public TaskContext taskContext() {
+   public TaskContext taskContext()
+   {
       return taskContext;
    }
 
    @Override
-   public Window owner() {
+   public Window owner()
+   {
       return owner;
    }
 
    @Override
-   public T dataObject() {
+   public T dataObject()
+   {
       return dataObject;
    }
 
    @Override
-   public Map<String, Object> parameters() {
+   public Map<String, Object> parameters()
+   {
       return parameters;
    }
 
    @Override
-   public ResourceBundle bundle() {
+   public ResourceBundle bundle()
+   {
       return bundle;
    }
 
    @Override
-   public FormController<?> parentController() {
+   public FormController<?> parentController()
+   {
       return parentController;
    }
 
@@ -72,17 +75,20 @@ public final class FormContextImpl<T> implements FormContext<T> {
    public Window window()
    {
       if( window == null )
-          throw new IllegalStateException( "Window is not available before guiInit()" );
+         throw new IllegalStateException(
+                 "Window is not available before guiInit()"
+         );
+
       return window;
    }
 
-   /** */
-   void setWindow( Window window )
+   void setWindow(Window window)
    {
       if( this.window != null )
-          throw new IllegalStateException("Form window already initialized");
+         throw new IllegalStateException(
+                 "Form window already initialized"
+         );
+
       this.window = Objects.requireNonNull(window);
    }
-
-
 }

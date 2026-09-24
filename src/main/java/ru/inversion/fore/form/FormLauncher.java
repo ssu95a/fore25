@@ -9,7 +9,6 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import ru.inversion.fore.ForeException;
-import ru.inversion.fore.form.impl.FormContextImpl;
 import ru.inversion.tc.TaskContext;
 
 import java.net.URL;
@@ -36,11 +35,25 @@ public final class FormLauncher<T, C extends FormController<T>> {
 
    private Consumer< FormResult<T> > controllerCallback;
 
+   private FormController<?> parentController;
+
    /** */
    public FormLauncher( TaskContext taskContext, Window owner, Class<C> controllerClass ) {
       this.taskContext     = taskContext;
       this.owner           = owner;
       this.controllerClass = Objects.requireNonNull(controllerClass);
+   }
+
+   /** */
+   public FormLauncher( FormController<?> parentController, Class<C> controllerClass )
+   {
+      this (
+         parentController.getTaskContext(),
+         parentController.getWindow(),
+         controllerClass
+      );
+
+      this.parentController = parentController;
    }
 
    /** */
@@ -97,36 +110,40 @@ public final class FormLauncher<T, C extends FormController<T>> {
     */
    public void runForm( )
    {
-      final ResourceBundle resolvedBundle = resolveBundle();
-      final URL fxml = resolveFxml();
+      Thread.startVirtualThread(this::prepareForm);
+   }
 
-      final C controller = controllerClass .getDeclaredConstructor() .newInstance();
+   /** */
+   private void prepareForm()
+   {
+      try
+      {
+         final ResourceBundle resolvedBundle = resolveBundle();
+         final URL fxml = resolveFxml();
 
-      final FormContextImpl<T> context =
+         final C controller = controllerClass.getDeclaredConstructor().newInstance();
+
+         final FormContextImpl<T> context =
               new FormContextImpl<>(
-                      taskContext,
-                      owner,
-                      dataObject,
-                      parameters,
-                      resolvedBundle,
-                      null
+                   taskContext,
+                   owner,
+                   dataObject,
+                   parameters,
+                   resolvedBundle,
+                   parentController
               );
 
-      /*
-       * НЕ FX thread.
-       */
+         if( !controller.preInitController( context, controllerCallback ))
+             return;
 
-      if( !controller.preInitController(context, controllerCallback) )
-          return;
-
-      Platform.runLater( () ->
-         runInternal (
-            controller,
-            context,
-            fxml,
-            resolvedBundle
-         )
-      );
+         Platform.runLater(() ->runInternal( controller, context, fxml, resolvedBundle ) );
+      }
+      catch( FormException ex ) {
+         throw ex;
+      }
+      catch( Exception ex ) {
+         throw new FormLaunchException( controllerClass, "Error on form preparation", ex, null );
+      }
    }
 
 

@@ -1,23 +1,17 @@
 package ru.inversion.fore.form;
 
-public class FormTools {
+class FormTools {
 
    private static final String CONTROLLER_SUFFIX = "Controller";
 
    static String defaultFxmlPath( Class<?> controllerClass )
    {
-      return controllerClass == null ?
-              null
-              :
-              controllerClass.getPackageName().replace('.', '/')+ "/fxml/"+ formName(controllerClass)+ ".fxml";
+      return controllerClass.getPackageName().replace('.', '/')+ "/fxml/"+ formName(controllerClass)+ ".fxml";
    }
 
    static String defaultBundleName(Class<?> controllerClass)
    {
-      return controllerClass == null ?
-              null
-              :
-              controllerClass.getPackageName()+ ".res." + formName(controllerClass);
+      return  controllerClass.getPackageName()+ ".res." + formName(controllerClass);
    }
 
    private static String formName( Class<?> controllerClass )
