@@ -1,6 +1,6 @@
 package ru.inversion.fore.form;
 
-class FormTools {
+final class FormTools {
 
    private static final String CONTROLLER_SUFFIX = "Controller";
 

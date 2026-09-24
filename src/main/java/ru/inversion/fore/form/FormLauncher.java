@@ -138,11 +138,8 @@ public final class FormLauncher<T, C extends FormController<T>> {
 
          Platform.runLater(() ->runInternal( controller, context, fxml, resolvedBundle ) );
       }
-      catch( FormException ex ) {
-         throw ex;
-      }
-      catch( Exception ex ) {
-         throw new FormLaunchException( controllerClass, "Error on form preparation", ex, null );
+      catch( Throwable ex ) {
+         handleLaunchError(ex);
       }
    }
 
@@ -323,6 +320,18 @@ public final class FormLauncher<T, C extends FormController<T>> {
    private ResourceBundle loadBundle( String name )
    {
       return ResourceBundle.getBundle( name, Locale.getDefault(), controllerClass.getClassLoader() );
+   }
+
+   private void handleLaunchError(Throwable error)
+   {
+      Platform.runLater(() -> {
+         throw error instanceof RuntimeException runtime
+                 ? runtime
+                 : new FormException(
+                 "Form launch error",
+                 error
+         );
+      });
    }
 
 }

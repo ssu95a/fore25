@@ -2,9 +2,11 @@ package ru.inversion.fore.form;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.event.Event;
 import javafx.fxml.Initializable;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import ru.inversion.tc.TaskContext;
 
 import java.net.URL;
@@ -147,19 +149,26 @@ public abstract class FormController<T> implements Initializable {
    }
 
 
+   /** */
    protected final void close(FormResultType result)
    {
-      this.result = Objects.requireNonNull(result);
+      Objects.requireNonNull(result);
 
       final Window window = formContext.window();
 
-      if( window instanceof Stage stage )
-         stage.close();
-      else
-         window.hide();
+      final FormResultType oldResult = this.result;
+
+      this.result = result;
+
+      final WindowEvent event = new WindowEvent( window, WindowEvent.WINDOW_CLOSE_REQUEST );
+
+      Event.fireEvent(window, event);
+
+      if( event.isConsumed() )
+          this.result = oldResult;
    }
 
-
+   /** */
    final void completeController()
    {
       if( completed )
