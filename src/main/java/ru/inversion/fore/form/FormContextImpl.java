@@ -24,10 +24,13 @@ final class FormContextImpl<T> implements FormContext<T>, AutoCloseable {
 
    private boolean closed;
 
+   private final FormMode formMode;
+
    FormContextImpl(
            TaskContext taskContext,
            Window owner,
            T dataObject,
+           FormMode mode,
            Map<String, Object> parameters,
            ResourceBundle bundle,
            FormController<?> parentController )
@@ -40,6 +43,7 @@ final class FormContextImpl<T> implements FormContext<T>, AutoCloseable {
               parameters == null ? Map.of() : Map.copyOf(parameters);
       this.bundle = bundle;
       this.parentController = parentController;
+      this.formMode = mode;
    }
 
 
@@ -68,13 +72,18 @@ final class FormContextImpl<T> implements FormContext<T>, AutoCloseable {
       return taskContextOwner;
    }
 
-   void takeTaskContextOwnership()
+
+   /** */
+   synchronized void takeTaskContextOwnership()
    {
+      checkForClosed();
+
       if( taskContext == null )
           throw new IllegalStateException( "TaskContext is not initialized" );
 
       taskContextOwner = true;
    }
+
 
    void closeTaskContext() throws Exception
    {
@@ -117,19 +126,20 @@ final class FormContextImpl<T> implements FormContext<T>, AutoCloseable {
    public Window window()
    {
       if( window == null )
-         throw new IllegalStateException(
-                 "Window is not available before guiInit()"
-         );
+         throw new IllegalStateException( "Window is not available before guiInit()" );
 
       return window;
+   }
+
+   @Override
+   public FormMode mode() {
+      return formMode;
    }
 
    void setWindow(Window window)
    {
       if( this.window != null )
-         throw new IllegalStateException(
-                 "Form window already initialized"
-         );
+         throw new IllegalStateException( "Form window already initialized" );
 
       this.window = Objects.requireNonNull(window);
    }

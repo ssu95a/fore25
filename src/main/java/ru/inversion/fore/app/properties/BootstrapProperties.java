@@ -121,7 +121,7 @@ public final class BootstrapProperties implements ForeProperties, AutoCloseable 
            source.load( names, loaded );
 
       for( String name : names )
-         properties.remove(name);
+           properties.remove(name);
 
       properties.putAll(loaded);
 

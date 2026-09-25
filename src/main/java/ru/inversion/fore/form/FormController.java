@@ -19,8 +19,6 @@ public abstract class FormController<T> implements Initializable {
 
    private FormContext<T> formContext;
 
-   private FormResultType result = FormResultType.CANCEL;
-
    private Consumer<FormResult<T>> resultHandler;
 
    private boolean completed;
@@ -82,6 +80,11 @@ public abstract class FormController<T> implements Initializable {
       return formContext;
    }
 
+   /** */
+   public final FormMode getFormMode()
+   {
+      return formContext().mode();
+   }
 
    public final TaskContext getTaskContext()
    {
@@ -143,29 +146,65 @@ public abstract class FormController<T> implements Initializable {
    }
 
 
-   protected final void close()
-   {
-      close(FormResultType.CANCEL);
-   }
+   private FormResultType requestedResult = FormResultType.CANCEL;
 
+   private FormResultType result = FormResultType.CANCEL;
 
    /** */
    protected final void close(FormResultType result)
    {
-      Objects.requireNonNull(result);
+      requestedResult = Objects.requireNonNull(result);
 
       final Window window = formContext.window();
 
-      final FormResultType oldResult = this.result;
+      Event.fireEvent(
+              window,
+              new WindowEvent(
+                      window,
+                      WindowEvent.WINDOW_CLOSE_REQUEST
+              )
+      );
+   }
 
-      this.result = result;
+   /** */
+   final void handleCloseRequest(WindowEvent event)
+   {
+      final FormResultType tempRequest = requestedResult;
 
-      final WindowEvent event = new WindowEvent( window, WindowEvent.WINDOW_CLOSE_REQUEST );
+      /*
+       * Следующий обычный WINDOW_CLOSE_REQUEST, например крестик,
+       * снова считается CANCEL.
+       */
+      requestedResult = FormResultType.CANCEL;
 
-      Event.fireEvent(window, event);
+      try
+      {
+         final boolean allowClose =
+                 switch( tempRequest )
+                 {
+                    case OK     -> onOK();
+                    case CANCEL -> onCancel();
+                 };
 
-      if( event.isConsumed() )
-          this.result = oldResult;
+         if( !allowClose )
+         {
+            event.consume();
+            return;
+         }
+
+         /*
+          * Это пока только кандидат на окончательный result.
+          *
+          * WINDOW_CLOSE_REQUEST ещё может быть consumed
+          * другим handler'ом.
+          */
+         result = tempRequest;
+      }
+      catch( Exception ex )
+      {
+         event.consume();
+         throw new FormException( "Error processing form close request", ex );
+      }
    }
 
    /** */
@@ -189,13 +228,45 @@ public abstract class FormController<T> implements Initializable {
    }
 
    /** */
-   final void releaseController() throws Exception
+   private boolean released;
+
+   final synchronized void releaseController() throws Exception
    {
+      if( released )
+          return;
+
+      released = true;
+
       closeResources();
    }
-
    /** */
    protected void closeResources( ) throws Exception
    {
    }
+
+   protected boolean onOK() throws Exception
+   {
+      return true;
+   }
+
+   protected boolean onCancel() throws Exception
+   {
+      return true;
+   }
+
+   protected final void ok()
+   {
+      close(FormResultType.OK);
+   }
+
+   protected final void cancel()
+   {
+      close(FormResultType.CANCEL);
+   }
+
+   protected final void close()
+   {
+      cancel();
+   }
+
 }

@@ -39,6 +39,8 @@ public final class FormLauncher<T, C extends FormController<T>> {
 
    private boolean ownTaskContext;
 
+   private FormMode fromMode = FormMode.DEFAULT;
+
    /** */
    public FormLauncher( TaskContext taskContext, Window owner, Class<C> controllerClass ) {
       this.taskContext     = taskContext;
@@ -112,6 +114,11 @@ public final class FormLauncher<T, C extends FormController<T>> {
       this.controllerCallback = callback; return this;
    }
 
+   public FormLauncher<T,C> mode(FormMode mode)
+   {
+      this.fromMode = mode;
+      return this;
+   }
 
    /**
     * Запускает форму.
@@ -139,6 +146,7 @@ public final class FormLauncher<T, C extends FormController<T>> {
                    taskContext,
                    owner,
                    dataObject,
+                   fromMode,
                    parameters,
                    resolvedBundle,
                    parentController
@@ -147,8 +155,11 @@ public final class FormLauncher<T, C extends FormController<T>> {
          if( ownTaskContext && taskContext != null )
              context.takeTaskContextOwnership();
 
-         if( !controller.preInitController( context, controllerCallback ))
-             return;
+         if( !controller.preInitController(context, controllerCallback) )
+         {
+            releaseForm(controller, context);
+            return;
+         }
 
          final C c = controller;
          final FormContextImpl<T> x = context;
@@ -238,7 +249,7 @@ public final class FormLauncher<T, C extends FormController<T>> {
           *   modality установлена.
           */
          final Stage stage = createStage(root);
-
+         stage.addEventHandler( WindowEvent.WINDOW_CLOSE_REQUEST, controller::handleCloseRequest );
 
          /*
           * С этого момента window() становится доступен
@@ -290,20 +301,12 @@ public final class FormLauncher<T, C extends FormController<T>> {
          else
             stage.show();
       }
-      catch( ForeException ex )
-      {
-         throw ex;
-      }
-      catch( Exception ex )
-      {
-         throw new FormLaunchException(
-                 controllerClass,
-                 "Error on form launch",
-                 ex,
-                 "FXML: " + fxml
-         );
+      catch( Throwable ex ) {
+         releaseForm( controller, context );
+         handleLaunchError( ex instanceof ForeException ? ex : new FormLaunchException( controllerClass, "Error on form launch", ex, "FXML: " + fxml ) );
       }
    }
+
 
    private void releaseForm( C controller, FormContextImpl<T> context )
    {

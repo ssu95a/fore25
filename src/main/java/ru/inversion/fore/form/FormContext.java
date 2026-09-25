@@ -22,6 +22,8 @@ public interface FormContext<T> {
 
    Window window();
 
+   FormMode mode();
+
    @SuppressWarnings("unchecked")
    default <V> V parameter(String name)
    {
