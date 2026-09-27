@@ -1,73 +1,95 @@
 package ru.inversion.fore.form.validation;
 
-
+import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Control;
 import ru.inversion.utils.Checks;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.Map;
 
 public final class FormValidation
 {
-   private final List<Entry> entries = new ArrayList<>();
-
+   private final Map<Control, List<Entry<?>>> controls = new LinkedHashMap<>();
    private final List<FormRule> formRules = new ArrayList<>();
 
 
-   /**
-    * Добавить правило проверки значения,
-    * связанное с конкретным элементом формы.
-    */
-   public <T> FormValidation add(
-           Control target,
-           Supplier<? extends T> valueSupplier,
-           Rule<? super T> rule )
+   public <T> FormValidation add( Control control, Rule<T> rule )
    {
-      Checks.Require.objects(
-              valueSupplier, "valueSupplier",
-              rule,          "rule"
-      );
+      Checks.Require.objects( control, "control", rule, "rule");
 
-      entries.add(
-              new Entry(
-                      target,
-                      () -> attachTarget(
-                              target,
-                              rule.check(valueSupplier.get())
-                      )
-              )
-      );
+      final ObservableValue<T> value = ValueExtractors.valueOf(control);
+
+      controls.computeIfAbsent( control,key -> new ArrayList<>()).add( new Entry<>(control,value,rule));
+
+      /*
+       * Любое изменение validation-value означает,
+       * что прежний результат проверки устарел.
+       */
+      value.addListener(_ ->ValidationStateSupport.reset(control));
+
+      ValidationStateSupport.reset(control);
 
       return this;
    }
 
 
-   /**
-    * Добавить правило уровня всей формы.
-    */
    public FormValidation add(FormRule rule)
    {
       Checks.Require.object(rule, "rule");
-
       formRules.add(rule);
 
       return this;
    }
 
 
-   /**
-    * Проверить всю форму.
-    *
-    * Проверки выполняются последовательно.
-    * Возвращается первый неуспешный результат.
-    */
-   public ValidationResult validate() throws Exception
+   public ValidationResult validate(Control control) throws Exception
    {
-      for( Entry entry : entries )
+      Checks.Require.object(control, "control");
+
+      final List<Entry<?>> entries =
+              controls.get(control);
+
+      if( entries == null )
+         return ValidationResult.ok();
+
+      for( Entry<?> entry : entries )
       {
          final ValidationResult result =
-                 check(entry.rule());
+                 entry.check();
+
+         if( !result.valid() )
+         {
+            ValidationStateSupport.set(
+                    control,
+                    ValidationState.INVALID
+            );
+
+            return result;
+         }
+      }
+
+      ValidationStateSupport.set(
+              control,
+              ValidationState.VALID
+      );
+
+      return ValidationResult.ok();
+   }
+
+
+   public ValidationResult validate()
+           throws Exception
+   {
+      /*
+       * На OK проверяем заново всё,
+       * независимо от текущего ValidationState.
+       */
+      for( Control control : controls.keySet() )
+      {
+         final ValidationResult result =
+                 validate(control);
 
          if( !result.valid() )
             return result;
@@ -86,39 +108,34 @@ public final class FormValidation
    }
 
 
-   /**
-    * Проверить правила, относящиеся только
-    * к указанному элементу формы.
-    */
-   public ValidationResult validate(Control target) throws Exception
+   public ValidationState state(Control control)
    {
-      Checks.Require.object(target, "target");
+      Checks.Require.object(control, "control");
 
-      for( Entry entry : entries )
-      {
-         if( entry.target() != target )
-            continue;
-
-         final ValidationResult result =
-                 check(entry.rule());
-
-         if( !result.valid() )
-            return result;
-      }
-
-      return ValidationResult.ok();
+      return ValidationStateSupport.get(control);
    }
 
 
-   public boolean isEmpty()
+   public void reset(Control control)
    {
-      return entries.isEmpty() && formRules.isEmpty();
+      Checks.Require.object(control, "control");
+
+      if( controls.containsKey(control) )
+         ValidationStateSupport.reset(control);
    }
 
 
-   private ValidationResult check(FormRule rule) throws Exception
+   Iterable<Control> controls()
    {
-      final ValidationResult result = rule.check();
+      return controls.keySet();
+   }
+
+
+   private ValidationResult check(FormRule rule)
+           throws Exception
+   {
+      final ValidationResult result =
+              rule.check();
 
       if( result == null )
          throw new IllegalStateException(
@@ -129,35 +146,19 @@ public final class FormValidation
    }
 
 
-   private ValidationResult attachTarget(
-           Control target,
-           ValidationResult result )
+   private record Entry<T>( Control control, ObservableValue<T> value, Rule<T> rule )
    {
-      if( result == null )
-         throw new IllegalStateException(
-                 "Validation rule returned null"
-         );
+      ValidationResult check() throws Exception
+      {
+         final ValidationResult result = rule.check(value.getValue());
 
-      if( result.valid() || target == null )
-         return result;
+         if( result == null )
+             throw new IllegalStateException( "Validation rule returned null" );
 
-      final List<ValidationFailure> failures =
-              result.failures()
-                      .stream()
-                      .map(failure ->
-                              failure.target() == null
-                                      ? failure.withTarget(target)
-                                      : failure
-                      )
-                      .toList();
+         if( result.valid() )
+             return result;
 
-      return ValidationResult.failures(failures);
-   }
-
-
-   private record Entry(
-           Control target,
-           FormRule rule )
-   {
+         return result.withTarget(control);
+      }
    }
 }

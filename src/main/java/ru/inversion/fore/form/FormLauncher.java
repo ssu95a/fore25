@@ -46,7 +46,7 @@ public final class FormLauncher<T, C extends FormController<T>> {
    public FormLauncher( TaskContext taskContext, Window owner, Class<C> controllerClass ) {
       this.taskContext     = taskContext;
       this.owner           = owner;
-      this.controllerClass = Objects.requireNonNull(controllerClass);
+      this.controllerClass = Checks.Require.object(controllerClass, "controllerClass");
    }
 
    /** */

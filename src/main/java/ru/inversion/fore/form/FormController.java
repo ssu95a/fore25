@@ -10,6 +10,8 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 
 import ru.inversion.fore.form.validation.FormValidation;
+import ru.inversion.fore.form.validation.ValidationFailure;
+import ru.inversion.fore.form.validation.ValidationResult;
 import ru.inversion.tc.TaskContext;
 import ru.inversion.utils.Checks;
 
@@ -133,6 +135,48 @@ public abstract class FormController<T> implements Initializable {
    }
 
 
+   /** */
+   protected final FormValidation validation()
+   {
+      return validation;
+   }
+
+   private boolean validateForm() throws Exception
+   {
+      if( !requiresValidation() )
+          return true;
+
+      final ValidationResult result =
+              validation.validate();
+
+      if( result.valid() )
+         return true;
+
+      handleValidationFailure(result);
+
+      return false;
+   }
+
+
+   /** */
+   private boolean requiresValidation()
+   {
+      return switch( getFormMode() )
+      {
+         case DEFAULT, INSERT, EDIT   -> true;
+         default -> false;
+      };
+   }
+
+   /** */
+   protected void handleValidationFailure( ValidationResult result )
+   {
+      final ValidationFailure failure = result.failures().getFirst();
+
+      if( failure.target() != null )
+          failure.target().requestFocus();
+   }
+
    public final StringProperty titleProperty()
    {
       return titleProperty;
@@ -188,10 +232,6 @@ public abstract class FormController<T> implements Initializable {
    {
       final FormResultType tempRequest = requestedResult;
 
-      /*
-       * Следующий обычный WINDOW_CLOSE_REQUEST, например крестик,
-       * снова считается CANCEL.
-       */
       requestedResult = FormResultType.CANCEL;
 
       try
@@ -199,7 +239,14 @@ public abstract class FormController<T> implements Initializable {
          final boolean allowClose =
                  switch( tempRequest )
                  {
-                    case OK     -> onOK();
+                    case OK -> {
+
+                       if( !validateForm() )
+                           yield false;
+
+                       yield onOK();
+                    }
+
                     case CANCEL -> onCancel();
                  };
 
@@ -209,37 +256,15 @@ public abstract class FormController<T> implements Initializable {
             return;
          }
 
-         /*
-          * Это пока только кандидат на окончательный result.
-          *
-          * WINDOW_CLOSE_REQUEST ещё может быть consumed
-          * другим handler'ом.
-          */
          result = tempRequest;
       }
       catch( Exception ex )
       {
          event.consume();
-         throw new FormException( "Error processing form close request", ex );
-      }
-   }
 
-   /** */
-   final void completeController()
-   {
-      if( completed )
-         return;
-
-      completed = true;
-
-      if( resultHandler != null )
-      {
-         resultHandler.accept(
-                 new FormResult<>(
-                         result,
-                         formContext.dataObject(),
-                         formContext.window()
-                 )
+         throw new FormException(
+                 "Error processing form close request",
+                 ex
          );
       }
    }

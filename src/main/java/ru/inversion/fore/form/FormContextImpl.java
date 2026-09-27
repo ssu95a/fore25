@@ -107,12 +107,15 @@ final class FormContextImpl<T> implements FormContext<T>, AutoCloseable {
       return bundle;
    }
 
+
+   /** */
    @Override
    public FormController<?> parentController()
    {
       return parentController;
    }
 
+   /** */
    @Override
    public Window window()
    {
@@ -122,19 +125,24 @@ final class FormContextImpl<T> implements FormContext<T>, AutoCloseable {
       return window;
    }
 
+   /** */
    @Override
    public FormMode mode() {
       return formMode;
    }
 
+
+   /** */
    void setWindow(Window window)
    {
       if( this.window != null )
          throw new IllegalStateException( "Form window already initialized" );
 
-      this.window = Objects.requireNonNull(window);
+      this.window = Checks.Require.object(window, "window");
    }
 
+
+   /** */
    @Override
    synchronized public void close() throws Exception
    {

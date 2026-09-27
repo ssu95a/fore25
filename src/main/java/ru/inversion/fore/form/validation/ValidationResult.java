@@ -47,4 +47,20 @@ public record ValidationResult( List<ValidationFailure> failures )
    {
       return new ValidationResult(failures);
    }
+
+   public ValidationResult withTarget(Control target)
+   {
+      if( valid() )
+         return this;
+
+      return new ValidationResult(
+              failures.stream()
+                      .map(failure ->
+                              failure.target() == null
+                                      ? failure.withTarget(target)
+                                      : failure
+                      )
+                      .toList()
+      );
+   }
 }
