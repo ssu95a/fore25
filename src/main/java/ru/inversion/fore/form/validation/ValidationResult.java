@@ -1,6 +1,6 @@
 package ru.inversion.fore.form.validation;
 
-import javafx.scene.Node;
+import javafx.scene.control.Control;
 import ru.inversion.utils.Checks;
 
 import java.util.List;
@@ -36,7 +36,7 @@ public record ValidationResult( List<ValidationFailure> failures )
    }
 
 
-   public static ValidationResult failure( Node target, String message )
+   public static ValidationResult failure(Control target, String message )
    {
       return new ValidationResult( List.of(ValidationFailure.of(target, message)) );
    }

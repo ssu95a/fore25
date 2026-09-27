@@ -10,6 +10,7 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import ru.inversion.fore.ForeException;
 import ru.inversion.tc.TaskContext;
+import ru.inversion.utils.Checks;
 
 import java.net.URL;
 import java.util.*;
@@ -114,11 +115,14 @@ public final class FormLauncher<T, C extends FormController<T>> {
       this.controllerCallback = callback; return this;
    }
 
+
+   /** */
    public FormLauncher<T,C> mode(FormMode mode)
    {
-      this.formMode = mode;
+      this.formMode = Checks.Require.object(mode, "mode");
       return this;
    }
+
 
    /**
     * Запускает форму.
@@ -127,6 +131,7 @@ public final class FormLauncher<T, C extends FormController<T>> {
    {
       Thread.startVirtualThread(this::prepareForm);
    }
+
 
    /** */
    private void prepareForm()
@@ -142,15 +147,15 @@ public final class FormLauncher<T, C extends FormController<T>> {
          controller = controllerClass.getDeclaredConstructor().newInstance();
 
          context =
-              new FormContextImpl<>(
-                   taskContext,
-                   owner,
-                   dataObject,
-                      formMode,
-                   parameters,
-                   resolvedBundle,
-                   parentController
-              );
+           new FormContextImpl<>(
+             taskContext,
+             owner,
+             dataObject,
+             formMode,
+             parameters,
+             resolvedBundle,
+             parentController
+           );
 
          if( ownTaskContext && taskContext != null )
              context.takeTaskContextOwnership();
@@ -249,7 +254,6 @@ public final class FormLauncher<T, C extends FormController<T>> {
           *   modality установлена.
           */
          final Stage stage = createStage(root);
-         stage.addEventHandler( WindowEvent.WINDOW_CLOSE_REQUEST, controller::handleCloseRequest );
 
          /*
           * С этого момента window() становится доступен

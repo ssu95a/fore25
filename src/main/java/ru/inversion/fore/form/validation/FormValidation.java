@@ -1,6 +1,7 @@
 package ru.inversion.fore.form.validation;
 
-import javafx.scene.Node;
+
+import javafx.scene.control.Control;
 import ru.inversion.utils.Checks;
 
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public final class FormValidation
     * связанное с конкретным элементом формы.
     */
    public <T> FormValidation add(
-           Node target,
+           Control target,
            Supplier<? extends T> valueSupplier,
            Rule<? super T> rule )
    {
@@ -89,7 +90,7 @@ public final class FormValidation
     * Проверить правила, относящиеся только
     * к указанному элементу формы.
     */
-   public ValidationResult validate(Node target) throws Exception
+   public ValidationResult validate(Control target) throws Exception
    {
       Checks.Require.object(target, "target");
 
@@ -129,7 +130,7 @@ public final class FormValidation
 
 
    private ValidationResult attachTarget(
-           Node target,
+           Control target,
            ValidationResult result )
    {
       if( result == null )
@@ -155,7 +156,7 @@ public final class FormValidation
 
 
    private record Entry(
-           Node target,
+           Control target,
            FormRule rule )
    {
    }

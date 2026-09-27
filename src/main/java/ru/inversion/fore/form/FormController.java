@@ -9,12 +9,12 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 
-import org.controlsfx.validation.ValidationSupport;
+import ru.inversion.fore.form.validation.FormValidation;
 import ru.inversion.tc.TaskContext;
+import ru.inversion.utils.Checks;
 
 import java.net.URL;
 import java.util.Map;
-import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 
@@ -28,12 +28,12 @@ public abstract class FormController<T> implements Initializable {
 
    private final StringProperty titleProperty = new SimpleStringProperty( this, "title");
 
-   private final ValidationSupport validation = new ValidationSupport();
+   private final FormValidation validation = new FormValidation();
 
    /** */
    final boolean preInitController( FormContext<T> context, Consumer<FormResult<T>> resultHandler ) throws Exception
    {
-      this.formContext   = Objects.requireNonNull(context);
+      this.formContext   = Checks.Require.object(context, "context");
       this.resultHandler = resultHandler;
 
       return preInit();
@@ -159,8 +159,7 @@ public abstract class FormController<T> implements Initializable {
    /** */
    protected final void close(FormResultType result)
    {
-      final FormResultType requested =
-              Objects.requireNonNull(result);
+      final FormResultType requested = Checks.Require.object( result, "result");
 
       if( Platform.isFxApplicationThread() )
          requestClose(requested);

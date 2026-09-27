@@ -2,6 +2,7 @@ package ru.inversion.fore.form;
 
 import javafx.stage.Window;
 import ru.inversion.tc.TaskContext;
+import ru.inversion.utils.Checks;
 
 import java.util.Map;
 import java.util.Objects;
@@ -39,11 +40,14 @@ final class FormContextImpl<T> implements FormContext<T>, AutoCloseable {
 
       this.owner = owner;
       this.dataObject = dataObject;
-      this.parameters =
-              parameters == null ? Map.of() : Map.copyOf(parameters);
-      this.bundle = bundle;
+
+      this.parameters = parameters == null ? Map.of() : Map.copyOf(parameters);
+
+      this.bundle     = bundle;
+
       this.parentController = parentController;
-      this.formMode = mode;
+
+      this.formMode = Checks.Require.object(mode, "mode");
    }
 
 
