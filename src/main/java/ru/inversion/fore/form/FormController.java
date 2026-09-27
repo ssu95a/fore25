@@ -1,5 +1,6 @@
 package ru.inversion.fore.form;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.Event;
@@ -7,6 +8,8 @@ import javafx.fxml.Initializable;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
+
+import org.controlsfx.validation.ValidationSupport;
 import ru.inversion.tc.TaskContext;
 
 import java.net.URL;
@@ -24,6 +27,8 @@ public abstract class FormController<T> implements Initializable {
    private boolean completed;
 
    private final StringProperty titleProperty = new SimpleStringProperty( this, "title");
+
+   private final ValidationSupport validation = new ValidationSupport();
 
    /** */
    final boolean preInitController( FormContext<T> context, Consumer<FormResult<T>> resultHandler ) throws Exception
@@ -150,10 +155,22 @@ public abstract class FormController<T> implements Initializable {
 
    private FormResultType result = FormResultType.CANCEL;
 
+
    /** */
    protected final void close(FormResultType result)
    {
-      requestedResult = Objects.requireNonNull(result);
+      final FormResultType requested =
+              Objects.requireNonNull(result);
+
+      if( Platform.isFxApplicationThread() )
+         requestClose(requested);
+      else
+         Platform.runLater(() -> requestClose(requested));
+   }
+
+   private void requestClose(FormResultType result)
+   {
+      requestedResult = result;
 
       final Window window = formContext.window();
 
@@ -165,6 +182,7 @@ public abstract class FormController<T> implements Initializable {
               )
       );
    }
+
 
    /** */
    final void handleCloseRequest(WindowEvent event)

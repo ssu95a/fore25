@@ -39,7 +39,7 @@ public final class FormLauncher<T, C extends FormController<T>> {
 
    private boolean ownTaskContext;
 
-   private FormMode fromMode = FormMode.DEFAULT;
+   private FormMode formMode = FormMode.DEFAULT;
 
    /** */
    public FormLauncher( TaskContext taskContext, Window owner, Class<C> controllerClass ) {
@@ -116,7 +116,7 @@ public final class FormLauncher<T, C extends FormController<T>> {
 
    public FormLauncher<T,C> mode(FormMode mode)
    {
-      this.fromMode = mode;
+      this.formMode = mode;
       return this;
    }
 
@@ -146,7 +146,7 @@ public final class FormLauncher<T, C extends FormController<T>> {
                    taskContext,
                    owner,
                    dataObject,
-                   fromMode,
+                      formMode,
                    parameters,
                    resolvedBundle,
                    parentController
@@ -274,6 +274,21 @@ public final class FormLauncher<T, C extends FormController<T>> {
                     finally
                     {
                        releaseForm(controller, context);
+                    }
+                 }
+         );
+
+         stage.addEventHandler(
+                 WindowEvent.WINDOW_CLOSE_REQUEST,
+                 event -> {
+                    try
+                    {
+                       controller.handleCloseRequest(event);
+                    }
+                    catch( Throwable ex )
+                    {
+                       event.consume();
+                       handleLaunchError(ex);
                     }
                  }
          );

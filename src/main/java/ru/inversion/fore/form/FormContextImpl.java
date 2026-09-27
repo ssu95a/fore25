@@ -67,12 +67,6 @@ final class FormContextImpl<T> implements FormContext<T>, AutoCloseable {
       return taskContext;
    }
 
-   boolean isTaskContextOwner()
-   {
-      return taskContextOwner;
-   }
-
-
    /** */
    synchronized void takeTaskContextOwnership()
    {
@@ -82,13 +76,6 @@ final class FormContextImpl<T> implements FormContext<T>, AutoCloseable {
           throw new IllegalStateException( "TaskContext is not initialized" );
 
       taskContextOwner = true;
-   }
-
-
-   void closeTaskContext() throws Exception
-   {
-      if( taskContextOwner && taskContext != null )
-          taskContext.close();
    }
 
    /** */
