@@ -227,6 +227,25 @@ public abstract class FormController<T> implements Initializable {
    }
 
 
+   final void completeController()
+   {
+      if( completed )
+         return;
+
+      completed = true;
+
+      if( resultHandler != null )
+      {
+         resultHandler.accept(
+                 new FormResult<>(
+                         result,
+                         formContext.dataObject(),
+                         formContext.window()
+                 )
+         );
+      }
+   }
+
    /** */
    final void handleCloseRequest(WindowEvent event)
    {

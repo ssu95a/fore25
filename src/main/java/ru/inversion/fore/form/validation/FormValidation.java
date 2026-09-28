@@ -1,95 +1,147 @@
 package ru.inversion.fore.form.validation;
 
-import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Control;
+
+import ru.inversion.fore.form.control.ValueExtractors;
 import ru.inversion.utils.Checks;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+
 
 public final class FormValidation
 {
-   private final Map<Control, List<Entry<?>>> controls = new LinkedHashMap<>();
+   /*
+    * LinkedHashMap нужен для стабильного порядка validation.
+    *
+    * Control проверяются в порядке их первой регистрации.
+    */
+   private final Map<Control, ControlRules> controls = new LinkedHashMap<>();
+
    private final List<FormRule> formRules = new ArrayList<>();
 
 
-   public <T> FormValidation add( Control control, Rule<T> rule )
+   /**
+    * Добавить правило проверки VALUE элемента управления.
+    *
+    * Какое именно значение является value данного Control,
+    * определяет ValueExtractors.
+    */
+   public FormValidation add(
+           Control control,
+           Rule<?> rule )
    {
-      Checks.Require.objects( control, "control", rule, "rule");
-
-      final ObservableValue<T> value = ValueExtractors.valueOf(control);
-
-      controls.computeIfAbsent( control,key -> new ArrayList<>()).add( new Entry<>(control,value,rule));
-
-      /*
-       * Любое изменение validation-value означает,
-       * что прежний результат проверки устарел.
-       */
-      value.addListener(_ ->ValidationStateSupport.reset(control));
-
-      ValidationStateSupport.reset(control);
-
-      return this;
-   }
-
-
-   public FormValidation add(FormRule rule)
-   {
-      Checks.Require.object(rule, "rule");
-      formRules.add(rule);
-
-      return this;
-   }
-
-
-   public ValidationResult validate(Control control) throws Exception
-   {
-      Checks.Require.object(control, "control");
-
-      final List<Entry<?>> entries =
-              controls.get(control);
-
-      if( entries == null )
-         return ValidationResult.ok();
-
-      for( Entry<?> entry : entries )
-      {
-         final ValidationResult result =
-                 entry.check();
-
-         if( !result.valid() )
-         {
-            ValidationStateSupport.set(
-                    control,
-                    ValidationState.INVALID
-            );
-
-            return result;
-         }
-      }
-
-      ValidationStateSupport.set(
-              control,
-              ValidationState.VALID
+      Checks.Require.objects(
+              control, "control",
+              rule,    "rule"
       );
 
-      return ValidationResult.ok();
+      /*
+       * Extractor определяется один раз при регистрации,
+       * но само значение извлекается при каждой validation.
+       */
+      final Function<Control, Object> extractor =
+              ValueExtractors.extractor(control);
+
+      controlRules(control).add(
+              () -> check(
+                      control,
+                      extractor.apply(control),
+                      rule
+              )
+      );
+
+      return this;
    }
 
 
+   /**
+    * Добавить правило, которое работает непосредственно
+    * с Control, а не только с его value.
+    *
+    * Используется для проверок, которым нужны properties,
+    * metadata или другое состояние Control.
+    */
+   public <C extends Control> FormValidation forControl(
+           C control,
+           ControlRule<? super C> rule )
+   {
+      Checks.Require.objects(
+              control, "control",
+              rule,    "rule"
+      );
+
+      controlRules(control).add(
+              () -> requireResult(
+                      rule.check(control)
+              ).withTarget(control)
+      );
+
+      return this;
+   }
+
+
+   /**
+    * Добавить правило уровня всей формы.
+    */
+   public FormValidation add(FormRule rule)
+   {
+      formRules.add(
+              Checks.Require.object(
+                      rule,
+                      "rule"
+              )
+      );
+
+      return this;
+   }
+
+
+   /**
+    * Проверить все правила указанного Control.
+    *
+    * Проверка fail-fast.
+    */
+   public ValidationResult validate(Control control)
+           throws Exception
+   {
+      Checks.Require.object(
+              control,
+              "control"
+      );
+
+      final ControlRules rules =
+              controls.get(control);
+
+      if( rules == null )
+         return ValidationResult.ok();
+
+      return rules.validate();
+   }
+
+
+   /**
+    * Проверить всю форму.
+    *
+    * Сначала выполняются проверки Control
+    * в порядке их регистрации.
+    *
+    * После них выполняются FormRule.
+    *
+    * Проверка fail-fast.
+    */
    public ValidationResult validate()
            throws Exception
    {
-      /*
-       * На OK проверяем заново всё,
-       * независимо от текущего ValidationState.
-       */
-      for( Control control : controls.keySet() )
+      for( ControlRules rules : controls.values() )
       {
          final ValidationResult result =
-                 validate(control);
+                 rules.validate();
 
          if( !result.valid() )
             return result;
@@ -98,7 +150,9 @@ public final class FormValidation
       for( FormRule rule : formRules )
       {
          final ValidationResult result =
-                 check(rule);
+                 requireResult(
+                         rule.check()
+                 );
 
          if( !result.valid() )
             return result;
@@ -108,57 +162,139 @@ public final class FormValidation
    }
 
 
-   public ValidationState state(Control control)
+   /**
+    * Есть ли вообще зарегистрированные проверки.
+    */
+   public boolean isEmpty()
    {
-      Checks.Require.object(control, "control");
-
-      return ValidationStateSupport.get(control);
+      return controls.isEmpty()
+              && formRules.isEmpty();
    }
 
 
-   public void reset(Control control)
+   /**
+    * Зарегистрированные Control.
+    *
+    * Package-private API для interactive validation:
+    * focus, ValidationState и т.п.
+    */
+   Set<Control> controls()
    {
-      Checks.Require.object(control, "control");
-
-      if( controls.containsKey(control) )
-         ValidationStateSupport.reset(control);
+      return Collections.unmodifiableSet(
+              controls.keySet()
+      );
    }
 
 
-   Iterable<Control> controls()
+   /**
+    * Получить или создать набор проверок Control.
+    */
+   private ControlRules controlRules(Control control)
    {
-      return controls.keySet();
+      return controls.computeIfAbsent(
+              control,
+              key -> new ControlRules()
+      );
    }
 
 
-   private ValidationResult check(FormRule rule)
+   /**
+    * Выполнить обычный value-based Rule.
+    *
+    * Связь типа value и Rule здесь намеренно динамическая.
+    * Это цена за простой универсальный API:
+    *
+    * validation().add(control, rule)
+    */
+   @SuppressWarnings("unchecked")
+   private static ValidationResult check(
+           Control control,
+           Object value,
+           Rule<?> rule )
            throws Exception
    {
       final ValidationResult result =
-              rule.check();
+              ((Rule<Object>) rule).check(value);
 
+      return requireResult(result)
+              .withTarget(control);
+   }
+
+
+   /**
+    * Rule не имеет права возвращать null.
+    *
+    * null означает ошибку реализации Rule,
+    * а не успешную validation.
+    */
+   private static ValidationResult requireResult(
+           ValidationResult result )
+   {
       if( result == null )
+      {
          throw new IllegalStateException(
                  "Validation rule returned null"
          );
+      }
 
       return result;
    }
 
 
-   private record Entry<T>( Control control, ObservableValue<T> value, Rule<T> rule )
+   /**
+    * Уже полностью подготовленная к выполнению проверка.
+    */
+   @FunctionalInterface
+   private interface Check
    {
-      ValidationResult check() throws Exception
+      ValidationResult check()
+              throws Exception;
+   }
+
+
+   /**
+    * Все проверки одного Control.
+    *
+    * Не знает:
+    * - тип value;
+    * - способ извлечения value;
+    * - ValidationState;
+    * - listeners;
+    * - focus;
+    * - decoration.
+    */
+   private static final class ControlRules
+   {
+      private final List<Check> rules =
+              new ArrayList<>();
+
+
+      private void add(Check rule)
       {
-         final ValidationResult result = rule.check(value.getValue());
+         rules.add(
+                 Checks.Require.object(
+                         rule,
+                         "rule"
+                 )
+         );
+      }
 
-         if( result == null )
-             throw new IllegalStateException( "Validation rule returned null" );
 
-         if( result.valid() )
-             return result;
+      private ValidationResult validate()
+              throws Exception
+      {
+         for( Check rule : rules )
+         {
+            final ValidationResult result =
+                    requireResult(
+                            rule.check()
+                    );
 
-         return result.withTarget(control);
+            if( !result.valid() )
+               return result;
+         }
+
+         return ValidationResult.ok();
       }
    }
 }
