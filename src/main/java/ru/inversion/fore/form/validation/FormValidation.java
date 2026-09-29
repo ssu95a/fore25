@@ -11,7 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 
 public final class FormValidation
@@ -32,33 +31,12 @@ public final class FormValidation
     * Какое именно значение является value данного Control,
     * определяет ValueExtractors.
     */
-   public FormValidation add(
-           Control control,
-           Rule<?> rule )
+   public FormValidation add( Control control, Rule<?> rule )
    {
-      Checks.Require.objects(
-              control, "control",
-              rule,    "rule"
-      );
-
-      /*
-       * Extractor определяется один раз при регистрации,
-       * но само значение извлекается при каждой validation.
-       */
-      final Function<Control, Object> extractor =
-              ValueExtractors.extractor(control);
-
-      controlRules(control).add(
-              () -> check(
-                      control,
-                      extractor.apply(control),
-                      rule
-              )
-      );
-
+      Checks.Require.objects( control, "control", rule, "rule");
+      controlRules(control).add( () -> check( control, ValueExtractors.valueOf(control), rule ) );
       return this;
    }
-
 
    /**
     * Добавить правило, которое работает непосредственно
@@ -67,20 +45,10 @@ public final class FormValidation
     * Используется для проверок, которым нужны properties,
     * metadata или другое состояние Control.
     */
-   public <C extends Control> FormValidation forControl(
-           C control,
-           ControlRule<? super C> rule )
+   public <C extends Control> FormValidation forControl( C control, ControlRule<? super C> rule )
    {
-      Checks.Require.objects(
-              control, "control",
-              rule,    "rule"
-      );
-
-      controlRules(control).add(
-              () -> requireResult(
-                      rule.check(control)
-              ).withTarget(control)
-      );
+      Checks.Require.objects( control, "control", rule,  "rule" );
+      controlRules(control).add( () -> requireResult( rule.check(control) ).withTarget(control) );
 
       return this;
    }
@@ -91,13 +59,7 @@ public final class FormValidation
     */
    public FormValidation add(FormRule rule)
    {
-      formRules.add(
-              Checks.Require.object(
-                      rule,
-                      "rule"
-              )
-      );
-
+      formRules.add( Checks.Require.object( rule, "rule" ) );
       return this;
    }
 
@@ -107,16 +69,11 @@ public final class FormValidation
     *
     * Проверка fail-fast.
     */
-   public ValidationResult validate(Control control)
-           throws Exception
+   public ValidationResult validate( Control control ) throws Exception
    {
-      Checks.Require.object(
-              control,
-              "control"
-      );
+      Checks.Require.object( control, "control" );
 
-      final ControlRules rules =
-              controls.get(control);
+      final ControlRules rules = controls.get(control);
 
       if( rules == null )
          return ValidationResult.ok();
@@ -265,18 +222,11 @@ public final class FormValidation
     */
    private static final class ControlRules
    {
-      private final List<Check> rules =
-              new ArrayList<>();
-
+      private final List<Check> rules = new ArrayList<>();
 
       private void add(Check rule)
       {
-         rules.add(
-                 Checks.Require.object(
-                         rule,
-                         "rule"
-                 )
-         );
+         rules.add( Checks.Require.object( rule, "rule" ) );
       }
 
 

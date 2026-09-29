@@ -1,90 +1,66 @@
 package ru.inversion.fore.form.control;
 
-import javafx.scene.control.*;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.control.Control;
+import javafx.util.Callback;
 
 import ru.inversion.utils.Checks;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 
 public final class ValueExtractors
 {
-   private static final List<Entry> extractors = new ArrayList<>();
-
-   static {
-      register( TextInputControl.class, TextInputControl::getText );
-      register( ComboBoxBase.class, ComboBoxBase::getValue );
-      register( ChoiceBox.class, ChoiceBox::getValue );
-      register( CheckBox.class, CheckBox::isSelected );
-   }
-
-
    private ValueExtractors()
-   { }
-
-
-   /**
-    * Зарегистрировать extractor для Control данного типа.
-    *
-    * Более поздняя регистрация имеет больший приоритет.
-    * Это позволяет переопределять стандартное поведение
-    * для собственных Control.
-    */
-   public static synchronized <C extends Control, T> void register( Class<C> controlClass, Function<? super C, ? extends T> extractor )
    {
-      Checks.Require.objects( controlClass, "controlClass", extractor, "extractor");
-      extractors.add( 0, new Entry( controlClass, adapt(controlClass, extractor) ) );
    }
 
 
    /**
-    * Найти extractor для конкретного Control.
+    * Получить ObservableValue, представляющий value Control.
     */
-   public static synchronized Function<Control, Object> extractor( Control control )
+   public static ObservableValue<?> observable(Control control)
    {
-      //Checks.Require.object( control, "control" );
+      Checks.Require.object(control, "control");
 
-      if( control == null )
-          return c->null;
+      final Callback<Control, ObservableValue<?>> extractor =
+              org.controlsfx.tools.ValueExtractor.getObservableValueExtractor(control)
+                      .orElseThrow(
+                              () -> new IllegalArgumentException(
+                                      "Value extractor not found for "
+                                              + control.getClass().getName()
+                              )
+                      );
 
-      final Class<?> controlClass = control.getClass();
-
-      for( Entry entry : extractors )
-      {
-         if( entry.controlClass().isAssignableFrom(controlClass) )
-             return entry.extractor();
-      }
-
-      if( control.getClass().isAssignableFrom(Labeled.class) )
-          return c -> ((Labeled) c).getText();
-
-      throw new IllegalArgumentException( "Value extractor not found for " + controlClass.getName() );
+      return Checks.Require.object( extractor.call(control), "observable" );
    }
 
 
    /**
-    * Сразу получить текущее value Control.
-    *
-    * Удобно не только для validation.
+    * Получить текущее value Control.
     */
    public static Object valueOf(Control control)
    {
-      return extractor(control).apply(control);
+      return observable(control).getValue();
    }
 
 
    /**
-    * Единственное место, где typed Function превращается
-    * во внутренний универсальный extractor.
+    * Зарегистрировать extractor для собственного Control.
     */
-   private static <C extends Control, T>
-   Function<Control, Object> adapt( Class<C> controlClass, Function<? super C, ? extends T> extractor )
+   public static void register(
+           Predicate<Control> test,
+           Callback<Control, ObservableValue<?>> extractor )
    {
-      return control ->extractor.apply(controlClass.cast(control));
-   }
+      Checks.Require.objects(
+              test,      "test",
+              extractor, "extractor"
+      );
 
-   /** */
-   private record Entry( Class<? extends Control> controlClass, Function<Control, Object> extractor ) { }
+      org.controlsfx.tools.ValueExtractor
+              .addObservableValueExtractor(
+                      test,
+                      extractor
+              );
+   }
 }
