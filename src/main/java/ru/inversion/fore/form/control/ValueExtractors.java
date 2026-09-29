@@ -6,33 +6,59 @@ import javafx.util.Callback;
 
 import ru.inversion.utils.Checks;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 
 
 public final class ValueExtractors
 {
+   /** */
    private ValueExtractors()
+   { }
+
+
+   /**
+    * Найти ObservableValue, представляющий value Control.
+    * <>
+    * Отсутствие extractor является допустимым результатом.
+    */
+   public static Optional<ObservableValue<?>> findObservable(
+           Control control )
    {
+      Checks.Require.object(control, "control");
+
+      final Optional<Callback<Control, ObservableValue<?>>> extractor =
+              org.controlsfx.tools.ValueExtractor
+                      .getObservableValueExtractor(control);
+
+      if( extractor.isEmpty() )
+         return Optional.empty();
+
+      return Optional.of(
+              Checks.Require.object(
+                      extractor.get().call(control),
+                      "observable"
+              )
+      );
    }
 
 
    /**
     * Получить ObservableValue, представляющий value Control.
+    *
+    * Если extractor не зарегистрирован, это ошибка.
     */
    public static ObservableValue<?> observable(Control control)
    {
       Checks.Require.object(control, "control");
 
-      final Callback<Control, ObservableValue<?>> extractor =
-              org.controlsfx.tools.ValueExtractor.getObservableValueExtractor(control)
-                      .orElseThrow(
-                              () -> new IllegalArgumentException(
-                                      "Value extractor not found for "
-                                              + control.getClass().getName()
-                              )
-                      );
-
-      return Checks.Require.object( extractor.call(control), "observable" );
+      return findObservable(control)
+              .orElseThrow(
+                      () -> new IllegalArgumentException(
+                              "Value extractor not found for "
+                                      + control.getClass().getName()
+                      )
+              );
    }
 
 

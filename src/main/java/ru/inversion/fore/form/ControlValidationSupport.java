@@ -1,15 +1,17 @@
-package ru.inversion.fore.form.validation;
+package ru.inversion.fore.form;
 
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Control;
 
 import ru.inversion.fore.form.control.ValueExtractors;
+import ru.inversion.fore.form.validation.FormValidation;
+import ru.inversion.fore.form.validation.ValidationResult;
 import ru.inversion.utils.Checks;
 
 import java.util.function.Consumer;
 
 
-final class ControlValidationSupport
+public final class ControlValidationSupport
 {
    private final FormValidation validation;
    private final Consumer<? super Exception> errorHandler;
@@ -17,7 +19,7 @@ final class ControlValidationSupport
    private boolean installed;
 
 
-   ControlValidationSupport( FormValidation validation, Consumer<? super Exception> errorHandler )
+   public ControlValidationSupport( FormValidation validation, Consumer<? super Exception> errorHandler )
    {
       this.validation = Checks.Require.object( validation, "validation"              );
 
@@ -29,7 +31,7 @@ final class ControlValidationSupport
    }
 
 
-   void install()
+   public void install()
    {
       if( installed )
           return;
@@ -52,13 +54,14 @@ final class ControlValidationSupport
 
    private void installValueListener(Control control)
    {
-      final ObservableValue<?> value =
-              ValueExtractors.observable(control);
+      ValueExtractors.findObservable(control)
+              .ifPresent(
+                      value -> value.addListener(
+                              observable ->
+                                      ValidationStateSupport.reset(control)
+                      )
+              );
 
-      value.addListener(
-              observable ->
-                      ValidationStateSupport.reset(control)
-      );
    }
 
 

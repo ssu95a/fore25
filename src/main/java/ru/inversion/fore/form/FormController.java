@@ -32,6 +32,8 @@ public abstract class FormController<T> implements Initializable {
 
    private final FormValidation validation = new FormValidation();
 
+   private ControlValidationSupport validationSupport;
+
    /** */
    final boolean preInitController( FormContext<T> context, Consumer<FormResult<T>> resultHandler ) throws Exception
    {
@@ -63,8 +65,19 @@ public abstract class FormController<T> implements Initializable {
                  .bindBidirectional(titleProperty);
 
       guiInit();
+
+      validationSupport = new ControlValidationSupport( validation, this::handleInteractiveValidationError );
+
+      validationSupport.install();
    }
 
+   private void handleInteractiveValidationError(Exception ex)
+   {
+      throw new FormException(
+              "Control validation error",
+              ex
+      );
+   }
 
    protected boolean preInit() throws Exception
    {

@@ -1,4 +1,4 @@
-package ru.inversion.fore.form.validation;
+package ru.inversion.fore.form;
 
 enum ValidationState
 {
