@@ -1,7 +1,7 @@
 package ru.inversion.fore.form.validation;
 
 @FunctionalInterface
-public interface FormRule
+public interface FormValidator
 {
    ValidationResult check() throws Exception;
 }

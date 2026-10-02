@@ -22,7 +22,7 @@ public final class FormValidation
     */
    private final Map<Control, ControlRules> controls = new LinkedHashMap<>();
 
-   private final List<FormRule> formRules = new ArrayList<>();
+   private final List<FormValidator> formValidators = new ArrayList<>();
 
 
    /**
@@ -31,10 +31,10 @@ public final class FormValidation
     * Какое именно значение является value данного Control,
     * определяет ValueExtractors.
     */
-   public FormValidation add( Control control, Rule<?> rule )
+   public FormValidation add( Control control, ValueValidator<?> valueValidator)
    {
-      Checks.Require.objects( control, "control", rule, "rule");
-      controlRules(control).add( () -> check( control, ValueExtractors.valueOf(control), rule ) );
+      Checks.Require.objects( control, "control", valueValidator, "valueRule");
+      controlRules(control).add( () -> check( control, ValueExtractors.valueOf(control), valueValidator) );
       return this;
    }
 
@@ -45,7 +45,7 @@ public final class FormValidation
     * Используется для проверок, которым нужны properties,
     * metadata или другое состояние Control.
     */
-   public <C extends Control> FormValidation forControl( C control, ControlRule<? super C> rule )
+   public <C extends Control> FormValidation forControl( C control, ControlValidator<? super C> rule )
    {
       Checks.Require.objects( control, "control", rule,  "rule" );
       controlRules(control).add( () -> requireResult( rule.check(control) ).withTarget(control) );
@@ -57,9 +57,9 @@ public final class FormValidation
    /**
     * Добавить правило уровня всей формы.
     */
-   public FormValidation add(FormRule rule)
+   public FormValidation add(FormValidator rule)
    {
-      formRules.add( Checks.Require.object( rule, "rule" ) );
+      formValidators.add( Checks.Require.object( rule, "rule" ) );
       return this;
    }
 
@@ -104,7 +104,7 @@ public final class FormValidation
             return result;
       }
 
-      for( FormRule rule : formRules )
+      for( FormValidator rule : formValidators)
       {
          final ValidationResult result =
                  requireResult(
@@ -125,7 +125,7 @@ public final class FormValidation
    public boolean isEmpty()
    {
       return controls.isEmpty()
-              && formRules.isEmpty();
+              && formValidators.isEmpty();
    }
 
 
@@ -167,11 +167,11 @@ public final class FormValidation
    private static ValidationResult check(
            Control control,
            Object value,
-           Rule<?> rule )
+           ValueValidator<?> valueValidator)
            throws Exception
    {
       final ValidationResult result =
-              ((Rule<Object>) rule).check(value);
+              ((ValueValidator<Object>) valueValidator).check(value);
 
       return requireResult(result)
               .withTarget(control);

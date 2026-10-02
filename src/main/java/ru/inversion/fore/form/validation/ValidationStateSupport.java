@@ -1,4 +1,4 @@
-package ru.inversion.fore.form;
+package ru.inversion.fore.form.validation;
 
 import javafx.scene.control.Control;
 import ru.inversion.utils.Checks;

@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 
+import ru.inversion.fore.form.validation.ControlValidationSupport;
 import ru.inversion.fore.form.validation.FormValidation;
 import ru.inversion.fore.form.validation.ValidationFailure;
 import ru.inversion.fore.form.validation.ValidationResult;
@@ -293,11 +294,7 @@ public abstract class FormController<T> implements Initializable {
       catch( Exception ex )
       {
          event.consume();
-
-         throw new FormException(
-                 "Error processing form close request",
-                 ex
-         );
+         throw new FormException( "Error processing form close request", ex  );
       }
    }
 

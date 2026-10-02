@@ -1,11 +1,8 @@
-package ru.inversion.fore.form;
+package ru.inversion.fore.form.validation;
 
-import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Control;
 
 import ru.inversion.fore.form.control.ValueExtractors;
-import ru.inversion.fore.form.validation.FormValidation;
-import ru.inversion.fore.form.validation.ValidationResult;
 import ru.inversion.utils.Checks;
 
 import java.util.function.Consumer;

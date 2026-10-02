@@ -4,14 +4,14 @@ import ru.inversion.utils.Checks;
 
 import java.util.regex.Pattern;
 
-public final class Rules
+public final class Validators
 {
-   private Rules()
+   private Validators()
    {
    }
 
 
-   public static <T> Rule<T> required( String message )
+   public static <T> ValueValidator<T> required(String message )
    {
       Checks.Require.text( message, "message" );
 
@@ -23,7 +23,7 @@ public final class Rules
    }
 
 
-   public static Rule<String> minLength( int min, String message )
+   public static ValueValidator<String> minLength(int min, String message )
    {
       Checks.Numeric.positiveOrZero(min, "min");
       Checks.Require.text(message, "message");
@@ -35,7 +35,7 @@ public final class Rules
    }
 
 
-   public static Rule<String> maxLength(
+   public static ValueValidator<String> maxLength(
            int max,
            String message )
    {
@@ -49,7 +49,7 @@ public final class Rules
    }
 
 
-   public static Rule<String> pattern(
+   public static ValueValidator<String> pattern(
            Pattern pattern,
            String message )
    {
@@ -68,7 +68,7 @@ public final class Rules
 
 
    public static <T extends Comparable<? super T>>
-   Rule<T> range(
+   ValueValidator<T> range(
            T min,
            T max,
            String message )
