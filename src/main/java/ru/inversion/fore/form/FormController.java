@@ -9,10 +9,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 
-import ru.inversion.fore.form.validation.ControlValidationSupport;
-import ru.inversion.fore.form.validation.FormValidation;
-import ru.inversion.fore.form.validation.ValidationFailure;
-import ru.inversion.fore.form.validation.ValidationResult;
+import ru.inversion.fore.form.validation.*;
 import ru.inversion.tc.TaskContext;
 import ru.inversion.utils.Checks;
 
@@ -34,6 +31,8 @@ public abstract class FormController<T> implements Initializable {
    private final FormValidation validation = new FormValidation();
 
    private ControlValidationSupport validationSupport;
+
+   private final ValidationPresenter validationPresenter = new ValidationPresenter();
 
    /** */
    final boolean preInitController( FormContext<T> context, Consumer<FormResult<T>> resultHandler ) throws Exception
@@ -62,14 +61,15 @@ public abstract class FormController<T> implements Initializable {
       final Window window = formContext.window();
 
       if( window instanceof Stage stage )
-         stage.titleProperty()
-                 .bindBidirectional(titleProperty);
+         stage.titleProperty() .bindBidirectional(titleProperty);
 
       guiInit();
 
-      validationSupport = new ControlValidationSupport( validation, this::handleInteractiveValidationError );
-
-      validationSupport.install();
+      if( requiresValidation() )
+      {
+         validationSupport = new ControlValidationSupport( validation, validationPresenter,this::handleInteractiveValidationError );
+         validationSupport.install();
+      }
    }
 
    private void handleInteractiveValidationError(Exception ex)
@@ -158,14 +158,18 @@ public abstract class FormController<T> implements Initializable {
    private boolean validateForm() throws Exception
    {
       if( !requiresValidation() )
-          return true;
+         return true;
 
       final ValidationResult result =
               validation.validate();
 
       if( result.valid() )
+      {
+         validationPresenter.clearAll();
          return true;
+      }
 
+      validationPresenter.show(result);
       handleValidationFailure(result);
 
       return false;

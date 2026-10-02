@@ -57,9 +57,9 @@ public final class FormValidation
    /**
     * Добавить правило уровня всей формы.
     */
-   public FormValidation add(FormValidator rule)
+   public FormValidation add(FormValidator formValidator )
    {
-      formValidators.add( Checks.Require.object( rule, "rule" ) );
+      formValidators.add( Checks.Require.object( formValidator, "formValidator" ) );
       return this;
    }
 

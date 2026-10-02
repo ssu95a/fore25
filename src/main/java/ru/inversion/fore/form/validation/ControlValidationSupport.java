@@ -15,18 +15,22 @@ public final class ControlValidationSupport
 
    private boolean installed;
 
+   private final ValidationPresenter presenter;
 
-   public ControlValidationSupport( FormValidation validation, Consumer<? super Exception> errorHandler )
+   public ControlValidationSupport(
+           FormValidation validation,
+           ValidationPresenter presenter,
+           Consumer<? super Exception> errorHandler )
    {
-      this.validation = Checks.Require.object( validation, "validation"              );
+      this.validation =
+              Checks.Require.object(validation, "validation");
+
+      this.presenter =
+              Checks.Require.object(presenter, "presenter");
 
       this.errorHandler =
-              Checks.Require.object(
-                      errorHandler,
-                      "errorHandler"
-              );
+              Checks.Require.object(errorHandler, "errorHandler");
    }
-
 
    public void install()
    {
@@ -54,13 +58,13 @@ public final class ControlValidationSupport
       ValueExtractors.findObservable(control)
               .ifPresent(
                       value -> value.addListener(
-                              observable ->
-                                      ValidationStateSupport.reset(control)
+                              observable -> {
+                                 ValidationStateSupport.reset(control);
+                                 presenter.clear(control);
+                              }
                       )
               );
-
    }
-
 
    private void installFocusListener(Control control)
    {
@@ -78,9 +82,7 @@ public final class ControlValidationSupport
    {
       if( ValidationStateSupport.get(control)
               != ValidationState.UNVALIDATED )
-      {
          return;
-      }
 
       try
       {
@@ -93,14 +95,16 @@ public final class ControlValidationSupport
                          ? ValidationState.VALID
                          : ValidationState.INVALID
          );
+
+         if( result.valid() )
+            presenter.clear(control);
+         else
+            presenter.show(result);
       }
       catch( Exception ex )
       {
-         /*
-          * Техническая ошибка validation не означает,
-          * что данные пользователя INVALID.
-          */
          ValidationStateSupport.reset(control);
+         presenter.clear(control);
 
          errorHandler.accept(ex);
       }
