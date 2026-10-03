@@ -160,14 +160,12 @@ public abstract class FormController<T> implements Initializable {
       if( !requiresValidation() )
          return true;
 
-      final ValidationResult result =
-              validation.validate();
+      final ValidationResult result = validation.validate();
+
+      validationPresenter.clearAll();
 
       if( result.valid() )
-      {
-         validationPresenter.clearAll();
          return true;
-      }
 
       validationPresenter.show(result);
       handleValidationFailure(result);
