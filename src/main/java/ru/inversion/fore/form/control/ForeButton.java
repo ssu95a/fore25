@@ -16,7 +16,7 @@ import java.util.Objects;
  * standardAction applies visual defaults without replacing onAction.
  * setAction(ForeAction) activates the independent, live runtime binding mode.
  */
-public class ForeButton extends Button
+public class ForeButton extends Button implements IForeControl
 {
    private StandardAction standardAction;
    private ForeAction action;
