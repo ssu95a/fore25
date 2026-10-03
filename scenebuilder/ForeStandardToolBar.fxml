@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import ru.inversion.fore.form.control.ForeButton?>
+<?import ru.inversion.fore.form.control.ForeToolBar?>
+<ForeToolBar xmlns="http://javafx.com/javafx/25"
+             xmlns:fx="http://javafx.com/fxml/1">
+   <items>
+      <ForeButton standardAction="CREATE" />
+      <ForeButton standardAction="UPDATE" />
+      <ForeButton standardAction="DELETE" />
+      <ForeButton standardAction="VIEW" />
+      <ForeButton standardAction="REFRESH" />
+   </items>
+</ForeToolBar>

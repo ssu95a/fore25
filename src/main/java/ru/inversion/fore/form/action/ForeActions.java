@@ -47,7 +47,7 @@ public final class ForeActions
 
    private static IconSpec icon(StandardAction type)
    {
-      return new IconSpec(switch(type)
+      return new IconSpec(IconFont.FONT_AWESOME_4, switch(type)
       {
          case CREATE  -> "\uf016"; // FontAwesome fa-file-o
          case UPDATE  -> "\uf044"; // fa-edit
