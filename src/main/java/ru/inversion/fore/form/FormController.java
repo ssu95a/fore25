@@ -3,6 +3,8 @@ package ru.inversion.fore.form;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.event.Event;
 import javafx.fxml.Initializable;
 import javafx.stage.Stage;
@@ -24,6 +26,8 @@ public abstract class FormController<T> implements Initializable {
 
    private Consumer<FormResult<T>> resultHandler;
 
+   private Consumer<? super Throwable> errorHandler;
+
    private boolean completed;
 
    private final StringProperty titleProperty = new SimpleStringProperty( this, "title");
@@ -35,10 +39,14 @@ public abstract class FormController<T> implements Initializable {
    private final ValidationPresenter validationPresenter = new ValidationPresenter();
 
    /** */
-   final boolean preInitController( FormContext<T> context, Consumer<FormResult<T>> resultHandler ) throws Exception
+   final boolean preInitController(
+           FormContext<T> context,
+           Consumer<FormResult<T>> resultHandler,
+           Consumer<? super Throwable> errorHandler ) throws Exception
    {
       this.formContext   = Checks.Require.object(context, "context");
       this.resultHandler = resultHandler;
+      this.errorHandler  = Checks.Require.object(errorHandler, "errorHandler");
 
       return preInit();
    }
@@ -72,12 +80,14 @@ public abstract class FormController<T> implements Initializable {
       }
    }
 
-   private void handleInteractiveValidationError(Exception ex)
+   /**
+    * Interactive validation runs inside JavaFX listeners, outside the close-request
+    * handler. Route failures through the same launcher error sink, never rethrow
+    * directly from a focus listener.
+    */
+   final void handleInteractiveValidationError(Exception ex)
    {
-      throw new FormException(
-              "Control validation error",
-              ex
-      );
+      errorHandler.accept(new FormException("Control validation error", ex));
    }
 
    protected boolean preInit() throws Exception
@@ -190,7 +200,26 @@ public abstract class FormController<T> implements Initializable {
       final ValidationFailure failure = result.failures().getFirst();
 
       if( failure.target() != null )
-          failure.target().requestFocus();
+      {
+         failure.target().requestFocus();
+         return;
+      }
+
+      // A form-level validator may have no Control target. Do not silently
+      // reject OK without explaining the failure to the user.
+      showValidationMessage(failure.message());
+   }
+
+   /**
+    * Default presentation for untargeted FormValidator failures.
+    * Applications can override this hook to use their own dialog service.
+    */
+   protected void showValidationMessage(String message)
+   {
+      final Alert alert = new Alert(Alert.AlertType.WARNING, message, ButtonType.OK);
+      alert.initOwner(getWindow());
+      alert.setHeaderText(null);
+      alert.show();
    }
 
    public final StringProperty titleProperty()
@@ -271,33 +300,37 @@ public abstract class FormController<T> implements Initializable {
 
       try
       {
-         final boolean allowClose =
-                 switch( tempRequest )
-                 {
-                    case OK -> {
-
-                       if( !validateForm() )
-                           yield false;
-
-                       yield onOK();
-                    }
-
-                    case CANCEL -> onCancel();
-                 };
-
-         if( !allowClose )
-         {
+         if( !processCloseRequest(tempRequest) )
             event.consume();
-            return;
-         }
-
-         result = tempRequest;
       }
       catch( Exception ex )
       {
          event.consume();
          throw new FormException( "Error processing form close request", ex  );
       }
+   }
+
+   /**
+    * Close decision is independent of the WindowEvent so its lifecycle rules
+    * can be tested without creating a JavaFX Stage.
+    */
+   final boolean processCloseRequest(FormResultType request) throws Exception
+   {
+      final boolean allowClose = switch( request )
+      {
+         case OK -> {
+            if( !validateForm() )
+               yield false;
+
+            yield onOK();
+         }
+         case CANCEL -> onCancel();
+      };
+
+      if( allowClose )
+         result = request;
+
+      return allowClose;
    }
 
    /** */
