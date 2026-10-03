@@ -202,6 +202,44 @@ class IForeControlLabelTest
       });
    }
 
+   @Test
+   void fxmlLoadsTextFieldMetadataAndKeepsTextVerbatim() throws Exception
+   {
+      onFxThread(() -> {
+         final FXMLLoader loader = load("""
+                 <?import javafx.scene.control.Label?>
+                 <?import javafx.scene.layout.VBox?>
+                 <?import ru.inversion.fore.form.control.ForeTextField?>
+                 <VBox xmlns:fx="http://javafx.com/fxml/1">
+                    <Label fx:id="caption" text="Employee"/>
+                    <ForeTextField fx:id="control" fieldName="  EMP_NAME  " label="$caption" text="  Alice  "/>
+                 </VBox>
+                 """);
+         final ForeTextField control = (ForeTextField) loader.getNamespace().get("control");
+         final Label caption = (Label) loader.getNamespace().get("caption");
+
+         assertEquals("  EMP_NAME  ", control.getFieldName());
+         assertEquals("  Alice  ", control.getText());
+         assertSame(caption, control.getLabel());
+         assertSame(control, caption.getLabelFor());
+      });
+   }
+
+   @Test
+   void controlsFxExtractsTextFieldValueWithoutCustomRegistration() throws Exception
+   {
+      onFxThread(() -> {
+         final ForeTextField control = new ForeTextField("  Alice  ");
+         final var observable = org.controlsfx.tools.ValueExtractor
+                 .getObservableValueExtractor(control).orElseThrow().call(control);
+
+         assertSame(control.textProperty(), observable);
+         assertEquals("  Alice  ", observable.getValue());
+         control.setText("  Bob  ");
+         assertEquals("  Bob  ", observable.getValue());
+      });
+   }
+
    private static FXMLLoader load(String fxml) throws Exception
    {
       final FXMLLoader loader = new FXMLLoader();
