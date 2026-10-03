@@ -24,15 +24,15 @@ public final class FormLauncher<T, C extends FormController<T>> {
 
    private final Class<C>    controllerClass;
 
-   private T dataObject;
+   private T                  dataObject;
 
    private Map<String, Object> parameters = Map.of();
 
-   private Object bundle;
+   private Object             bundle;
 
-   private String fxmlPath;
+   private String             fxmlPath;
 
-   private boolean modal;
+   private boolean            modal;
 
    private Consumer< FormResult<T> > controllerCallback;
 
@@ -160,7 +160,7 @@ public final class FormLauncher<T, C extends FormController<T>> {
          if( ownTaskContext && taskContext != null )
              context.takeTaskContextOwnership();
 
-         if( !controller.preInitController(context, controllerCallback) )
+         if( !controller.preInitController(context, controllerCallback, this::handleLaunchError) )
          {
             releaseForm(controller, context);
             return;
@@ -274,6 +274,10 @@ public final class FormLauncher<T, C extends FormController<T>> {
                     try
                     {
                        controller.completeController();
+                    }
+                    catch( Throwable ex )
+                    {
+                       handleLaunchError(ex);
                     }
                     finally
                     {
