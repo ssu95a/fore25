@@ -6,19 +6,19 @@ import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 
 /**
- * Common metadata contract for Fore controls backed by a JavaFX {@link Control}.
+ * Контракт необязательных метаданных Fore-контролов на базе JavaFX {@link Control}.
+ * Связь с меткой использует стандартный {@link Label#labelForProperty()}.
+ * Для одного контрола следует задавать не более одной связанной метки.
  *
- * No legacy IJInvControl dependency: validation, Actions, controller lookup,
- * dataset binding and input-specific read-only semantics live elsewhere.
+ * Классы контролов, предоставляющие эти свойства в FXML, должны явно объявлять
+ * getter/setter с делегированием default-методам: FXMLLoader не ищет их в интерфейсах.
  */
 public interface IForeControl
 {
-   /** Keep the historical field-name key so existing metadata remains readable. */
+   /** Исторический ключ сохранён для чтения существующих метаданных. */
    String FIELD_NAME_KEY = "ru.inversion.field_name";
 
-   String LABEL_KEY = "ru.inversion.fore.control.label";
-
-   /** Already implemented by every JavaFX Node/Control. */
+   /** Уже реализован каждым JavaFX Node/Control. */
    ObservableMap<Object, Object> getProperties();
 
    default String getFieldName()
@@ -26,7 +26,7 @@ public interface IForeControl
       return (String) getProperties().get(FIELD_NAME_KEY);
    }
 
-   /** Null removes metadata; non-null names are preserved verbatim. */
+   /** Null удаляет метаданные; остальные значения сохраняются без изменений. */
    default void setFieldName(String fieldName)
    {
       if( fieldName == null )
@@ -36,41 +36,41 @@ public interface IForeControl
    }
 
    /**
-    * Return the label bound via setLabel, or a label associated externally
-    * via JavaFX Label.setLabelFor (including FXML).
+    * Текущая метка из штатной связи JavaFX, в том числе заданной через FXML.
+    * Отдельная копия связи в properties не хранится.
     */
    default Label getLabel()
    {
       final Control control = foreControl();
-      final Object stored = getProperties().get(LABEL_KEY);
-      if( stored instanceof Label label && label.getLabelFor() == control )
-         return label;
-
       final Object accessible = control.queryAccessibleAttribute(AccessibleAttribute.LABELED_BY);
-      return accessible instanceof Label label ? label : null;
+      return accessible instanceof Label label && label.getLabelFor() == control ? label : null;
    }
 
    /**
-    * Associate a Label with this control. A null value removes the association.
-    * A void JavaBean setter is intentional for FXMLLoader and Scene Builder.
+    * Связать метку с контролом; null снимает текущую связь.
+    * Повторная установка текущей метки ничего не меняет.
+    *
+    * @throws IllegalStateException если для изменения связи требуется запись
+    *         в bound-свойство labelFor; обе связи остаются прежними
     */
    default void setLabel(Label label)
    {
       final Control control = foreControl();
       final Label previous = getLabel();
 
-      if( previous != null && previous != label && previous.getLabelFor() == control )
-         previous.setLabelFor(null);
+      if( previous == label )
+         return;
 
-      if( label == null )
-      {
-         getProperties().remove(LABEL_KEY);
-      }
-      else
-      {
+      // Проверяем обе метки до изменения связи, чтобы отказ не оставил полусостояние.
+      if( previous != null && previous.labelForProperty().isBound() )
+         throw new IllegalStateException("Cannot detach a Label with a bound labelFor property");
+      if( label != null && label.labelForProperty().isBound() )
+         throw new IllegalStateException("Cannot assign a Label with a bound labelFor property");
+
+      if( previous != null )
+         previous.setLabelFor(null);
+      if( label != null )
          label.setLabelFor(control);
-         getProperties().put(LABEL_KEY, label);
-      }
    }
 
    private Control foreControl()

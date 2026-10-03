@@ -2,6 +2,7 @@ package ru.inversion.fore.form.control;
 
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import org.controlsfx.control.action.ActionUtils;
 import ru.inversion.fore.form.action.ActionPrototype;
@@ -35,6 +36,31 @@ public class ForeButton extends Button implements IForeControl
    {
       this();
       setAction(action);
+   }
+
+   // FXMLLoader ищет JavaBean-методы в классах, а не default-методы интерфейсов.
+   @Override
+   public String getFieldName()
+   {
+      return IForeControl.super.getFieldName();
+   }
+
+   @Override
+   public void setFieldName(String fieldName)
+   {
+      IForeControl.super.setFieldName(fieldName);
+   }
+
+   @Override
+   public Label getLabel()
+   {
+      return IForeControl.super.getLabel();
+   }
+
+   @Override
+   public void setLabel(Label label)
+   {
+      IForeControl.super.setLabel(label);
    }
 
    public StandardAction getStandardAction()
