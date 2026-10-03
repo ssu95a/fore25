@@ -4,9 +4,9 @@ import javafx.event.ActionEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import ru.inversion.utils.Checks;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
@@ -21,7 +21,7 @@ public final class ForeActions
    /** Resolve labels for the current locale, using a Fore-owned snapshot of the legacy labels. */
    public static ActionPrototype prototype(StandardAction type)
    {
-      Checks.Require.object(type, "type");
+      Objects.requireNonNull(type, "type");
 
       final ResourceBundle bundle = ResourceBundle.getBundle(
               "ru.inversion.fore.form.action.actions", Locale.getDefault(), ForeActions.class.getClassLoader()
@@ -41,7 +41,7 @@ public final class ForeActions
    {
       return new ForeAction(
               prototype(type),
-              Checks.Require.object(handler, "handler")
+              Objects.requireNonNull(handler, "handler")
       );
    }
 

@@ -3,21 +3,23 @@ package ru.inversion.fore.form.action;
 import javafx.scene.Node;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import java.util.Objects;
 import org.controlsfx.tools.Duplicatable;
-import ru.inversion.utils.Checks;
 
 /**
  * An icon descriptor, not a JavaFX Node prototype.
- * V0.1 uses the existing bundled FontAwesome 4 font.
+ * V0.2 uses the existing bundled FontAwesome 4 font.
  */
 public record IconSpec(String glyph)
 {
    public IconSpec
    {
-      Checks.Require.text(glyph, "glyph");
+      Objects.requireNonNull(glyph, "glyph");
+      if( glyph.isEmpty() )
+         throw new IllegalArgumentException("glyph must not be empty");
    }
 
-   Node newGraphic()
+   public Node newGraphic()
    {
       return new Glyph(this);
    }

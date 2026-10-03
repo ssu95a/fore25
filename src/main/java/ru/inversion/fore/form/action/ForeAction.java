@@ -3,14 +3,14 @@ package ru.inversion.fore.form.action;
 import javafx.event.ActionEvent;
 import javafx.scene.input.KeyCombination;
 import org.controlsfx.control.action.Action;
-import ru.inversion.utils.Checks;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
  * One mutable runtime operation. Defaults are copied from an immutable prototype.
- * Direct ControlsFX inheritance is intentional for Fore25 v0.1.
+ * Direct ControlsFX inheritance is intentional for Fore25 v0.2.
  */
 public final class ForeAction extends Action
 {
@@ -21,8 +21,8 @@ public final class ForeAction extends Action
    ForeAction(ActionPrototype prototype, Consumer<ActionEvent> handler)
    {
       super(
-              Checks.Require.object(prototype, "prototype").text(),
-              Checks.Require.object(handler, "handler")
+              Objects.requireNonNull(prototype, "prototype").text(),
+              Objects.requireNonNull(handler, "handler")
       );
 
       standardType = prototype.type();
@@ -45,7 +45,7 @@ public final class ForeAction extends Action
    /** Local override; it never modifies the standard prototype. */
    public void setIcon(IconSpec icon)
    {
-      this.icon = Checks.Require.object(icon, "icon");
+      this.icon = Objects.requireNonNull(icon, "icon");
       setGraphic(icon.newGraphic());
    }
 
@@ -58,7 +58,7 @@ public final class ForeAction extends Action
    /** The first shortcut is also ControlsFX's primary menu accelerator. */
    public void setHotkeys(List<? extends KeyCombination> hotkeys)
    {
-      Checks.Require.object(hotkeys, "hotkeys");
+      Objects.requireNonNull(hotkeys, "hotkeys");
       this.hotkeys = List.copyOf(hotkeys);
       setAccelerator(this.hotkeys.isEmpty() ? null : this.hotkeys.get(0));
    }
