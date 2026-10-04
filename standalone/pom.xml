@@ -1,22 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Standalone designer preview build, no JInvFore legacy or corporate parent. -->
+<!-- Compile only the new Fore25 sources, not the legacy JInvFore sources. -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
    <modelVersion>4.0.0</modelVersion>
    <groupId>ru.inversion</groupId>
-   <artifactId>fore25-scenebuilder</artifactId>
-   <version>0.2.0-SNAPSHOT</version>
+   <artifactId>fore25-standalone</artifactId>
+   <version>0.1.0-SNAPSHOT</version>
    <properties>
       <maven.compiler.release>25</maven.compiler.release>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <javafx.version>25.0.4</javafx.version>
+      <jinvcommon.version>1.0.0</jinvcommon.version>
    </properties>
+   <repositories>
+      <!-- Use the company's existing Maven settings/mirror for this repository. -->
+      <repository>
+         <id>inversion-maven-public</id>
+         <url>http://vcontrol:8081/repository/maven-public/</url>
+      </repository>
+   </repositories>
+   <dependencyManagement>
+      <dependencies>
+         <dependency>
+            <groupId>org.openjfx</groupId><artifactId>javafx-base</artifactId><version>${javafx.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.openjfx</groupId><artifactId>javafx-graphics</artifactId><version>${javafx.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>${javafx.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.openjfx</groupId><artifactId>javafx-fxml</artifactId><version>${javafx.version}</version>
+         </dependency>
+      </dependencies>
+   </dependencyManagement>
    <dependencies>
+      <!-- Binary dependency: JInvCommon itself does not have to be rebuilt on JDK 25. -->
       <dependency>
-         <groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>25.0.4</version>
+         <groupId>ru.inversion</groupId><artifactId>JInvCommon</artifactId><version>${jinvcommon.version}</version>
       </dependency>
       <dependency>
-         <groupId>org.openjfx</groupId><artifactId>javafx-fxml</artifactId><version>25.0.4</version>
+         <groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.openjfx</groupId><artifactId>javafx-fxml</artifactId>
       </dependency>
       <dependency>
          <groupId>org.controlsfx</groupId><artifactId>controlsfx</artifactId><version>11.2.4</version>
@@ -32,27 +61,25 @@
          <resource>
             <directory>${project.basedir}/../src/main/resources</directory>
             <includes>
-               <include>ru/inversion/fore/form/action/actions.properties</include>
+               <include>ru/inversion/fore/**</include>
                <include>style/*.ttf</include>
+               <include>fore.properties</include>
+               <include>fore-logback.xml</include>
             </includes>
          </resource>
       </resources>
+      <testResources>
+         <testResource>
+            <directory>${project.basedir}/../src/test/resources</directory>
+            <includes><include>ru/inversion/fore/**</include></includes>
+         </testResource>
+      </testResources>
       <plugins>
          <plugin>
             <groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.14.1</version>
             <configuration>
-               <includes>
-                  <include>ru/inversion/fore/form/action/*.java</include>
-                  <include>ru/inversion/fore/form/control/IForeControl.java</include>
-                  <include>ru/inversion/fore/form/control/ForeButton.java</include>
-                  <include>ru/inversion/fore/form/control/ForeMenuItem.java</include>
-                  <include>ru/inversion/fore/form/control/ForeToolBar.java</include>
-                  <include>ru/inversion/fore/form/control/ForeTextField.java</include>
-               </includes>
-               <testIncludes>
-                  <testInclude>ru/inversion/fore/form/action/*Test.java</testInclude>
-                  <testInclude>ru/inversion/fore/form/control/*Test.java</testInclude>
-               </testIncludes>
+               <includes><include>ru/inversion/fore/**/*.java</include></includes>
+               <testIncludes><testInclude>ru/inversion/fore/**/*Test.java</testInclude></testIncludes>
             </configuration>
          </plugin>
          <plugin>
