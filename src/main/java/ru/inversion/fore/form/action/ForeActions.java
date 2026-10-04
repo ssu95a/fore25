@@ -33,7 +33,7 @@ public final class ForeActions
               ? bundle.getString(tooltipKey)
               : text;
 
-      return new ActionPrototype(type, text, tooltip, icon(type), shortcuts(type));
+      return new ActionPrototype(type, text, tooltip, type.icon(), shortcuts(type));
    }
 
    /** Each invocation returns a new independent action with its own handler/state. */
@@ -43,18 +43,6 @@ public final class ForeActions
               prototype(type),
               Objects.requireNonNull(handler, "handler")
       );
-   }
-
-   private static IconSpec icon(StandardAction type)
-   {
-      return new IconSpec(IconFont.FONT_AWESOME_4, switch(type)
-      {
-         case CREATE  -> "\uf016"; // FontAwesome fa-file-o
-         case UPDATE  -> "\uf044"; // fa-edit
-         case DELETE  -> "\uf00d"; // fa-close
-         case VIEW    -> "\uf05a"; // fa-info-circle
-         case REFRESH -> "\uf021"; // fa-refresh
-      });
    }
 
    /** Legacy defaults. Scope/conflict resolution belongs to a future keyboard binder. */
