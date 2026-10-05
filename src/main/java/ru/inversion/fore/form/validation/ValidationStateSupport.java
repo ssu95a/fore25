@@ -19,13 +19,13 @@ final class ValidationStateSupport
 
    static void set( Control control, ValidationState state )
    {
-      Checks.Require.objects( control, "control", state,   "state" );
+      Checks.Require.objects( control, "control", state, "state" );
       control.getProperties().put(KEY, state);
    }
 
    /** */
    static void reset(Control control)
    {
-      set(control, ValidationState.UNVALIDATED);
+      set( control, ValidationState.UNVALIDATED );
    }
 }

@@ -18,6 +18,7 @@ public class ForeTextField extends TextField implements IForeControl
       this("");
    }
 
+   /** */
    public ForeTextField(String text)
    {
       super(text);

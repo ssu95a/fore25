@@ -54,6 +54,10 @@ public final class ForeActions
          case DELETE  -> "\uf00d"; // fa-close
          case VIEW    -> "\uf05a"; // fa-info-circle
          case REFRESH -> "\uf021"; // fa-refresh
+         case IMPORT -> null;
+         case EXPORT -> null;
+         case PRINT -> null;
+         case STATUS -> null;
       });
    }
 
@@ -70,6 +74,10 @@ public final class ForeActions
          case DELETE -> List.of(new KeyCodeCombination(KeyCode.F6, KeyCombination.SHIFT_DOWN));
          case VIEW -> List.of(new KeyCodeCombination(KeyCode.F3));
          case REFRESH -> List.of(new KeyCodeCombination(KeyCode.F8));
+         case IMPORT -> null;
+         case EXPORT -> null;
+         case PRINT -> null;
+         case STATUS -> null;
       };
    }
 }

@@ -21,9 +21,12 @@ public class ForeButton extends Button implements IForeControl
 {
    private StandardAction standardAction;
    private ForeAction action;
+
    private String defaultText;
+
    private Tooltip defaultTooltip;
    private String defaultTooltipText;
+
    private Node defaultGraphic;
 
    public ForeButton()
@@ -72,38 +75,49 @@ public class ForeButton extends Button implements IForeControl
    public void setStandardAction(StandardAction type)
    {
       if( action != null )
-         setAction(null);
+          setAction(null);
 
       // Only overwrite values previously installed by Fore, not FXML overrides.
-      final boolean replaceText = getText() == null || getText().isEmpty()
-              || Objects.equals(getText(), defaultText);
-      final boolean replaceTooltip = getTooltip() == null
-              || (getTooltip() == defaultTooltip
-                  && Objects.equals(getTooltip().getText(), defaultTooltipText));
+      final boolean replaceText = getText() == null || getText().isEmpty() || Objects.equals(getText(), defaultText);
+      final boolean replaceTooltip = getTooltip() == null || (getTooltip() == defaultTooltip && Objects.equals(getTooltip().getText(), defaultTooltipText));
       final boolean replaceGraphic = getGraphic() == null || getGraphic() == defaultGraphic;
 
       standardAction = type;
+
       if( type == null )
       {
-         if( replaceText ) setText(null);
-         if( replaceTooltip ) setTooltip(null);
-         if( replaceGraphic ) setGraphic(null);
-         defaultText = null;
+         if( replaceText )
+             setText(null);
+
+         if( replaceTooltip )
+             setTooltip(null);
+
+         if( replaceGraphic )
+             setGraphic(null);
+
+         defaultText    = null;
          defaultTooltip = null;
          defaultTooltipText = null;
          defaultGraphic = null;
+
          return;
       }
 
       final ActionPrototype prototype = ForeActions.prototype(type);
-      defaultText = prototype.text();
-      defaultTooltipText = prototype.tooltip();
-      defaultTooltip = new Tooltip(defaultTooltipText);
-      defaultGraphic = prototype.icon().newGraphic();
 
-      if( replaceText ) setText(defaultText);
-      if( replaceTooltip ) setTooltip(defaultTooltip);
-      if( replaceGraphic ) setGraphic(defaultGraphic);
+      defaultText        = prototype.text();
+      defaultTooltipText = prototype.tooltip();
+      defaultTooltip     = new Tooltip(defaultTooltipText);
+      defaultGraphic     = prototype.icon().newGraphic();
+
+      if( replaceText )
+          setText(defaultText);
+
+      if( replaceTooltip )
+          setTooltip(defaultTooltip);
+
+      if( replaceGraphic )
+          setGraphic(defaultGraphic);
    }
 
    @java.beans.Transient // Runtime binding, not a serialized design property.
@@ -113,17 +127,19 @@ public class ForeButton extends Button implements IForeControl
    }
 
    /** Programmatic shared-action mode: do not combine with FXML onAction. */
-   public void setAction(ForeAction next)
+   public void setAction(ForeAction a)
    {
-      if( action == next )
+      if( action == a)
          return;
       if( action != null )
-         ActionUtils.unconfigureButton(this);
-      action = next;
-      if( next != null )
+          ActionUtils.unconfigureButton(this);
+
+      action = a;
+
+      if( a != null )
       {
-         standardAction = next.standardType();
-         ActionUtils.configureButton(next, this);
+         standardAction = a.standardType();
+         ActionUtils.configureButton(a, this);
       }
       else
       {
@@ -133,12 +149,14 @@ public class ForeButton extends Button implements IForeControl
          setGraphic(null);
          setTooltip(null);
          setDisable(false);
+
          defaultText = null;
          defaultTooltip = null;
          defaultTooltipText = null;
          defaultGraphic = null;
+
          if( oldType != null )
-            setStandardAction(oldType);
+             setStandardAction(oldType);
       }
    }
 }

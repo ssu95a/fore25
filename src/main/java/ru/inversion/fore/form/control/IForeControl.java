@@ -9,9 +9,9 @@ import javafx.scene.control.Label;
  * Контракт необязательных метаданных Fore-контролов на базе JavaFX {@link Control}.
  * Связь с меткой использует стандартный {@link Label#labelForProperty()}.
  * Для одного контрола следует задавать не более одной связанной метки.
- *
+ * <p>
  * Классы контролов, предоставляющие эти свойства в FXML, должны явно объявлять
- * getter/setter с делегированием default-методам: FXMLLoader не ищет их в интерфейсах.
+ * getter/setter с делегированием default-методам: <strong>FXMLLoader не ищет их в интерфейсах.</strong>
  */
 public interface IForeControl
 {
@@ -21,6 +21,7 @@ public interface IForeControl
    /** Уже реализован каждым JavaFX Node/Control. */
    ObservableMap<Object, Object> getProperties();
 
+   /** */
    default String getFieldName()
    {
       return (String) getProperties().get(FIELD_NAME_KEY);
@@ -76,7 +77,7 @@ public interface IForeControl
    private Control foreControl()
    {
       if( this instanceof Control control )
-         return control;
+          return control;
 
       throw new IllegalStateException("IForeControl must be implemented by a JavaFX Control");
    }

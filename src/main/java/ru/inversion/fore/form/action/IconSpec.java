@@ -9,14 +9,14 @@ import java.util.Objects;
 /**
  * Immutable vector icon descriptor. It never stores a shared JavaFX Node.
  */
-public record IconSpec(IconFont font, String glyph)
+public record IconSpec( IconFont font, String glyph)
 {
    public IconSpec
    {
       Objects.requireNonNull(font, "font");
       Objects.requireNonNull(glyph, "glyph");
       if( glyph.isEmpty() )
-         throw new IllegalArgumentException("glyph must not be empty");
+          throw new IllegalArgumentException("glyph must not be empty");
    }
 
    /** Compatibility shortcut for existing Fore25 callers, not Oracle Forms. */

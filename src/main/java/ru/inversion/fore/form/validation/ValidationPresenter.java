@@ -22,12 +22,12 @@ public final class ValidationPresenter
 
    /**
     * Показать ошибки, имеющие конкретный Control target.
-    *
+    * <p>
     * Для одного Control используется первое сообщение.
     */
    public void show(ValidationResult result)
    {
-      Checks.Require.object(result, "result");
+      Checks.Require.object( result, "result" );
 
       final Set<Control> processed = Collections.newSetFromMap(new IdentityHashMap<>());
 
@@ -36,16 +36,11 @@ public final class ValidationPresenter
          final Control target = failure.target();
 
          if( target == null || !processed.add(target) )
-            continue;
+             continue;
 
          clear(target);
 
-         decorator.applyValidationDecoration(
-                 ValidationMessage.error(
-                         target,
-                         failure.message()
-                 )
-         );
+         decorator.applyValidationDecoration( ValidationMessage.error( target, failure.message() ) );
 
          active.add(target);
       }
@@ -57,10 +52,11 @@ public final class ValidationPresenter
     */
    public void clear(Control control)
    {
-      Checks.Require.object(control, "control");
+      if( control == null )
+          return;
 
       if( active.remove(control) )
-         decorator.removeDecorations(control);
+          decorator.removeDecorations(control);
    }
 
 
@@ -71,6 +67,6 @@ public final class ValidationPresenter
    public void clearAll()
    {
       for( Control control : List.copyOf(active) )
-         clear(control);
+           clear(control);
    }
 }

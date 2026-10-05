@@ -27,13 +27,12 @@ public final class FormValidation
 
    /**
     * Добавить правило проверки VALUE элемента управления.
-    *
-    * Какое именно значение является value данного Control,
-    * определяет ValueExtractors.
+    * <p>
+    * Какое именно значение является value данного Control, определяет ValueExtractors.
     */
    public FormValidation add( Control control, ValueValidator<?> valueValidator)
    {
-      Checks.Require.objects( control, "control", valueValidator, "valueRule");
+      Checks.Require.objects( control, "control", valueValidator, "valueValidator");
       controlRules(control).add( () -> check( control, ValueExtractors.valueOf(control), valueValidator) );
       return this;
    }
@@ -41,14 +40,14 @@ public final class FormValidation
    /**
     * Добавить правило, которое работает непосредственно
     * с Control, а не только с его value.
-    *
+    * <p>
     * Используется для проверок, которым нужны properties,
     * metadata или другое состояние Control.
     */
-   public <C extends Control> FormValidation forControl( C control, ControlValidator<? super C> rule )
+   public <C extends Control> FormValidation forControl( C control, ControlValidator<? super C> controlValidator )
    {
-      Checks.Require.objects( control, "control", rule,  "rule" );
-      controlRules(control).add( () -> requireResult( rule.check(control) ).withTarget(control) );
+      Checks.Require.objects( control, "control", controlValidator,  "controlValidator" );
+      controlRules(control).add( () -> requireResult( controlValidator.check(control) ).withTarget(control) );
 
       return this;
    }
@@ -57,7 +56,7 @@ public final class FormValidation
    /**
     * Добавить правило уровня всей формы.
     */
-   public FormValidation add(FormValidator formValidator )
+   public FormValidation add( FormValidator formValidator )
    {
       formValidators.add( Checks.Require.object( formValidator, "formValidator" ) );
       return this;
@@ -66,7 +65,7 @@ public final class FormValidation
 
    /**
     * Проверить все правила указанного Control.
-    *
+    * <p>
     * Проверка fail-fast.
     */
    public ValidationResult validate( Control control ) throws Exception
@@ -76,7 +75,7 @@ public final class FormValidation
       final ControlRules rules = controls.get(control);
 
       if( rules == null )
-         return ValidationResult.ok();
+          return ValidationResult.ok();
 
       return rules.validate();
    }
@@ -88,7 +87,7 @@ public final class FormValidation
     * Сначала выполняются проверки Control
     * в порядке их регистрации.
     *
-    * После них выполняются FormRule.
+    * После них выполняются FormValidator.
     *
     * Проверка fail-fast.
     */
@@ -97,19 +96,15 @@ public final class FormValidation
    {
       for( ControlRules rules : controls.values() )
       {
-         final ValidationResult result =
-                 rules.validate();
+         final ValidationResult result = rules.validate();
 
          if( !result.valid() )
-            return result;
+              return result;
       }
 
-      for( FormValidator rule : formValidators)
+      for( FormValidator fVldtr : formValidators )
       {
-         final ValidationResult result =
-                 requireResult(
-                         rule.check()
-                 );
+         final ValidationResult result = requireResult( fVldtr.check() );
 
          if( !result.valid() )
             return result;
@@ -124,8 +119,7 @@ public final class FormValidation
     */
    public boolean isEmpty()
    {
-      return controls.isEmpty()
-              && formValidators.isEmpty();
+      return controls.isEmpty() && formValidators.isEmpty();
    }
 
 
@@ -179,20 +173,14 @@ public final class FormValidation
 
 
    /**
-    * Rule не имеет права возвращать null.
-    *
-    * null означает ошибку реализации Rule,
-    * а не успешную validation.
+    * Validator не имеет права возвращать {@code null}.
+    * <p>
+    * {@code null} означает ошибку реализации Validator, а не успешную validation.
     */
-   private static ValidationResult requireResult(
-           ValidationResult result )
+   private static ValidationResult requireResult( ValidationResult result )
    {
       if( result == null )
-      {
-         throw new IllegalStateException(
-                 "Validation rule returned null"
-         );
-      }
+          throw new IllegalStateException( "Validation rule returned null" );
 
       return result;
    }
@@ -204,8 +192,7 @@ public final class FormValidation
    @FunctionalInterface
    private interface Check
    {
-      ValidationResult check()
-              throws Exception;
+      ValidationResult check() throws Exception;
    }
 
 

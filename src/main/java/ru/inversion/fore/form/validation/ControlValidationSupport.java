@@ -56,14 +56,14 @@ public final class ControlValidationSupport
    private void installValueListener(Control control)
    {
       ValueExtractors.findObservable(control)
-              .ifPresent(
-                      value -> value.addListener(
-                              observable -> {
-                                 ValidationStateSupport.reset(control);
-                                 presenter.clear(control);
-                              }
-                      )
-              );
+         .ifPresent(
+         value -> value.addListener(observable ->
+                 {
+                    ValidationStateSupport.reset(control);
+                    presenter.clear(control);
+                 }
+            )
+         );
    }
 
    private void installFocusListener(Control control)

@@ -10,5 +10,13 @@ public enum StandardAction
    UPDATE,
    DELETE,
    VIEW,
-   REFRESH
+
+   REFRESH,
+
+   IMPORT,
+   EXPORT,
+
+   PRINT,
+
+   STATUS
 }
