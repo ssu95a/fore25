@@ -29,7 +29,7 @@ FXML mode:
 <ForeButton fx:id="btCreate" standardAction="CREATE" onAction="#onCreate" />
 ```
 
-`standardAction` is a real JavaBean enum property; it configures presentation defaults, but never replaces the standard FXML onAction callback. Explicit text/tooltip/graphic overrides survive regardless of attribute setter order. The property may be exposed in Inspector/Miscellaneous according to the Scene Builder version; the ready-made FXML fragments also work if no dedicated enum drop-down is offered.
+`standardAction` is a real JavaBean enum property; it configures presentation defaults, but never replaces the standard FXML onAction callback. Explicit text/graphic overrides, button tooltips and menu accelerators survive regardless of attribute setter order. The property may be exposed in Inspector/Miscellaneous according to the Scene Builder version; the ready-made FXML fragments also work if no dedicated enum drop-down is offered.
 
 To share ONE action across button/menu at runtime instead, do not assign individual FXML onAction callbacks. In the controller after FXML injection:
 
@@ -39,7 +39,7 @@ btCreate.setAction(create);
 miCreate.setAction(create);
 ```
 
-`StandardAction` owns all immutable standard defaults: `text()`, `tooltip()`, `icon()` and `hotkeys()`. One private `ResourceBundle` supplies captions and is loaded once for the default locale when the enum is initialized. `text()` reads the exact enum name (`CREATE`, `UPDATE`, `DELETE`, `VIEW`, `REFRESH`). `tooltip()` reads the optional `<name>_TOOLTIP` key and falls back to the caption. `ForeButton` stores one `ForeAction`; its `standardAction` property reads the type from that action. In FXML presentation mode it creates an independent action without activating live ControlsFX bindings or replacing `onAction`. Each factory call creates an independent runtime action whose text, icon, hotkeys and handler/state can be customized. `ForeButton.setAction(null)` removes the action, bindings and presentation.
+`StandardAction` owns all immutable standard defaults: `text()`, `tooltip()`, `icon()` and `hotkeys()`. One private `ResourceBundle` supplies captions and is loaded once for the default locale when the enum is initialized. `text()` reads the exact enum name (`CREATE`, `UPDATE`, `DELETE`, `VIEW`, `REFRESH`). `tooltip()` reads the optional `<name>_TOOLTIP` key and falls back to the caption. `ForeButton` and `ForeMenuItem` each store one `ForeAction`; their `standardAction` property reads the type from that action. In FXML presentation mode they create independent actions without activating live ControlsFX bindings or replacing `onAction`. Each factory call creates an independent runtime action whose text, icon, hotkeys and handler/state can be customized. Calling `setAction(null)` on either control removes its action, bindings and presentation. A bound menu's primary accelerator follows the action's key changes; removing its action also removes that accelerator from its Scene.
 
 Inside a `FormController`, use its registration helper in `init()` or `guiInit()`:
 
