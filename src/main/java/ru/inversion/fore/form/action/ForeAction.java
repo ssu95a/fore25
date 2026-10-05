@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
- * One mutable runtime operation. Defaults are copied from a bundle-backed prototype.
+ * One mutable runtime operation. Defaults are copied from a standard prototype.
  * Direct ControlsFX inheritance is intentional for Fore25 v0.2.
  */
 public final class ForeAction extends Action

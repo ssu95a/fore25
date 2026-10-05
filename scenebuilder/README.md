@@ -35,12 +35,6 @@ btCreate.setAction(create);
 miCreate.setAction(create);
 ```
 
-For form-specific labels, pass the form's `ResourceBundle`:
-
-```java
-var create = ForeActions.create(StandardAction.CREATE, getBundle(), e -> createRecord());
-```
-
-`ActionPrototype.bundle()` retains this bundle. `text()` reads the exact `StandardAction.name()` key (`CREATE`, `UPDATE`, `DELETE`, `VIEW`, `REFRESH`). `tooltip()` reads the optional `<name>_TOOLTIP` key and falls back to the caption. A missing caption key fails when the prototype is constructed. Existing overloads use the bundled standard captions for the current locale.
+`StandardAction` owns one private `ResourceBundle` for all standard captions. The catalog is loaded once for the default locale when the enum is initialized. `text()` reads the exact enum name (`CREATE`, `UPDATE`, `DELETE`, `VIEW`, `REFRESH`). `tooltip()` reads the optional `<name>_TOOLTIP` key and falls back to the caption. `ActionPrototype` delegates these lookups to its standard type; neither the prototype nor the factory accepts or exposes a bundle. Runtime action text can still be changed with `setText()` after creation.
 
 The importer is DESIGN TIME. It must not need a running ForeApp, TaskContext, database, or user business handler. JInvCommon is needed for the shared argument checks. A real GUI smoke test in the chosen Gluon Scene Builder version is still required to certify its importer/Inspector behavior.

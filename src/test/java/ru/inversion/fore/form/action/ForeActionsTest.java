@@ -3,11 +3,8 @@ package ru.inversion.fore.form.action;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.ListResourceBundle;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -38,107 +35,41 @@ class ForeActionsTest
       assertEquals(new KeyCodeCombination(KeyCode.F4), update.hotkeys().get(0));
    }
 
-   @Test
-   void prototypeOwnsTheBundleAndUsesTheStandardActionName()
+   @ParameterizedTest
+   @CsvSource({
+           "CREATE, Создать…, Создать",
+           "UPDATE, Изменить…, Изменить запись",
+           "DELETE, Удалить…, Удалить",
+           "VIEW, Просмотр…, Просмотр",
+           "REFRESH, Обновить, Обновить (F8)"
+   })
+   void prototypesUseTheStandardCatalog(StandardAction type, String text, String tooltip)
    {
-      final ResourceBundle bundle = bundle(new Object[][] {
-              { "CREATE", "Добавить запись" },
-              { "CREATE_TOOLTIP", "Создать новую запись" }
-      });
-      final var prototype = new ActionPrototype(
-              StandardAction.CREATE, bundle, StandardAction.CREATE.icon(), List.of()
-      );
+      final var prototype = ForeActions.prototype(type);
 
-      assertSame(bundle, prototype.bundle());
-      assertEquals("Добавить запись", prototype.text());
-      assertEquals("Создать новую запись", prototype.tooltip());
+      assertEquals(text, type.text());
+      assertEquals(tooltip, type.tooltip());
+      assertEquals(text, prototype.text());
+      assertEquals(tooltip, prototype.tooltip());
    }
 
    @Test
-   void everyStandardActionUsesTheSuppliedBundle()
+   void changingOneActionDoesNotChangeTheCatalogOrOtherActions()
    {
-      final ResourceBundle bundle = bundle(new Object[][] {
-              { "CREATE", "Add" },
-              { "UPDATE", "Edit" },
-              { "DELETE", "Remove" },
-              { "VIEW", "Open" },
-              { "REFRESH", "Reload" }
-      });
+      final var first = ForeActions.create(StandardAction.CREATE, event -> {});
+      final var second = ForeActions.create(StandardAction.CREATE, event -> {});
 
-      for( StandardAction type : StandardAction.values() )
-      {
-         final var prototype = ForeActions.prototype(type, bundle);
-         assertEquals(bundle.getString(type.name()), prototype.text(), type.name());
-         assertEquals(prototype.text(), prototype.tooltip(), type.name());
-      }
-   }
-
-   @Test
-   void labelsAndTooltipsCanBeInheritedFromAParentBundle()
-   {
-      final ResourceBundle parent = bundle(new Object[][] {
-              { "UPDATE", "Изменить запись" },
-              { "UPDATE_TOOLTIP", "Редактировать выбранную запись" }
-      });
-      final ResourceBundle child = new ListResourceBundle()
-      {
-         {
-            setParent(parent);
-         }
-
-         @Override
-         protected Object[][] getContents()
-         {
-            return new Object[][] { { "CREATE", "Добавить" } };
-         }
-      };
-      final var prototype = ForeActions.prototype(StandardAction.UPDATE, child);
-
-      assertSame(child, prototype.bundle());
-      assertEquals("Изменить запись", prototype.text());
-      assertEquals("Редактировать выбранную запись", prototype.tooltip());
-   }
-
-   @Test
-   void missingCaptionFailsWhenThePrototypeIsCreated()
-   {
-      final ResourceBundle bundle = bundle(new Object[][] { { "CREATE_TOOLTIP", "Add" } });
-
-      final var error = assertThrows(MissingResourceException.class,
-              () -> ForeActions.prototype(StandardAction.CREATE, bundle));
-
-      assertEquals("CREATE", error.getKey());
-   }
-
-   @Test
-   void actionsCopyCustomLabelsAndKeepIndependentState()
-   {
-      final ResourceBundle bundle = bundle(new Object[][] {
-              { "CREATE", "Добавить запись" },
-              { "CREATE_TOOLTIP", "Создать новую запись" }
-      });
-      final var first = ForeActions.create(StandardAction.CREATE, bundle, event -> {});
-      final var second = ForeActions.create(StandardAction.CREATE, bundle, event -> {});
-
-      assertEquals("Добавить запись", first.getText());
-      assertEquals("Создать новую запись", first.getLongText());
+      assertEquals("Создать…", first.getText());
+      assertEquals("Создать", first.getLongText());
       assertEquals(StandardAction.CREATE, first.standardType());
       assertNotSame(first.getGraphic(), second.getGraphic());
 
-      first.setText("Другой текст");
-      assertEquals("Добавить запись", second.getText());
-      assertEquals("Добавить запись", bundle.getString("CREATE"));
-   }
+      first.setText("Добавить запись");
+      first.setLongText("Создать новую запись");
 
-   private static ResourceBundle bundle(Object[][] contents)
-   {
-      return new ListResourceBundle()
-      {
-         @Override
-         protected Object[][] getContents()
-         {
-            return contents;
-         }
-      };
+      assertEquals("Создать…", second.getText());
+      assertEquals("Создать", second.getLongText());
+      assertEquals("Создать…", StandardAction.CREATE.text());
+      assertEquals("Создать", StandardAction.CREATE.tooltip());
    }
 }

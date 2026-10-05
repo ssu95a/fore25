@@ -7,8 +7,6 @@ import javafx.scene.input.KeyCombination;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Locale;
-import java.util.ResourceBundle;
 import java.util.function.Consumer;
 
 /** Standard Fore action catalog and factory. No shared mutable Action instances. */
@@ -18,22 +16,12 @@ public final class ForeActions
    {
    }
 
-   /** Use the bundled standard labels for the current locale. */
+   /** Use the standard action's private caption catalog and default appearance. */
    public static ActionPrototype prototype(StandardAction type)
    {
       Objects.requireNonNull(type, "type");
 
-      final ResourceBundle bundle = ResourceBundle.getBundle(
-              "ru.inversion.fore.form.action.actions", Locale.getDefault(), ForeActions.class.getClassLoader()
-      );
-      return prototype(type, bundle);
-   }
-
-   /** Resolve standard labels from the supplied form or application bundle. */
-   public static ActionPrototype prototype(StandardAction type, ResourceBundle bundle)
-   {
-      Objects.requireNonNull(type, "type");
-      return new ActionPrototype(type, bundle, type.icon(), shortcuts(type));
+      return new ActionPrototype(type, type.icon(), shortcuts(type));
    }
 
    /** Each invocation returns a new independent action with its own handler/state. */
@@ -41,15 +29,6 @@ public final class ForeActions
    {
       return new ForeAction(
               prototype(type),
-              Objects.requireNonNull(handler, "handler")
-      );
-   }
-
-   /** Create an independent action with labels from the supplied bundle. */
-   public static ForeAction create(StandardAction type, ResourceBundle bundle, Consumer<ActionEvent> handler)
-   {
-      return new ForeAction(
-              prototype(type, bundle),
               Objects.requireNonNull(handler, "handler")
       );
    }
