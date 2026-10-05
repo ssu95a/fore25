@@ -30,6 +30,8 @@ mvn -f scenebuilder/pom.xml -Pheadless clean test
 и ControlsFX 11.2.4. Без профиля тесты используют обычную графическую среду.
 Этот набор не включает `FormControllerTest` и не проверяет весь runtime.
 Эта UI-сборка не зависит от `JInvCommon` и не компилирует JInvFore Java 8.
+В этот набор входят проверки `ActionKeyBinder`: оба сочетания CREATE,
+disabled, конфликты, смена клавиш, области разных Scene и снятие привязок.
 
 ## Все новые классы и тесты формы
 
@@ -41,6 +43,11 @@ mvn -f scenebuilder/pom.xml -Pheadless clean test
 ```sh
 mvn -f standalone/pom.xml -Pheadless clean test
 ```
+
+Этот запуск также проверяет настоящий запуск FXML-формы, veto закрытия,
+снятие клавиш на FX-потоке и последующий `closeResources()` на виртуальном
+потоке. Пример регистрации действия и описание lifecycle находятся
+в [руководстве Scene Builder](../scenebuilder/README.md).
 
 Нужен доступ к корпоративному Maven-репозиторию через ваши рабочие Maven
 настройки либо уже установленный в локальном Maven-репозитории `JInvCommon`

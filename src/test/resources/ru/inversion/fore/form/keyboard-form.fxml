@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.layout.VBox?>
+<?import ru.inversion.fore.form.control.ForeButton?>
+<?import ru.inversion.fore.form.control.ForeMenuItem?>
+<?import ru.inversion.fore.form.control.ForeTextField?>
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ru.inversion.fore.form.FormKeyboardLifecycleTest$ProbeController">
+    <MenuBar>
+        <Menu text="Actions"><ForeMenuItem fx:id="createMenu"/></Menu>
+    </MenuBar>
+    <ForeTextField fx:id="input"/>
+    <ForeButton fx:id="createButton"/>
+</VBox>

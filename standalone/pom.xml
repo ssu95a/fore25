@@ -79,7 +79,7 @@
             <groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.14.1</version>
             <configuration>
                <includes><include>ru/inversion/fore/**/*.java</include></includes>
-               <testIncludes><testInclude>ru/inversion/fore/**/*Test.java</testInclude></testIncludes>
+               <testIncludes><testInclude>ru/inversion/fore/**/*.java</testInclude></testIncludes>
             </configuration>
          </plugin>
          <plugin>

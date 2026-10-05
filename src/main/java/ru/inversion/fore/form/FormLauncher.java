@@ -333,6 +333,34 @@ public final class FormLauncher<T, C extends FormController<T>> {
 
    private void releaseForm( C controller, FormContextImpl<T> context )
    {
+      // preInit() can reject preparation before any GUI or FX toolkit is involved.
+      if( !Platform.isFxApplicationThread() && !controller.hasGuiLifecycleStarted() )
+      {
+         releaseBackgroundResources(controller, context);
+         return;
+      }
+      final Runnable releaseGui = () -> {
+         try
+         {
+            controller.releaseGuiController();
+         }
+         catch( Throwable ex )
+         {
+            handleLaunchError(ex);
+         }
+         finally
+         {
+            releaseBackgroundResources(controller, context);
+         }
+      };
+      if( Platform.isFxApplicationThread() )
+         releaseGui.run();
+      else
+         Platform.runLater(releaseGui);
+   }
+
+   private void releaseBackgroundResources( C controller, FormContextImpl<T> context )
+   {
       Thread.startVirtualThread(() -> {
          try {
             controller.releaseController();
@@ -411,4 +439,3 @@ public final class FormLauncher<T, C extends FormController<T>> {
    }
 
 }
-
