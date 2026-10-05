@@ -18,7 +18,7 @@ public final class ForeAction extends Action
    private IconSpec icon;
    private List<KeyCombination> hotkeys = List.of();
 
-   ForeAction(StandardAction type, Consumer<ActionEvent> handler)
+   ForeAction( StandardAction type, Consumer<ActionEvent> handler)
    {
       super(
               Objects.requireNonNull(type, "type").text(),

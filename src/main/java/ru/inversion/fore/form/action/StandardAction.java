@@ -14,14 +14,14 @@ import java.util.ResourceBundle;
  */
 public enum StandardAction
 {
-   CREATE(new IconSpec(IconFont.FONT_AWESOME_4, "\uf016"), // fa-file-o
+   CREATE( new IconSpec(IconFont.FONT_AWESOME_4, "\uf016"), // fa-file-o
            new KeyCodeCombination(KeyCode.F2), new KeyCodeCombination(KeyCode.F6)),
-   UPDATE(new IconSpec(IconFont.FONT_AWESOME_4, "\uf044"), // fa-edit
+   UPDATE( new IconSpec(IconFont.FONT_AWESOME_4, "\uf044"), // fa-edit
            new KeyCodeCombination(KeyCode.F4)),
-   DELETE(new IconSpec(IconFont.FONT_AWESOME_4, "\uf00d"), // fa-close
+   DELETE( new IconSpec(IconFont.FONT_AWESOME_4, "\uf00d"), // fa-close
            new KeyCodeCombination(KeyCode.F6, KeyCombination.SHIFT_DOWN)),
-   VIEW(new IconSpec(IconFont.FONT_AWESOME_4, "\uf05a"), // fa-info-circle
-           new KeyCodeCombination(KeyCode.F3)),
+   VIEW(   new IconSpec(IconFont.FONT_AWESOME_4, "\uf05a"), // fa-info-circle
+           new KeyCodeCombination(KeyCode.F3) ),
    REFRESH(new IconSpec(IconFont.FONT_AWESOME_4, "\uf021"), // fa-refresh
            new KeyCodeCombination(KeyCode.F8));
 
@@ -33,7 +33,7 @@ public enum StandardAction
    private final IconSpec icon;
    private final List<KeyCombination> hotkeys;
 
-   StandardAction(IconSpec icon, KeyCombination... hotkeys)
+   StandardAction( IconSpec icon, KeyCombination... hotkeys )
    {
       this.icon = icon;
       this.hotkeys = List.of(hotkeys);
