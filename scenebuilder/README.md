@@ -8,7 +8,11 @@ mvn -f scenebuilder/pom.xml package
 
 Result: `scenebuilder/target/fore25-scenebuilder-0.2.0-SNAPSHOT.jar`. It contains Fore action/control classes, the bundled existing FontAwesome resource and captions. This UI build has no JInvCommon dependency. In Scene Builder's `Library` > `JAR/FXML Manager`, make ControlsFX 11.2.4 available and import this preview JAR. Select `ForeButton` and `ForeToolBar`, both concrete Node subclasses with public zero-argument constructors.
 
-The preview JAR also includes `ForeTextField` and `IForeControl`. Run all action/control contract tests without a display or the corporate Java 8 build using JDK 25:
+The preview JAR also includes `ForeTextField` and `IForeControl`.
+
+`ForeTextField` implements `IForeControl` and exposes `fieldName` and `label` metadata. `ForeButton` extends JavaFX `Button` and works through `ForeAction`; it does not expose these field metadata properties.
+
+Run all action/control contract tests without a display or the corporate Java 8 build using JDK 25:
 
 ```sh
 mvn -f scenebuilder/pom.xml -Pheadless clean test
@@ -35,7 +39,7 @@ btCreate.setAction(create);
 miCreate.setAction(create);
 ```
 
-`StandardAction` owns all immutable standard defaults: `text()`, `tooltip()`, `icon()` and `hotkeys()`. One private `ResourceBundle` supplies captions and is loaded once for the default locale when the enum is initialized. `text()` reads the exact enum name (`CREATE`, `UPDATE`, `DELETE`, `VIEW`, `REFRESH`). `tooltip()` reads the optional `<name>_TOOLTIP` key and falls back to the caption. `ForeAction`, `ForeButton` and `ForeMenuItem` use the enum directly. Each factory call creates an independent runtime action whose text, icon, hotkeys and handler/state can be customized.
+`StandardAction` owns all immutable standard defaults: `text()`, `tooltip()`, `icon()` and `hotkeys()`. One private `ResourceBundle` supplies captions and is loaded once for the default locale when the enum is initialized. `text()` reads the exact enum name (`CREATE`, `UPDATE`, `DELETE`, `VIEW`, `REFRESH`). `tooltip()` reads the optional `<name>_TOOLTIP` key and falls back to the caption. `ForeButton` stores one `ForeAction`; its `standardAction` property reads the type from that action. In FXML presentation mode it creates an independent action without activating live ControlsFX bindings or replacing `onAction`. Each factory call creates an independent runtime action whose text, icon, hotkeys and handler/state can be customized. `ForeButton.setAction(null)` removes the action, bindings and presentation.
 
 Inside a `FormController`, use its registration helper in `init()` or `guiInit()`:
 

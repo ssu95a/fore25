@@ -37,7 +37,7 @@ class IForeControlLabelTest
    void labelCanBeReplacedAndCleared() throws Exception
    {
       onFxThread(() -> {
-         final ForeButton control = new ForeButton();
+         final ForeTextField control = new ForeTextField();
          final Label first = new Label("First");
          final Label second = new Label("Second");
 
@@ -65,7 +65,7 @@ class IForeControlLabelTest
    void externalLabelForAssociationCanBeDiscoveredAndReplaced() throws Exception
    {
       onFxThread(() -> {
-         final ForeButton control = new ForeButton();
+         final ForeTextField control = new ForeTextField();
          final Label external = new Label("External");
          final Label replacement = new Label("Replacement");
          external.setLabelFor(control);
@@ -84,8 +84,8 @@ class IForeControlLabelTest
    void movingLabelBetweenForeControlsDoesNotDetachItsNewTarget() throws Exception
    {
       onFxThread(() -> {
-         final ForeButton first = new ForeButton();
-         final ForeButton second = new ForeButton();
+         final ForeTextField first = new ForeTextField();
+         final ForeTextField second = new ForeTextField();
          final Label label = new Label("Shared");
          first.setLabel(label);
          second.setLabel(label);
@@ -102,8 +102,8 @@ class IForeControlLabelTest
    void externalRelocationIsRespectedWhenClearingOldControl() throws Exception
    {
       onFxThread(() -> {
-         final ForeButton first = new ForeButton();
-         final ForeButton second = new ForeButton();
+         final ForeTextField first = new ForeTextField();
+         final ForeTextField second = new ForeTextField();
          final Label label = new Label("Moved");
          first.setLabel(label);
          label.setLabelFor(second);
@@ -119,8 +119,8 @@ class IForeControlLabelTest
    void boundReplacementDoesNotDetachPreviousLabel() throws Exception
    {
       onFxThread(() -> {
-         final ForeButton control = new ForeButton();
-         final ForeButton other = new ForeButton();
+         final ForeTextField control = new ForeTextField();
+         final ForeTextField other = new ForeTextField();
          final Label previous = new Label("Previous");
          final Label replacement = new Label("Bound");
          final SimpleObjectProperty<Node> target = new SimpleObjectProperty<>(other);
@@ -139,7 +139,7 @@ class IForeControlLabelTest
    void boundCurrentLabelRejectsChangesButAllowsIdempotentSetter() throws Exception
    {
       onFxThread(() -> {
-         final ForeButton control = new ForeButton();
+         final ForeTextField control = new ForeTextField();
          final Label current = new Label("Bound current");
          final Label replacement = new Label("Replacement");
          final SimpleObjectProperty<Node> target = new SimpleObjectProperty<>(control);
@@ -163,13 +163,13 @@ class IForeControlLabelTest
          final FXMLLoader loader = load("""
                  <?import javafx.scene.control.Label?>
                  <?import javafx.scene.layout.VBox?>
-                 <?import ru.inversion.fore.form.control.ForeButton?>
+                 <?import ru.inversion.fore.form.control.ForeTextField?>
                  <VBox xmlns:fx="http://javafx.com/fxml/1">
                     <Label fx:id="caption" text="Employee"/>
-                    <ForeButton fx:id="control" fieldName="  EMP_NAME  " label="$caption"/>
+                    <ForeTextField fx:id="control" fieldName="  EMP_NAME  " label="$caption"/>
                  </VBox>
                  """);
-         final ForeButton control = (ForeButton) loader.getNamespace().get("control");
+         final ForeTextField control = (ForeTextField) loader.getNamespace().get("control");
          final Label caption = (Label) loader.getNamespace().get("caption");
 
          assertEquals("  EMP_NAME  ", control.getFieldName());
@@ -186,13 +186,13 @@ class IForeControlLabelTest
          final FXMLLoader loader = load("""
                  <?import javafx.scene.control.Label?>
                  <?import javafx.scene.layout.VBox?>
-                 <?import ru.inversion.fore.form.control.ForeButton?>
+                 <?import ru.inversion.fore.form.control.ForeTextField?>
                  <VBox xmlns:fx="http://javafx.com/fxml/1">
-                    <ForeButton fx:id="control"/>
+                    <ForeTextField fx:id="control"/>
                     <Label fx:id="caption" labelFor="$control" text="Employee"/>
                  </VBox>
                  """);
-         final ForeButton control = (ForeButton) loader.getNamespace().get("control");
+         final ForeTextField control = (ForeTextField) loader.getNamespace().get("control");
          final Label caption = (Label) loader.getNamespace().get("caption");
 
          assertSame(caption, control.getLabel());
