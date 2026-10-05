@@ -18,7 +18,7 @@ public final class ForeActions
    {
    }
 
-   /** Resolve labels for the current locale, using a Fore-owned snapshot of the legacy labels. */
+   /** Use the bundled standard labels for the current locale. */
    public static ActionPrototype prototype(StandardAction type)
    {
       Objects.requireNonNull(type, "type");
@@ -26,14 +26,14 @@ public final class ForeActions
       final ResourceBundle bundle = ResourceBundle.getBundle(
               "ru.inversion.fore.form.action.actions", Locale.getDefault(), ForeActions.class.getClassLoader()
       );
-      final String key = type.name();
-      final String text = bundle.getString(key);
-      final String tooltipKey = key + "_TOOLTIP";
-      final String tooltip = bundle.containsKey(tooltipKey)
-              ? bundle.getString(tooltipKey)
-              : text;
+      return prototype(type, bundle);
+   }
 
-      return new ActionPrototype(type, text, tooltip, type.icon(), shortcuts(type));
+   /** Resolve standard labels from the supplied form or application bundle. */
+   public static ActionPrototype prototype(StandardAction type, ResourceBundle bundle)
+   {
+      Objects.requireNonNull(type, "type");
+      return new ActionPrototype(type, bundle, type.icon(), shortcuts(type));
    }
 
    /** Each invocation returns a new independent action with its own handler/state. */
@@ -41,6 +41,15 @@ public final class ForeActions
    {
       return new ForeAction(
               prototype(type),
+              Objects.requireNonNull(handler, "handler")
+      );
+   }
+
+   /** Create an independent action with labels from the supplied bundle. */
+   public static ForeAction create(StandardAction type, ResourceBundle bundle, Consumer<ActionEvent> handler)
+   {
+      return new ForeAction(
+              prototype(type, bundle),
               Objects.requireNonNull(handler, "handler")
       );
    }

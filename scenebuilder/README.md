@@ -6,7 +6,7 @@ Build the small independent UI-preview JAR with JDK 25 (no corporate parent, no 
 mvn -f scenebuilder/pom.xml package
 ```
 
-Result: `scenebuilder/target/fore25-scenebuilder-0.2.0-SNAPSHOT.jar`. It contains Fore action/control classes, the bundled existing FontAwesome resource and captions. In Scene Builder's `Library` > `JAR/FXML Manager`, make ControlsFX 11.2.4 available and import this preview JAR. Select `ForeButton` and `ForeToolBar`, both concrete Node subclasses with public zero-argument constructors.
+Result: `scenebuilder/target/fore25-scenebuilder-0.2.0-SNAPSHOT.jar`. It contains Fore action/control classes, the bundled existing FontAwesome resource and captions. `ActionPrototype` uses `Checks` from the real `ru.inversion:JInvCommon:1.0.0` binary, so Maven needs your corporate settings/mirror or the dependency already installed locally. In Scene Builder's `Library` > `JAR/FXML Manager`, make ControlsFX 11.2.4 and JInvCommon available and import this preview JAR. Select `ForeButton` and `ForeToolBar`, both concrete Node subclasses with public zero-argument constructors.
 
 The preview JAR also includes `ForeTextField` and `IForeControl`. Run all action/control contract tests without a display or the corporate Java 8 build using JDK 25:
 
@@ -35,4 +35,12 @@ btCreate.setAction(create);
 miCreate.setAction(create);
 ```
 
-The importer is DESIGN TIME. It must not need a running ForeApp, TaskContext, corporate JInvCommon, database, or user business handler. A real GUI smoke test in the chosen Gluon Scene Builder version is still required to certify its importer/Inspector behavior.
+For form-specific labels, pass the form's `ResourceBundle`:
+
+```java
+var create = ForeActions.create(StandardAction.CREATE, getBundle(), e -> createRecord());
+```
+
+`ActionPrototype.bundle()` retains this bundle. `text()` reads the exact `StandardAction.name()` key (`CREATE`, `UPDATE`, `DELETE`, `VIEW`, `REFRESH`). `tooltip()` reads the optional `<name>_TOOLTIP` key and falls back to the caption. A missing caption key fails when the prototype is constructed. Existing overloads use the bundled standard captions for the current locale.
+
+The importer is DESIGN TIME. It must not need a running ForeApp, TaskContext, database, or user business handler. JInvCommon is needed for the shared argument checks. A real GUI smoke test in the chosen Gluon Scene Builder version is still required to certify its importer/Inspector behavior.
