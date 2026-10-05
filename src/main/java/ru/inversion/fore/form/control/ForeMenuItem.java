@@ -1,22 +1,26 @@
 package ru.inversion.fore.form.control;
 
-import javafx.scene.Node;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.MenuItem;
-import javafx.scene.input.KeyCombination;
 import org.controlsfx.control.action.ActionUtils;
 import ru.inversion.fore.form.action.ForeAction;
+import ru.inversion.fore.form.action.ForeActions;
 import ru.inversion.fore.form.action.StandardAction;
 
 import java.util.Objects;
 
-/** FXML MenuItem with standard appearance or a shared runtime ForeAction. */
+/**
+ * Пункт меню со стандартным оформлением и поддержкой общего действия.
+ * Свойство standardAction задаёт оформление для FXML и Scene Builder.
+ * Метод setAction подключает обработчик и изменяемые свойства общего действия.
+ */
 public class ForeMenuItem extends MenuItem
 {
    private ForeAction action;
-   private StandardAction standardAction;
-   private String defaultText;
-   private Node defaultGraphic;
-   private KeyCombination defaultAccelerator;
+
+   // Указывает, установлены ли привязки свойств через ControlsFX.
+   private boolean actionBound;
 
    public ForeMenuItem()
    {
@@ -29,73 +33,93 @@ public class ForeMenuItem extends MenuItem
 
    public StandardAction getStandardAction()
    {
-      return standardAction;
+      return action == null ? null : action.standardType();
    }
 
-   /** Applies only standard presentation; does not replace FXML onAction. */
+   /**
+    * Создаёт действие для стандартного оформления, сохраняя значения из FXML.
+    * Обработчик onAction не заменяется; свойства меню остаются доступными для записи.
+    */
    public void setStandardAction(StandardAction type)
    {
-      if( action != null )
-         setAction(null);
-      final boolean replaceText = getText() == null || getText().isEmpty()
-              || Objects.equals(getText(), defaultText);
-      final boolean replaceGraphic = getGraphic() == null || getGraphic() == defaultGraphic;
-      final boolean replaceAccelerator = getAccelerator() == null
-              || Objects.equals(getAccelerator(), defaultAccelerator);
+      // Обработчик FXML принадлежит пункту меню; действию нужен только набор свойств.
+      final ForeAction next = type == null ? null : ForeActions.create(type, event -> {});
 
-      standardAction = type;
-      if( type == null )
+      if( actionBound )
       {
-         if( replaceText ) setText(null);
-         if( replaceGraphic ) setGraphic(null);
-         if( replaceAccelerator ) setAccelerator(null);
-         defaultText = null;
-         defaultGraphic = null;
-         defaultAccelerator = null;
-         return;
+         unbindAction();
+         clearPresentation();
       }
 
-      defaultText = type.text();
-      defaultGraphic = type.icon().newGraphic();
-      defaultAccelerator = type.hotkeys().isEmpty()
-              ? null : type.hotkeys().get(0);
-      if( replaceText ) setText(defaultText);
-      if( replaceGraphic ) setGraphic(defaultGraphic);
-      if( replaceAccelerator ) setAccelerator(defaultAccelerator);
+      final ForeAction previous = action;
+      final boolean replaceText = getText() == null || getText().isEmpty()
+              || (previous != null && Objects.equals(getText(), previous.getText()));
+      final boolean replaceGraphic = getGraphic() == null
+              || (previous != null && getGraphic() == previous.getGraphic());
+      final boolean replaceAccelerator = getAccelerator() == null
+              || (previous != null && Objects.equals(getAccelerator(), previous.getAccelerator()));
+
+      action = next;
+
+      if( replaceText )
+         setText(next == null ? null : next.getText());
+      if( replaceGraphic )
+         setGraphic(next == null ? null : next.getGraphic());
+      if( replaceAccelerator )
+         setAccelerator(next == null ? null : next.getAccelerator());
    }
 
-   @java.beans.Transient
+   @java.beans.Transient // В FXML сохраняется standardAction, а не объект действия.
    public ForeAction getAction()
    {
       return action;
    }
 
-   /** Live ControlsFX binding to the same ForeAction used by ForeButton. */
+   /**
+    * Привязывает общее действие, включая обработчик, оформление и основной ускоритель.
+    * В этом режиме обработчик задаётся действием вместо FXML onAction.
+    * Значение null снимает привязки и очищает оформление.
+    */
    public void setAction(ForeAction next)
    {
-      if( action == next )
+      if( action == next && (actionBound || next == null) )
          return;
-      if( action != null )
-         ActionUtils.unconfigureMenuItem(this);
+
+      unbindAction();
       action = next;
+
       if( next != null )
       {
-         standardAction = next.standardType();
          ActionUtils.configureMenuItem(next, this);
+         actionBound = true;
       }
       else
-      {
-         final StandardAction oldType = standardAction;
-         standardAction = null;
-         setText(null);
-         setGraphic(null);
-         setAccelerator(null);
-         setDisable(false);
-         defaultText = null;
-         defaultGraphic = null;
-         defaultAccelerator = null;
-         if( oldType != null )
-            setStandardAction(oldType);
-      }
+         clearPresentation();
+   }
+
+   private void unbindAction()
+   {
+      if( !actionBound )
+         return;
+
+      // ControlsFX снимает привязки только при собственном обработчике onAction.
+      final EventHandler<ActionEvent> handler = getOnAction();
+      if( handler != action )
+         setOnAction(action);
+
+      ActionUtils.unconfigureMenuItem(this);
+      actionBound = false;
+
+      // Сохраняем обработчик, который пользователь установил после привязки действия.
+      if( handler != action )
+         setOnAction(handler);
+   }
+
+   private void clearPresentation()
+   {
+      setText(null);
+      setGraphic(null);
+      setAccelerator(null);
+      setDisable(false);
    }
 }
