@@ -6,7 +6,7 @@ Build the small independent UI-preview JAR with JDK 25 (no corporate parent, no 
 mvn -f scenebuilder/pom.xml package
 ```
 
-Result: `scenebuilder/target/fore25-scenebuilder-0.2.0-SNAPSHOT.jar`. It contains Fore action/control classes, the bundled existing FontAwesome resource and captions. `ActionPrototype` uses `Checks` from the real `ru.inversion:JInvCommon:1.0.0` binary, so Maven needs your corporate settings/mirror or the dependency already installed locally. In Scene Builder's `Library` > `JAR/FXML Manager`, make ControlsFX 11.2.4 and JInvCommon available and import this preview JAR. Select `ForeButton` and `ForeToolBar`, both concrete Node subclasses with public zero-argument constructors.
+Result: `scenebuilder/target/fore25-scenebuilder-0.2.0-SNAPSHOT.jar`. It contains Fore action/control classes, the bundled existing FontAwesome resource and captions. This UI build has no JInvCommon dependency. In Scene Builder's `Library` > `JAR/FXML Manager`, make ControlsFX 11.2.4 available and import this preview JAR. Select `ForeButton` and `ForeToolBar`, both concrete Node subclasses with public zero-argument constructors.
 
 The preview JAR also includes `ForeTextField` and `IForeControl`. Run all action/control contract tests without a display or the corporate Java 8 build using JDK 25:
 
@@ -35,6 +35,6 @@ btCreate.setAction(create);
 miCreate.setAction(create);
 ```
 
-`StandardAction` owns one private `ResourceBundle` for all standard captions. The catalog is loaded once for the default locale when the enum is initialized. `text()` reads the exact enum name (`CREATE`, `UPDATE`, `DELETE`, `VIEW`, `REFRESH`). `tooltip()` reads the optional `<name>_TOOLTIP` key and falls back to the caption. `ActionPrototype` delegates these lookups to its standard type; neither the prototype nor the factory accepts or exposes a bundle. Runtime action text can still be changed with `setText()` after creation.
+`StandardAction` owns all immutable standard defaults: `text()`, `tooltip()`, `icon()` and `hotkeys()`. One private `ResourceBundle` supplies captions and is loaded once for the default locale when the enum is initialized. `text()` reads the exact enum name (`CREATE`, `UPDATE`, `DELETE`, `VIEW`, `REFRESH`). `tooltip()` reads the optional `<name>_TOOLTIP` key and falls back to the caption. `ForeAction`, `ForeButton` and `ForeMenuItem` use the enum directly. Each factory call creates an independent runtime action whose text, icon, hotkeys and handler/state can be customized.
 
-The importer is DESIGN TIME. It must not need a running ForeApp, TaskContext, database, or user business handler. JInvCommon is needed for the shared argument checks. A real GUI smoke test in the chosen Gluon Scene Builder version is still required to certify its importer/Inspector behavior.
+The importer is DESIGN TIME. It must not need a running ForeApp, TaskContext, JInvCommon, database, or user business handler. A real GUI smoke test in the chosen Gluon Scene Builder version is still required to certify its importer/Inspector behavior.

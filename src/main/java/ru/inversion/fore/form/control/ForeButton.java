@@ -5,9 +5,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import org.controlsfx.control.action.ActionUtils;
-import ru.inversion.fore.form.action.ActionPrototype;
 import ru.inversion.fore.form.action.ForeAction;
-import ru.inversion.fore.form.action.ForeActions;
 import ru.inversion.fore.form.action.StandardAction;
 
 import java.util.Objects;
@@ -103,12 +101,10 @@ public class ForeButton extends Button implements IForeControl
          return;
       }
 
-      final ActionPrototype prototype = ForeActions.prototype(type);
-
-      defaultText        = prototype.text();
-      defaultTooltipText = prototype.tooltip();
+      defaultText        = type.text();
+      defaultTooltipText = type.tooltip();
       defaultTooltip     = new Tooltip(defaultTooltipText);
-      defaultGraphic     = prototype.icon().newGraphic();
+      defaultGraphic     = type.icon().newGraphic();
 
       if( replaceText )
           setText(defaultText);

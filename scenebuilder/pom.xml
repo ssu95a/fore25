@@ -10,18 +10,8 @@
    <properties>
       <maven.compiler.release>25</maven.compiler.release>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <jinvcommon.version>1.0.0</jinvcommon.version>
    </properties>
-   <repositories>
-      <repository>
-         <id>inversion-maven-public</id>
-         <url>http://vcontrol:8081/repository/maven-public/</url>
-      </repository>
-   </repositories>
    <dependencies>
-      <dependency>
-         <groupId>ru.inversion</groupId><artifactId>JInvCommon</artifactId><version>${jinvcommon.version}</version>
-      </dependency>
       <dependency>
          <groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>25.0.4</version>
       </dependency>

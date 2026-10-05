@@ -29,8 +29,7 @@ mvn -f scenebuilder/pom.xml -Pheadless clean test
 в JAR для Scene Builder. Тесты используют настоящие классы JavaFX 25.0.4
 и ControlsFX 11.2.4. Без профиля тесты используют обычную графическую среду.
 Этот набор не включает `FormControllerTest` и не проверяет весь runtime.
-`ActionPrototype` использует `Checks`, поэтому этой сборке также нужен
-настоящий `JInvCommon:1.0.0`. Сам JInvFore Java 8 она не компилирует.
+Эта UI-сборка не зависит от `JInvCommon` и не компилирует JInvFore Java 8.
 
 ## Все новые классы и тесты формы
 
@@ -48,8 +47,8 @@ mvn -f standalone/pom.xml -Pheadless clean test
 с его зависимостями. Версию можно переопределить через
 `-Djinvcommon.version=<ваша-версия>`. Если Maven сообщает о недоступном
 Nexus, `maven-default-http-blocker` или отсутствующем `JInvCommon`, это
-отдельная ошибка разрешения зависимостей. Эти требования относятся
-к обеим сборкам: `standalone` и `scenebuilder`.
+отдельная ошибка разрешения зависимостей. Сборка `scenebuilder` выше
+корпоративный репозиторий не использует.
 
 JAR, скомпилированный под Java 8, можно использовать как зависимость сборки
 на JDK 25; совместимость конкретного runtime проверяется тестами. Обратное

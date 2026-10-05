@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
- * One mutable runtime operation. Defaults are copied from a standard prototype.
+ * One mutable runtime operation. Defaults are copied from StandardAction.
  * Direct ControlsFX inheritance is intentional for Fore25 v0.2.
  */
 public final class ForeAction extends Action
@@ -18,18 +18,18 @@ public final class ForeAction extends Action
    private IconSpec icon;
    private List<KeyCombination> hotkeys = List.of();
 
-   ForeAction(ActionPrototype prototype, Consumer<ActionEvent> handler)
+   ForeAction(StandardAction type, Consumer<ActionEvent> handler)
    {
       super(
-              Objects.requireNonNull(prototype, "prototype").text(),
+              Objects.requireNonNull(type, "type").text(),
               Objects.requireNonNull(handler, "handler")
       );
 
-      standardType = prototype.type();
+      standardType = type;
 
-      setLongText(prototype.tooltip());
-      setIcon(prototype.icon());
-      setHotkeys(prototype.hotkeys());
+      setLongText(type.tooltip());
+      setIcon(type.icon());
+      setHotkeys(type.hotkeys());
    }
 
    public StandardAction standardType()
@@ -42,7 +42,7 @@ public final class ForeAction extends Action
       return icon;
    }
 
-   /** Local override; it never modifies the standard prototype. */
+   /** Local override; it never modifies the standard descriptor. */
    public void setIcon(IconSpec icon)
    {
       this.icon = Objects.requireNonNull(icon, "icon");

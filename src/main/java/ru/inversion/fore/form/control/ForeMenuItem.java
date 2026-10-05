@@ -4,9 +4,7 @@ import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCombination;
 import org.controlsfx.control.action.ActionUtils;
-import ru.inversion.fore.form.action.ActionPrototype;
 import ru.inversion.fore.form.action.ForeAction;
-import ru.inversion.fore.form.action.ForeActions;
 import ru.inversion.fore.form.action.StandardAction;
 
 import java.util.Objects;
@@ -57,11 +55,10 @@ public class ForeMenuItem extends MenuItem
          return;
       }
 
-      final ActionPrototype prototype = ForeActions.prototype(type);
-      defaultText = prototype.text();
-      defaultGraphic = prototype.icon().newGraphic();
-      defaultAccelerator = prototype.hotkeys().isEmpty()
-              ? null : prototype.hotkeys().get(0);
+      defaultText = type.text();
+      defaultGraphic = type.icon().newGraphic();
+      defaultAccelerator = type.hotkeys().isEmpty()
+              ? null : type.hotkeys().get(0);
       if( replaceText ) setText(defaultText);
       if( replaceGraphic ) setGraphic(defaultGraphic);
       if( replaceAccelerator ) setAccelerator(defaultAccelerator);

@@ -38,14 +38,14 @@ class IconSpecTest
    void standardActionsKeepExistingJInvForeVectorMappings()
    {
       assertEquals(new IconSpec(IconFont.FONT_AWESOME_4, "\uf016"),
-              ForeActions.prototype(StandardAction.CREATE).icon());
+              StandardAction.CREATE.icon());
       assertEquals(new IconSpec(IconFont.FONT_AWESOME_4, "\uf044"),
-              ForeActions.prototype(StandardAction.UPDATE).icon());
+              StandardAction.UPDATE.icon());
       assertEquals(new IconSpec(IconFont.FONT_AWESOME_4, "\uf00d"),
-              ForeActions.prototype(StandardAction.DELETE).icon());
+              StandardAction.DELETE.icon());
       assertEquals(new IconSpec(IconFont.FONT_AWESOME_4, "\uf05a"),
-              ForeActions.prototype(StandardAction.VIEW).icon());
+              StandardAction.VIEW.icon());
       assertEquals(new IconSpec(IconFont.FONT_AWESOME_4, "\uf021"),
-              ForeActions.prototype(StandardAction.REFRESH).icon());
+              StandardAction.REFRESH.icon());
    }
 }
