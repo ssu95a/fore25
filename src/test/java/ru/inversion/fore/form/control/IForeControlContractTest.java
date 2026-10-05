@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class IForeControlContractTest
 {
-   /** Tests field metadata without constructing a JavaFX Control or starting the toolkit. */
+   /** Проверяет метаданные без создания контрола и запуска JavaFX. */
    @Test
    void fieldNameUsesHistoricalMetadataKeyAndCanBeRemoved()
    {
@@ -31,16 +31,19 @@ class IForeControlContractTest
    }
 
    @Test
-   void foreButtonAdoptsTheCommonControlContract()
+   void foreButtonDoesNotExposeFieldMetadata() throws Exception
    {
-      assertTrue(IForeControl.class.isAssignableFrom(ForeButton.class));
+      assertFalse(IForeControl.class.isAssignableFrom(ForeButton.class));
+      assertFalse(Arrays.stream(Introspector.getBeanInfo(ForeButton.class).getPropertyDescriptors())
+              .anyMatch(property -> property.getName().equals("fieldName")
+                      || property.getName().equals("label")));
    }
 
-   /** Default interface methods must remain real, writable JavaBean properties. */
+   /** Методы интерфейса должны быть доступны в FXML как свойства JavaBean. */
    @Test
    void fieldNameAndLabelAreJavaBeanProperties() throws Exception
    {
-      final var properties = Introspector.getBeanInfo(ForeButton.class).getPropertyDescriptors();
+      final var properties = Introspector.getBeanInfo(ForeTextField.class).getPropertyDescriptors();
       final PropertyDescriptor fieldName = find(properties, "fieldName");
       assertEquals(String.class, fieldName.getPropertyType());
       assertNotNull(fieldName.getReadMethod());
