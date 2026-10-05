@@ -37,4 +37,20 @@ miCreate.setAction(create);
 
 `StandardAction` owns all immutable standard defaults: `text()`, `tooltip()`, `icon()` and `hotkeys()`. One private `ResourceBundle` supplies captions and is loaded once for the default locale when the enum is initialized. `text()` reads the exact enum name (`CREATE`, `UPDATE`, `DELETE`, `VIEW`, `REFRESH`). `tooltip()` reads the optional `<name>_TOOLTIP` key and falls back to the caption. `ForeAction`, `ForeButton` and `ForeMenuItem` use the enum directly. Each factory call creates an independent runtime action whose text, icon, hotkeys and handler/state can be customized.
 
+Inside a `FormController`, use its registration helper in `init()` or `guiInit()`:
+
+```java
+var create = createAction(StandardAction.CREATE, e -> createRecord());
+btCreate.setAction(create);
+miCreate.setAction(create);
+```
+
+After `guiInit()`, the framework installs one `ActionKeyBinder` on the form's Scene. Both F2 and F6 now invoke this same action. Matching key presses are consumed before native menu accelerators, including when the action is disabled, so a menu does not trigger a second callback. Other Scene accelerators are preserved. FXML `standardAction` alone supplies presentation; register a runtime action to enable its complete shortcut list.
+
+`registerAction(action)` accepts an existing runtime action and `unregisterAction(action)` removes its keyboard binding. Registering the same instance twice has no effect. Conflicting registered actions are rejected, including overlapping ANY modifiers and platform Shortcut aliases. `action.setHotkeys(...)` checks every attached Scene before replacing the keys; rejected changes retain the previous keys and accelerator. Changes to bound actions run on the FX thread.
+
+For use outside `FormController`, create `new ActionKeyBinder(scene)`, call `bind(action)` and close it on the FX thread when the owner is released. There is one active binder per Scene. Registered keys take precedence over native Scene/menu accelerators for those keys; unrelated accelerators are untouched.
+
+On actual hiding or a failed launch, the framework removes the binder, validation listeners and its title binding on the FX thread. A vetoed close keeps them installed. Override `closeGuiResources()` for your own FX cleanup after initialization has begun; `closeResources()` still runs afterwards on a virtual thread for background resources.
+
 The importer is DESIGN TIME. It must not need a running ForeApp, TaskContext, JInvCommon, database, or user business handler. A real GUI smoke test in the chosen Gluon Scene Builder version is still required to certify its importer/Inspector behavior.

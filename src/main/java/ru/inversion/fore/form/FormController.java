@@ -5,18 +5,26 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.Initializable;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 
+import ru.inversion.fore.form.action.ActionKeyBinder;
+import ru.inversion.fore.form.action.ForeAction;
+import ru.inversion.fore.form.action.ForeActions;
+import ru.inversion.fore.form.action.StandardAction;
 import ru.inversion.fore.form.validation.*;
 import ru.inversion.tc.TaskContext;
 import ru.inversion.utils.Checks;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 
@@ -38,6 +46,12 @@ public abstract class FormController<T> implements Initializable {
 
    private final ValidationPresenter validationPresenter = new ValidationPresenter();
 
+   private final List<ForeAction> actions = new ArrayList<>();
+   private ActionKeyBinder actionKeyBinder;
+   private Stage titleStage;
+   private boolean guiLifecycleStarted;
+   private boolean guiReleased;
+
    /** */
    final boolean preInitController(
            FormContext<T> context,
@@ -55,6 +69,7 @@ public abstract class FormController<T> implements Initializable {
    @Override
    public final void initialize( URL location, ResourceBundle resources )
    {
+      guiLifecycleStarted = true;
       try {
          init();
       }
@@ -66,12 +81,20 @@ public abstract class FormController<T> implements Initializable {
 
    final void guiInitController() throws Exception
    {
+      guiLifecycleStarted = true;
       final Window window = formContext.window();
 
       if( window instanceof Stage stage )
+      {
+         titleStage = stage;
          stage.titleProperty() .bindBidirectional(titleProperty);
+      }
 
       guiInit();
+
+      actionKeyBinder = new ActionKeyBinder(window.getScene());
+      for( ForeAction action : actions )
+         actionKeyBinder.bind(action);
 
       if( requiresValidation() )
       {
@@ -103,6 +126,80 @@ public abstract class FormController<T> implements Initializable {
 
    protected void guiInit() throws Exception
    {
+   }
+
+   /** Create and register a form action in init() or guiInit(), then share it with controls. */
+   protected final ForeAction createAction(StandardAction type, Consumer<ActionEvent> handler)
+   {
+      requireGuiThread();
+      return registerAction(ForeActions.create(type, handler));
+   }
+
+   protected final ForeAction registerAction(ForeAction action)
+   {
+      requireGuiThread();
+      Objects.requireNonNull(action, "action");
+      if( guiReleased || released )
+         throw new IllegalStateException("Form GUI is already released");
+      if( actions.contains(action) )
+         return action;
+      if( actionKeyBinder != null )
+         actionKeyBinder.bind(action);
+      actions.add(action);
+      return action;
+   }
+
+   protected final void unregisterAction(ForeAction action)
+   {
+      requireGuiThread();
+      Objects.requireNonNull(action, "action");
+      if( actionKeyBinder != null )
+         actionKeyBinder.unbind(action);
+      actions.remove(action);
+   }
+
+   /** Framework GUI cleanup precedes background closeResources(), including failed launches. */
+   final void releaseGuiController() throws Exception
+   {
+      requireGuiThread();
+      if( guiReleased )
+         return;
+      guiReleased = true;
+      if( actionKeyBinder != null )
+      {
+         actionKeyBinder.close();
+         actionKeyBinder = null;
+      }
+      actions.clear();
+      if( validationSupport != null )
+      {
+         validationSupport.uninstall();
+         validationSupport = null;
+      }
+      validationPresenter.clearAll();
+      if( titleStage != null )
+      {
+         titleStage.titleProperty().unbindBidirectional(titleProperty);
+         titleStage = null;
+      }
+      if( guiLifecycleStarted )
+         closeGuiResources();
+   }
+
+   /** Optional user GUI cleanup on the FX thread after initialization has begun. */
+   protected void closeGuiResources() throws Exception
+   {
+   }
+
+   private static void requireGuiThread()
+   {
+      if( !Platform.isFxApplicationThread() )
+         throw new IllegalStateException("Form GUI operations require the FX Application Thread");
+   }
+
+   final boolean hasGuiLifecycleStarted()
+   {
+      return guiLifecycleStarted;
    }
 
 
@@ -334,7 +431,7 @@ public abstract class FormController<T> implements Initializable {
    }
 
    /** */
-   private boolean released;
+   private volatile boolean released;
 
    final synchronized void releaseController() throws Exception
    {

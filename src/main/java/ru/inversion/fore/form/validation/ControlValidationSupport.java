@@ -1,10 +1,14 @@
 package ru.inversion.fore.form.validation;
 
+import javafx.beans.InvalidationListener;
+import javafx.beans.value.ChangeListener;
 import javafx.scene.control.Control;
 
 import ru.inversion.fore.form.control.ValueExtractors;
 import ru.inversion.utils.Checks;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 
@@ -14,6 +18,7 @@ public final class ControlValidationSupport
    private final Consumer<? super Exception> errorHandler;
 
    private boolean installed;
+   private final List<Runnable> listenerRemovals = new ArrayList<>();
 
    private final ValidationPresenter presenter;
 
@@ -39,8 +44,25 @@ public final class ControlValidationSupport
 
       installed = true;
 
-      for( Control control : validation.controls() )
-           install(control);
+      try
+      {
+         for( Control control : validation.controls() )
+            install(control);
+      }
+      catch( RuntimeException | Error ex )
+      {
+         uninstall();
+         throw ex;
+      }
+   }
+
+   /** Remove exactly the value/focus listeners installed by this support. */
+   public void uninstall()
+   {
+      for( Runnable removal : listenerRemovals )
+         removal.run();
+      listenerRemovals.clear();
+      installed = false;
    }
 
 
@@ -57,24 +79,26 @@ public final class ControlValidationSupport
    {
       ValueExtractors.findObservable(control)
          .ifPresent(
-         value -> value.addListener(observable ->
-                 {
-                    ValidationStateSupport.reset(control);
-                    presenter.clear(control);
-                 }
-            )
+         value -> {
+            final InvalidationListener listener = observable -> {
+               ValidationStateSupport.reset(control);
+               presenter.clear(control);
+            };
+            value.addListener(listener);
+            listenerRemovals.add(() -> value.removeListener(listener));
+         }
          );
    }
 
    private void installFocusListener(Control control)
    {
-      control.focusedProperty().addListener(
-              (observable, oldValue, focused) ->
+      final ChangeListener<Boolean> listener = (observable, oldValue, focused) ->
               {
                  if( !focused )
                     validateIfNeeded(control);
-              }
-      );
+              };
+      control.focusedProperty().addListener(listener);
+      listenerRemovals.add(() -> control.focusedProperty().removeListener(listener));
    }
 
 

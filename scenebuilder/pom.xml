@@ -50,6 +50,7 @@
                   <include>ru/inversion/fore/form/control/ForeTextField.java</include>
                </includes>
                <testIncludes>
+                  <testInclude>ru/inversion/fore/FxTestSupport.java</testInclude>
                   <testInclude>ru/inversion/fore/form/action/*Test.java</testInclude>
                   <testInclude>ru/inversion/fore/form/control/*Test.java</testInclude>
                </testIncludes>
