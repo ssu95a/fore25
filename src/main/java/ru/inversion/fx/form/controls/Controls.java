@@ -16,7 +16,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 import ru.inversion.dataset.fx.DSFXAdapter;
-import ru.inversion.fx.app.Tags;
+import ru.inversion.fore.Tags;
 import ru.inversion.fx.form.AbstractBaseController;
 import ru.inversion.fx.form.JInvFXFormController;
 import ru.inversion.utils.S;

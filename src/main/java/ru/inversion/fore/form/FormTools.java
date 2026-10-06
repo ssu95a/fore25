@@ -1,6 +1,8 @@
 package ru.inversion.fore.form;
 
-final class FormTools {
+import javafx.application.Platform;
+
+public final class FormTools {
 
    private static final String CONTROLLER_SUFFIX = "Controller";
 
@@ -22,5 +24,11 @@ final class FormTools {
           return name.substring( 0, name.length() - CONTROLLER_SUFFIX.length() );
 
       return name;
+   }
+
+   public static void requireFxThread()
+   {
+      if( !Platform.isFxApplicationThread() )
+         throw new IllegalStateException("Action key binding requires the FX Application Thread");
    }
 }

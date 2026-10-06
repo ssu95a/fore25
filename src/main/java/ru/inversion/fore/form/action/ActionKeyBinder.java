@@ -1,6 +1,5 @@
 package ru.inversion.fore.form.action;
 
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
@@ -8,6 +7,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import ru.inversion.fore.form.FormTools;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,32 +25,41 @@ public final class ActionKeyBinder implements AutoCloseable
    private static final Object SCENE_KEY = new Object();
 
    private final Scene scene;
+
    private final Map<ForeAction, Consumer<List<KeyCombination>>> bindings = new LinkedHashMap<>();
    private final EventHandler<KeyEvent> keyFilter = this::handleKeyPressed;
+
    private boolean closed;
 
    public ActionKeyBinder(Scene scene)
    {
-      requireFxThread();
+      FormTools.requireFxThread();
+
       this.scene = Objects.requireNonNull(scene, "scene");
+
       if( scene.getProperties().containsKey(SCENE_KEY) )
-         throw new IllegalStateException("Scene already has an action key binder");
+          throw new IllegalStateException("Scene already has an action key binder");
 
       scene.getProperties().put(SCENE_KEY, this);
       scene.addEventFilter(KeyEvent.KEY_PRESSED, keyFilter);
    }
 
    /** Register an action once, even when several controls share it. */
-   public void bind(ForeAction action)
+   public void bind( ForeAction action )
    {
+      if( action == null )
+          return;
+
       requireOpen();
-      Objects.requireNonNull(action, "action");
+
       if( bindings.containsKey(action) )
-         return;
+          return;
 
       validateHotkeys(action, action.hotkeys());
+
       final Consumer<List<KeyCombination>> validator = keys -> validateHotkeys(action, keys);
       bindings.put(action, validator);
+
       action.addHotkeyValidator(validator);
    }
 
@@ -122,26 +131,26 @@ public final class ActionKeyBinder implements AutoCloseable
    @Override
    public void close()
    {
-      requireFxThread();
+      FormTools.requireFxThread();
+
       if( closed )
-         return;
+          return;
+
       closed = true;
+
       scene.removeEventFilter(KeyEvent.KEY_PRESSED, keyFilter);
+
       bindings.forEach(ForeAction::removeHotkeyValidator);
       bindings.clear();
+
       scene.getProperties().remove(SCENE_KEY, this);
    }
 
    private void requireOpen()
    {
-      requireFxThread();
+      FormTools.requireFxThread();
       if( closed )
          throw new IllegalStateException("Action key binder is closed");
    }
 
-   private static void requireFxThread()
-   {
-      if( !Platform.isFxApplicationThread() )
-         throw new IllegalStateException("Action key binding requires the FX Application Thread");
-   }
 }

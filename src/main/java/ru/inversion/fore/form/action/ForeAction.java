@@ -16,22 +16,21 @@ import java.util.function.Consumer;
 public final class ForeAction extends Action
 {
    private final StandardAction standardType;
+
    private IconSpec icon;
    private List<KeyCombination> hotkeys = List.of();
+
    private final List<Consumer<List<KeyCombination>>> hotkeyValidators = new ArrayList<>();
 
    ForeAction( StandardAction type, Consumer<ActionEvent> handler)
    {
-      super(
-              Objects.requireNonNull(type, "type").text(),
-              Objects.requireNonNull(handler, "handler")
-      );
+      super( Objects.requireNonNull(type, "type").text(), Objects.requireNonNull(handler, "handler") );
 
       standardType = type;
 
-      setLongText(type.tooltip());
-      setIcon(type.icon());
-      setHotkeys(type.hotkeys());
+      setLongText ( type.tooltip());
+      setIcon     ( type.icon()   );
+      setHotkeys  ( type.hotkeys());
    }
 
    public StandardAction standardType()
