@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.VBox?>
+<?import ru.inversion.fore.form.control.ForeButton?>
+<?import ru.inversion.fore.form.control.ForeMenuItem?>
+<?import ru.inversion.fore.form.control.ForeToolBar?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" spacing="8" prefWidth="740" prefHeight="460"
+      fx:controller="ru.inversion.fore.demo.table.RecordTableController">
+    <MenuBar>
+        <Menu text="%list.actions">
+            <ForeMenuItem fx:id="createMenu" standardAction="CREATE"/>
+            <ForeMenuItem fx:id="updateMenu" standardAction="UPDATE"/>
+            <ForeMenuItem fx:id="viewMenu" standardAction="VIEW"/>
+            <ForeMenuItem fx:id="deleteMenu" standardAction="DELETE"/>
+            <SeparatorMenuItem/>
+            <ForeMenuItem fx:id="refreshMenu" standardAction="REFRESH"/>
+        </Menu>
+    </MenuBar>
+    <ForeToolBar>
+        <ForeButton fx:id="createButton" standardAction="CREATE"/>
+        <ForeButton fx:id="updateButton" standardAction="UPDATE"/>
+        <ForeButton fx:id="viewButton" standardAction="VIEW"/>
+        <ForeButton fx:id="deleteButton" standardAction="DELETE"/>
+        <ForeButton fx:id="refreshButton" standardAction="REFRESH"/>
+    </ForeToolBar>
+    <TableView fx:id="table" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="idColumn" text="%list.id" prefWidth="80" maxWidth="120"/>
+            <TableColumn fx:id="nameColumn" text="%list.name" prefWidth="620"/>
+        </columns>
+        <placeholder><Label text="%list.empty"/></placeholder>
+    </TableView>
+    <Label fx:id="countLabel"/>
+</VBox>
