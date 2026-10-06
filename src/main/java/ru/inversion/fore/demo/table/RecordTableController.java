@@ -100,7 +100,9 @@ public final class RecordTableController extends FormController<RecordStore>
       final RecordStore store = getDataObject();
       final var draft = mode == FormMode.INSERT ? store.newDraft() : store.editDraft(row);
 
-      new FormLauncher<RecordStore.Draft, RecordEditorController>(this, RecordEditorController.class)
+      // Для данных в памяти редактору достаточно владельца окна.
+      // Явный null исключает ленивое создание TaskContext родительского контроллера.
+      new FormLauncher<RecordStore.Draft, RecordEditorController>(null, getWindow(), RecordEditorController.class)
               .fxml("ru/inversion/fore/demo/table/record-editor.fxml")
               .bundle(getBundle())
               .dataObject(draft)

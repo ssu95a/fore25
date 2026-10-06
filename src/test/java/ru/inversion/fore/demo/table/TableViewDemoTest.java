@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/** Проверки таблицы и редактора на данных в памяти, без создания TaskContext. */
 class TableViewDemoTest
 {
    @BeforeAll static void startToolkit() throws Exception { FxTestSupport.start(); }
