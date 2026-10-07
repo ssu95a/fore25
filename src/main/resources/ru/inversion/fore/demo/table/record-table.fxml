@@ -4,10 +4,10 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.VBox?>
 <?import ru.inversion.fore.form.control.ForeButton?>
 <?import ru.inversion.fore.form.control.ForeMenuItem?>
+<?import ru.inversion.fore.form.control.ForeTableView?>
 <?import ru.inversion.fore.form.control.ForeToolBar?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" spacing="8" prefWidth="740" prefHeight="460"
       fx:controller="ru.inversion.fore.demo.table.RecordTableController">
@@ -28,12 +28,12 @@
         <ForeButton fx:id="deleteButton" standardAction="DELETE"/>
         <ForeButton fx:id="refreshButton" standardAction="REFRESH"/>
     </ForeToolBar>
-    <TableView fx:id="table" VBox.vgrow="ALWAYS">
+    <ForeTableView fx:id="table" VBox.vgrow="ALWAYS">
         <columns>
             <TableColumn fx:id="idColumn" text="%list.id" prefWidth="80" maxWidth="120"/>
             <TableColumn fx:id="nameColumn" text="%list.name" prefWidth="620"/>
         </columns>
         <placeholder><Label text="%list.empty"/></placeholder>
-    </TableView>
+    </ForeTableView>
     <Label fx:id="countLabel"/>
 </VBox>

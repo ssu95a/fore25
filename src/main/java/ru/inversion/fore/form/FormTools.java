@@ -29,6 +29,6 @@ public final class FormTools {
    public static void requireFxThread()
    {
       if( !Platform.isFxApplicationThread() )
-         throw new IllegalStateException("Action key binding requires the FX Application Thread");
+         throw new IllegalStateException("Операция требует потока JavaFX");
    }
 }

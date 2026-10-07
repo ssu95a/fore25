@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.TableColumn?>
+<?import ru.inversion.fore.form.control.ForeTableView?>
+<ForeTableView xmlns:fx="http://javafx.com/fxml/1" prefWidth="640" prefHeight="360">
+    <columns>
+        <TableColumn text="Код" prefWidth="100"/>
+        <TableColumn text="Название" prefWidth="400"/>
+    </columns>
+</ForeTableView>

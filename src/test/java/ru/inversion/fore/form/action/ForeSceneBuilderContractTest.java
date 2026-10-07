@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import ru.inversion.fore.form.control.ForeButton;
 import ru.inversion.fore.form.control.ForeMenuItem;
 import ru.inversion.fore.form.control.ForeToolBar;
+import ru.inversion.fore.form.control.ForeTableView;
 
 import java.beans.Introspector;
 import java.util.Arrays;
@@ -19,6 +20,17 @@ class ForeSceneBuilderContractTest
       assertNotNull(ForeButton.class.getConstructor());
       assertNotNull(ForeMenuItem.class.getConstructor());
       assertNotNull(ForeToolBar.class.getConstructor());
+      assertNotNull(ForeTableView.class.getConstructor());
+   }
+
+   @Test
+   void tableActivationActionIsARuntimeProperty() throws Exception
+   {
+      final var property = Arrays.stream(Introspector.getBeanInfo(ForeTableView.class).getPropertyDescriptors())
+              .filter(prop -> prop.getName().equals("activationAction")).findFirst().orElseThrow();
+      assertEquals(ForeAction.class, property.getPropertyType());
+      assertNotNull(property.getWriteMethod());
+      assertEquals(Boolean.TRUE, property.getValue("transient"));
    }
 
    @Test

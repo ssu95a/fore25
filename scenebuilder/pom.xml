@@ -42,12 +42,14 @@
             <groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.14.1</version>
             <configuration>
                <includes>
+                  <include>ru/inversion/fore/form/FormTools.java</include>
                   <include>ru/inversion/fore/form/action/*.java</include>
                   <include>ru/inversion/fore/form/control/IForeControl.java</include>
                   <include>ru/inversion/fore/form/control/ForeButton.java</include>
                   <include>ru/inversion/fore/form/control/ForeMenuItem.java</include>
                   <include>ru/inversion/fore/form/control/ForeToolBar.java</include>
                   <include>ru/inversion/fore/form/control/ForeTextField.java</include>
+                  <include>ru/inversion/fore/form/control/ForeTableView.java</include>
                </includes>
                <testIncludes>
                   <testInclude>ru/inversion/fore/FxTestSupport.java</testInclude>

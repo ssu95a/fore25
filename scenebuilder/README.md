@@ -8,7 +8,7 @@ mvn -f scenebuilder/pom.xml package
 
 Result: `scenebuilder/target/fore25-scenebuilder-0.2.0-SNAPSHOT.jar`. It contains Fore action/control classes, the bundled existing FontAwesome resource and captions. This UI build has no JInvCommon dependency. In Scene Builder's `Library` > `JAR/FXML Manager`, make ControlsFX 11.2.4 available and import this preview JAR. Select `ForeButton` and `ForeToolBar`, both concrete Node subclasses with public zero-argument constructors.
 
-The preview JAR also includes `ForeTextField` and `IForeControl`.
+The preview JAR also includes `ForeTextField`, `IForeControl` and `ForeTableView`.
 
 `ForeTextField` implements `IForeControl` and exposes `fieldName` and `label` metadata. `ForeButton` extends JavaFX `Button` and works through `ForeAction`; it does not expose these field metadata properties.
 
@@ -58,3 +58,46 @@ For use outside `FormController`, create `new ActionKeyBinder(scene)`, call `bin
 On actual hiding or a failed launch, the framework removes the binder, validation listeners and its title binding on the FX thread. A vetoed close keeps them installed. Override `closeGuiResources()` for your own FX cleanup after initialization has begun; `closeResources()` still runs afterwards on a virtual thread for background resources.
 
 The importer is DESIGN TIME. It must not need a running ForeApp, TaskContext, JInvCommon, database, or user business handler. A real GUI smoke test in the chosen Gluon Scene Builder version is still required to certify its importer/Inspector behavior.
+
+## ForeTableView
+
+`ForeTableView<T>` использует стандартные колонки, список данных и модель выбора
+JavaFX. Контрол доступен для импорта из JAR; готовый фрагмент с двумя колонками —
+[`ForeTableView.fxml`](ForeTableView.fxml). FXML и конструктор не требуют контекста
+приложения. Свойство `activationAction` задаётся во время выполнения и помечено
+как несериализуемое для JavaBeans.
+
+В контроллере назначьте общее действие изменения или просмотра:
+
+```java
+table.setActivationAction(update);
+```
+
+Enter без модификаторов выполняет действие для выбранной записи. Двойной щелчок
+левой кнопкой выбирает строку под мышью и выполняет то же действие. Доступность
+определяет `ForeAction`; сама таблица его состояние не меняет. Заголовок, пустые
+строки, встроенные кнопки и редакторы не запускают действие. Во время
+редактирования ячейки активация записи отключена.
+
+Обновление данных с восстановлением одной выбранной строки:
+
+```java
+table.replaceItems(rows, loadedRows, Row::id);
+table.replaceItems(rows, loadedRows, Row::id, savedId);
+table.replaceItemsAfterRemoval(rows, remainingRows);
+```
+
+`rows` — изменяемый источник текущего списка таблицы. Например, её `items`
+может содержать `SortedList`, построенный на `rows`, с компаратором, привязанным
+к `table.comparatorProperty()`. Методы сохраняют этот список представления и
+учитывают текущий порядок сортировки. Они также поддерживают цепочку
+`FilteredList`/`SortedList`; выбор восстанавливается среди видимых записей.
+Ключи должны быть уникальными и ненулевыми, записи в коллекции — ненулевыми.
+Первый метод сохраняет текущий ключ; второй выбирает заданный ключ или снимает
+выбор, если он отсутствует. После удаления выбирается строка на прежней позиции
+либо предыдущая, если удалена последняя строка.
+
+Все изменения выполняются на потоке JavaFX. В `closeGuiResources()` вызовите
+`table.setActivationAction(null)`: это снимает оба обработчика активации и
+сохраняет пользовательские `onKeyPressed`/`onMouseClicked`. Привязки внешнего
+`SortedList` снимает создавший его контроллер.

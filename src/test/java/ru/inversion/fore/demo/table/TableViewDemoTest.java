@@ -6,9 +6,12 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.TableRow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.PickResult;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -19,6 +22,7 @@ import ru.inversion.fore.form.FormLauncher;
 import ru.inversion.fore.form.action.StandardAction;
 import ru.inversion.fore.form.control.ForeButton;
 import ru.inversion.fore.form.control.ForeMenuItem;
+import ru.inversion.fore.form.control.ForeTableView;
 import ru.inversion.fore.form.control.ForeTextField;
 
 import java.util.ArrayList;
@@ -175,6 +179,43 @@ class TableViewDemoTest
    }
 
    @Test
+   void enterAndDoubleClickOpenTheEditorThroughTheSharedUpdateAction() throws Exception
+   {
+      try( var demo = Demo.open() )
+      {
+         FxTestSupport.run(() -> {
+            final var table = table(demo.main);
+            assertSame(button(demo.main, StandardAction.UPDATE).getAction(), table.getActivationAction());
+            table.getSelectionModel().selectFirst();
+            Event.fireEvent(table, new KeyEvent(KeyEvent.KEY_PRESSED,
+                    KeyEvent.CHAR_UNDEFINED, "", KeyCode.ENTER, false, false, false, false));
+         });
+         final Stage firstEditor = demo.nextStage();
+         FxTestSupport.run(() -> {
+            assertEquals("Альфа", node(firstEditor, "nameField", ForeTextField.class).getText());
+            node(firstEditor, "cancelButton", Button.class).fire();
+            final var table = table(demo.main);
+            table.applyCss();
+            table.layout();
+            final TableRow<?> row = table.lookupAll(".table-row-cell").stream()
+                    .filter(value -> value instanceof TableRow<?> r && r.getIndex() == 1)
+                    .map(value -> (TableRow<?>) value).findFirst().orElseThrow();
+            Event.fireEvent(row, new MouseEvent(MouseEvent.MOUSE_CLICKED, 5, 5, 5, 5,
+                    MouseButton.PRIMARY, 2, false, false, false, false, false, false, false,
+                    true, false, true, new PickResult(row, 5, 5)));
+         });
+         final Stage secondEditor = demo.nextStage();
+         FxTestSupport.run(() -> {
+            assertEquals("Бета", node(secondEditor, "nameField", ForeTextField.class).getText());
+            node(secondEditor, "nameField", ForeTextField.class).setText("Бета изменена");
+            node(secondEditor, "saveButton", Button.class).fire();
+            assertEquals(2, table(demo.main).getSelectionModel().getSelectedItem().id());
+            assertEquals("Бета изменена", table(demo.main).getSelectionModel().getSelectedItem().name());
+         });
+      }
+   }
+
+   @Test
    void closingTheListRemovesShortcutsAndLiveControlBindings() throws Exception
    {
       try( var demo = Demo.open() )
@@ -189,6 +230,9 @@ class TableViewDemoTest
             assertNull(createMenu.getAction());
             assertFalse(createButton.textProperty().isBound());
             assertFalse(createMenu.acceleratorProperty().isBound());
+            assertNull(table(demo.main).getActivationAction());
+            Event.fireEvent(table(demo.main), new KeyEvent(KeyEvent.KEY_PRESSED,
+                    KeyEvent.CHAR_UNDEFINED, "", KeyCode.ENTER, false, false, false, false));
             press(demo.main, KeyCode.F6, false);
             assertTrue(demo.shown.isEmpty());
          });
@@ -218,9 +262,9 @@ class TableViewDemoTest
    }
 
    @SuppressWarnings("unchecked")
-   private static TableView<RecordStore.Row> table(Stage stage)
+   private static ForeTableView<RecordStore.Row> table(Stage stage)
    {
-      return (TableView<RecordStore.Row>) node(stage, "table", TableView.class);
+      return (ForeTableView<RecordStore.Row>) node(stage, "table", ForeTableView.class);
    }
 
    private static <T extends Node> T node(Stage stage, String id, Class<T> type)

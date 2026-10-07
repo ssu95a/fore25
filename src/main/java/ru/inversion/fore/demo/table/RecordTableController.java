@@ -19,6 +19,7 @@ import ru.inversion.fore.form.action.ForeAction;
 import ru.inversion.fore.form.action.StandardAction;
 import ru.inversion.fore.form.control.ForeButton;
 import ru.inversion.fore.form.control.ForeMenuItem;
+import ru.inversion.fore.form.control.ForeTableView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,7 @@ import java.util.function.Consumer;
 /** Форма списка: выбранная строка определяет доступность действий с записью. */
 public final class RecordTableController extends FormController<RecordStore>
 {
-   @FXML private TableView<RecordStore.Row> table;
+   @FXML private ForeTableView<RecordStore.Row> table;
    @FXML private TableColumn<RecordStore.Row, Number> idColumn;
    @FXML private TableColumn<RecordStore.Row, String> nameColumn;
    @FXML private Label countLabel;
@@ -63,13 +64,15 @@ public final class RecordTableController extends FormController<RecordStore>
       final var update = connect(StandardAction.UPDATE, event -> openSelected(FormMode.EDIT), updateButton, updateMenu);
       final var view = connect(StandardAction.VIEW, event -> openSelected(FormMode.VIEW), viewButton, viewMenu);
       final var delete = connect(StandardAction.DELETE, event -> deleteSelected(), deleteButton, deleteMenu);
-      connect(StandardAction.REFRESH, event -> refreshRows(selectedId()), refreshButton, refreshMenu);
+      connect(StandardAction.REFRESH,
+              event -> table.replaceItems(rows, getDataObject().snapshot(), RecordStore.Row::id), refreshButton, refreshMenu);
+      table.setActivationAction(update);
 
       final var noSelection = table.getSelectionModel().selectedItemProperty().isNull();
       update.disabledProperty().bind(noSelection);
       view.disabledProperty().bind(noSelection);
       delete.disabledProperty().bind(noSelection);
-      refreshRows(null);
+      table.replaceItems(rows, getDataObject().snapshot(), RecordStore.Row::id);
    }
 
    private ForeAction connect(StandardAction type, Consumer<ActionEvent> handler,
@@ -80,12 +83,6 @@ public final class RecordTableController extends FormController<RecordStore>
       button.setAction(action);
       menu.setAction(action);
       return action;
-   }
-
-   private Long selectedId()
-   {
-      final var selected = table.getSelectionModel().getSelectedItem();
-      return selected == null ? null : selected.id();
    }
 
    private void openSelected(FormMode mode)
@@ -112,7 +109,7 @@ public final class RecordTableController extends FormController<RecordStore>
                  if( result.result() == FormResultType.OK && mode != FormMode.VIEW )
                  {
                     final var saved = store.save(result.dataObject());
-                    refreshRows(saved.id());
+                    table.replaceItems(rows, store.snapshot(), RecordStore.Row::id, saved.id());
                  }
               })
               .runForm();
@@ -124,26 +121,8 @@ public final class RecordTableController extends FormController<RecordStore>
       if( selected == null )
          return;
 
-      final int index = table.getSelectionModel().getSelectedIndex();
       getDataObject().delete(selected.id());
-      refreshRows(null);
-      if( !sortedRows.isEmpty() )
-         table.getSelectionModel().select(Math.min(index, sortedRows.size() - 1));
-   }
-
-   /** Выбор восстанавливается по ID, даже если сохранение изменило положение строки при сортировке. */
-   private void refreshRows(Long id)
-   {
-      rows.setAll(getDataObject().snapshot());
-      table.getSelectionModel().clearSelection();
-      if( id != null )
-         for( var row : sortedRows )
-            if( row.id() == id )
-            {
-               table.getSelectionModel().select(row);
-               table.scrollTo(row);
-               break;
-            }
+      table.replaceItemsAfterRemoval(rows, getDataObject().snapshot());
    }
 
    @Override
@@ -160,6 +139,7 @@ public final class RecordTableController extends FormController<RecordStore>
          if( menu != null ) menu.setAction(null);
 
       uiActions.clear();
+      if( table != null ) table.setActivationAction(null);
       sortedRows.comparatorProperty().unbind();
       if( countLabel != null ) countLabel.textProperty().unbind();
       rows.clear();
