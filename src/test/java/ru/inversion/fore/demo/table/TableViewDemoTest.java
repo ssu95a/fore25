@@ -17,6 +17,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import ru.inversion.dataset.IDataSet;
 import ru.inversion.fore.FxTestSupport;
 import ru.inversion.fore.form.FormLauncher;
 import ru.inversion.fore.form.action.StandardAction;
@@ -39,6 +40,33 @@ import static org.junit.jupiter.api.Assertions.*;
 class TableViewDemoTest
 {
    @BeforeAll static void startToolkit() throws Exception { FxTestSupport.start(); }
+
+   @Test
+   void dataSetEventsUpdateTheOpenFormAndStopUpdatingItAfterClose() throws Exception
+   {
+      try( var demo = Demo.open() )
+      {
+         FxTestSupport.run(() -> {
+            final var dataSet = demo.store.getDataSet();
+            dataSet.setCurrentRowNum(2);
+            assertSame(dataSet.getCurrentRow(), table(demo.main).getSelectionModel().getSelectedItem());
+            assertSelectionActionsDisabled(demo.main, false);
+            final var saved = new RecordStore.Row(3, "Обновлено через набор");
+            dataSet.updateCurrentRow(saved);
+            assertSame(saved, table(demo.main).getSelectionModel().getSelectedItem());
+            dataSet.insertRow(new RecordStore.Row(9, "Добавлено через набор"), IDataSet.InsertRowModeEnum.FIRST, true);
+            assertEquals(4, table(demo.main).getItems().size());
+            assertEquals(9, table(demo.main).getSelectionModel().getSelectedItem().id());
+            assertEquals("Записей: 4", node(demo.main, "countLabel", javafx.scene.control.Label.class).getText());
+
+            demo.main.hide();
+            assertEquals(4, dataSet.getLoadedRowCount());
+            dataSet.clear();
+            assertTrue(table(demo.main).getItems().isEmpty());
+            assertEquals("Записей: 4", node(demo.main, "countLabel", javafx.scene.control.Label.class).getText());
+         });
+      }
+   }
 
    @Test
    void selectionControlsTheSameActionsInButtonsMenusAndKeyboard() throws Exception

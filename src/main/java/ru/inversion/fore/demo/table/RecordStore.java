@@ -1,28 +1,33 @@
 package ru.inversion.fore.demo.table;
 
-import java.util.ArrayList;
+import ru.inversion.dataset.ArrayDataSet;
+import ru.inversion.dataset.IDataSet;
+
 import java.util.List;
 import java.util.Objects;
 
 /** Демонстрационный справочник в памяти; формы изменяют его на потоке JavaFX. */
 public final class RecordStore
 {
-   private final List<Row> rows = new ArrayList<>();
+   private final ArrayDataSet<Row> dataSet = new ArrayDataSet<>(Row.class);
    private long nextId = 1;
 
    public static RecordStore sample()
    {
       final var store = new RecordStore();
-      store.save(new Draft(store.nextId++, "Альфа"));
-      store.save(new Draft(store.nextId++, "Бета"));
-      store.save(new Draft(store.nextId++, "Гамма"));
+      store.dataSet.insertRows(List.of(new Row(1, "Альфа"), new Row(2, "Бета"), new Row(3, "Гамма")),
+              IDataSet.InsertRowModeEnum.LAST, false);
+      store.nextId = 4;
       return store;
    }
 
-   /** Неизменяемый снимок списка для заполнения таблицы. */
+   /** Набор данных остаётся у владельца хранилища; адаптер таблицы подписывается на его события. */
+   public IDataSet<Row> getDataSet() { return dataSet; }
+
+   /** Неизменяемый снимок сохранённых записей. */
    public List<Row> snapshot()
    {
-      return List.copyOf(rows);
+      return List.copyOf(dataSet.getRows());
    }
 
    /** Идентификатор выделяется при открытии новой записи; отмена может оставить пропуск. */
@@ -46,21 +51,30 @@ public final class RecordStore
          throw new IllegalArgumentException("Название должно содержать от 1 до 120 символов");
 
       final var saved = new Row(draft.id(), name);
-      for( int index = 0; index < rows.size(); index++ )
-         if( rows.get(index).id() == saved.id() )
+      for( int index = 0; index < dataSet.getLoadedRowCount(); index++ )
+         if( dataSet.getRow(index).id() == saved.id() )
          {
-            rows.set(index, saved);
+            dataSet.setCurrentRowNum(index);
+            dataSet.updateCurrentRow(saved);
             return saved;
          }
 
-      rows.add(saved);
+      dataSet.insertRow(saved, IDataSet.InsertRowModeEnum.LAST, false);
+      // Устанавливаем фактический индекс добавленной строки независимо от прежнего курсора.
+      dataSet.setCurrentRowNum(dataSet.getLoadedRowCount() - 1);
       nextId = Math.max(nextId, saved.id() + 1);
       return saved;
    }
 
    public void delete(long id)
    {
-      rows.removeIf(row -> row.id() == id);
+      for( int index = 0; index < dataSet.getLoadedRowCount(); index++ )
+         if( dataSet.getRow(index).id() == id )
+         {
+            dataSet.setCurrentRowNum(index);
+            dataSet.removeCurrentRow();
+            return;
+         }
    }
 
    /** Строка таблицы неизменяема; сохранение заменяет её новым экземпляром с тем же ID. */

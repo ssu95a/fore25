@@ -3,14 +3,12 @@ package ru.inversion.fore.demo.table;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyLongWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import ru.inversion.fore.dataset.ForeDataSetAdapter;
 import ru.inversion.fore.form.FormController;
 import ru.inversion.fore.form.FormLauncher;
 import ru.inversion.fore.form.FormMode;
@@ -44,8 +42,7 @@ public final class RecordTableController extends FormController<RecordStore>
    @FXML private ForeMenuItem deleteMenu;
    @FXML private ForeMenuItem refreshMenu;
 
-   private final ObservableList<RecordStore.Row> rows = FXCollections.observableArrayList();
-   private final SortedList<RecordStore.Row> sortedRows = new SortedList<>(rows);
+   private ForeDataSetAdapter<RecordStore.Row> adapter;
    private final List<ForeAction> uiActions = new ArrayList<>();
 
    @Override
@@ -55,24 +52,21 @@ public final class RecordTableController extends FormController<RecordStore>
       setTitle(getBundle().getString("list.title"));
       idColumn.setCellValueFactory(cell -> new ReadOnlyLongWrapper(cell.getValue().id()));
       nameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().name()));
-      sortedRows.comparatorProperty().bind(table.comparatorProperty());
-      table.setItems(sortedRows);
+      adapter = ForeDataSetAdapter.bind(getDataObject().getDataSet(), table);
       table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-      countLabel.textProperty().bind(Bindings.size(rows).asString(getBundle().getString("list.count")));
+      countLabel.textProperty().bind(Bindings.size(table.getItems()).asString(getBundle().getString("list.count")));
 
       connect(StandardAction.CREATE, event -> openEditor(FormMode.INSERT, null), createButton, createMenu);
       final var update = connect(StandardAction.UPDATE, event -> openSelected(FormMode.EDIT), updateButton, updateMenu);
       final var view = connect(StandardAction.VIEW, event -> openSelected(FormMode.VIEW), viewButton, viewMenu);
       final var delete = connect(StandardAction.DELETE, event -> deleteSelected(), deleteButton, deleteMenu);
-      connect(StandardAction.REFRESH,
-              event -> table.replaceItems(rows, getDataObject().snapshot(), RecordStore.Row::id), refreshButton, refreshMenu);
+      connect(StandardAction.REFRESH, event -> adapter.refresh(), refreshButton, refreshMenu);
       table.setActivationAction(update);
 
       final var noSelection = table.getSelectionModel().selectedItemProperty().isNull();
       update.disabledProperty().bind(noSelection);
       view.disabledProperty().bind(noSelection);
       delete.disabledProperty().bind(noSelection);
-      table.replaceItems(rows, getDataObject().snapshot(), RecordStore.Row::id);
    }
 
    private ForeAction connect(StandardAction type, Consumer<ActionEvent> handler,
@@ -87,7 +81,7 @@ public final class RecordTableController extends FormController<RecordStore>
 
    private void openSelected(FormMode mode)
    {
-      final var selected = table.getSelectionModel().getSelectedItem();
+      final var selected = adapter.getCurrentRow();
       if( selected != null )
          openEditor(mode, selected);
    }
@@ -108,8 +102,7 @@ public final class RecordTableController extends FormController<RecordStore>
               .callback(result -> {
                  if( result.result() == FormResultType.OK && mode != FormMode.VIEW )
                  {
-                    final var saved = store.save(result.dataObject());
-                    table.replaceItems(rows, store.snapshot(), RecordStore.Row::id, saved.id());
+                    store.save(result.dataObject());
                  }
               })
               .runForm();
@@ -122,7 +115,6 @@ public final class RecordTableController extends FormController<RecordStore>
          return;
 
       getDataObject().delete(selected.id());
-      table.replaceItemsAfterRemoval(rows, getDataObject().snapshot());
    }
 
    @Override
@@ -140,8 +132,11 @@ public final class RecordTableController extends FormController<RecordStore>
 
       uiActions.clear();
       if( table != null ) table.setActivationAction(null);
-      sortedRows.comparatorProperty().unbind();
       if( countLabel != null ) countLabel.textProperty().unbind();
-      rows.clear();
+      if( adapter != null )
+      {
+         adapter.close();
+         adapter = null;
+      }
    }
 }
