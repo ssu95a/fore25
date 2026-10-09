@@ -35,10 +35,8 @@ public final class LovDemo extends Application
             "departmentId", LovBinding.Target.of(id, Long.class),
             "departmentCode", LovBinding.Target.text(code.textProperty()),
             "departmentName", LovBinding.Target.text(name.textProperty())));
-      var choose = new Button("…");
+      var choose = binding.getButton();
       choose.setAccessibleText("Выбрать подразделение");
-      choose.setFocusTraversable(false);
-      choose.setOnAction(event -> binding.show());
       var save = new Button("Проверить перед сохранением");
       var status = new Label("Введите БУХ или откройте список клавишей F9.");
       status.setWrapText(true);

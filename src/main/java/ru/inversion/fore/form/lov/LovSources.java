@@ -96,7 +96,7 @@ public final class LovSources
                if( rows.size() == request.maxRows() ) return new LovDataSource.Result(rows, false);
                var values = new LinkedHashMap<String, Object>();
                for( var column : request.definition().columns() )
-                  values.put(column.name(), column.type().convert(result.getObject(column.name())));
+                  values.put(column.name(), column.convert(result.getObject(column.name())));
                rows.add(new LovRow(values));
             }
          }

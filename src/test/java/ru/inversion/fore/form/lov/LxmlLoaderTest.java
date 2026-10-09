@@ -7,6 +7,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 import java.util.ListResourceBundle;
 import java.util.Map;
@@ -16,6 +18,88 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LxmlLoaderTest
 {
+   @org.junit.jupiter.api.Test
+   void columnLengthUsesUnicodeCharactersAndNewBindingProperties() throws Exception
+   {
+      String xml = LovFixtures.xml("", "", """
+            <static><row><value column="ID">1</value><value column="CODE">😀</value><value column="NAME">Имя</value></row></static>
+            """).replace("name=\"CODE\" title=\"Код\"", "name=\"CODE\" title=\"Код\" length=\"1\"")
+            .replace("<columns>", "<binding x=\"11\" y=\"22\" lov-button=\"true\"/><appearance row-line-color=\"#aabbcc\"/><columns>");
+      var definition = LovFixtures.read(xml);
+      assertEquals(1, definition.columns().get(1).length());
+      assertEquals(new LovDefinition.Position(11, 22), definition.binding().position());
+      assertTrue(definition.binding().lovButton());
+      assertEquals("#aabbcc", definition.appearance().rowLineColor());
+   }
+
+   @org.junit.jupiter.api.Test
+   void inheritedAndOverriddenPropertiesAreResolvedFromRegisteredResource(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception
+   {
+      Path base = directory.resolve("base.lxml");
+      Files.writeString(base, LovFixtures.xml("auto-refresh=\"false\"", "max-rows=\"17\"", "<provider ref=\"test\"/>"));
+      Path child = directory.resolve("child.lxml");
+      Files.writeString(child, """
+            <lov xmlns="urn:inversion:fore:lov:1" version="1" id="child" extends="base" title="Переопределённый">
+               <behavior auto-select="true"/>
+               <columns><column name="CODE" width="240"/></columns>
+            </lov>
+            """);
+      var loader = new LxmlLoader().template("base", base.toUri().toURL());
+      var definition = loader.read(child.toUri().toURL());
+      assertEquals("Переопределённый", definition.title());
+      assertFalse(definition.behavior().autoRefresh());
+      assertTrue(definition.behavior().autoSelect());
+      assertEquals(17, definition.search().maxRows());
+      assertEquals(240, definition.columns().stream().filter(c -> c.name().equals("CODE")).findFirst().orElseThrow().width());
+      assertEquals(3, definition.columns().size());
+   }
+
+   @org.junit.jupiter.api.Test
+   void unregisteredInheritanceIsRejectedWithoutOpeningArbitraryResource() throws Exception
+   {
+      String xml = """
+            <lov xmlns="urn:inversion:fore:lov:1" version="1" id="child" extends="not-registered" title="X"/>
+            """;
+      assertThrows(IOException.class, () -> LovFixtures.read(xml));
+   }
+
+   @org.junit.jupiter.api.Test
+   void propertyClassMayContainOnlyCommonBehavior(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception
+   {
+      Path property = directory.resolve("property.lxml");
+      Files.writeString(property, """
+            <lov xmlns="urn:inversion:fore:lov:1" version="1" id="common">
+               <behavior auto-refresh="false"/>
+            </lov>
+            """);
+      Path lov = directory.resolve("local.lxml");
+      Files.writeString(lov, LovFixtures.xml("", "", "<provider ref=\"test\"/>")
+            .replace("id=\"test\"", "id=\"local\" property-class=\"common\""));
+      var definition = new LxmlLoader().propertyClass("common", property.toUri().toURL()).read(lov.toUri().toURL());
+      assertFalse(definition.behavior().autoRefresh());
+   }
+
+   @org.junit.jupiter.api.Test
+   void propertyClassDoesNotEraseInheritedWindow(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception
+   {
+      Path base = directory.resolve("base.lxml");
+      Files.writeString(base, LovFixtures.xml("", "", "<provider ref=\"test\"/>")
+            .replace("<behavior", "<window width=\"900\" height=\"600\"/><behavior"));
+      Path property = directory.resolve("property.lxml");
+      Files.writeString(property, """
+            <lov xmlns="urn:inversion:fore:lov:1" version="1" id="common">
+               <behavior auto-refresh="false"/>
+            </lov>
+            """);
+      Path child = directory.resolve("child.lxml");
+      Files.writeString(child, LovFixtures.xml("", "", "<provider ref=\"test\"/>")
+            .replace("id=\"test\"", "id=\"child\" extends=\"base\" property-class=\"common\""));
+      var definition = new LxmlLoader().template("base", base.toUri().toURL())
+            .propertyClass("common", property.toUri().toURL()).read(child.toUri().toURL());
+      assertEquals(900, definition.window().width());
+      assertFalse(definition.behavior().autoRefresh());
+   }
+
    @Test void defaultsAndHiddenReturnColumn() throws Exception
    {
       var definition = LovFixtures.definition("", "");

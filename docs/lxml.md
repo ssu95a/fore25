@@ -22,17 +22,19 @@
 - [departments-sql.lxml](../src/main/resources/ru/inversion/fore/demo/lov/departments-sql.lxml).
 - [lov.xsd](../src/main/resources/ru/inversion/fore/form/lov/lov.xsd) — схема для IDE и загрузчика.
 
-Порядок секций: `comment?`, `window?`, `behavior?`, `search?`, `columns`, `source`. Все неизвестные атрибуты и элементы запрещены. Опечатка в поведении не превращается в молча проигнорированную настройку.
+Порядок секций: `comment?`, `window?`, `behavior?`, `search?`, `binding?`, `appearance?`, `columns?`, `source?`. Для обычного LOV после наследования обязательны `columns` и `source`; шаблон может их унаследовать. Все неизвестные атрибуты и элементы запрещены. Опечатка в поведении не превращается в молча проигнорированную настройку.
 
 ## Атрибуты
 
 | Элемент | Атрибуты и значения по умолчанию |
 |---|---|
-| `lov` | Обязательные `id`, `title`, `version="1"` |
+| `lov` | Обязательные `id`, `version="1"`; `title` можно унаследовать. `extends` и `property-class` — имена ресурсов, заранее зарегистрированных в `LxmlLoader` |
 | `window` | `width="640"`, `height="420"`, необязательная пара `x`, `y`; `automatic-position="false"`, `automatic-column-width="false"`, `direction="inherit"`, `style-class=""` |
 | `behavior` | `auto-display="false"`, `auto-refresh="true"`, `auto-select="false"`, `auto-skip="false"`, `filter-before-display="false"`, `validate-from-list="false"`, `key="F9"` |
 | `search` | `mode="prefix"`, `case-sensitive="false"`, `min-length="0"`, `max-rows="200"` |
-| `column` | Обязательный `name`; `title` по умолчанию равен имени; `type="string"`, `width="160"`, необязательный `return-to` |
+| `binding` | Необязательные `x`, `y` (List X/Y Position) и `lov-button="false"` (Forms 14.1.2) |
+| `appearance` | `visual-attribute`, `font-name`, `font-size`, `font-weight`, `font-style`, `foreground-color`, `background-color`, `row-line-color`; пустое значение наследуется из темы |
+| `column` | Обязательный `name`; `title` по умолчанию равен имени; `type="string"`, `width="160"`, `length="0"` (без ограничения), необязательный `return-to` |
 | `provider` | Обязательный `ref`, разрешаемый через `LovSources` |
 | `sql` | Обязательный `ref`; `fetch-size="100"`, `timeout-seconds="30"`; один `query`, затем упорядоченные `bind` |
 | `bind` | Обязательный `name` |
@@ -40,7 +42,7 @@
 
 Режимы поиска: `prefix`, `contains`, `exact`. Направления: `inherit`, `left-to-right`, `right-to-left`. Координаты и размеры — логические пиксели JavaFX. Размер окна не меньше 240 × 180; при показе окно вписывается в экран. Лимит выдачи от 1 до 10000. Ширина 0 скрывает колонку. Поиск и проверка ввода используют первую видимую колонку; её перестановка пользователем запрещена.
 
-Типы: `string` → `String`, `long` → `Long`, `decimal` → `BigDecimal`, `date` → `LocalDate`, `datetime` → `LocalDateTime`, `boolean` → `Boolean`. Даты записываются в ISO-формате, десятичный разделитель — точка. Переполнение или дробь при `long` — ошибка. Все колонки должны присутствовать в каждой строке, даже если их значение `null`. Пустая строка и `null` различаются.
+Типы: `string` → `String`, `long` → `Long`, `decimal` → `BigDecimal`, `date` → `LocalDate`, `datetime` → `LocalDateTime`, `boolean` → `Boolean`. Даты записываются в ISO-формате, десятичный разделитель — точка. Переполнение или дробь при `long` — ошибка. Все колонки должны присутствовать в каждой строке, даже если их значение `null`. Пустая строка и `null` различаются. `length` ограничивает Unicode-символы, а не UTF-16-кодовые единицы; `width="0"` скрывает колонку, но не отменяет её возврат.
 
 `title="%ключ"` разрешается через `new LxmlLoader(bundle)`. `%%` в начале обозначает буквальный знак `%`. Служебные надписи самого окна инкапсулированы в `ru.inversion.fore.form.lov.lov.properties`.
 
@@ -66,6 +68,8 @@ saveButton.setOnAction(event -> binding.validate().thenAccept(valid -> {
 // При завершении работы формы, в потоке JavaFX.
 binding.close();
 ```
+
+При `binding/@lov-button="true"` кнопку можно получить из `binding.getButton()` и поставить рядом с полем; обработчик уже вызывает тот же `show()`. Разовое позиционирование: `binding.show(new LovDefinition.Position(x, y))`.
 
 Последняя строка относится к обработчику закрытия формы, а не выполняется сразу после настройки кнопок. Один `LovBinding` владеет одним `ForeLov`; определение можно переиспользовать для создания других экземпляров. `TextField` можно заменить на существующий `ForeTextField` без изменения его класса.
 
@@ -105,6 +109,8 @@ var sources = new LovSources().provider("departments", source);
 
 `query` — доверенный SQL приложения. XML не предназначен для загрузки SQL от конечных пользователей. Пользовательский ввод и параметры передаются исключительно через `PreparedStatement.setObject`, без подстановки в текст SQL. JDBC read-only cursor не является политикой прав доступа БД.
 
+Для повторного использования параметров Forms шаблон регистрируется явно: `new LxmlLoader().template("base", url)`. Наследование применяется в порядке `extends` → `property-class` → локальные атрибуты. Автоматического поиска файлов, сетевых URL, классов и скриптов из XML нет; циклы и глубина более 16 отклоняются.
+
 `<bind>` соответствует каждому `?` по порядку. Обычное имя берётся из карты параметров; отсутствие ключа — ошибка, значение `null` допустимо. Служебные имена:
 
 | Имя | Значение |
@@ -116,6 +122,8 @@ var sources = new LovSources().provider("departments", source);
 Для `$pattern` в запросе требуется `LIKE ? ESCAPE '!'`. В нечувствительном к регистру примере применяется `upper(code)`; Java использует `Locale.ROOT`. При специальных правилах Oracle NLS/колляции адаптируйте SQL/provider и проверьте правила сравнения отдельно. `%`, `_`, `!` в пользовательском вводе экранируются. Первая видимая колонка должна соответствовать SQL-условию поиска; прототип проверяет это при получении строк.
 
 Сортировка задаётся SQL `ORDER BY` либо источником; щелчки по заголовкам не запускают локальную сортировку. `fetch-size` — только подсказка JDBC. `max-rows` ограничивает память результата; для тяжёлых запросов нужен подходящий план/индекс и, при необходимости, серверный лимит. Драйвер может буферизовать строки самостоятельно.
+
+Текущие аналоги `SET_LOV_PROPERTY` доступны на экземпляре: `setTitle`, `setAutoRefresh`, `setSize`, `setPosition`; аналоги `SET_LOV_COLUMN_PROPERTY` — `setColumnTitle` и `setColumnWidth`. Они меняют только метаданные и ограниченную текущую выборку, а не создают копию record group.
 
 ## Кэш, потоки и безопасность загрузки
 

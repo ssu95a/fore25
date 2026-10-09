@@ -379,4 +379,38 @@ class ForeLovTest
       await(next::isFocused);
       assertEquals(1L, fx(id::get));
    }
+
+   @Test void runtimeFormsPropertiesAndLovButtonAreAvailable() throws Exception
+   {
+      String xml = LovFixtures.xml("", "", "<provider ref=\"test\"/>")
+            .replace("<columns>", "<binding x=\"15\" y=\"25\" lov-button=\"true\"/><columns>");
+      var definition = LovFixtures.read(xml);
+      var lov = new ForeLov(definition, LovFixtures.rows(LovFixtures.row(1, "A")));
+      lovs.add(lov);
+      var binding = fx(() -> {
+         var value = new LovBinding(lov, field, Map.of("id", LovBinding.Target.of(id, Long.class),
+               "code", LovBinding.Target.text(field.textProperty()), "name", LovBinding.Target.text(name)));
+         bindings.add(value);
+         return value;
+      });
+      Button button = fx(binding::getButton);
+      assertTrue(button.isVisible());
+      assertTrue(button.isManaged());
+      fx(() -> {
+         lov.setTitle("Новый заголовок");
+         lov.setSize(700, 500);
+         lov.setPosition(80d, 90d);
+         lov.setColumnTitle("CODE", "Код изменён");
+         lov.setColumnWidth("CODE", 220);
+         return null;
+      });
+      assertEquals("Новый заголовок", fx(() -> lov.getDefinition().title()));
+      assertEquals(700, fx(() -> lov.getDefinition().window().width()));
+      assertEquals(new LovDefinition.Position(80, 90), new LovDefinition.Position(
+            fx(() -> lov.getDefinition().window().x()), fx(() -> lov.getDefinition().window().y())));
+      assertEquals("Код изменён", fx(() -> lov.getDefinition().columns().get(1).title()));
+      assertEquals(220, fx(() -> lov.getDefinition().columns().get(1).width()));
+      fx(() -> { lov.setTitle(null); return null; });
+      assertEquals("Справочник", fx(() -> lov.getDefinition().title()));
+   }
 }

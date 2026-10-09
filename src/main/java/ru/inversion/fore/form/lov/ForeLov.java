@@ -7,6 +7,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.NodeOrientation;
+import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -24,6 +25,7 @@ import ru.inversion.fore.form.FormTools;
 
 import java.text.MessageFormat;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -40,8 +42,10 @@ public final class ForeLov implements AutoCloseable
 {
    private static final ResourceBundle TEXT = ResourceBundle.getBundle("ru.inversion.fore.form.lov.lov");
    private static final Executor WORKER = command -> Thread.ofVirtual().name("fore-lov").start(command);
-   private final LovDefinition definition;
-   private final LovDataSource source;
+   private LovDefinition definition;
+   private LovDataSource source;
+   private final String designTitle;
+   private final Map<String, String> designColumnTitles;
    private final Executor executor;
    private final ReadOnlyObjectWrapper<Throwable> error = new ReadOnlyObjectWrapper<>();
    private FutureTask<LovDataSource.Result> task;
@@ -62,6 +66,9 @@ public final class ForeLov implements AutoCloseable
    {
       this.definition = Objects.requireNonNull(definition);
       this.source = Objects.requireNonNull(source);
+      this.designTitle = definition.title();
+      this.designColumnTitles = new HashMap<>();
+      definition.columns().forEach(column -> designColumnTitles.put(column.name(), column.title()));
       this.executor = Objects.requireNonNull(executor);
    }
 
@@ -73,7 +80,103 @@ public final class ForeLov implements AutoCloseable
    /** Панель существует только во время показа; предназначена для CSS и интеграции интерфейса. */
    public DialogPane getDialogPane() { return view == null ? null : view.dialog.getDialogPane(); }
 
+   /** Изменяет свойства, соответствующие SET_LOV_PROPERTY, на экземпляре LOV. */
+   public void setTitle(String title)
+   {
+      checkOpen();
+      replace(definitionWith(definition, title == null ? designTitle : title, definition.window(), definition.behavior(), definition.columns()), false);
+   }
+
+   public void setAutoRefresh(boolean value)
+   {
+      checkOpen();
+      var old = definition.behavior();
+      var behavior = new LovDefinition.Behavior(old.autoDisplay(), value, old.autoSelect(), old.autoSkip(),
+            old.filterBeforeDisplay(), old.validateFromList(), old.key());
+      replace(definitionWith(definition, definition.title(), definition.window(), behavior, definition.columns()), true);
+   }
+
+   /** Размер в логических пикселях JavaFX. */
+   public void setSize(double width, double height)
+   {
+      checkOpen();
+      var old = definition.window();
+      var window = new LovDefinition.Window(width, height, old.x(), old.y(), old.automaticPosition(),
+            old.automaticColumnWidth(), old.direction(), old.styleClass());
+      replace(definitionWith(definition, definition.title(), window, definition.behavior(), definition.columns()), false);
+   }
+
+   /** Координаты окна; null/null возвращают автоматическое размещение по умолчанию. */
+   public void setPosition(Double x, Double y)
+   {
+      checkOpen();
+      var old = definition.window();
+      var window = new LovDefinition.Window(old.width(), old.height(), x, y, old.automaticPosition(),
+            old.automaticColumnWidth(), old.direction(), old.styleClass());
+      replace(definitionWith(definition, definition.title(), window, definition.behavior(), definition.columns()), false);
+   }
+
+   /** Изменяет TITLE или WIDTH колонки, как SET_LOV_COLUMN_PROPERTY. Ноль скрывает колонку. */
+   public void setColumnTitle(String name, String title)
+   {
+      setColumn(name, title, null, true);
+   }
+
+   public void setColumnWidth(String name, double width)
+   {
+      setColumn(name, null, width, false);
+   }
+
+   /** Меняет источник вместе с его уже разрешённым Java-адаптером. */
+   public void setSource(LovDefinition.Source source, LovDataSource adapter)
+   {
+      checkOpen();
+      Objects.requireNonNull(source, "source");
+      this.source = Objects.requireNonNull(adapter, "adapter");
+      this.definition = new LovDefinition(definition.id(), definition.title(), definition.comment(), definition.window(),
+            definition.behavior(), definition.search(), definition.columns(), source,
+            definition.binding(), definition.appearance());
+      invalidate();
+      if( view != null ) view.search(true);
+   }
+
+   private void setColumn(String name, String title, Double width, boolean titleChanged)
+   {
+      checkOpen();
+      var columns = new java.util.ArrayList<LovDefinition.Column>(definition.columns());
+      int index = -1;
+      for( int i = 0; i < columns.size(); i++ ) if( columns.get(i).name().equals(name) ) { index = i; break; }
+      if( index < 0 ) throw new IllegalArgumentException("Неизвестная колонка LOV: " + name);
+      var old = columns.get(index);
+      columns.set(index, new LovDefinition.Column(old.name(), !titleChanged ? old.title() : title == null ? designColumnTitles.get(old.name()) : title, old.type(),
+            width == null ? old.width() : width, old.returnTo(), old.length()));
+      replace(definitionWith(definition, definition.title(), definition.window(), definition.behavior(), columns), true);
+   }
+
+   private void replace(LovDefinition value, boolean reload)
+   {
+      this.definition = value;
+      invalidate();
+      if( view != null )
+      {
+         view.refreshMetadata();
+         if( reload ) view.search(true);
+      }
+   }
+
+   private static LovDefinition definitionWith(LovDefinition old, String title, LovDefinition.Window window,
+                                                LovDefinition.Behavior behavior, java.util.List<LovDefinition.Column> columns)
+   {
+      return new LovDefinition(old.id(), title, old.comment(), window, behavior, old.search(), columns, old.source(),
+            old.binding(), old.appearance());
+   }
+
    public CompletableFuture<Optional<LovRow>> show(Node invoker, Map<String, Object> parameters, String initialText)
+   { return show(invoker, parameters, initialText, null); }
+
+   /** Показывает LOV с разовым аналогом List X/Y Position на уровне вызова. */
+   public CompletableFuture<Optional<LovRow>> show(Node invoker, Map<String, Object> parameters, String initialText,
+                                                   LovDefinition.Position position)
    {
       checkOpen();
       if( view != null ) throw new IllegalStateException("LOV уже открыт");
@@ -81,7 +184,7 @@ public final class ForeLov implements AutoCloseable
             || !invoker.getScene().getWindow().isShowing() )
          throw new IllegalArgumentException("LOV требует видимый элемент вызывающей формы");
       cancelQuery();
-      View current = new View(invoker, parameters, initialText == null ? "" : initialText);
+      View current = new View(invoker, parameters, initialText == null ? "" : initialText, position);
       view = current;
       try
       {
@@ -120,8 +223,10 @@ public final class ForeLov implements AutoCloseable
       checkOpen();
       cancelQuery();
       error.set(null);
-      var request = new LovDataSource.Request(definition, text, mode, parameters);
-      if( !force && !definition.behavior().autoRefresh() && request.equals(cachedRequest) )
+      LovDefinition requestDefinition = definition;
+      LovDataSource requestSource = source;
+      var request = new LovDataSource.Request(requestDefinition, text, mode, parameters);
+      if( !force && !requestDefinition.behavior().autoRefresh() && request.equals(cachedRequest) )
          return CompletableFuture.completedFuture(cachedResult);
       invalidate();
       long ticket = generation;
@@ -130,12 +235,12 @@ public final class ForeLov implements AutoCloseable
       task = new FutureTask<>(() -> {
          if( Platform.isFxApplicationThread() )
             throw new IllegalStateException("Источник LOV не должен выполняться в потоке JavaFX");
-         LovDataSource.Result loaded = Objects.requireNonNull(source.fetch(request), "Источник вернул null");
+         LovDataSource.Result loaded = Objects.requireNonNull(requestSource.fetch(request), "Источник вернул null");
          if( loaded.rows().size() > request.maxRows() )
             throw new IllegalArgumentException("Источник превысил max-rows");
          for( LovRow row : loaded.rows() )
          {
-            for( var column : definition.columns() ) column.type().convert(row.get(column.name()));
+            for( var column : request.definition().columns() ) column.convert(row.get(column.name()));
             if( !request.matches(row) )
                throw new IllegalArgumentException("Источник вернул строку, не соответствующую условию поиска");
          }
@@ -150,7 +255,7 @@ public final class ForeLov implements AutoCloseable
                try
                {
                   LovDataSource.Result loaded = get();
-                  if( !definition.behavior().autoRefresh() )
+                  if( !requestDefinition.behavior().autoRefresh() )
                   {
                      cachedRequest = request;
                      cachedResult = loaded;
@@ -220,11 +325,13 @@ public final class ForeLov implements AutoCloseable
       private final CompletableFuture<Optional<LovRow>> result = new CompletableFuture<>();
       private final Map<String, Object> parameters;
       private final Button accept;
+      private final LovDefinition.Position invocationPosition;
       private boolean loading;
       private long requestNumber;
 
-      private View(Node invoker, Map<String, Object> parameters, String initialText)
+      private View(Node invoker, Map<String, Object> parameters, String initialText, LovDefinition.Position invocationPosition)
       {
+         this.invocationPosition = invocationPosition;
          this.parameters = new LovDataSource.Request(definition, "", definition.search().mode(), parameters).parameters();
          dialog.initOwner(invoker.getScene().getWindow());
          dialog.initModality(Modality.WINDOW_MODAL);
@@ -252,27 +359,12 @@ public final class ForeLov implements AutoCloseable
          table.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
          table.setItems(FXCollections.emptyObservableList());
          table.setPlaceholder(new Label(text("empty")));
-         for( var column : definition.columns() )
-         {
-            if( !column.visible() ) continue;
-            var displayed = new TableColumn<LovRow, Object>(column.title());
-            displayed.setId(column.name());
-            displayed.setSortable(false);
-            displayed.setReorderable(false);
-            displayed.setPrefWidth(column.width());
-            displayed.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().get(column.name())));
-            displayed.setCellFactory(unused -> new TableCell<>() {
-               @Override protected void updateItem(Object value, boolean empty)
-               {
-                  super.updateItem(value, empty);
-                  setText(empty ? null : LovDefinition.ValueType.text(value));
-               }
-            });
-            table.getColumns().add(displayed);
-         }
+         rebuildColumns();
          table.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, value) -> updateAccept());
          table.setRowFactory(unused -> {
             var row = new TableRow<LovRow>();
+            if( !definition.appearance().rowLineColor().isEmpty() )
+               row.setStyle("-fx-border-color: transparent transparent " + definition.appearance().rowLineColor() + " transparent; -fx-border-width: 0 0 1 0;");
             row.setOnMouseClicked(event -> {
                if( event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2 && !row.isEmpty() )
                   accept.fire();
@@ -310,6 +402,7 @@ public final class ForeLov implements AutoCloseable
          VBox.setVgrow(table, Priority.ALWAYS);
          pane.setContent(content);
          pane.setPrefSize(definition.window().width(), definition.window().height());
+         applyAppearance();
          dialog.setResultConverter(button -> button == ok ? table.getSelectionModel().getSelectedItem() : null);
          dialog.setOnHidden(event -> {
             requestNumber++;
@@ -325,6 +418,60 @@ public final class ForeLov implements AutoCloseable
       {
          accept.setDisable(loading || table.getSelectionModel().getSelectedItem() == null);
       }
+
+      private void rebuildColumns()
+      {
+         table.getColumns().clear();
+         for( var column : definition.columns() )
+         {
+            if( !column.visible() ) continue;
+            var displayed = new TableColumn<LovRow, Object>(column.title());
+            displayed.setId(column.name());
+            displayed.setSortable(false);
+            displayed.setReorderable(false);
+            displayed.setPrefWidth(column.width());
+            displayed.setCellValueFactory(cell -> new ReadOnlyObjectWrapper<>(cell.getValue().get(column.name())));
+            displayed.setCellFactory(unused -> new TableCell<>() {
+               @Override protected void updateItem(Object value, boolean empty)
+               {
+                  super.updateItem(value, empty);
+                  setText(empty ? null : LovDefinition.ValueType.text(value));
+                  setAlignment(column.type() == LovDefinition.ValueType.STRING || column.type() == LovDefinition.ValueType.BOOLEAN
+                        ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
+               }
+            });
+            table.getColumns().add(displayed);
+         }
+      }
+
+      private void applyAppearance()
+      {
+         LovDefinition.Appearance appearance = definition.appearance();
+         var style = new StringBuilder();
+         if( !appearance.fontName().isEmpty() ) style.append("-fx-font-family: '").append(css(appearance.fontName())).append("';");
+         if( appearance.fontSize() > 0 ) style.append("-fx-font-size: ").append(appearance.fontSize()).append("px;");
+         if( !appearance.fontWeight().isEmpty() ) style.append("-fx-font-weight: ").append(appearance.fontWeight()).append(';');
+         if( !appearance.fontStyle().isEmpty() ) style.append("-fx-font-style: ").append(appearance.fontStyle()).append(';');
+         if( !appearance.foregroundColor().isEmpty() ) style.append("-fx-text-fill: ").append(appearance.foregroundColor()).append(';');
+         if( !appearance.backgroundColor().isEmpty() ) style.append("-fx-background-color: ").append(appearance.backgroundColor()).append(';');
+         dialog.getDialogPane().setStyle(style.toString());
+         var tableStyle = new StringBuilder();
+         if( !appearance.backgroundColor().isEmpty() ) tableStyle.append("-fx-background-color: ").append(appearance.backgroundColor()).append(';');
+         if( !appearance.foregroundColor().isEmpty() ) tableStyle.append("-fx-text-fill: ").append(appearance.foregroundColor()).append(';');
+         table.setStyle(tableStyle.toString());
+      }
+
+      private void refreshMetadata()
+      {
+         dialog.setTitle(definition.title());
+         dialog.getDialogPane().setPrefSize(definition.window().width(), definition.window().height());
+         query.setPromptText(text("searchBy", definition.searchColumn().title()));
+         rebuildColumns();
+         applyAppearance();
+         clear();
+      }
+
+      private static String css(String value) { return value.replace("'", "\\'"); }
 
       private void clear()
       {
@@ -387,9 +534,10 @@ public final class ForeLov implements AutoCloseable
                      .stream().findFirst().orElse(Screen.getPrimary()).getVisualBounds();
          dialog.setWidth(Math.min(definition.window().width(), screen.getWidth()));
          dialog.setHeight(Math.min(definition.window().height(), screen.getHeight()));
-         double x = definition.window().x() == null ? dialog.getX() : definition.window().x();
-         double y = definition.window().y() == null ? dialog.getY() : definition.window().y();
-         if( definition.window().automaticPosition() && anchor != null )
+         LovDefinition.Position configured = invocationPosition != null ? invocationPosition : definition.binding().position();
+         double x = configured != null ? configured.x() : definition.window().x() == null ? dialog.getX() : definition.window().x();
+         double y = configured != null ? configured.y() : definition.window().y() == null ? dialog.getY() : definition.window().y();
+         if( configured == null && definition.window().automaticPosition() && anchor != null )
          {
             x = anchor.getMinX();
             y = anchor.getMaxY();

@@ -6,6 +6,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
@@ -68,6 +69,7 @@ public final class LovBinding implements AutoCloseable
    private boolean closed;
    private long revision;
    private CompletableFuture<Boolean> operation;
+   private Button button;
 
    public LovBinding(ForeLov lov, TextField field, Map<String, Target<?>> targets)
    {
@@ -127,11 +129,36 @@ public final class LovBinding implements AutoCloseable
    public Throwable getError() { return error.get(); }
    public ReadOnlyObjectProperty<Throwable> errorProperty() { return error.getReadOnlyProperty(); }
 
+   /** Кнопка Forms LOV Button. Приложение размещает её рядом с полем в своём layout. */
+   public Button getButton()
+   {
+      FormTools.requireFxThread();
+      if( button == null )
+      {
+         button = new Button("…");
+         button.setAccessibleText("Выбрать значение из списка");
+         button.setFocusTraversable(false);
+         button.setOnAction(event -> show());
+      }
+      boolean enabled = lov.getDefinition().binding().lovButton();
+      button.setVisible(enabled);
+      button.setManaged(enabled);
+      return button;
+   }
+
    public CompletableFuture<Boolean> show()
    {
       checkOpen();
       if( operation != null && !operation.isDone() ) return operation;
       return begin(false);
+   }
+
+   /** Открывает LOV с разовым переопределением List X/Y Position. */
+   public CompletableFuture<Boolean> show(LovDefinition.Position position)
+   {
+      checkOpen();
+      if( operation != null && !operation.isDone() ) return operation;
+      return begin(false, position);
    }
 
    /**
@@ -142,10 +169,13 @@ public final class LovBinding implements AutoCloseable
    {
       checkOpen();
       if( operation != null && !operation.isDone() ) return operation;
-      return begin(true);
+      return begin(true, null);
    }
 
    private CompletableFuture<Boolean> begin(boolean validation)
+   { return begin(validation, null); }
+
+   private CompletableFuture<Boolean> begin(boolean validation, LovDefinition.Position position)
    {
       long ticket = revision;
       var result = new CompletableFuture<Boolean>();
@@ -154,6 +184,7 @@ public final class LovBinding implements AutoCloseable
       error.set(null);
       try
       {
+         checkDefinitionContract();
          Map<String, Object> values = new LovDataSource.Request(lov.getDefinition(), "",
                lov.getDefinition().search().mode(), parameters.get()).parameters();
          if( validation && field.getText().isEmpty() )
@@ -170,20 +201,37 @@ public final class LovBinding implements AutoCloseable
                if( failure != null ) { finish(result, ticket, false, failure); return; }
                if( loaded.complete() && loaded.rows().size() == 1 )
                   accept(loaded.rows().getFirst(), values, result, ticket, false);
-               else choose(values, result, ticket);
+               else choose(values, result, ticket, position);
             });
-         else choose(values, result, ticket);
+         else choose(values, result, ticket, position);
       }
       catch( RuntimeException ex ) { finish(result, ticket, false, ex); }
       return result;
    }
 
+   private void checkDefinitionContract()
+   {
+      for( var column : lov.getDefinition().columns() )
+      {
+         if( column.returnTo().isEmpty() ) continue;
+         Target<?> target = targets.get(column.returnTo());
+         if( target == null ) throw new IllegalStateException("Не задан получатель LOV: " + column.returnTo());
+      }
+      if( lov.getDefinition().behavior().validateFromList()
+            && targets.get(lov.getDefinition().searchColumn().returnTo()).property() != field.textProperty() )
+         throw new IllegalStateException("Первая видимая колонка должна возвращаться в проверяемое поле");
+   }
+
    private void choose(Map<String, Object> values, CompletableFuture<Boolean> result, long ticket)
+   { choose(values, result, ticket, null); }
+
+   private void choose(Map<String, Object> values, CompletableFuture<Boolean> result, long ticket,
+                       LovDefinition.Position position)
    {
       opening = true;
       try
       {
-         lov.show(field, values, field.getText()).whenComplete((selected, failure) -> {
+         lov.show(field, values, field.getText(), position).whenComplete((selected, failure) -> {
             // Фокус владельца восстанавливается при закрытии диалога; это не новый вход в LOV.
             Platform.runLater(() -> opening = false);
             if( failure != null ) { finish(result, ticket, false, failure); return; }
@@ -259,6 +307,7 @@ public final class LovBinding implements AutoCloseable
       field.textProperty().removeListener(textListener);
       field.focusedProperty().removeListener(focusListener);
       lov.close();
+      if( button != null ) button.setOnAction(null);
       if( operation != null ) operation.complete(false);
    }
 }

@@ -24,8 +24,8 @@
 |---|---|---|
 | Name | `lov/@id`, идентификатор определения | Готово |
 | Comments | `<comment>` для прикладного описания | Готово |
-| Subclass Information | Общие определения можно повторно загружать; наследование XML-шаблонов потребует отдельного механизма | Позже |
-| Property Class — общий механизм наследования | Композиция неизменяемых `LovDefinition`; декларативного `extends` пока нет | Позже |
+| Subclass Information | Зарегистрированные LXML-шаблоны; состав описания не хранит состояние источника | Адаптация |
+| Property Class — общий механизм наследования | `lov/@property-class` и `LxmlLoader.propertyClass(name, url)`; порядок `extends` → property class → локальные свойства | Адаптация |
 | Record Group | `<source>`: статические значения, зарегистрированный provider или SQL | Адаптация |
 | Column Mapping Properties | Упорядоченные `<columns>` и `return-to` | Готово |
 | Filter Before Display | `behavior/@filter-before-display`: при пустом начальном условии запрос ждёт команды поиска | Адаптация |
@@ -68,9 +68,9 @@
 |---|---|---|
 | List of Values, runtime `LOV_NAME` | `LovBinding` связывает `TextField`/`ForeTextField` с экземпляром `ForeLov` | Готово |
 | Validate from List; старое наименование Use LOV for Validation | `behavior/@validate-from-list` включает проверку при потере фокуса; `validate()` служит барьером перед сохранением | Адаптация |
-| List X Position, `LOV_X_POS` | Координаты текущего определения; отдельное переопределение на уровне привязки пока отсутствует | Позже |
-| List Y Position, `LOV_Y_POS` | Аналогично; `automatic-position` учитывает конкретное поле | Позже |
-| LOV Button, Forms 14.1.2 | Кнопка рядом с полем вызывает `binding.show()`; показ внутри skin поля и XML-флаг пока отсутствуют | Адаптация |
+| List X Position, `LOV_X_POS` | `binding/@x`, а также `LovBinding.show(Position)` для разового переопределения | Адаптация |
+| List Y Position, `LOV_Y_POS` | `binding/@y`; координаты ограничиваются экраном JavaFX | Адаптация |
+| LOV Button, Forms 14.1.2 | `binding/@lov-button` и `binding.getButton()`; приложение размещает кнопку в своём layout | Адаптация |
 | Validation, Validation Unit | Ответственность формы; перед её сохранением надо дождаться всех необходимых `validate()` | Адаптация |
 | Interaction Mode | Запросы LOV всегда асинхронны; отдельного синхронного режима нет | Адаптация |
 | Coordinate System, Real Unit, Font Scaling | Геометрия JavaFX и масштабирование ОС; миграция координат при переносе формы | Миграция |
@@ -90,7 +90,7 @@
 | Record Group Fetch Size | `sql/@fetch-size` → `PreparedStatement.setFetchSize` | Адаптация |
 | Column Specifications: Name | Имена `<column>` / SQL aliases | Готово |
 | Column Specifications: Data Type | `string`, `long`, `decimal`, `date`, `datetime`, `boolean` | Адаптация |
-| Column Specifications: Length | Ограничения схемы БД и валидаторов; декларативный предел длины ячейки пока не реализован | Позже |
+| Column Specifications: Length | `column/@length`, проверка в Unicode-символах для static/JDBC/provider | Адаптация |
 | Column Specifications: Value | `<static><row><value column="…">…` | Готово |
 | FORM_SCOPE / GLOBAL_SCOPE — параметр создания | Область жизни реестра задаёт приложение; глобального изменяемого кэша строк нет | Адаптация |
 | Программное наполнение, изменение, выделение строк | Provider отвечает за свой источник; GUI получает неизменяемую выборку для одиночного выбора | Адаптация |
@@ -105,8 +105,8 @@
 
 | Настройка | Решение для Fore |
 |---|---|
-| Visual Attribute Group; Font Name, Size, Weight, Style, Spacing; цвета и узоры — общая тема | `window/@style-class`, CSS сцены владельца, правила `.fore-lov`; эквиваленты выбираются по возможностям JavaFX CSS |
-| `default.lovRowLine.color`, Forms 14.1.2 [4] | Цвет границы `.fore-lov .table-row-cell` в CSS приложения |
+| Visual Attribute Group; Font Name, Size, Weight, Style; цвета | `<appearance>` и `LxmlLoader.visualAttribute`; `window/@style-class` и CSS приложения сохраняются для остальной темы |
+| `default.lovRowLine.color`, Forms 14.1.2 [4] | `appearance/@row-line-color`, граница строк таблицы |
 | `FORMS_COMPUTED_RGFS_DIVIDEND`, `FORMS_MIN_COMPUTED_RGFS`, `FORMS_MAX_COMPUTED_RGFS` [5] | Вычисляемую настройку Forms не переносим; в прототипе положительный JDBC `fetch-size` |
 | `FORMS_LOV_INITIAL`, `FORMS_LOV_MINIMUM`, `FORMS_LOV_WEIGHT`, `FORMS_NONBLOCKING_SLEEP` [5] | Фоновый исполнитель, индикатор загрузки, отмена запроса и отбрасывание устаревшего ответа; опрос окон Forms не нужен |
 | `FORMS_EXTENDED_STRING` [5] | Типы/ограничения JDBC и БД; отдельного флага Fore нет |
@@ -124,9 +124,9 @@
 |---|---|
 | `FIND_LOV`, идентификатор LOV | Загрузка ресурса и сохранённая ссылка на `ForeLov` |
 | `LIST_VALUES`, `SHOW_LOV`, `KEY-LISTVAL` | `binding.show()` / `lov.show(...)`; стандартная клавиша прототипа F9, можно заменить в XML |
-| `GET_LOV_PROPERTY`: `AUTO_REFRESH`, `GROUP_NAME`, `HEIGHT`, `WIDTH`, `X_POS`, `Y_POS` | Неизменяемое `getDefinition()`; текущая геометрия доступна через показанную панель/окно |
-| `SET_LOV_PROPERTY`: `AUTO_REFRESH`, `GROUP_NAME`, `LOV_SIZE`, `POSITION`, `TITLE` | Новое определение/экземпляр между вызовами; изменяемая палитра runtime-свойств не эмулируется |
-| `SET_LOV_COLUMN_PROPERTY`: `TITLE`, `WIDTH` | Заголовки и ширины в определении; публичного механизма замены колонок во время показа пока нет |
+| `GET_LOV_PROPERTY`: `AUTO_REFRESH`, `GROUP_NAME`, `HEIGHT`, `WIDTH`, `X_POS`, `Y_POS` | `getDefinition()` и свойства `window`/`behavior`; `GROUP_NAME` представлен явным `source.ref` |
+| `SET_LOV_PROPERTY`: `AUTO_REFRESH`, `GROUP_NAME`, `LOV_SIZE`, `POSITION`, `TITLE` | `setAutoRefresh`, `setSize`, `setPosition`, `setTitle`; `setSource` меняет источник с уже зарегистрированным адаптером |
+| `SET_LOV_COLUMN_PROPERTY`: `TITLE`, `WIDTH` | `setColumnTitle` и `setColumnWidth`, применяются также к открытому окну |
 | `CREATE_GROUP`, `CREATE_GROUP_FROM_QUERY`, `POPULATE_GROUP`, `POPULATE_GROUP_WITH_QUERY`, `DELETE_GROUP` | Реестр источников, `refresh()`, `invalidate()`, `close()`; SQL/жизненным циклом соединений владеет источник |
 | `WHEN-VALIDATE-ITEM` | Прикладная валидация после `binding.validate()` |
 | `WHEN-NEW-ITEM-INSTANCE`, навигация `KEY-NXT-ITEM` | Фокус JavaFX и явно переданный `nextFocus` |
@@ -140,5 +140,5 @@
 3. `auto-select` применим и к первому запросу; частичная выдача с одной строкой не считается единственным совпадением.
 4. `Filter Before Display` реализован в том же окне, без отдельного предварительного диалога. Для обязательного непустого фильтра дополнительно задаётся `min-length`.
 5. `Validate from List` проверяет ввод при уходе с поля, но навигация JavaFX уже продолжается. Сохранение должно явно ждать результата проверки. Дополнительные бизнес-правила формы остаются обязательными.
-6. Нет исполнения PL/SQL/Java из XML, импорта FMB, многострочного выбора, постраничной навигации, наследования property classes и прямой интеграции с `IDataSet`/`SQLDataSet`.
+6. Нет исполнения PL/SQL/Java из XML, импорта FMB, многострочного выбора, постраничной навигации и прямой интеграции с `IDataSet`/`SQLDataSet`.
 7. SQL проверен через JDBC на H2. Проверка конкретного Oracle JDBC-драйвера, NLS-сравнения, отмены запроса и прикладной транзакции остаётся интеграционной работой.

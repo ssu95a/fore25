@@ -14,14 +14,14 @@
             <xs:element name="comment" type="xs:string" minOccurs="0"/>
             <xs:element name="window" minOccurs="0">
                <xs:complexType>
-                  <xs:attribute name="width" type="xs:decimal" default="640"/>
-                  <xs:attribute name="height" type="xs:decimal" default="420"/>
+                  <xs:attribute name="width" type="xs:decimal"/>
+                  <xs:attribute name="height" type="xs:decimal"/>
                   <xs:attribute name="x" type="xs:decimal"/>
                   <xs:attribute name="y" type="xs:decimal"/>
-                  <xs:attribute name="automatic-position" type="xs:boolean" default="false"/>
-                  <xs:attribute name="automatic-column-width" type="xs:boolean" default="false"/>
-                  <xs:attribute name="style-class" type="xs:string" default=""/>
-                  <xs:attribute name="direction" default="inherit">
+                  <xs:attribute name="automatic-position" type="xs:boolean"/>
+                  <xs:attribute name="automatic-column-width" type="xs:boolean"/>
+                  <xs:attribute name="style-class" type="xs:string"/>
+                  <xs:attribute name="direction">
                      <xs:simpleType><xs:restriction base="xs:string">
                         <xs:enumeration value="inherit"/>
                         <xs:enumeration value="left-to-right"/><xs:enumeration value="right-to-left"/>
@@ -31,44 +31,64 @@
             </xs:element>
             <xs:element name="behavior" minOccurs="0">
                <xs:complexType>
-                  <xs:attribute name="auto-display" type="xs:boolean" default="false"/>
-                  <xs:attribute name="auto-refresh" type="xs:boolean" default="true"/>
-                  <xs:attribute name="auto-select" type="xs:boolean" default="false"/>
-                  <xs:attribute name="auto-skip" type="xs:boolean" default="false"/>
-                  <xs:attribute name="filter-before-display" type="xs:boolean" default="false"/>
-                  <xs:attribute name="validate-from-list" type="xs:boolean" default="false"/>
-                  <xs:attribute name="key" type="name" default="F9"/>
+                  <xs:attribute name="auto-display" type="xs:boolean"/>
+                  <xs:attribute name="auto-refresh" type="xs:boolean"/>
+                  <xs:attribute name="auto-select" type="xs:boolean"/>
+                  <xs:attribute name="auto-skip" type="xs:boolean"/>
+                  <xs:attribute name="filter-before-display" type="xs:boolean"/>
+                  <xs:attribute name="validate-from-list" type="xs:boolean"/>
+                  <xs:attribute name="key" type="name"/>
                </xs:complexType>
             </xs:element>
             <xs:element name="search" minOccurs="0">
                <xs:complexType>
-                  <xs:attribute name="mode" default="prefix">
+                  <xs:attribute name="mode">
                      <xs:simpleType><xs:restriction base="xs:string">
                         <xs:enumeration value="prefix"/><xs:enumeration value="contains"/>
                         <xs:enumeration value="exact"/>
                      </xs:restriction></xs:simpleType>
                   </xs:attribute>
-                  <xs:attribute name="case-sensitive" type="xs:boolean" default="false"/>
-                  <xs:attribute name="min-length" type="xs:nonNegativeInteger" default="0"/>
-                  <xs:attribute name="max-rows" default="200">
+                  <xs:attribute name="case-sensitive" type="xs:boolean"/>
+                  <xs:attribute name="min-length" type="xs:nonNegativeInteger"/>
+                  <xs:attribute name="max-rows">
                      <xs:simpleType><xs:restriction base="xs:positiveInteger"><xs:maxInclusive value="10000"/></xs:restriction></xs:simpleType>
                   </xs:attribute>
                </xs:complexType>
             </xs:element>
-            <xs:element name="columns">
+            <xs:element name="binding" minOccurs="0">
+               <xs:complexType>
+                  <xs:attribute name="x" type="xs:decimal"/>
+                  <xs:attribute name="y" type="xs:decimal"/>
+                  <xs:attribute name="lov-button" type="xs:boolean"/>
+               </xs:complexType>
+            </xs:element>
+            <xs:element name="appearance" minOccurs="0">
+               <xs:complexType>
+                  <xs:attribute name="visual-attribute" type="name"/>
+                  <xs:attribute name="font-name" type="xs:string"/>
+                  <xs:attribute name="font-size" type="xs:decimal"/>
+                  <xs:attribute name="font-weight" type="xs:string"/>
+                  <xs:attribute name="font-style" type="xs:string"/>
+                  <xs:attribute name="foreground-color" type="xs:string"/>
+                  <xs:attribute name="background-color" type="xs:string"/>
+                  <xs:attribute name="row-line-color" type="xs:string"/>
+               </xs:complexType>
+            </xs:element>
+            <xs:element name="columns" minOccurs="0">
                <xs:complexType><xs:sequence>
                   <xs:element name="column" maxOccurs="unbounded">
                      <xs:complexType>
                         <xs:attribute name="name" type="name" use="required"/>
                         <xs:attribute name="title" type="xs:string"/>
-                        <xs:attribute name="type" type="valueType" default="string"/>
-                        <xs:attribute name="width" type="xs:decimal" default="160"/>
-                        <xs:attribute name="return-to" type="name"/>
+                        <xs:attribute name="type" type="valueType"/>
+                        <xs:attribute name="width" type="xs:decimal"/>
+                                    <xs:attribute name="return-to" type="name"/>
+                                    <xs:attribute name="length" type="xs:nonNegativeInteger"/>
                      </xs:complexType>
                   </xs:element>
                </xs:sequence></xs:complexType>
             </xs:element>
-            <xs:element name="source">
+            <xs:element name="source" minOccurs="0">
                <xs:complexType><xs:choice>
                   <xs:element name="static">
                      <xs:complexType><xs:sequence>
@@ -77,7 +97,7 @@
                               <xs:element name="value" maxOccurs="unbounded">
                                  <xs:complexType><xs:simpleContent><xs:extension base="xs:string">
                                     <xs:attribute name="column" type="name" use="required"/>
-                                    <xs:attribute name="null" type="xs:boolean" default="false"/>
+                                    <xs:attribute name="null" type="xs:boolean"/>
                                  </xs:extension></xs:simpleContent></xs:complexType>
                               </xs:element>
                            </xs:sequence></xs:complexType>
@@ -96,16 +116,18 @@
                            </xs:element>
                         </xs:sequence>
                         <xs:attribute name="ref" type="name" use="required"/>
-                        <xs:attribute name="fetch-size" type="xs:positiveInteger" default="100"/>
-                        <xs:attribute name="timeout-seconds" type="xs:positiveInteger" default="30"/>
+                        <xs:attribute name="fetch-size" type="xs:positiveInteger"/>
+                        <xs:attribute name="timeout-seconds" type="xs:positiveInteger"/>
                      </xs:complexType>
                   </xs:element>
                </xs:choice></xs:complexType>
             </xs:element>
          </xs:sequence>
          <xs:attribute name="id" type="name" use="required"/>
-         <xs:attribute name="title" type="xs:string" use="required"/>
+         <xs:attribute name="title" type="xs:string"/>
          <xs:attribute name="version" type="xs:string" fixed="1" use="required"/>
+         <xs:attribute name="extends" type="name"/>
+         <xs:attribute name="property-class" type="name"/>
       </xs:complexType>
    </xs:element>
 </xs:schema>

@@ -25,7 +25,7 @@ public record LovRow(Map<String, Object> values)
       var result = new LinkedHashMap<String, Object>();
       for( var column : definition.columns() )
          if( !column.returnTo().isEmpty() )
-            result.put(column.returnTo(), column.type().convert(get(column.name())));
+            result.put(column.returnTo(), column.convert(get(column.name())));
       return Collections.unmodifiableMap(result);
    }
 }

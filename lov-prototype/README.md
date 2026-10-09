@@ -21,6 +21,8 @@ mvn -f lov-prototype/pom.xml javafx:run
 
 Демо использует [departments.lxml](../src/main/resources/ru/inversion/fore/demo/lov/departments.lxml). SQL-вариант [departments-sql.lxml](../src/main/resources/ru/inversion/fore/demo/lov/departments-sql.lxml) требует зарегистрированного `DataSource` и прикладной таблицы; автоматически он не запускается.
 
+LXML поддерживает координаты вызывающего поля, декларативную LOV-кнопку, длину колонок в Unicode-символах, визуальные атрибуты/цвет разделителей и наследование зарегистрированных шаблонов через `extends`/`property-class`. Runtime-методы `ForeLov` соответствуют основным `SET_LOV_PROPERTY` и `SET_LOV_COLUMN_PROPERTY`.
+
 Тесты используют JavaFX с Monocle, H2 и JUnit. Они проверяют окно выбора, возврат нескольких значений, отмену, асинхронные запросы, ограниченную выдачу, строгую загрузку XML и параметризованный JDBC. Проверки Oracle JDBC и транзакционной интеграции с JInvCommon в этот проект не входят.
 
 - [Каталог свойств Oracle Forms и соответствий JavaFX](../docs/lov-oracle-forms.md).

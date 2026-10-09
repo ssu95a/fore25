@@ -4,6 +4,7 @@
    <window width="660" height="420" automatic-position="true" automatic-column-width="true"/>
    <behavior auto-select="false" validate-from-list="true" key="F9"/>
    <search mode="prefix" max-rows="200"/>
+   <binding lov-button="true"/>
    <columns>
       <column name="ID" type="long" width="0" return-to="departmentId"/>
       <column name="CODE" title="Код" width="130" return-to="departmentCode"/>
