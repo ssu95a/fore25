@@ -12,8 +12,8 @@ public final class ForeActions
    }
 
    /** Each invocation returns a new independent action with its own handler/state. */
-   public static ForeAction create(StandardAction type, Consumer<ActionEvent> handler)
+   public static ForeAction create( StandardAction type, Consumer<ActionEvent> handler )
    {
-      return new ForeAction(type, handler);
+      return new ForeAction( type, handler );
    }
 }

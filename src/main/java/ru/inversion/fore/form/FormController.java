@@ -47,8 +47,11 @@ public abstract class FormController<T> implements Initializable {
    private final ValidationPresenter validationPresenter = new ValidationPresenter();
 
    private final List<ForeAction> actions = new ArrayList<>();
+
    private ActionKeyBinder actionKeyBinder;
+
    private Stage titleStage;
+
    private boolean guiLifecycleStarted;
    private boolean guiReleased;
 
@@ -131,27 +134,35 @@ public abstract class FormController<T> implements Initializable {
    /** Create and register a form action in init() or guiInit(), then share it with controls. */
    protected final ForeAction createAction(StandardAction type, Consumer<ActionEvent> handler)
    {
-      requireGuiThread();
+      FormTools.requireFxThread();
+
       return registerAction(ForeActions.create(type, handler));
    }
 
    protected final ForeAction registerAction(ForeAction action)
    {
-      requireGuiThread();
+      FormTools.requireFxThread();
+
+
       Objects.requireNonNull(action, "action");
       if( guiReleased || released )
-         throw new IllegalStateException("Form GUI is already released");
+          throw new IllegalStateException("Form GUI is already released");
+
       if( actions.contains(action) )
-         return action;
+          return action;
       if( actionKeyBinder != null )
-         actionKeyBinder.bind(action);
+
+          actionKeyBinder.bind(action);
+
       actions.add(action);
+
       return action;
    }
 
    protected final void unregisterAction(ForeAction action)
    {
-      requireGuiThread();
+      FormTools.requireFxThread();
+
       Objects.requireNonNull(action, "action");
       if( actionKeyBinder != null )
          actionKeyBinder.unbind(action);
@@ -161,7 +172,8 @@ public abstract class FormController<T> implements Initializable {
    /** Framework GUI cleanup precedes background closeResources(), including failed launches. */
    final void releaseGuiController() throws Exception
    {
-      requireGuiThread();
+      FormTools.requireFxThread();
+
       if( guiReleased )
          return;
       guiReleased = true;
@@ -191,11 +203,6 @@ public abstract class FormController<T> implements Initializable {
    {
    }
 
-   private static void requireGuiThread()
-   {
-      if( !Platform.isFxApplicationThread() )
-         throw new IllegalStateException("Form GUI operations require the FX Application Thread");
-   }
 
    final boolean hasGuiLifecycleStarted()
    {

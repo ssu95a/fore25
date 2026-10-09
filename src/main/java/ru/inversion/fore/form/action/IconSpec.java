@@ -9,19 +9,19 @@ import java.util.Objects;
 /**
  * Immutable vector icon descriptor. It never stores a shared JavaFX Node.
  */
-public record IconSpec( IconFont font, String glyph)
+public record IconSpec( IconFont font, String glyph )
 {
    public IconSpec
    {
-      Objects.requireNonNull(font, "font");
-      Objects.requireNonNull(glyph, "glyph");
+      Objects.requireNonNull( font, "font" );
+      Objects.requireNonNull( glyph,"glyph");
+
       if( glyph.isEmpty() )
           throw new IllegalArgumentException("glyph must not be empty");
    }
 
    /** Compatibility shortcut for existing Fore25 callers, not Oracle Forms. */
-   public IconSpec(String glyph)
-   {
+   public IconSpec( String glyph )  {
       this(IconFont.FONT_AWESOME_4, glyph);
    }
 
@@ -37,10 +37,12 @@ public record IconSpec( IconFont font, String glyph)
 
       private Glyph(IconSpec spec)
       {
-         super(spec.glyph());
+         super( spec.glyph() );
          this.spec = spec;
-         setFont(spec.font().font());
+
+         setFont( spec.font().font() );
          getStyleClass().add("fore-action-icon");
+
          setMouseTransparent(true);
       }
 

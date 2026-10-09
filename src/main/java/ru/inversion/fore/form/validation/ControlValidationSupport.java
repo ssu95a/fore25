@@ -22,21 +22,21 @@ public final class ControlValidationSupport
 
    private final ValidationPresenter presenter;
 
-   public ControlValidationSupport(
-           FormValidation validation,
-           ValidationPresenter presenter,
-           Consumer<? super Exception> errorHandler )
+
+   /** */
+   public ControlValidationSupport (
+      FormValidation validation,
+      ValidationPresenter presenter,
+      Consumer<? super Exception> errorHandler
+   )
    {
-      this.validation =
-              Checks.Require.object(validation, "validation");
-
-      this.presenter =
-              Checks.Require.object(presenter, "presenter");
-
-      this.errorHandler =
-              Checks.Require.object(errorHandler, "errorHandler");
+      this.validation  = Checks.Require.object( validation,   "validation"  );
+      this.presenter   = Checks.Require.object( presenter,    "presenter"   );
+      this.errorHandler= Checks.Require.object( errorHandler, "errorHandler");
    }
 
+
+   /** */
    public void install()
    {
       if( installed )
@@ -44,28 +44,31 @@ public final class ControlValidationSupport
 
       installed = true;
 
-      try
-      {
+      try {
+
          for( Control control : validation.controls() )
-            install(control);
+              install(control);
       }
-      catch( RuntimeException | Error ex )
-      {
+      catch( RuntimeException | Error ex ) {
          uninstall();
          throw ex;
       }
    }
 
+
    /** Remove exactly the value/focus listeners installed by this support. */
-   public void uninstall()
+   public void uninstall( )
    {
       for( Runnable removal : listenerRemovals )
-         removal.run();
+           removal.run();
+
       listenerRemovals.clear();
+
       installed = false;
    }
 
 
+   /** */
    private void install(Control control)
    {
       ValidationStateSupport.reset(control);
@@ -75,6 +78,7 @@ public final class ControlValidationSupport
    }
 
 
+   /** */
    private void installValueListener(Control control)
    {
       ValueExtractors.findObservable(control)
@@ -87,47 +91,42 @@ public final class ControlValidationSupport
             value.addListener(listener);
             listenerRemovals.add(() -> value.removeListener(listener));
          }
-         );
+      );
    }
 
+
+   /** */
    private void installFocusListener(Control control)
    {
-      final ChangeListener<Boolean> listener = (observable, oldValue, focused) ->
-              {
-                 if( !focused )
-                    validateIfNeeded(control);
-              };
+      final ChangeListener<Boolean> listener = (observable, oldValue, focused )
+         -> { if( !focused ) validateIfNeeded(control);
+      };
       control.focusedProperty().addListener(listener);
       listenerRemovals.add(() -> control.focusedProperty().removeListener(listener));
    }
 
 
+   /** */
    private void validateIfNeeded(Control control)
    {
-      if( ValidationStateSupport.get(control)
-              != ValidationState.UNVALIDATED )
-         return;
+      if( ValidationStateSupport.get(control) != ValidationState.UNVALIDATED )
+          return;
 
-      try
-      {
-         final ValidationResult result =
-                 validation.validate(control);
+      try {
 
-         ValidationStateSupport.set(
-                 control,
-                 result.valid()
-                         ? ValidationState.VALID
-                         : ValidationState.INVALID
-         );
+         final ValidationResult result = validation.validate(control);
+
+         ValidationStateSupport.set( control, result.valid() ? ValidationState.VALID : ValidationState.INVALID );
 
          if( result.valid() )
             presenter.clear(control);
          else
             presenter.show(result);
       }
-      catch( Exception ex )
-      {
+      catch( Exception ex ) {
+
          ValidationStateSupport.reset(control);
+
          presenter.clear(control);
 
          errorHandler.accept(ex);

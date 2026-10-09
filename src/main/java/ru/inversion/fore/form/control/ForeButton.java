@@ -43,11 +43,12 @@ public class ForeButton extends Button
       return action == null ? null : action.standardType();
    }
 
+
    /**
     * Создаёт действие для стандартного оформления, сохраняя значения из FXML.
     * Обработчик onAction не заменяется; свойства кнопки остаются доступными для записи.
     */
-   public void setStandardAction(StandardAction type)
+   public void setStandardAction( StandardAction type )
    {
       // Обработчик FXML принадлежит кнопке; этому действию нужен только набор свойств.
       final ForeAction next = type == null ? null : ForeActions.create(type, event -> {});
@@ -55,47 +56,54 @@ public class ForeButton extends Button
       if( actionBound )
       {
          unbindAction();
-         clearPresentation();
+         clearUI();
       }
 
       final ForeAction previous = action;
-      final boolean replaceText = getText() == null || getText().isEmpty()
-              || (previous != null && Objects.equals(getText(), previous.getText()));
-      final boolean replaceTooltip = getTooltip() == null
-              || (getTooltip() == installedTooltip && previous != null
-                  && Objects.equals(getTooltip().getText(), previous.getLongText()));
-      final boolean replaceGraphic = getGraphic() == null
-              || (previous != null && getGraphic() == previous.getGraphic());
+
+      final boolean replaceText
+         = getText() == null || getText().isEmpty() || (previous != null && Objects.equals(getText(), previous.getText()) );
+
+      final boolean replaceTooltip
+         = getTooltip() == null || (getTooltip() == installedTooltip && previous != null && Objects.equals(getTooltip().getText(), previous.getLongText()) );
+
+      final boolean replaceGraphic = getGraphic() == null || (previous != null && getGraphic() == previous.getGraphic() );
 
       action = next;
-      installedTooltip = replaceTooltip && next != null
-              ? new Tooltip(next.getLongText()) : null;
+
+      installedTooltip = replaceTooltip && next != null ? new Tooltip(next.getLongText()) : null;
 
       if( replaceText )
-         setText(next == null ? null : next.getText());
+          setText(next == null ? null : next.getText());
+
       if( replaceTooltip )
-         setTooltip(installedTooltip);
+          setTooltip(installedTooltip);
+
       if( replaceGraphic )
-         setGraphic(next == null ? null : next.getGraphic());
+          setGraphic(next == null ? null : next.getGraphic());
    }
 
+
+   /** */
    @java.beans.Transient // В FXML сохраняется standardAction, а не объект действия.
    public ForeAction getAction()
    {
       return action;
    }
 
+
    /**
     * Привязывает общее действие, включая обработчик, оформление и состояние disabled.
     * В этом режиме обработчик задаётся действием вместо FXML onAction.
     * Значение null снимает привязки и очищает оформление.
     */
-   public void setAction(ForeAction next)
+   public void setAction( ForeAction next )
    {
       if( action == next && (actionBound || next == null) )
-         return;
+          return;
 
       unbindAction();
+
       action = next;
       installedTooltip = null;
 
@@ -105,33 +113,38 @@ public class ForeButton extends Button
          actionBound = true;
       }
       else
-         clearPresentation();
+         clearUI( );
    }
 
+
+   /** */
    private void unbindAction()
    {
       if( !actionBound )
-         return;
+          return;
 
       // ControlsFX снимает привязки только при собственном обработчике onAction.
       final EventHandler<ActionEvent> handler = getOnAction();
       if( handler != action )
-         setOnAction(action);
+          setOnAction(action);
 
       ActionUtils.unconfigureButton(this);
       actionBound = false;
 
       // Сохраняем обработчик, который пользователь установил после привязки действия.
       if( handler != action )
-         setOnAction(handler);
+          setOnAction(handler);
    }
 
-   private void clearPresentation()
+   /** */
+   private void clearUI()
    {
-      setText(null);
-      setGraphic(null);
-      setTooltip(null);
+      setText   (null );
+      setGraphic(null );
+      setTooltip(null );
+
       setDisable(false);
+
       installedTooltip = null;
    }
 }

@@ -31,7 +31,7 @@ public final class ActionKeyBinder implements AutoCloseable
 
    private boolean closed;
 
-   public ActionKeyBinder(Scene scene)
+   public ActionKeyBinder( Scene scene )
    {
       FormTools.requireFxThread();
 
@@ -113,10 +113,12 @@ public final class ActionKeyBinder implements AutoCloseable
       return false;
    }
 
+   /** */
    private void handleKeyPressed(KeyEvent event)
    {
       if( closed || event.isConsumed() )
-         return;
+          return;
+
       for( ForeAction action : bindings.keySet() )
          for( KeyCombination key : action.hotkeys() )
             if( key.match(event) )

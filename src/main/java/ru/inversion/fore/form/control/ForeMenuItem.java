@@ -23,8 +23,7 @@ public class ForeMenuItem extends MenuItem
    private boolean actionBound;
 
    public ForeMenuItem()
-   {
-   }
+   { }
 
    public ForeMenuItem(ForeAction action)
    {
@@ -43,12 +42,12 @@ public class ForeMenuItem extends MenuItem
    public void setStandardAction(StandardAction type)
    {
       // Обработчик FXML принадлежит пункту меню; действию нужен только набор свойств.
-      final ForeAction next = type == null ? null : ForeActions.create(type, event -> {});
+      final ForeAction next = type == null ? null : ForeActions.create( type, event -> {} );
 
       if( actionBound )
       {
          unbindAction();
-         clearPresentation();
+         clearUI();
       }
 
       final ForeAction previous = action;
@@ -94,7 +93,7 @@ public class ForeMenuItem extends MenuItem
          actionBound = true;
       }
       else
-         clearPresentation();
+         clearUI();
    }
 
    private void unbindAction()
@@ -115,7 +114,7 @@ public class ForeMenuItem extends MenuItem
          setOnAction(handler);
    }
 
-   private void clearPresentation()
+   private void clearUI()
    {
       setText(null);
       setGraphic(null);
