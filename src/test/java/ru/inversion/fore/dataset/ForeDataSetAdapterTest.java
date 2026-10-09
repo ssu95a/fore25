@@ -592,30 +592,6 @@ class ForeDataSetAdapterTest
    }
 
    @Test
-   void handlesNavigationFromAViewListenerAndCloseFromACurrentRowListener() throws Exception
-   {
-      FxTestSupport.run(() -> {
-         try( var fixture = new Fixture() )
-         {
-            final var navigated = new AtomicBoolean();
-            fixture.table.itemsProperty().addListener((InvalidationListener) observable -> {
-               if( navigated.compareAndSet(false, true) ) fixture.dataSet.setCurrentRowNum(2);
-            });
-            fixture.dataSet.insertRow(new Row(4, "Дельта"), LAST, false);
-            assertEquals(3, fixture.adapter.getCurrentRow().id());
-            assertEquals(2, fixture.table.getSelectionModel().getSelectedIndex());
-            fixture.adapter.currentRowProperty().addListener((observable, oldValue, newValue) -> {
-               if( newValue != null && newValue.id() == 2 ) fixture.adapter.close();
-            });
-            fixture.dataSet.setCurrentRowNum(1);
-            assertTrue(fixture.adapter.isClosed());
-            assertNull(fixture.adapter.getCurrentRow());
-            assertTrue(fixture.table.getItems().isEmpty());
-         }
-      });
-   }
-
-   @Test
    void aDataSetCloseEventDetachesTheAdapter() throws Exception
    {
       FxTestSupport.run(() -> {

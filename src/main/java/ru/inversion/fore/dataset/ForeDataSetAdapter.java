@@ -279,23 +279,15 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
       synchronizing = true;
       try
       {
-         boolean changedRows = false;
          int changes;
-         while( !closed && (changes = pending.getAndSet(0)) != 0 )
+         while( (changes = pending.getAndSet(0)) != 0 )
          {
-            changedRows |= (changes & ROWS_CHANGED) != 0;
+            final boolean changedRows = (changes & ROWS_CHANGED) != 0;
             if( changedRows || items == null || items.rowCount != dataSet.getLoadedRowCount() )
                replaceView();
-            // Пользовательский слушатель может изменить курсор или закрыть привязку во время уведомления.
-            if( closed ) return;
-            if( pending.get() != 0 ) continue;
             selectTableRow();
-            if( closed ) return;
-            if( pending.get() != 0 ) continue;
             currentRow.publish(dataSet.getCurrentRow(), changedRows);
-            if( closed ) return;
             if( changedRows ) table.refresh();
-            changedRows = false;
          }
       }
       finally
@@ -306,16 +298,15 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
 
    private void replaceView()
    {
-      // События IDataSet не содержат всех удалённых строк. Заменяем только оболочку списка,
-      // чтобы не хранить прежние данные и не подменять удалённые строки вымышленными значениями.
+      // Замена оболочки уведомляет модель выделения об актуальном размере набора.
+      // Оболочка читает IDataSet напрямую и не хранит ни строк, ни прежнего списка.
       final var sortColumns = List.copyOf(table.getSortOrder());
       final var selection = table.getSelectionModel();
       if( selection != null ) selection.clearSelection();
       if( table.getFocusModel() != null ) table.getFocusModel().focus(-1);
-      if( closed ) return;
       items = new ItemsView<>(dataSet);
       table.setItems(items);
-      if( !closed && !sortColumns.isEmpty() ) table.getSortOrder().setAll(sortColumns);
+      if( !sortColumns.isEmpty() ) table.getSortOrder().setAll(sortColumns);
    }
 
    private void selectTableRow()
