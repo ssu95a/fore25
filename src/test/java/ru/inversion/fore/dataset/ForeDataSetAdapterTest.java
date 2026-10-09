@@ -6,11 +6,13 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.scene.Scene;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.SelectionMode;
+import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import ru.inversion.dataset.ArrayDataSet;
@@ -24,10 +26,12 @@ import ru.inversion.dataset.IDataSetRowListener;
 import ru.inversion.dataset.ReaderDataSet;
 import ru.inversion.fore.FxTestSupport;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.RandomAccess;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -63,6 +67,137 @@ class ForeDataSetAdapterTest
    }
 
    @Test
+   void bindingRefreshAndNavigationDoNotTraverseTwoHundredThousandRows() throws Exception
+   {
+      FxTestSupport.run(() -> {
+         final var rows = new NoTraversalRows(200_000);
+         final var dataSet = new ArrayDataSet<>(Row.class, rows, false);
+         dataSet.setCurrentRowNum(180_000);
+         final var table = new TableView<Row>();
+         try( var adapter = ForeDataSetAdapter.bind(dataSet, table) )
+         {
+            assertSame(rows, dataSet.getRows());
+            assertEquals(200_000, table.getItems().size());
+            final var view = table.getItems();
+            dataSet.setCurrentRowNum(199_999);
+            assertSame(view, table.getItems());
+            assertEquals(199_999, table.getSelectionModel().getSelectedIndex());
+            table.getSelectionModel().select(150_000);
+            assertEquals(150_000, dataSet.getCurrentRowNum());
+
+            final var replacement = new Row(150_001, "Новая запись");
+            rows.set(150_000, replacement);
+            assertSame(replacement, view.get(150_000));
+            adapter.refresh();
+            assertSame(replacement, table.getSelectionModel().getSelectedItem());
+            dataSet.updateCurrentRow(new Row(150_001, "Обновлена через набор"));
+            dataSet.removeCurrentRow();
+            dataSet.insertRow(new Row(200_001, "Добавлена"), LAST, false);
+            adapter.refresh();
+            assertEquals(200_000, table.getItems().size());
+            assertSame(rows, dataSet.getRows());
+            assertTrue(rows.reads < 256, "Привязка должна читать только нужные строки, а не весь набор");
+         }
+      });
+   }
+
+   @Test
+   void coalescesWorkerNotificationsWithoutRetainingRowsOrAQueueOfEvents() throws Exception
+   {
+      final var holder = new Fixture[1];
+      final var notifications = new AtomicInteger();
+      FxTestSupport.run(() -> {
+         final var fixture = holder[0] = new Fixture();
+         fixture.table.itemsProperty().addListener((InvalidationListener) observable -> {
+            assertTrue(Platform.isFxApplicationThread());
+            notifications.incrementAndGet();
+         });
+         runWorker(() -> {
+            for( int index = 0; index < 1_000; index++ )
+               fixture.dataSet.insertRow(new Row(index + 4, "Добавлена"), LAST, false);
+         });
+         assertEquals(1_003, fixture.table.getItems().size());
+         assertEquals(0, notifications.get());
+      });
+      try
+      {
+         FxTestSupport.run(() -> {
+            assertEquals(1, notifications.get());
+            assertEquals(1_003, holder[0].table.getItems().size());
+         });
+      }
+      finally { FxTestSupport.run(() -> holder[0].close()); }
+   }
+
+   @Test
+   void updatesVisibleCellsOfALargeTableWithoutMaterializingItsRows() throws Exception
+   {
+      FxTestSupport.run(() -> {
+         final var rows = new NoTraversalRows(200_000);
+         final var dataSet = new ArrayDataSet<>(Row.class, rows, false);
+         dataSet.setCurrentRowNum(0);
+         final var table = new TableView<Row>();
+         final var name = new TableColumn<Row, String>("Название");
+         name.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().name()));
+         table.getColumns().add(name);
+         table.setFixedCellSize(24);
+         final var stage = new Stage();
+         try( var adapter = ForeDataSetAdapter.bind(dataSet, table) )
+         {
+            try
+            {
+               stage.setScene(new Scene(table, 320, 240));
+               stage.show();
+               table.applyCss();
+               table.layout();
+               assertTrue(rows.reads < 1_024, "Отображение таблицы должно читать только видимые строки");
+               rows.reads = 0;
+
+               final var replacement = new Row(1, "Обновлена видимая строка");
+               dataSet.updateCurrentRow(replacement);
+               table.applyCss();
+               table.layout();
+               final var firstRow = table.lookupAll(".table-row-cell").stream()
+                       .filter(node -> node instanceof TableRow<?> row && row.getIndex() == 0)
+                       .map(node -> (TableRow<?>) node).findFirst().orElseThrow();
+               assertSame(replacement, firstRow.getItem());
+               assertSame(replacement, table.getSelectionModel().getSelectedItem());
+               assertSame(replacement, adapter.getCurrentRow());
+               assertTrue(rows.reads < 1_024, "Обновление ячеек не должно обходить весь набор");
+            }
+            finally { stage.hide(); }
+         }
+      });
+   }
+
+   @Test
+   void keepsAnExistingSortPolicyWithoutRunningItAgainForDataSetNotifications() throws Exception
+   {
+      FxTestSupport.run(() -> {
+         final var dataSet = dataSet();
+         final var table = new TableView<Row>();
+         final var name = new TableColumn<Row, String>("Название");
+         name.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().name()));
+         table.getColumns().add(name);
+         final var calls = new AtomicInteger();
+         table.setSortPolicy(view -> { calls.incrementAndGet(); return true; });
+         final var policy = table.getSortPolicy();
+         table.getSortOrder().add(name);
+         final int previousCalls = calls.get();
+         try( var adapter = ForeDataSetAdapter.bind(dataSet, table) )
+         {
+            assertSame(policy, table.getSortPolicy());
+            dataSet.insertRow(new Row(4, "Дельта"), LAST, false);
+            adapter.refresh();
+            assertEquals(previousCalls, calls.get());
+            assertEquals(List.of(name), table.getSortOrder());
+         }
+         assertSame(policy, table.getSortPolicy());
+         assertEquals(previousCalls, calls.get());
+      });
+   }
+
+   @Test
    void synchronizesProgrammaticSelectionAndNavigationWithoutRepeatedDataSetEvents() throws Exception
    {
       FxTestSupport.run(() -> {
@@ -83,23 +218,40 @@ class ForeDataSetAdapterTest
    }
 
    @Test
-   void sortingPreservesSourceOrderAndMapsSelectionToTheOriginalIndex() throws Exception
+   void defaultSortingDoesNotCreateAnIndependentOrderOrCopyRows() throws Exception
+   {
+      FxTestSupport.run(() -> {
+         try( var fixture = new Fixture() )
+         {
+            fixture.dataSet.setCurrentRowNum(2);
+            fixture.sort(TableColumn.SortType.ASCENDING);
+            assertEquals(List.of(1L, 2L, 3L), fixture.ids());
+            assertEquals(2, fixture.table.getSelectionModel().getSelectedIndex());
+            assertEquals(2, fixture.dataSet.getCurrentRowNum());
+            assertThrows(UnsupportedOperationException.class,
+                    () -> fixture.table.getItems().sort((left, right) -> left.name().compareTo(right.name())));
+         }
+      });
+   }
+
+   @Test
+   void dataSetSortingKeepsTheCursorAndTableAtTheSameIndex() throws Exception
    {
       FxTestSupport.run(() -> {
          try( var fixture = new Fixture() )
          {
             fixture.dataSet.setCurrentRowNum(0);
-            final var source = List.copyOf(fixture.dataSet.getRows());
+            fixture.enableDataSetSorting();
             fixture.sort(TableColumn.SortType.ASCENDING);
             assertEquals(List.of(2L, 3L, 1L), fixture.ids());
             assertEquals(2, fixture.table.getSelectionModel().getSelectedIndex());
-            assertEquals(0, fixture.dataSet.getCurrentRowNum());
+            assertEquals(2, fixture.dataSet.getCurrentRowNum());
             fixture.table.getSelectionModel().selectFirst();
-            assertEquals(1, fixture.dataSet.getCurrentRowNum());
+            assertEquals(0, fixture.dataSet.getCurrentRowNum());
             fixture.sort(TableColumn.SortType.DESCENDING);
             assertEquals(2, fixture.table.getSelectionModel().getSelectedIndex());
-            assertEquals(1, fixture.dataSet.getCurrentRowNum());
-            assertEquals(source, fixture.dataSet.getRows());
+            assertEquals(2, fixture.dataSet.getCurrentRowNum());
+            assertEquals(fixture.dataSet.getRows(), fixture.table.getItems());
          }
       });
    }
@@ -110,12 +262,14 @@ class ForeDataSetAdapterTest
       FxTestSupport.run(() -> {
          try( var fixture = new Fixture() )
          {
+            fixture.enableDataSetSorting();
             fixture.sort(TableColumn.SortType.ASCENDING);
-            fixture.dataSet.setCurrentRowNum(1);
+            fixture.dataSet.setCurrentRowNum(0);
             final var replacement = new Row(2, "Янтарь");
             fixture.dataSet.updateCurrentRow(replacement);
             assertSame(replacement, fixture.table.getSelectionModel().getSelectedItem());
             assertSame(replacement, fixture.adapter.getCurrentRow());
+            fixture.table.sort();
             assertEquals(List.of(3L, 1L, 2L), fixture.ids());
             fixture.dataSet.removeCurrentRow();
             assertEquals(List.of(3L, 1L), fixture.ids());
@@ -211,10 +365,18 @@ class ForeDataSetAdapterTest
       FxTestSupport.run(() -> {
          try( var fixture = new Fixture() )
          {
+            final var count = Bindings.createIntegerBinding(() -> fixture.table.getItems().size(),
+                    fixture.table.itemsProperty());
+            assertEquals(3, count.get());
+            final var view = fixture.table.getItems();
             fixture.dataSet.getRows().add(new Row(4, "Дельта"));
-            assertEquals(3, fixture.table.getItems().size());
+            assertEquals(4, view.size());
+            assertSame(fixture.dataSet.getRow(3), view.get(3));
+            assertEquals(3, count.get());
             fixture.adapter.refresh();
             assertEquals(List.of(1L, 2L, 3L, 4L), fixture.ids());
+            assertEquals(4, count.get());
+            count.dispose();
          }
       });
    }
@@ -240,13 +402,13 @@ class ForeDataSetAdapterTest
    }
 
    @Test
-   void workerEventsPublishOnlyOnFxAndPreservePendingRowsWhenTheUserNavigates() throws Exception
+   void workerNotificationsPublishOnlyOnFxWhileRowsAreReadDirectlyFromTheDataSet() throws Exception
    {
       final var holder = new Fixture[1];
       final var fxOnly = new AtomicBoolean(true);
       FxTestSupport.run(() -> {
          final var fixture = holder[0] = new Fixture();
-         fixture.table.getItems().addListener((ListChangeListener<Row>) change ->
+         fixture.table.itemsProperty().addListener((InvalidationListener) observable ->
                  fxOnly.compareAndSet(true, Platform.isFxApplicationThread()));
          fixture.adapter.currentRowProperty().addListener((InvalidationListener) observable ->
                  fxOnly.compareAndSet(true, Platform.isFxApplicationThread()));
@@ -254,7 +416,7 @@ class ForeDataSetAdapterTest
             fixture.dataSet.insertRow(new Row(4, "Дельта"), LAST, false);
             fixture.dataSet.setCurrentRowNum(3);
          });
-         assertEquals(3, fixture.table.getItems().size());
+         assertEquals(4, fixture.table.getItems().size());
          // Выбор происходит до обработки поставленных в очередь событий рабочего потока.
          fixture.table.getSelectionModel().select(1);
          assertEquals(4, fixture.table.getItems().size());
@@ -273,7 +435,7 @@ class ForeDataSetAdapterTest
    }
 
    @Test
-   void ignoresSelectionOfARowRemovedByAWorkerBeforeItsPublication() throws Exception
+   void selectionUsesTheCurrentDataSetIndexAfterAWorkerRemovesARow() throws Exception
    {
       final var holder = new Fixture[1];
       FxTestSupport.run(() -> {
@@ -335,6 +497,7 @@ class ForeDataSetAdapterTest
             fixture.adapter.close();
             assertTrue(fixture.adapter.isClosed());
             assertSame(fixture.previousItems, fixture.table.getItems());
+            assertSame(TableView.DEFAULT_SORT_POLICY, fixture.table.getSortPolicy());
             assertNull(fixture.adapter.getCurrentRow());
             assertTrue(fixture.dataSet.rowsListeners.isEmpty());
             assertTrue(fixture.dataSet.navigationListeners.isEmpty());
@@ -431,7 +594,7 @@ class ForeDataSetAdapterTest
          try( var fixture = new Fixture() )
          {
             final var navigated = new AtomicBoolean();
-            fixture.table.getItems().addListener((ListChangeListener<Row>) change -> {
+            fixture.table.itemsProperty().addListener((InvalidationListener) observable -> {
                if( navigated.compareAndSet(false, true) ) fixture.dataSet.setCurrentRowNum(2);
             });
             fixture.dataSet.insertRow(new Row(4, "Дельта"), LAST, false);
@@ -492,6 +655,30 @@ class ForeDataSetAdapterTest
 
    private record Row(long id, String name) {}
 
+   /** Запрещает материализацию и полный обход большого списка, оставаясь хранилищем самого IDataSet. */
+   private static final class NoTraversalRows extends AbstractList<Row> implements RandomAccess
+   {
+      private final ArrayList<Row> rows;
+      int reads;
+
+      NoTraversalRows(int count)
+      {
+         rows = new ArrayList<>(count);
+         for( int index = 0; index < count; index++ ) rows.add(new Row(index + 1, "Запись"));
+      }
+
+      @Override public int size() { return rows.size(); }
+      @Override public Row get(int index) {
+         if( ++reads > 1_024 ) throw new AssertionError("Обнаружен обход или копирование записей");
+         return rows.get(index);
+      }
+      @Override public Row set(int index, Row row) { return rows.set(index, row); }
+      @Override public void add(int index, Row row) { rows.add(index, row); }
+      @Override public Row remove(int index) { return rows.remove(index); }
+      @Override public Object[] toArray() { throw new AssertionError("Копирование записей запрещено"); }
+      @Override public <T> T[] toArray(T[] target) { throw new AssertionError("Копирование записей запрещено"); }
+   }
+
    private static final class MutableRow
    {
       String name;
@@ -518,6 +705,22 @@ class ForeDataSetAdapterTest
          name.setSortType(direction);
          table.getSortOrder().setAll(List.of(name));
          table.sort();
+      }
+
+      void enableDataSetSorting()
+      {
+         table.setSortPolicy(view -> {
+            final Row current = dataSet.getCurrentRow();
+            if( view.getComparator() != null )
+            {
+               dataSet.getRows().sort(view.getComparator());
+               if( current != null )
+                  for( int index = 0; index < dataSet.getLoadedRowCount(); index++ )
+                     if( dataSet.getRow(index) == current ) { dataSet.setCurrentRowNum(index); break; }
+            }
+            adapter.refresh();
+            return true;
+         });
       }
 
       List<Long> ids() { return table.getItems().stream().map(Row::id).toList(); }

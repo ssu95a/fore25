@@ -53,8 +53,14 @@ public final class RecordTableController extends FormController<RecordStore>
       idColumn.setCellValueFactory(cell -> new ReadOnlyLongWrapper(cell.getValue().id()));
       nameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().name()));
       adapter = ForeDataSetAdapter.bind(getDataObject().getDataSet(), table);
+      table.setSortPolicy(view -> {
+         getDataObject().sort(view.getComparator());
+         adapter.refresh();
+         return true;
+      });
       table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-      countLabel.textProperty().bind(Bindings.size(table.getItems()).asString(getBundle().getString("list.count")));
+      countLabel.textProperty().bind(Bindings.createIntegerBinding(() -> table.getItems().size(),
+              table.itemsProperty()).asString(getBundle().getString("list.count")));
 
       connect(StandardAction.CREATE, event -> openEditor(FormMode.INSERT, null), createButton, createMenu);
       final var update = connect(StandardAction.UPDATE, event -> openSelected(FormMode.EDIT), updateButton, updateMenu);
@@ -103,6 +109,7 @@ public final class RecordTableController extends FormController<RecordStore>
                  if( result.result() == FormResultType.OK && mode != FormMode.VIEW )
                  {
                     store.save(result.dataObject());
+                    table.sort();
                  }
               })
               .runForm();
@@ -131,7 +138,11 @@ public final class RecordTableController extends FormController<RecordStore>
          if( menu != null ) menu.setAction(null);
 
       uiActions.clear();
-      if( table != null ) table.setActivationAction(null);
+      if( table != null )
+      {
+         table.setActivationAction(null);
+         table.setSortPolicy(view -> false);
+      }
       if( countLabel != null ) countLabel.textProperty().unbind();
       if( adapter != null )
       {

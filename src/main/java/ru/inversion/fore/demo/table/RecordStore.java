@@ -3,6 +3,7 @@ package ru.inversion.fore.demo.table;
 import ru.inversion.dataset.ArrayDataSet;
 import ru.inversion.dataset.IDataSet;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -75,6 +76,21 @@ public final class RecordStore
             dataSet.removeCurrentRow();
             return;
          }
+   }
+
+   /** Сортирует сам набор в памяти и сохраняет текущую запись; представления с копиями строк не нужны. */
+   public void sort(Comparator<? super Row> comparator)
+   {
+      if( comparator == null ) return;
+      final Row current = dataSet.getCurrentRow();
+      dataSet.getRows().sort(comparator);
+      if( current != null )
+         for( int index = 0; index < dataSet.getLoadedRowCount(); index++ )
+            if( dataSet.getRow(index) == current )
+            {
+               dataSet.setCurrentRowNum(index);
+               break;
+            }
    }
 
    /** Строка таблицы неизменяема; сохранение заменяет её новым экземпляром с тем же ID. */
