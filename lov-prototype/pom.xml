@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Изолированный запуск LOV без JInvCommon и TaskContext. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>ru.inversion</groupId><artifactId>fore25-lov-prototype</artifactId><version>0.1.0-SNAPSHOT</version>
+   <properties>
+      <maven.compiler.release>25</maven.compiler.release>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+   </properties>
+   <dependencies>
+      <dependency><groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>25.0.4</version></dependency>
+      <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>5.14.4</version><scope>test</scope></dependency>
+      <dependency><groupId>com.h2database</groupId><artifactId>h2</artifactId><version>2.3.232</version><scope>test</scope></dependency>
+   </dependencies>
+   <build>
+      <sourceDirectory>${project.basedir}/../src/main/java</sourceDirectory>
+      <testSourceDirectory>${project.basedir}/../src/test/java</testSourceDirectory>
+      <resources><resource><directory>${project.basedir}/../src/main/resources</directory>
+         <includes><include>ru/inversion/fore/form/lov/**</include><include>ru/inversion/fore/demo/lov/**</include></includes>
+      </resource></resources>
+      <plugins>
+         <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.14.1</version>
+            <configuration>
+               <includes>
+                  <include>ru/inversion/fore/form/FormTools.java</include>
+                  <include>ru/inversion/fore/form/lov/*.java</include>
+                  <include>ru/inversion/fore/demo/lov/*.java</include>
+               </includes>
+               <testIncludes><testInclude>ru/inversion/fore/FxTestSupport.java</testInclude><testInclude>ru/inversion/fore/form/lov/*.java</testInclude></testIncludes>
+            </configuration>
+         </plugin>
+         <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.5.2</version>
+            <configuration><useModulePath>false</useModulePath><argLine>--enable-native-access=ALL-UNNAMED</argLine><failIfNoTests>true</failIfNoTests></configuration>
+         </plugin>
+         <plugin><groupId>org.openjfx</groupId><artifactId>javafx-maven-plugin</artifactId><version>0.0.8</version>
+            <configuration><mainClass>ru.inversion.fore.demo.lov.LovDemo</mainClass><options><option>--enable-native-access=javafx.graphics</option></options></configuration>
+         </plugin>
+      </plugins>
+   </build>
+   <profiles><profile><id>headless</id>
+      <dependencies><dependency><groupId>org.testfx</groupId><artifactId>openjfx-monocle</artifactId><version>21.0.2</version><scope>test</scope></dependency></dependencies>
+      <build><plugins><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId>
+         <configuration><systemPropertyVariables>
+            <glass.platform>Monocle</glass.platform><monocle.platform>Headless</monocle.platform>
+            <prism.order>sw</prism.order><java.awt.headless>true</java.awt.headless>
+         </systemPropertyVariables></configuration>
+      </plugin></plugins></build>
+   </profile></profiles>
+</project>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lov xmlns="urn:inversion:fore:lov:1" version="1" id="departments" title="Подразделения">
+   <comment>Демонстрационный справочник без БД и TaskContext.</comment>
+   <window width="660" height="420" automatic-position="true" automatic-column-width="true"/>
+   <behavior auto-select="false" validate-from-list="true" key="F9"/>
+   <search mode="prefix" max-rows="200"/>
+   <columns>
+      <column name="ID" type="long" width="0" return-to="departmentId"/>
+      <column name="CODE" title="Код" width="130" return-to="departmentCode"/>
+      <column name="NAME" title="Наименование" width="380" return-to="departmentName"/>
+   </columns>
+   <source><static>
+      <row><value column="ID">10</value><value column="CODE">БУХ</value><value column="NAME">Бухгалтерия</value></row>
+      <row><value column="ID">20</value><value column="CODE">ИТ</value><value column="NAME">Информационные технологии</value></row>
+      <row><value column="ID">30</value><value column="CODE">КАДРЫ</value><value column="NAME">Отдел кадров</value></row>
+      <row><value column="ID">40</value><value column="CODE">ОПЕР</value><value column="NAME">Операционный отдел</value></row>
+   </static></source>
+</lov>

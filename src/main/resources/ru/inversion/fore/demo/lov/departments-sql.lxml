@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lov xmlns="urn:inversion:fore:lov:1" version="1" id="departmentsSql" title="Подразделения организации">
+   <comment>Пример Oracle SQL. Таблица и соединение предоставляются прикладным проектом.</comment>
+   <window automatic-position="true"/>
+   <behavior filter-before-display="true" validate-from-list="true"/>
+   <search mode="prefix" min-length="1" max-rows="200"/>
+   <columns>
+      <column name="ID" type="long" width="0" return-to="departmentId"/>
+      <column name="CODE" title="Код" width="120" return-to="departmentCode"/>
+      <column name="NAME" title="Наименование" width="380" return-to="departmentName"/>
+   </columns>
+   <source><sql ref="main" fetch-size="100" timeout-seconds="30">
+      <query><![CDATA[
+         select id as ID, code as CODE, name as NAME
+           from departments
+          where company_id = ? and upper(code) like ? escape '!'
+          order by code, id
+      ]]></query>
+      <bind name="companyId"/>
+      <bind name="$pattern"/>
+   </sql></source>
+</lov>

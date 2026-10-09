@@ -18,6 +18,10 @@ mvn -version
 
 ## Контролы и действия
 
+Декларативные LOV можно отдельно собрать и запустить без `JInvCommon`:
+[прототип LOV](../lov-prototype/README.md), [формат LXML](../docs/lxml.md),
+[каталог свойств Oracle Forms](../docs/lov-oracle-forms.md).
+
 Для независимой проверки `IForeControl`, `ForeTextField`, кнопок, меню,
 действий и FXML используется уже существующая сборка Scene Builder:
 
