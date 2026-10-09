@@ -174,7 +174,7 @@ class ForeDataSetAdapterTest
    }
 
    @Test
-   void keepsAnExistingSortPolicyWithoutRunningItAgainForDataSetNotifications() throws Exception
+   void replacesAnExistingSortPolicyWithoutRetainingOrRestoringIt() throws Exception
    {
       FxTestSupport.run(() -> {
          final var dataSet = dataSet();
@@ -189,13 +189,13 @@ class ForeDataSetAdapterTest
          final int previousCalls = calls.get();
          try( var adapter = ForeDataSetAdapter.bind(dataSet, table) )
          {
-            assertSame(policy, table.getSortPolicy());
+            assertNotSame(policy, table.getSortPolicy());
             dataSet.insertRow(new Row(4, "Дельта"), LAST, false);
             adapter.refresh();
             assertEquals(previousCalls, calls.get());
             assertEquals(List.of(name), table.getSortOrder());
          }
-         assertSame(policy, table.getSortPolicy());
+         assertNotSame(policy, table.getSortPolicy());
          assertEquals(previousCalls, calls.get());
       });
    }
@@ -228,9 +228,9 @@ class ForeDataSetAdapterTest
          {
             fixture.dataSet.setCurrentRowNum(2);
             fixture.sort(TableColumn.SortType.ASCENDING);
-            assertEquals(List.of(1L, 2L, 3L), fixture.ids());
-            assertEquals(2, fixture.table.getSelectionModel().getSelectedIndex());
-            assertEquals(2, fixture.dataSet.getCurrentRowNum());
+            assertEquals(List.of(2L, 3L, 1L), fixture.ids());
+            assertEquals(1, fixture.table.getSelectionModel().getSelectedIndex());
+            assertEquals(1, fixture.dataSet.getCurrentRowNum());
             assertThrows(UnsupportedOperationException.class,
                     () -> fixture.table.getItems().sort((left, right) -> left.name().compareTo(right.name())));
          }
@@ -244,7 +244,6 @@ class ForeDataSetAdapterTest
          try( var fixture = new Fixture() )
          {
             fixture.dataSet.setCurrentRowNum(0);
-            fixture.enableDataSetSorting();
             fixture.sort(TableColumn.SortType.ASCENDING);
             assertEquals(List.of(2L, 3L, 1L), fixture.ids());
             assertEquals(2, fixture.table.getSelectionModel().getSelectedIndex());
@@ -265,7 +264,6 @@ class ForeDataSetAdapterTest
       FxTestSupport.run(() -> {
          try( var fixture = new Fixture() )
          {
-            fixture.enableDataSetSorting();
             fixture.sort(TableColumn.SortType.ASCENDING);
             fixture.dataSet.setCurrentRowNum(0);
             final var replacement = new Row(2, "Янтарь");
@@ -502,7 +500,7 @@ class ForeDataSetAdapterTest
             assertTrue(fixture.table.getItems().isEmpty());
             assertEquals(-1, fixture.table.getSelectionModel().getSelectedIndex());
             assertNull(fixture.table.getSelectionModel().getSelectedItem());
-            assertSame(TableView.DEFAULT_SORT_POLICY, fixture.table.getSortPolicy());
+            assertFalse(fixture.table.getSortPolicy().call(fixture.table));
             assertNull(fixture.adapter.getCurrentRow());
             assertTrue(fixture.dataSet.rowsListeners.isEmpty());
             assertTrue(fixture.dataSet.navigationListeners.isEmpty());
@@ -710,22 +708,6 @@ class ForeDataSetAdapterTest
          name.setSortType(direction);
          table.getSortOrder().setAll(List.of(name));
          table.sort();
-      }
-
-      void enableDataSetSorting()
-      {
-         table.setSortPolicy(view -> {
-            final Row current = dataSet.getCurrentRow();
-            if( view.getComparator() != null )
-            {
-               dataSet.getRows().sort(view.getComparator());
-               if( current != null )
-                  for( int index = 0; index < dataSet.getLoadedRowCount(); index++ )
-                     if( dataSet.getRow(index) == current ) { dataSet.setCurrentRowNum(index); break; }
-            }
-            adapter.refresh();
-            return true;
-         });
       }
 
       List<Long> ids() { return table.getItems().stream().map(Row::id).toList(); }

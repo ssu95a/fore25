@@ -53,11 +53,6 @@ public final class RecordTableController extends FormController<RecordStore>
       idColumn.setCellValueFactory(cell -> new ReadOnlyLongWrapper(cell.getValue().id()));
       nameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().name()));
       adapter = ForeDataSetAdapter.bind(getDataObject().getDataSet(), table);
-      table.setSortPolicy(view -> {
-         getDataObject().sort(view.getComparator());
-         adapter.refresh();
-         return true;
-      });
       table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
       countLabel.textProperty().bind(Bindings.createIntegerBinding(() -> table.getItems().size(),
               table.itemsProperty()).asString(getBundle().getString("list.count")));
@@ -141,7 +136,6 @@ public final class RecordTableController extends FormController<RecordStore>
       if( table != null )
       {
          table.setActivationAction(null);
-         table.setSortPolicy(view -> false);
       }
       if( countLabel != null ) countLabel.textProperty().unbind();
       if( adapter != null )

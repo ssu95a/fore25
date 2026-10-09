@@ -9,20 +9,31 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableListBase;
 import javafx.event.EventHandler;
 import javafx.scene.control.SortEvent;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.util.Callback;
+import ru.inversion.dataset.AbstractDataSetBase;
 import ru.inversion.dataset.DataSetEvent;
+import ru.inversion.dataset.DataSetException;
 import ru.inversion.dataset.IDataSet;
 import ru.inversion.dataset.IDataSetListener;
 import ru.inversion.dataset.IDataSetNavigationListener;
 import ru.inversion.dataset.IDataSetRowListener;
+import ru.inversion.dataset.ISQLDataSet;
+import ru.inversion.dataset.SQLDataSet;
+import ru.inversion.dataset.parser.OrderByParser;
+import ru.inversion.fore.ForeException;
 import ru.inversion.fore.form.FormTools;
+import ru.inversion.meta.EntityMetadataFactory;
+import ru.inversion.meta.IEntityProperty;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.RandomAccess;
+import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,8 +50,7 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
 
    private final IDataSet<T> dataSet;
    private final TableView<T> table;
-   private final Callback<TableView<T>, Boolean> previousSortPolicy;
-   private final Callback<TableView<T>, Boolean> blockedSortPolicy = view -> false;
+   private final Callback<TableView<T>, Boolean> sortPolicy = view -> sortDataSet();
    private final AtomicInteger pending = new AtomicInteger();
    private final AtomicBoolean scheduled = new AtomicBoolean();
    private final CurrentRowProperty<T> currentRow = new CurrentRowProperty<>();
@@ -55,6 +65,7 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
       requestUpdate(CURSOR_CHANGED);
    };
    private final InvalidationListener itemsListener = observable -> itemsChanged();
+   private final InvalidationListener columnsListener = observable -> configureColumns();
    private final EventHandler<SortEvent<TableView<T>>> sortListener = event -> {
       // Восстановление заголовков после уведомления не должно повторно сортировать данные.
       if( this.synchronizing ) event.consume();
@@ -68,7 +79,6 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
    {
       this.dataSet = dataSet;
       this.table = table;
-      previousSortPolicy = table.getSortPolicy();
    }
 
    /** Полностью заменяет содержимое таблицы без сохранения прежних записей. Выполняется на потоке JavaFX. */
@@ -112,8 +122,15 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
    {
       table.getProperties().put(ADAPTER_KEY, this);
       table.addEventFilter(SortEvent.sortEvent(), sortListener);
-      // Штатная сортировка JavaFX копирует записи. Сортировку IDataSet задаёт владелец через sortPolicy.
-      if( (Object) previousSortPolicy == TableView.DEFAULT_SORT_POLICY ) table.setSortPolicy(blockedSortPolicy);
+      // Политика принадлежит привязке; её установка не должна выполнять запрос к БД.
+      synchronizing = true;
+      try
+      {
+         table.setSortPolicy(sortPolicy);
+         configureColumns();
+      }
+      finally { synchronizing = false; }
+      table.getVisibleLeafColumns().addListener(columnsListener);
       table.itemsProperty().addListener(itemsListener);
       table.selectionModelProperty().addListener(selectionModelListener);
       observeSelection(table.getSelectionModel(), true);
@@ -121,6 +138,111 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
       dataSet.addNavigationListener(navigationListener);
       dataSet.addDataSetListener(dataSetListener);
       refresh();
+   }
+
+   private IEntityProperty<T, ?> getProperty(TableColumn<T, ?> column)
+   {
+      final var factory = column.getCellValueFactory();
+      final String name = factory instanceof PropertyValueFactory<?, ?> propertyFactory
+              ? propertyFactory.getProperty() : column.getId();
+      if( name == null || name.isBlank() ) return null;
+      return EntityMetadataFactory.getEntityMetaData(dataSet.getRowClass()).getProperty(name);
+   }
+
+   private void configureColumns()
+   {
+      if( closed ) return;
+      configureColumns(table.getColumns());
+   }
+
+   private void configureColumns(List<? extends TableColumn<T, ?>> columns)
+   {
+      for( final var column : columns )
+      {
+         if( !column.getColumns().isEmpty() )
+         {
+            configureColumns(column.getColumns());
+            continue;
+         }
+         final var property = getProperty(column);
+         // Даже у вычисляемого свойства с @OrderBy или ProxyFor сортировка запрещена.
+         if( property != null && property.isTransient()
+                 || dataSet instanceof ISQLDataSet<?> && (property == null
+                    || property.getOrderBy() == null || property.getOrderBy().isBlank()) )
+            column.setSortable(false);
+      }
+   }
+
+   private boolean sortDataSet()
+   {
+      if( closed || synchronizing ) return false;
+      configureColumns();
+      for( final var column : table.getSortOrder() )
+         if( !column.isSortable() ) return false;
+
+      synchronizing = true;
+      try
+      {
+         if( dataSet instanceof ISQLDataSet<?> sqlDataSet )
+         {
+            final var orderBy = new StringJoiner(", ");
+            for( final var column : table.getSortOrder() )
+            {
+               final var property = getProperty(column);
+               if( property == null || property.isTransient() ) return false;
+               final String expression = dataSet instanceof SQLDataSet<?> sql && sql.getTaskContext() != null
+                       ? property.makeOrderBy(sql.getTaskContext().dialect()) : property.getOrderBy();
+               if( expression == null || expression.isBlank() ) return false;
+               final String direction = column.getSortType() == TableColumn.SortType.DESCENDING ? " DESC" : " ASC";
+               for( String part : OrderByParser.parseAndGetColumnsList(expression) )
+                  orderBy.add(part + direction);
+            }
+            final String previousOrderBy = sqlDataSet.getOrderBy();
+            try
+            {
+               sqlDataSet.setOrderBy(orderBy.length() == 0 ? null : orderBy.toString());
+               // Сортирует база; заново загружаются данные и курсор, определённый самим набором.
+               sqlDataSet.executeQuery();
+            }
+            catch( DataSetException failure )
+            {
+               sqlDataSet.setOrderBy(previousOrderBy);
+               throw failure;
+            }
+         }
+         else if( dataSet instanceof AbstractDataSetBase<T> memoryDataSet )
+         {
+            final var comparator = table.getComparator();
+            if( comparator != null )
+            {
+               final T current = dataSet.getCurrentRow();
+               memoryDataSet.sort(comparator);
+               if( current != null )
+                  for( int index = 0; index < dataSet.getLoadedRowCount(); index++ )
+                     if( dataSet.getRow(index) == current )
+                     {
+                        dataSet.setCurrentRowNum(index);
+                        break;
+                     }
+            }
+         }
+         else return false;
+         refresh();
+         return true;
+      }
+      catch( DataSetException failure )
+      {
+         // Возвращаем отказ, чтобы JavaFX завершил изменение выделения и отменил изменение заголовка.
+         final var thread = Thread.currentThread();
+         thread.getUncaughtExceptionHandler().uncaughtException(thread,
+                 new ForeException("Не удалось отсортировать набор данных", failure));
+         return false;
+      }
+      finally
+      {
+         synchronizing = false;
+         applyChanges();
+      }
    }
 
    private void itemsChanged()
@@ -244,13 +366,15 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
       dataSet.removeNavigationListener(navigationListener);
       dataSet.removeDataSetListener(dataSetListener);
       table.itemsProperty().removeListener(itemsListener);
+      table.getVisibleLeafColumns().removeListener(columnsListener);
       table.selectionModelProperty().removeListener(selectionModelListener);
       observeSelection(table.getSelectionModel(), false);
       synchronizing = true;
       try
       {
          if( table.getItems() == items ) table.setItems(FXCollections.emptyObservableList());
-         if( table.getSortPolicy() == blockedSortPolicy ) table.setSortPolicy(previousSortPolicy);
+         // Не сохраняем прежний обработчик и не оставляем ссылку на закрытый адаптер в таблице.
+         if( table.getSortPolicy() == sortPolicy ) table.setSortPolicy(view -> false);
       }
       finally
       {
