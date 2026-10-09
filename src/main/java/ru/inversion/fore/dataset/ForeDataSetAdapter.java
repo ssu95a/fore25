@@ -2,10 +2,12 @@ package ru.inversion.fore.dataset;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableListBase;
 import javafx.event.EventHandler;
 import javafx.scene.control.SortEvent;
@@ -40,6 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Связывает записи и курсор IDataSet с таблицей JavaFX без копирования списка записей.
  * Таблица читает непосредственно IDataSet; индексы таблицы и набора совпадают.
+ * Свойство items связано с постоянным представлением строк; reset-all инвалидирует эту привязку.
  * Уведомления передаются на поток JavaFX. Согласование чтения и изменения данных остаётся у владельца набора.
  */
 public final class ForeDataSetAdapter<T> implements AutoCloseable
@@ -50,6 +53,7 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
 
    private final IDataSet<T> dataSet;
    private final TableView<T> table;
+   private final ItemsBinding<T> items;
    private final Callback<TableView<T>, Boolean> sortPolicy = view -> sortDataSet();
    private final AtomicInteger pending = new AtomicInteger();
    private final AtomicBoolean scheduled = new AtomicBoolean();
@@ -67,11 +71,10 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
    private final InvalidationListener itemsListener = observable -> itemsChanged();
    private final InvalidationListener columnsListener = observable -> configureColumns();
    private final EventHandler<SortEvent<TableView<T>>> sortListener = event -> {
-      // Восстановление заголовков после уведомления не должно повторно сортировать данные.
-      if( this.synchronizing ) event.consume();
+      // Настройка привязки и смена источника таблицы не должны запускать запрос к набору.
+      if( this.synchronizing || !ownsItems() ) event.consume();
    };
 
-   private ItemsView<T> items;
    private boolean synchronizing;
    private volatile boolean closed;
 
@@ -79,6 +82,7 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
    {
       this.dataSet = dataSet;
       this.table = table;
+      items = new ItemsBinding<>(dataSet);
    }
 
    /** Полностью заменяет содержимое таблицы без сохранения прежних записей. Выполняется на потоке JavaFX. */
@@ -137,6 +141,15 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
       dataSet.addRowListener(rowListener);
       dataSet.addNavigationListener(navigationListener);
       dataSet.addDataSetListener(dataSetListener);
+      synchronizing = true;
+      try
+      {
+         final var sortColumns = List.copyOf(table.getSortOrder());
+         clearTableSelection();
+         table.itemsProperty().bind(items);
+         if( !sortColumns.isEmpty() ) table.getSortOrder().setAll(sortColumns);
+      }
+      finally { synchronizing = false; }
       refresh();
    }
 
@@ -245,9 +258,11 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
       }
    }
 
+   private boolean ownsItems() { return table.getItems() == items.get(); }
+
    private void itemsChanged()
    {
-      if( table.getItems() != items ) close();
+      if( !ownsItems() ) close();
    }
 
    private void dataSetChanged(DataSetEvent event)
@@ -283,8 +298,13 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
          while( (changes = pending.getAndSet(0)) != 0 )
          {
             final boolean changedRows = (changes & ROWS_CHANGED) != 0;
-            if( changedRows || items == null || items.rowCount != dataSet.getLoadedRowCount() )
-               replaceView();
+            if( changedRows )
+            {
+               clearTableSelection();
+               // Инвалидация items обновляет размер в штатных моделях выделения и фокуса.
+               // Представление и хранилище записей остаются теми же.
+               items.invalidate();
+            }
             selectTableRow();
             currentRow.publish(dataSet.getCurrentRow(), changedRows);
             if( changedRows ) table.refresh();
@@ -296,17 +316,11 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
       }
    }
 
-   private void replaceView()
+   private void clearTableSelection()
    {
-      // Замена оболочки уведомляет модель выделения об актуальном размере набора.
-      // Оболочка читает IDataSet напрямую и не хранит ни строк, ни прежнего списка.
-      final var sortColumns = List.copyOf(table.getSortOrder());
       final var selection = table.getSelectionModel();
       if( selection != null ) selection.clearSelection();
       if( table.getFocusModel() != null ) table.getFocusModel().focus(-1);
-      items = new ItemsView<>(dataSet);
-      table.setItems(items);
-      if( !sortColumns.isEmpty() ) table.getSortOrder().setAll(sortColumns);
    }
 
    private void selectTableRow()
@@ -314,14 +328,14 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
       final var selection = table.getSelectionModel();
       if( selection == null ) return;
       final int index = dataSet.getCurrentRowNum();
-      if( index < 0 || index >= items.size() ) selection.clearSelection();
-      else if( selection.getSelectedIndex() != index || selection.getSelectedItem() != items.get(index) )
+      if( index < 0 || index >= dataSet.getLoadedRowCount() ) selection.clearSelection();
+      else if( selection.getSelectedIndex() != index || selection.getSelectedItem() != items.get().get(index) )
          selection.select(index);
    }
 
    private void selectDataSetRow()
    {
-      if( closed || synchronizing ) return;
+      if( closed || synchronizing || !ownsItems() ) return;
       final var selection = table.getSelectionModel();
       if( selection == null ) return;
       final int index = selection.getSelectedIndex();
@@ -363,7 +377,12 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
       synchronizing = true;
       try
       {
-         if( table.getItems() == items ) table.setItems(FXCollections.emptyObservableList());
+         if( ownsItems() )
+         {
+            clearTableSelection();
+            table.itemsProperty().unbind();
+            table.setItems(FXCollections.emptyObservableList());
+         }
          // Не сохраняем прежний обработчик и не оставляем ссылку на закрытый адаптер в таблице.
          if( table.getSortPolicy() == sortPolicy ) table.setSortPolicy(view -> false);
       }
@@ -373,21 +392,29 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
          synchronizing = false;
       }
       if( table.getProperties().get(ADAPTER_KEY) == this ) table.getProperties().remove(ADAPTER_KEY);
-      items = null;
+      items.dispose();
       currentRow.set(null);
       pending.set(0);
    }
 
-   /** Оболочка содержит только размер на момент уведомления; get и size всегда читают сам набор. */
+   /** Источник items уведомляет JavaFX об изменениях, сохраняя один объект представления строк. */
+   private static final class ItemsBinding<T> extends ObjectBinding<ObservableList<T>>
+   {
+      private final ObservableList<T> rows;
+
+      ItemsBinding(IDataSet<T> dataSet) { rows = new ItemsView<>(dataSet); }
+
+      @Override protected ObservableList<T> computeValue() { return rows; }
+   }
+
+   /** Представление читает записи и размер из IDataSet; собственного хранилища у него нет. */
    private static final class ItemsView<T> extends ObservableListBase<T> implements RandomAccess
    {
       private final IDataSet<T> dataSet;
-      final int rowCount;
 
       ItemsView(IDataSet<T> dataSet)
       {
          this.dataSet = dataSet;
-         rowCount = dataSet.getLoadedRowCount();
       }
 
       @Override public T get(int index) { return dataSet.getRows().get(index); }

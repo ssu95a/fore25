@@ -1,7 +1,6 @@
 package ru.inversion.fore.form.control;
 
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.TransformationList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -17,14 +16,9 @@ import javafx.scene.input.MouseEvent;
 import ru.inversion.fore.form.FormTools;
 import ru.inversion.fore.form.action.ForeAction;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
-
 /**
- * Таблица с восстановлением выбранной строки и общим действием её активации.
- * Источник данных, сортировка и модель выбора используют штатный API JavaFX.
+ * Таблица с общим действием активации строки.
+ * Привязку записей и курсора набора выполняет ForeDataSetAdapter; отображение использует API JavaFX.
  */
 public class ForeTableView<T> extends TableView<T>
 {
@@ -70,86 +64,6 @@ public class ForeTableView<T> extends TableView<T>
          removeEventHandler(MouseEvent.MOUSE_CLICKED, activationMouseHandler);
       }
       activationAction = action;
-   }
-
-   /**
-    * Заменяет данные и восстанавливает одну выбранную строку по ключу.
-    * Источник должен формировать текущий список таблицы, в том числе через преобразования.
-    * Ключи записей должны быть уникальными и ненулевыми; null означает отсутствие выбора.
-    */
-   public <K> void replaceItems(ObservableList<T> source, Collection<? extends T> items,
-                                Function<? super T, ? extends K> keyExtractor)
-   {
-      FormTools.requireFxThread();
-      Objects.requireNonNull(keyExtractor, "keyExtractor");
-      final T selected = getSelectionModel() == null ? null : getSelectionModel().getSelectedItem();
-      final K key = selected == null ? null : keyExtractor.apply(selected);
-      replaceItems(source, items, keyExtractor, key);
-   }
-
-   /**
-    * После замены выбирает запись с заданным ключом, например только что сохранённую.
-    * Отсутствующий ключ или null снимает выбор. Данные копируются до изменения источника.
-    */
-   public <K> void replaceItems(ObservableList<T> source, Collection<? extends T> items,
-                                Function<? super T, ? extends K> keyExtractor, K selectedKey)
-   {
-      FormTools.requireFxThread();
-      Objects.requireNonNull(keyExtractor, "keyExtractor");
-      replaceSource(source, items);
-
-      final var selection = getSelectionModel();
-      if( selection == null )
-         return;
-      selection.clearSelection();
-      if( selectedKey == null )
-         return;
-
-      for( int index = 0; index < getItems().size(); index++ )
-         if( Objects.equals(selectedKey, keyExtractor.apply(getItems().get(index))) )
-         {
-            selection.clearAndSelect(index);
-            scrollTo(index);
-            return;
-         }
-   }
-
-   /**
-    * Обновляет источник после удаления выбранной записи и выбирает строку на её месте.
-    * Для последней строки выбирается предыдущая; пустой список остаётся без выбора.
-    */
-   public void replaceItemsAfterRemoval(ObservableList<T> source, Collection<? extends T> items)
-   {
-      FormTools.requireFxThread();
-      final int index = getSelectionModel() == null ? -1 : getSelectionModel().getSelectedIndex();
-      replaceSource(source, items);
-
-      final var selection = getSelectionModel();
-      if( selection == null )
-         return;
-      selection.clearSelection();
-      if( index >= 0 && !getItems().isEmpty() )
-      {
-         final int next = Math.min(index, getItems().size() - 1);
-         selection.clearAndSelect(next);
-         scrollTo(next);
-      }
-   }
-
-   private void replaceSource(ObservableList<T> source, Collection<? extends T> items)
-   {
-      Objects.requireNonNull(source, "source");
-      ObservableList<?> view = getItems();
-      while( view != source )
-         if( view instanceof TransformationList<?, ?> transformed )
-            view = transformed.getSource();
-         else
-            throw new IllegalArgumentException("Источник должен формировать текущий список таблицы");
-
-      final List<T> snapshot = List.copyOf(Objects.requireNonNull(items, "items"));
-      source.setAll(snapshot);
-      if( getComparator() != null )
-         sort();
    }
 
    private boolean acceptsActivation()

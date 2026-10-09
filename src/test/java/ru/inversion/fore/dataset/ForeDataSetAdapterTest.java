@@ -35,6 +35,7 @@ import java.util.RandomAccess;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static ru.inversion.dataset.IDataSet.InsertRowModeEnum.FIRST;
@@ -92,11 +93,13 @@ class ForeDataSetAdapterTest
             rows.set(150_000, replacement);
             assertSame(replacement, view.get(150_000));
             adapter.refresh();
+            assertSame(view, table.getItems());
             assertSame(replacement, table.getSelectionModel().getSelectedItem());
             dataSet.updateCurrentRow(new Row(150_001, "Обновлена через набор"));
             dataSet.removeCurrentRow();
             dataSet.insertRow(new Row(200_001, "Добавлена"), LAST, false);
             adapter.refresh();
+            assertSame(view, table.getItems());
             assertEquals(200_000, table.getItems().size());
             assertSame(rows, dataSet.getRows());
             assertTrue(rows.reads < 256, "Привязка должна читать только нужные строки, а не весь набор");
@@ -130,6 +133,46 @@ class ForeDataSetAdapterTest
          });
       }
       finally { FxTestSupport.run(() -> holder[0].close()); }
+   }
+
+   @Test
+   void readsObservableDataSetStorageAndPublishesWorkerChangesOnlyOnFx() throws Exception
+   {
+      final var holder = new AtomicReference<ForeDataSetAdapter<Row>>();
+      final var view = new AtomicReference<ObservableList<Row>>();
+      final var notifications = new AtomicInteger();
+      FxTestSupport.run(() -> {
+         final var rows = FXCollections.observableArrayList(new Row(1, "Альфа"), new Row(2, "Бета"));
+         final var dataSet = new ArrayDataSet<>(Row.class, rows, false);
+         dataSet.setCurrentRowNum(0);
+         final var table = new TableView<Row>();
+         final var adapter = ForeDataSetAdapter.bind(dataSet, table);
+         holder.set(adapter);
+         view.set(table.getItems());
+         assertSame(rows, dataSet.getRows());
+         table.itemsProperty().addListener((InvalidationListener) observable -> {
+            assertTrue(Platform.isFxApplicationThread());
+            notifications.incrementAndGet();
+         });
+         runWorker(() -> {
+            dataSet.insertRow(new Row(3, "Гамма"), LAST, false);
+            dataSet.setCurrentRowNum(dataSet.getLoadedRowCount() - 1);
+         });
+         assertSame(view.get(), table.getItems());
+         assertEquals(3, table.getItems().size());
+         assertEquals(0, notifications.get());
+      });
+      try
+      {
+         FxTestSupport.run(() -> {
+            final var adapter = holder.get();
+            assertEquals(1, notifications.get());
+            assertSame(view.get(), adapter.getTable().getItems());
+            assertEquals(2, adapter.getTable().getSelectionModel().getSelectedIndex());
+            assertSame(adapter.getDataSet().getCurrentRow(), adapter.getCurrentRow());
+         });
+      }
+      finally { FxTestSupport.run(() -> holder.get().close()); }
    }
 
    @Test
@@ -375,6 +418,7 @@ class ForeDataSetAdapterTest
             assertSame(fixture.dataSet.getRow(3), view.get(3));
             assertEquals(3, count.get());
             fixture.adapter.refresh();
+            assertSame(view, fixture.table.getItems());
             assertEquals(List.of(1L, 2L, 3L, 4L), fixture.ids());
             assertEquals(4, count.get());
             count.dispose();
@@ -539,6 +583,7 @@ class ForeDataSetAdapterTest
          try( var fixture = new Fixture() )
          {
             final var replacement = FXCollections.observableArrayList(new Row(9, "Другие данные"));
+            fixture.table.itemsProperty().unbind();
             fixture.table.setItems(replacement);
             assertTrue(fixture.adapter.isClosed());
             assertSame(replacement, fixture.table.getItems());

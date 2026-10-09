@@ -3,7 +3,6 @@ package ru.inversion.fore.form.control;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
@@ -41,116 +40,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class ForeTableViewTest
 {
    @BeforeAll static void startToolkit() throws Exception { FxTestSupport.start(); }
-
-   @Test
-   void replacementKeepsTheSelectedKeyWhenObjectsAndSortPositionsChange() throws Exception
-   {
-      FxTestSupport.run(() -> {
-         try( var fixture = new Fixture() )
-         {
-            fixture.table.getSelectionModel().selectFirst();
-            final Row previous = fixture.selected();
-            fixture.table.replaceItems(fixture.source,
-                    List.of(new Row(1, "Янтарь"), new Row(2, "Бета"), new Row(3, "Гамма")), Row::id);
-            assertEquals(1, fixture.selected().id());
-            assertNotSame(previous, fixture.selected());
-            assertEquals(2, fixture.table.getSelectionModel().getSelectedIndex());
-            assertSame(fixture.sorted, fixture.table.getItems());
-            assertEquals(List.of(2L, 3L, 1L), fixture.ids());
-            fixture.table.replaceItems(fixture.source, fixture.source, Row::id);
-            assertEquals(3, fixture.source.size());
-            assertEquals(1, fixture.selected().id());
-         }
-      });
-   }
-
-   @Test
-   void explicitKeySelectsASavedRecordAndMissingKeysClearSelection() throws Exception
-   {
-      FxTestSupport.run(() -> {
-         try( var fixture = new Fixture() )
-         {
-            fixture.table.replaceItems(fixture.source, fixture.source, Row::id, 3L);
-            assertEquals(3, fixture.selected().id());
-            fixture.table.replaceItems(fixture.source, fixture.source, Row::id, 404L);
-            assertNull(fixture.selected());
-            fixture.table.getSelectionModel().selectFirst();
-            fixture.table.replaceItems(fixture.source, fixture.source, Row::id, null);
-            assertNull(fixture.selected());
-            fixture.table.replaceItems(fixture.source, fixture.source, Row::id);
-            assertNull(fixture.selected());
-         }
-      });
-   }
-
-   @Test
-   void removalSelectsTheVisibleNeighborIncludingTheLastRowAndAnEmptyList() throws Exception
-   {
-      FxTestSupport.run(() -> {
-         try( var fixture = new Fixture() )
-         {
-            fixture.table.getSelectionModel().select(1);
-            fixture.table.replaceItemsAfterRemoval(fixture.source, List.of(fixture.source.get(0), fixture.source.get(2)));
-            assertEquals(3, fixture.selected().id());
-            fixture.table.replaceItemsAfterRemoval(fixture.source, List.of(fixture.source.getFirst()));
-            assertEquals(1, fixture.selected().id());
-            fixture.table.replaceItemsAfterRemoval(fixture.source, List.of());
-            assertNull(fixture.selected());
-            assertEquals(-1, fixture.table.getSelectionModel().getSelectedIndex());
-            fixture.table.replaceItemsAfterRemoval(fixture.source, List.of(new Row(4, "Дельта")));
-            assertNull(fixture.selected());
-         }
-      });
-   }
-
-   @Test
-   void restoredSelectionUsesTheFilteredViewAndDoesNotSelectAnInvisibleRecord() throws Exception
-   {
-      FxTestSupport.run(() -> {
-         try( var fixture = new Fixture() )
-         {
-            final var filtered = new FilteredList<>(fixture.source, row -> row.id() != 2);
-            final var sorted = new SortedList<>(filtered);
-            sorted.comparatorProperty().bind(fixture.table.comparatorProperty());
-            try
-            {
-               fixture.table.setItems(sorted);
-               fixture.table.getSortOrder().setAll(List.of(fixture.nameColumn));
-               fixture.table.replaceItems(fixture.source, fixture.source, Row::id, 3L);
-               assertEquals(3, fixture.selected().id());
-               fixture.table.replaceItems(fixture.source, fixture.source, Row::id, 2L);
-               assertNull(fixture.selected());
-               assertEquals(2, fixture.table.getItems().size());
-            }
-            finally { sorted.comparatorProperty().unbind(); }
-         }
-      });
-   }
-
-   @Test
-   void mutableItemsAreSortedAfterReplacementAndInvalidSourcesDoNotChangeData() throws Exception
-   {
-      FxTestSupport.run(() -> {
-         try( var fixture = new Fixture() )
-         {
-            fixture.table.setItems(fixture.source);
-            fixture.table.getSortOrder().setAll(List.of(fixture.nameColumn));
-            fixture.table.getSelectionModel().selectFirst();
-            fixture.table.replaceItems(fixture.source,
-                    List.of(new Row(1, "Янтарь"), new Row(2, "Бета"), new Row(3, "Гамма")), Row::id);
-            assertEquals(List.of(2L, 3L, 1L), fixture.ids());
-            assertEquals(1, fixture.selected().id());
-            final var other = FXCollections.observableArrayList(new Row(9, "Чужой источник"));
-            assertThrows(IllegalArgumentException.class,
-                    () -> fixture.table.replaceItems(other, List.of(), Row::id));
-            assertEquals(1, other.size());
-            assertEquals(3, fixture.source.size());
-            assertThrows(NullPointerException.class,
-                    () -> fixture.table.replaceItems(fixture.source, List.of(), null));
-            assertEquals(3, fixture.source.size());
-         }
-      });
-   }
 
    @Test
    void enterUsesTheCurrentActionAndRespectsSelectionDisabledStateAndModifiers() throws Exception
@@ -294,7 +183,6 @@ class ForeTableViewTest
             fixture.table.edit(-1, null);
             fixture.table.setSelectionModel(null);
             enter(fixture.table, false);
-            fixture.table.replaceItems(fixture.source, fixture.source, Row::id);
             assertEquals(0, calls.get());
          }
       });
@@ -367,7 +255,7 @@ class ForeTableViewTest
    }
 
    @Test
-   void activationAndDataReplacementRequireTheFxThread() throws Exception
+   void activationRequiresTheFxThread() throws Exception
    {
       final var ref = new AtomicReference<Fixture>();
       FxTestSupport.run(() -> ref.set(new Fixture()));
@@ -375,10 +263,6 @@ class ForeTableViewTest
       try
       {
          assertThrows(IllegalStateException.class, () -> fixture.table.setActivationAction(null));
-         assertThrows(IllegalStateException.class,
-                 () -> fixture.table.replaceItems(fixture.source, List.of(), Row::id));
-         assertThrows(IllegalStateException.class,
-                 () -> fixture.table.replaceItemsAfterRemoval(fixture.source, List.of()));
          FxTestSupport.run(() -> assertEquals(3, fixture.source.size()));
       }
       finally { FxTestSupport.run(fixture::close); }

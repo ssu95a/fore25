@@ -1,6 +1,8 @@
 package ru.inversion.fore.dataset;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -43,6 +45,7 @@ class ForeDataSetSqlSortTest
          final var oldRow = sql.rows.getCurrentRow();
          try( var adapter = ForeDataSetAdapter.bind(sql.dataSet, table) )
          {
+            final var items = table.getItems();
             assertTrue(name.isSortable());
             assertTrue(sql.commands.isEmpty(), "Привязка не должна сама выполнять запрос");
             table.getSortOrder().add(name);
@@ -51,11 +54,13 @@ class ForeDataSetSqlSortTest
             assertSame(sql.rows.getCurrentRow(), adapter.getCurrentRow());
             assertNotSame(oldRow, adapter.getCurrentRow(), "Записи должны прийти из повторного запроса");
             assertSame(sql.rows.getRow(0), table.getItems().get(0));
+            assertSame(items, table.getItems());
             assertEquals(List.of(name), table.getSortOrder());
 
             sql.commands.clear();
             name.setSortType(TableColumn.SortType.DESCENDING);
             assertEquals(List.of("ORDER CNNAME DESC", "EXECUTE"), sql.commands);
+            assertSame(items, table.getItems());
             assertEquals(List.of(name), table.getSortOrder());
          }
       });
@@ -188,6 +193,37 @@ class ForeDataSetSqlSortTest
             assertTrue(sql.commands.isEmpty());
          }
          finally { adapter.close(); }
+      });
+   }
+
+   @Test
+   void rebindingItemsKeepsTheNewSourceAndDoesNotQueryTheDetachedDataSet() throws Exception
+   {
+      FxTestSupport.run(() -> {
+         final var sql = new SqlSource();
+         final var table = new TableView<SqlRow>();
+         final var name = column("name");
+         table.getColumns().add(name);
+         try( var adapter = ForeDataSetAdapter.bind(sql.dataSet, table) )
+         {
+            table.getSortOrder().add(name);
+            sql.commands.clear();
+            final var current = sql.rows.getCurrentRow();
+            final int currentIndex = sql.rows.getCurrentRowNum();
+            final var replacement = FXCollections.observableArrayList(new SqlRow(3, "Другой источник"), current);
+            final var source = new SimpleObjectProperty<>(replacement);
+            table.itemsProperty().bind(source);
+            assertTrue(adapter.isClosed());
+            assertTrue(table.itemsProperty().isBound());
+            assertSame(replacement, table.getItems());
+            assertEquals(currentIndex, sql.rows.getCurrentRowNum());
+            assertSame(current, sql.rows.getCurrentRow());
+            assertTrue(sql.commands.isEmpty(), "Смена источника не должна обращаться к прежнему SQL-набору");
+            final var updated = FXCollections.observableArrayList(new SqlRow(4, "Новая"), new SqlRow(5, "Ещё одна"));
+            source.set(updated);
+            assertSame(updated, table.getItems());
+            table.itemsProperty().unbind();
+         }
       });
    }
 
