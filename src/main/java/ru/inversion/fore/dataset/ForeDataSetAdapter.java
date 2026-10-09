@@ -5,7 +5,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ChangeListener;
-import javafx.collections.ObservableList;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableListBase;
 import javafx.event.EventHandler;
 import javafx.scene.control.SortEvent;
@@ -39,7 +39,6 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
 
    private final IDataSet<T> dataSet;
    private final TableView<T> table;
-   private final ObservableList<T> previousItems;
    private final Callback<TableView<T>, Boolean> previousSortPolicy;
    private final Callback<TableView<T>, Boolean> blockedSortPolicy = view -> false;
    private final AtomicInteger pending = new AtomicInteger();
@@ -69,11 +68,10 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
    {
       this.dataSet = dataSet;
       this.table = table;
-      previousItems = table.getItems();
       previousSortPolicy = table.getSortPolicy();
    }
 
-   /** Создаёт одну привязку к таблице; создание и снятие привязки выполняются на потоке JavaFX. */
+   /** Полностью заменяет содержимое таблицы без сохранения прежних записей. Выполняется на потоке JavaFX. */
    public static <T> ForeDataSetAdapter<T> bind(IDataSet<T> dataSet, TableView<T> table)
    {
       FormTools.requireFxThread();
@@ -235,7 +233,7 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
       else selection.selectedIndexProperty().removeListener(selectionListener);
    }
 
-   /** Снимает все подписки и восстанавливает прежний список таблицы. Сам IDataSet остаётся у владельца. */
+   /** Снимает все подписки и очищает связанное представление таблицы. Сам IDataSet остаётся у владельца. */
    @Override
    public void close()
    {
@@ -251,7 +249,7 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
       synchronizing = true;
       try
       {
-         if( table.getItems() == items ) table.setItems(previousItems);
+         if( table.getItems() == items ) table.setItems(FXCollections.emptyObservableList());
          if( table.getSortPolicy() == blockedSortPolicy ) table.setSortPolicy(previousSortPolicy);
       }
       finally
@@ -260,6 +258,7 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
          synchronizing = false;
       }
       if( table.getProperties().get(ADAPTER_KEY) == this ) table.getProperties().remove(ADAPTER_KEY);
+      items = null;
       currentRow.set(null);
       pending.set(0);
    }

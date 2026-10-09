@@ -52,7 +52,8 @@ class ForeDataSetAdapterTest
          final var dataSet = dataSet();
          assertFalse(dataSet.getRows() instanceof ObservableList<?>);
          dataSet.setCurrentRowNum(1);
-         final var table = new TableView<Row>();
+         final var table = new TableView<Row>(FXCollections.observableArrayList(new Row(9, "Прежние данные")));
+         table.getSelectionModel().selectFirst();
          try( var adapter = ForeDataSetAdapter.bind(dataSet, table) )
          {
             assertEquals(dataSet.getRows(), table.getItems());
@@ -62,6 +63,8 @@ class ForeDataSetAdapterTest
             assertSame(dataSet.getCurrentRow(), adapter.getCurrentRow());
             assertThrows(UnsupportedOperationException.class, () -> table.getItems().clear());
          }
+         assertTrue(table.getItems().isEmpty());
+         assertNull(table.getSelectionModel().getSelectedItem());
          assertEquals(3, dataSet.getLoadedRowCount());
       });
    }
@@ -484,7 +487,7 @@ class ForeDataSetAdapterTest
    }
 
    @Test
-   void closeRestoresItemsRemovesAllSubscriptionsAndLeavesTheDataSetWithItsOwner() throws Exception
+   void closeEmptiesTheTableRemovesAllSubscriptionsAndLeavesTheDataSetWithItsOwner() throws Exception
    {
       FxTestSupport.run(() -> {
          try( var fixture = new Fixture() )
@@ -496,16 +499,19 @@ class ForeDataSetAdapterTest
             fixture.adapter.close();
             fixture.adapter.close();
             assertTrue(fixture.adapter.isClosed());
-            assertSame(fixture.previousItems, fixture.table.getItems());
+            assertTrue(fixture.table.getItems().isEmpty());
+            assertEquals(-1, fixture.table.getSelectionModel().getSelectedIndex());
+            assertNull(fixture.table.getSelectionModel().getSelectedItem());
             assertSame(TableView.DEFAULT_SORT_POLICY, fixture.table.getSortPolicy());
             assertNull(fixture.adapter.getCurrentRow());
             assertTrue(fixture.dataSet.rowsListeners.isEmpty());
             assertTrue(fixture.dataSet.navigationListeners.isEmpty());
             assertTrue(fixture.dataSet.dataSetListeners.isEmpty());
             assertEquals(0, fixture.dataSet.closeCalls);
+            assertEquals(3, fixture.dataSet.getLoadedRowCount());
             fixture.dataSet.insertRow(new Row(4, "Дельта"), FIRST, true);
             fixture.table.getSelectionModel().selectFirst();
-            assertSame(fixture.previousItems, fixture.table.getItems());
+            assertTrue(fixture.table.getItems().isEmpty());
             assertNull(fixture.adapter.getCurrentRow());
          }
       });
@@ -606,7 +612,7 @@ class ForeDataSetAdapterTest
             fixture.dataSet.setCurrentRowNum(1);
             assertTrue(fixture.adapter.isClosed());
             assertNull(fixture.adapter.getCurrentRow());
-            assertSame(fixture.previousItems, fixture.table.getItems());
+            assertTrue(fixture.table.getItems().isEmpty());
          }
       });
    }
@@ -619,7 +625,7 @@ class ForeDataSetAdapterTest
          {
             fixture.dataSet.close();
             assertTrue(fixture.adapter.isClosed());
-            assertSame(fixture.previousItems, fixture.table.getItems());
+            assertTrue(fixture.table.getItems().isEmpty());
             assertTrue(fixture.dataSet.dataSetListeners.isEmpty());
          }
       });
@@ -688,8 +694,7 @@ class ForeDataSetAdapterTest
    private static final class Fixture implements AutoCloseable
    {
       final TrackedDataSet<Row> dataSet = dataSet();
-      final ObservableList<Row> previousItems = FXCollections.observableArrayList(new Row(9, "Прежние данные"));
-      final TableView<Row> table = new TableView<>(previousItems);
+      final TableView<Row> table = new TableView<>(FXCollections.observableArrayList(new Row(9, "Прежние данные")));
       final TableColumn<Row, String> name = new TableColumn<>("Название");
       final ForeDataSetAdapter<Row> adapter;
 
