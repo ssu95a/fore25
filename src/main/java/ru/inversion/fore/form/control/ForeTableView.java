@@ -1,6 +1,6 @@
 package ru.inversion.fore.form.control;
 
-import javafx.collections.ObservableList;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -19,6 +19,7 @@ import ru.inversion.fore.form.action.ForeAction;
 /**
  * Таблица с общим действием активации строки.
  * Привязку записей и курсора набора выполняет ForeDataSetAdapter; отображение использует API JavaFX.
+ * До подключения набора список записей пуст и доступен только для чтения.
  */
 public class ForeTableView<T> extends TableView<T>
 {
@@ -30,13 +31,8 @@ public class ForeTableView<T> extends TableView<T>
 
    public ForeTableView()
    {
+      super(FXCollections.emptyObservableList());
       getStyleClass().add("fore-table-view");
-   }
-
-   public ForeTableView(ObservableList<T> items)
-   {
-      this();
-      setItems(items);
    }
 
    /** Действие для Enter и двойного щелчка; его состояние определяет доступность активации. */

@@ -71,6 +71,75 @@ class ForeDataSetAdapterTest
    }
 
    @Test
+   void itemsRejectMutationsThroughTheListIteratorsAndSubLists() throws Exception
+   {
+      FxTestSupport.run(() -> {
+         try( var fixture = new Fixture() )
+         {
+            fixture.dataSet.setCurrentRowNum(1);
+            final var items = fixture.table.getItems();
+            final var original = List.copyOf(fixture.dataSet.getRows());
+            final var current = fixture.dataSet.getCurrentRow();
+            final var replacement = new Row(4, "Новая запись");
+            final var rowEvents = new AtomicInteger();
+            final var navigationEvents = new AtomicInteger();
+            fixture.dataSet.addRowListener(event -> rowEvents.incrementAndGet());
+            fixture.dataSet.addNavigationListener(event -> navigationEvents.incrementAndGet());
+
+            assertAll(
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.add(replacement)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.add(0, replacement)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.addAll(List.of(replacement))),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.addAll(replacement)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.addAll(0, List.of(replacement))),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.set(0, replacement)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.setAll(List.of(replacement))),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.setAll(replacement)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.remove(0)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.remove(original.getFirst())),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.remove(0, 1)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.removeAll(original)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.removeAll(original.getFirst())),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.retainAll(List.of())),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.retainAll(replacement)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.removeIf(row -> true)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.replaceAll(row -> replacement)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.sort((left, right) -> 0)),
+                    () -> assertThrows(UnsupportedOperationException.class, items::clear),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.subList(0, 1).clear()),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.subList(0, 1).set(0, replacement)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.subList(0, 1).add(replacement)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> {
+                       final var iterator = items.iterator();
+                       iterator.next();
+                       iterator.remove();
+                    }),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> {
+                       final var iterator = items.listIterator();
+                       iterator.next();
+                       iterator.set(replacement);
+                    }),
+                    () -> assertThrows(UnsupportedOperationException.class,
+                            () -> items.listIterator().add(replacement)),
+                    () -> assertThrows(RuntimeException.class,
+                            () -> fixture.table.setItems(FXCollections.observableArrayList(replacement)))
+            );
+            assertEquals(original, fixture.dataSet.getRows());
+            assertSame(items, fixture.table.getItems());
+            assertSame(current, fixture.dataSet.getCurrentRow());
+            assertSame(current, fixture.table.getSelectionModel().getSelectedItem());
+            assertEquals(0, rowEvents.get());
+            assertEquals(0, navigationEvents.get());
+
+            fixture.dataSet.updateCurrentRow(replacement);
+            assertSame(replacement, items.get(1));
+            assertSame(replacement, fixture.table.getSelectionModel().getSelectedItem());
+            assertEquals(1, rowEvents.get());
+         }
+      });
+   }
+
+   @Test
    void bindingRefreshAndNavigationDoNotTraverseTwoHundredThousandRows() throws Exception
    {
       FxTestSupport.run(() -> {
@@ -103,6 +172,39 @@ class ForeDataSetAdapterTest
             assertEquals(200_000, table.getItems().size());
             assertSame(rows, dataSet.getRows());
             assertTrue(rows.reads < 256, "Привязка должна читать только нужные строки, а не весь набор");
+         }
+      });
+   }
+
+   @Test
+   void rejectsReadOnlyOperationsWithoutTraversingALargeDataSet() throws Exception
+   {
+      FxTestSupport.run(() -> {
+         final var rows = new NoTraversalRows(200_000);
+         final var dataSet = new ArrayDataSet<>(Row.class, rows, false);
+         final var table = new TableView<Row>();
+         try( var adapter = ForeDataSetAdapter.bind(dataSet, table) )
+         {
+            final var items = table.getItems();
+            final var reads = rows.reads;
+            assertAll(
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.sort((left, right) -> 0)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.remove(new Row(0, "Нет записи"))),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.removeAll(List.of())),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.retainAll(items)),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.replaceAll(row -> {
+                       throw new AssertionError("Функция изменения не должна вызываться для read-only списка");
+                    })),
+                    () -> assertThrows(UnsupportedOperationException.class, () -> items.removeIf(row -> {
+                       throw new AssertionError("Предикат удаления не должен вызываться для read-only списка");
+                    })),
+                    () -> assertThrows(UnsupportedOperationException.class,
+                            () -> items.subList(0, 100_000).sort((left, right) -> 0)),
+                    () -> assertThrows(UnsupportedOperationException.class,
+                            () -> items.reversed().sort((left, right) -> 0))
+            );
+            assertEquals(reads, rows.reads, "Отказ в изменении не должен читать или копировать строки набора");
+            assertEquals(200_000, dataSet.getLoadedRowCount());
          }
       });
    }

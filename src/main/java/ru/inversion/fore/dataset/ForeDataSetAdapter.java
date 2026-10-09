@@ -31,6 +31,8 @@ import ru.inversion.fore.form.FormTools;
 import ru.inversion.meta.EntityMetadataFactory;
 import ru.inversion.meta.IEntityProperty;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -38,10 +40,13 @@ import java.util.RandomAccess;
 import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 /**
  * Связывает записи и курсор IDataSet с таблицей JavaFX без копирования списка записей.
  * Таблица читает непосредственно IDataSet; индексы таблицы и набора совпадают.
+ * Состав и порядок getItems() доступны только для чтения; изменения выполняются через IDataSet.
  * Свойство items связано с постоянным представлением строк; reset-all инвалидирует эту привязку.
  * Уведомления передаются на поток JavaFX. Согласование чтения и изменения данных остаётся у владельца набора.
  */
@@ -407,7 +412,7 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
       @Override protected ObservableList<T> computeValue() { return rows; }
    }
 
-   /** Представление читает записи и размер из IDataSet; собственного хранилища у него нет. */
+   /** Представление только для чтения: записи и размер берутся из IDataSet, собственного хранилища нет. */
    private static final class ItemsView<T> extends ObservableListBase<T> implements RandomAccess
    {
       private final IDataSet<T> dataSet;
@@ -419,9 +424,37 @@ public final class ForeDataSetAdapter<T> implements AutoCloseable
 
       @Override public T get(int index) { return dataSet.getRows().get(index); }
       @Override public int size() { return dataSet.getLoadedRowCount(); }
-      @Override public void clear() { throw new UnsupportedOperationException("Изменяйте записи через IDataSet"); }
-      @Override public void sort(Comparator<? super T> comparator) {
-         throw new UnsupportedOperationException("Сортировку выполняет владелец IDataSet");
+
+      // Отказ сразу: стандартные реализации части этих методов обходят или копируют все строки.
+      @Override public boolean add(T row) { throw readOnly(); }
+      @Override public void add(int index, T row) { throw readOnly(); }
+      @Override public boolean addAll(Collection<? extends T> rows) { throw readOnly(); }
+      @Override public boolean addAll(int index, Collection<? extends T> rows) { throw readOnly(); }
+      @Override public T set(int index, T row) { throw readOnly(); }
+      @Override public boolean setAll(Collection<? extends T> rows) { throw readOnly(); }
+      @Override public T remove(int index) { throw readOnly(); }
+      @Override public boolean remove(Object row) { throw readOnly(); }
+      @Override public void remove(int from, int to) { throw readOnly(); }
+      @Override public boolean removeAll(Collection<?> rows) { throw readOnly(); }
+      @Override public boolean retainAll(Collection<?> rows) { throw readOnly(); }
+      @Override public boolean removeIf(Predicate<? super T> filter) { throw readOnly(); }
+      @Override public void replaceAll(UnaryOperator<T> operator) { throw readOnly(); }
+      @Override public void sort(Comparator<? super T> comparator) { throw readOnly(); }
+      @Override public void clear() { throw readOnly(); }
+
+      @Override public List<T> subList(int from, int to)
+      {
+         return Collections.unmodifiableList(super.subList(from, to));
+      }
+
+      @Override public List<T> reversed()
+      {
+         return Collections.unmodifiableList(super.reversed());
+      }
+
+      private static UnsupportedOperationException readOnly()
+      {
+         return new UnsupportedOperationException("Изменяйте записи и их порядок через IDataSet");
       }
    }
 

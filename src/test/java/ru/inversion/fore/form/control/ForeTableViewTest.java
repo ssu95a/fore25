@@ -3,7 +3,6 @@ package ru.inversion.fore.form.control;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -40,6 +39,18 @@ import static org.junit.jupiter.api.Assertions.*;
 class ForeTableViewTest
 {
    @BeforeAll static void startToolkit() throws Exception { FxTestSupport.start(); }
+
+   @Test
+   void startsWithReadOnlyEmptyItemsBeforeADataSetIsBound() throws Exception
+   {
+      FxTestSupport.run(() -> {
+         final var table = new ForeTableView<Row>();
+         assertTrue(table.getItems().isEmpty());
+         assertThrows(UnsupportedOperationException.class,
+                 () -> table.getItems().add(new Row(1, "Запись")));
+         assertTrue(table.getItems().isEmpty());
+      });
+   }
 
    @Test
    void enterUsesTheCurrentActionAndRespectsSelectionDisabledStateAndModifiers() throws Exception
@@ -285,20 +296,19 @@ class ForeTableViewTest
 
    private static final class Fixture implements AutoCloseable
    {
-      final ObservableList<Row> source = FXCollections.observableArrayList(
-              new Row(1, "Альфа"), new Row(2, "Бета"), new Row(3, "Гамма"));
-      final SortedList<Row> sorted = new SortedList<>(source);
-      final ForeTableView<Row> table = new ForeTableView<>(sorted);
+      final ObservableList<Row> source = FXCollections.unmodifiableObservableList(FXCollections.observableArrayList(
+              new Row(1, "Альфа"), new Row(2, "Бета"), new Row(3, "Гамма")));
+      final ForeTableView<Row> table = new ForeTableView<>();
       final TableColumn<Row, String> nameColumn = new TableColumn<>("Название");
       final Stage stage = new Stage();
 
       Fixture()
       {
+         // Изолированная проверка GUI подставляет источник только для чтения без зависимости от JInvCommon.
+         table.setItems(source);
          nameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().name()));
          nameColumn.setPrefWidth(280);
          table.getColumns().add(nameColumn);
-         sorted.comparatorProperty().bind(table.comparatorProperty());
-         table.getSortOrder().add(nameColumn);
          stage.setScene(new Scene(table, 320, 240));
          stage.show();
          layout();
@@ -318,7 +328,6 @@ class ForeTableViewTest
       @Override public void close()
       {
          table.setActivationAction(null);
-         sorted.comparatorProperty().unbind();
          stage.hide();
       }
    }
