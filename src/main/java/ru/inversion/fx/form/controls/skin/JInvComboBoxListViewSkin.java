@@ -38,6 +38,12 @@ public class JInvComboBoxListViewSkin<T> extends ComboBoxListViewSkin<T> {
         if ((value != null || oldValue != null) && (value == null || !value.equals(oldValue)))
             comboBox.setValue(value);
 
-        comboBox.cancelEdit();
+        T committedValue = comboBox.getValue();
+        String stringValue = converter.toString(committedValue);
+        if (committedValue == null || stringValue == null) {
+            comboBox.getEditor().setText("");
+        } else if (!stringValue.equals(comboBox.getEditor().getText())) {
+            comboBox.getEditor().setText(stringValue);
+        }
     }
 }
