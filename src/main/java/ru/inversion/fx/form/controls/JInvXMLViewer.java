@@ -1,8 +1,5 @@
 package ru.inversion.fx.form.controls;
 
-import com.sun.org.apache.xerces.internal.impl.io.MalformedByteSequenceException;
-import com.sun.org.apache.xml.internal.serialize.OutputFormat;
-import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -25,6 +22,11 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.slf4j.Logger;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSException;
+import org.w3c.dom.ls.LSOutput;
+import org.w3c.dom.ls.LSSerializer;
 import org.xml.sax.SAXException;
 import ru.inversion.fx.app.BaseApp;
 import ru.inversion.fx.app.Tags;
@@ -687,35 +689,76 @@ public class JInvXMLViewer extends VBox implements IJInvControl {
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document doc = builder.parse(new ByteArrayInputStream(xml.getBytes(ch)));
-            OutputFormat format = new OutputFormat(doc);
-            format.setIndenting(true);
-            format.setIndent(2);
-            format.setLineWidth(2000);
-            if(!inputXML.startsWith("<?xml version=")) {
-                format.setOmitXMLDeclaration(true);
+            DOMImplementationLS implementation = (DOMImplementationLS)
+                    doc.getImplementation().getFeature("LS", "3.0");
+            LSSerializer serializer = implementation.createLSSerializer();
+            // Pretty-print не должен добавлять пробелы в смешанное содержимое.
+            serializer.getDomConfig().setParameter("format-pretty-print", !hasMixedContent(doc));
+            serializer.getDomConfig().setParameter("xml-declaration", inputXML.startsWith("<?xml version="));
+            serializer.setNewLine("\n");
+            LSOutput output = implementation.createLSOutput();
+            output.setEncoding(StandardCharsets.UTF_8.name());
+            StringWriter out = new StringWriter();
+            output.setCharacterStream(out);
+            if (!serializer.write(doc, output)) {
+                throw new LSException(LSException.SERIALIZE_ERR, "XML serialization failed");
             }
-            Writer out = new StringWriter();
-            XMLSerializer serializer = new XMLSerializer(out, format);
-            serializer.serialize(doc);
             String formatedXMLString = out.toString();
-//            formatedXMLString = formatedXMLString.replace("&quot;", "'");
+            if (formatedXMLString.endsWith("\r\n")) {
+                formatedXMLString = formatedXMLString.substring(0, formatedXMLString.length() - 2);
+            } else if (formatedXMLString.endsWith("\n")) {
+                formatedXMLString = formatedXMLString.substring(0, formatedXMLString.length() - 1);
+            }
             codeArea.setWrapText(false);
             statusBar.setText(xml_bundle.getString("XML_FORMAT_GOOD"));
             badXML = false;
-            return formatedXMLString.substring(0, formatedXMLString.length() - 1);
-        } catch (MalformedByteSequenceException e) {
-            statusBar.setText(xml_bundle.getString("XML_UNABLE_DETECT_CODEPAGE"));
-            codeArea.setWrapText(true);
-            return null;
+            return formatedXMLString;
         } catch (SAXException e) {
-            badXML = true;
-            statusBar.setText(xml_bundle.getString("XML_FORMAT_BAD"));
+            if (isCharacterEncodingError(e)) {
+                statusBar.setText(xml_bundle.getString("XML_UNABLE_DETECT_CODEPAGE"));
+            } else {
+                badXML = true;
+                statusBar.setText(xml_bundle.getString("XML_FORMAT_BAD"));
+            }
             codeArea.setWrapText(true);
             return null;
-        } catch (IOException | ParserConfigurationException ex) {
+        } catch (IOException ex) {
+            if (isCharacterEncodingError(ex)) {
+                statusBar.setText(xml_bundle.getString("XML_UNABLE_DETECT_CODEPAGE"));
+                codeArea.setWrapText(true);
+            } else {
+                ex.printStackTrace();
+            }
+        } catch (ParserConfigurationException | LSException ex) {
             ex.printStackTrace();
         }
         return null;
+    }
+
+    private static boolean isCharacterEncodingError(Throwable throwable) {
+        for (Throwable current = throwable; current != null; current = current.getCause()) {
+            if (current instanceof CharConversionException) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasMixedContent(Node node) {
+        boolean hasElement = false;
+        boolean hasText = false;
+        for (Node child = node.getFirstChild(); child != null; child = child.getNextSibling()) {
+            if (child.getNodeType() == Node.ELEMENT_NODE) {
+                hasElement = true;
+            } else if (child.getNodeType() == Node.CDATA_SECTION_NODE
+                    || (child.getNodeType() == Node.TEXT_NODE && !child.getNodeValue().isEmpty())) {
+                hasText = true;
+            }
+            if (hasMixedContent(child)) {
+                return true;
+            }
+        }
+        return hasElement && hasText;
     }
 
     /**
