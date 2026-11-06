@@ -9,13 +9,11 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.scene.AccessibleAttribute;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.util.StringConverter;
 import org.slf4j.Logger;
@@ -650,30 +648,18 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
      * @return превышает ли текст размеры текстового поля
      */
     public boolean checkExcessTextLength() {
+        Text measure = new Text(getText());
+        measure.setFont(getFont());
+        double textWidth = measure.getLayoutBounds().getWidth() + 15;
+        double width = getWidth();
 
-        if (getChildren() != null && !getChildren().isEmpty()) {
-
-            Pane pane = (Pane) getChildren().get(0);
-            ObservableList<Node> children = pane.getChildren();
-            if (children.size() > 1 && children.get(1) instanceof Text) {
-                Text text = (Text) children.get(1);
-
-                double textWidth = text.getLayoutBounds().getWidth() + 15;
-                double width = getWidth();
-
-                JInvWrapButton button = ((JInvTextFieldButtonSkin) getSkin()).getButton();
-                JInvButton innerButton = button.getInnerButton();
-
-                if (button.isVisible() && innerButton != null) {
-                        width = width - button.getWidth();
-                }
-//                logger.info("textfield id "+getId()+" textWidth " + textWidth + " width " + width +
-//                        " paneWidth " + pane.getWidth() + " result " + (textWidth > width) + " buttonWidth "+ button.getWidth());
-                return width != 0.0 && textWidth > width;
+        if (getSkin() instanceof JInvTextFieldButtonSkin skin) {
+            JInvWrapButton button = skin.getButton();
+            if (button.isVisible() && button.getInnerButton() != null) {
+                width = width - button.getWidth();
             }
         }
-
-        return false;
+        return width != 0.0 && textWidth > width;
     }
     /**
      * {@inheritDoc }
