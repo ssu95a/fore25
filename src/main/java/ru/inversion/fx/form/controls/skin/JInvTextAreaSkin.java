@@ -89,13 +89,23 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
         textContextMenu.setOnShowing(event -> populateContextMenu(textContextMenu));
         populateContextMenu(textContextMenu);
         registerChangeListener(textArea.contextMenuProperty(), observable -> installContextMenu());
+        registerChangeListener(textArea.onContextMenuRequestedProperty(), observable -> installContextMenu());
         installContextMenu();
     }
 
     private void installContextMenu() {
         TextArea area = getSkinnable();
-        // Явное меню приложения и bound property остаются под управлением приложения.
-        if (!disposed && area.getContextMenu() == null && !area.contextMenuProperty().isBound())
+        if (disposed || area == null || area.contextMenuProperty().isBound())
+            return;
+
+        // Обработчик приложения имеет приоритет; снимаем только собственное меню.
+        if (area.getOnContextMenuRequested() != null) {
+            if (area.getContextMenu() == textContextMenu)
+                area.setContextMenu(null);
+            return;
+        }
+
+        if (area.getContextMenu() == null)
             area.setContextMenu(textContextMenu);
     }
 
