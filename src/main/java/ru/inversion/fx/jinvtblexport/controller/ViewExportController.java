@@ -5,7 +5,6 @@
  */
 package ru.inversion.fx.jinvtblexport.controller;
 
-import com.sun.javafx.scene.control.skin.*;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -91,8 +90,6 @@ public class ViewExportController extends JInvFXFormController implements IDRJas
   @FXML
   public JInvRadioButton landscapeRB;
 
-  private UpdateableListViewSkin<PageSizeEnum> pageSizeSkin;
-
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger("ru.inversion.fx.jinvtblexport.ViewExportController");
 
   private ToggleGroup columnModeGroup;
@@ -143,7 +140,6 @@ public class ViewExportController extends JInvFXFormController implements IDRJas
 ////    exportFormatGroup.selectedToggleProperty().addListener((obserableValue, oldToggle, newToggle) -> {
 ////      log.debug(TU.format("exportFormatGroup.selectedToggleProperty()= {0}", newToggle));
 ////      if (newToggle != rbExcel && pageSizeCMB.getValue() == PageSizeEnum.AUTO) pageSizeCMB.setValue(PageSizeEnum.A4);
-////      pageSizeSkin.refresh();
 ////
 //////        if (group.getSelectedToggle() != null) {
 //////            System.out.println("You think that stackoverflow is " + group.getSelectedToggle().getUserData().toString());
@@ -269,7 +265,6 @@ public class ViewExportController extends JInvFXFormController implements IDRJas
         log.debug(TU.format("exportFormatGroup.selectedToggleProperty()= {0}", newToggle));
 //        if (( newToggle != rbExcel ) && pageSizeCMB.getValue() == PageSizeEnum.AUTO) pageSizeCMB.setValue(PageSizeEnum.A4);
         if (( !Arrays.asList(rbExcel, rbExcel2007).contains(newToggle) ) && pageSizeCMB.getValue() == PageSizeEnum.AUTO) pageSizeCMB.setValue(PageSizeEnum.A4);
-//        pageSizeSkin.refresh();
 
 //        if (group.getSelectedToggle() != null) {
 //            System.out.println("You think that stackoverflow is " + group.getSelectedToggle().getUserData().toString());
@@ -363,10 +358,6 @@ public class ViewExportController extends JInvFXFormController implements IDRJas
 //      em.setSelected(true); return em;
 //    });
 
-    ListView<PageSizeEnum> lv = ((ComboBoxListViewSkin) this.pageSizeCMB.getSkin()).getListView();
-    pageSizeSkin = new UpdateableListViewSkin<>(lv); // Injected by FXML
-    lv.setSkin(pageSizeSkin);//
-//    ((MySkin) listView.getSkin()).refresh(); // This is how you use it
     // !! Restore Items Values
     restoreConfigFromDB2();
   }
@@ -813,25 +804,6 @@ public class ViewExportController extends JInvFXFormController implements IDRJas
             vc.getStage().initStyle(StageStyle.UTILITY);
 
     }*/
-//    public static class UpdateableListViewSkin<T> extends ListViewSkin<T> {
-
-  static class UpdateableListViewSkin<T> extends ListViewSkin<T> {
-
-    public UpdateableListViewSkin(ListView<T> arg0) {
-      super(arg0);
-    }
-
-    public void refresh() {
-      super.flow.rebuildCells();
-    }
-
-    @SuppressWarnings("unchecked")
-    static <T> UpdateableListViewSkin<T> cast(Object obj) {
-      return (UpdateableListViewSkin<T>) obj;
-    }
-
-  }
-
 //  @Entity(name = "ru.inversion.fx.jinvtblexport.controller.ViewExportController.ExportConfigSettings")
 //  public static class ExportConfigSettings {
 //
