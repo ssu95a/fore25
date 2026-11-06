@@ -1,14 +1,14 @@
 package ru.inversion.fx.form.controls.skin;
 
-import com.sun.javafx.scene.control.skin.TableHeaderRow;
-import com.sun.javafx.scene.control.skin.TableViewSkin;
-import com.sun.javafx.scene.control.skin.VirtualFlow;
+import javafx.scene.control.skin.TableHeaderRow;
+import javafx.scene.control.skin.TableViewSkin;
+import javafx.scene.control.skin.VirtualFlow;
 import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
 import javafx.geometry.HPos;
 import javafx.geometry.Orientation;
 import javafx.geometry.VPos;
-import javafx.scene.control.Cell;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import ru.inversion.dataset.DataSetEvent;
@@ -287,24 +287,48 @@ public class JInvTableViewSkin<T> extends TableViewSkin<T> {
     }
     */
 
-    /**
-     * Волшебный трюк для того, чтобы крайний правый столбец не зажёвывался в больших таблицах
-     * (баг JavaFX)
-     */
     @Override
     protected VirtualFlow<TableRow<T>> createVirtualFlow() {
-        return new VirtualFlow<TableRow<T>>(){
-            @Override
-            protected double getCellBreadth(Cell cell)
-            {
-                double base = super.getCellBreadth(cell);
-                if( tableView.getColumnResizePolicy() != TableView.CONSTRAINED_RESIZE_POLICY )
-                    return base + 1;
-
-                return base;
-            }
-        };
+        return new TableFlow<>();
     }
+
+    public ScrollBar getVerticalScrollBar() {
+        return tableFlow().verticalScrollBar();
+    }
+
+    public ScrollBar getHorizontalScrollBar() {
+        return tableFlow().horizontalScrollBar();
+    }
+
+    public boolean isVisibleRow(int index) {
+        return tableFlow().isVisibleRow(index);
+    }
+
+    @SuppressWarnings("unchecked")
+    private TableFlow<T> tableFlow() {
+        return (TableFlow<T>) getVirtualFlow();
+    }
+
+    private static final class TableFlow<T> extends VirtualFlow<TableRow<T>> {
+        private ScrollBar verticalScrollBar() {
+            return getVbar();
+        }
+
+        private ScrollBar horizontalScrollBar() {
+            return getHbar();
+        }
+
+        private boolean isVisibleRow(int index) {
+            TableRow<T> first = getFirstVisibleCellWithinViewport();
+            TableRow<T> last = getLastVisibleCellWithinViewport();
+            return first != null && last != null
+                    && index >= first.getIndex() && index <= last.getIndex();
+        }
+
+        // В FX25 getCellBreadth закрыт для наследников. Прежняя поправка +1
+        // влияла также на диапазон прокрутки; resizeCell не является её эквивалентом.
+    }
+
     private boolean trySetFilterTitle( final IDataSet<T> dataSet ) {
 
         final String filterName = dataSet.getProperty("auto_filter_name");

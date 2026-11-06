@@ -1,8 +1,5 @@
 package ru.inversion.fx.form.controls;
 
-import com.sun.javafx.scene.control.skin.TableViewSkin;
-import com.sun.javafx.scene.control.skin.VirtualFlow;
-import com.sun.javafx.scene.control.skin.VirtualScrollBar;
 import javafx.beans.property.*;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
@@ -11,7 +8,6 @@ import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.event.EventTarget;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -942,27 +938,7 @@ public class JInvTable<S> extends TableView<S> implements IJInvControl, IChoiceC
      *
      */
     public boolean isVisibleRow(int index) {
-
-        boolean result = false;
-
-        TableViewSkin<?> skin = (TableViewSkin) getSkin();
-        if (skin != null) {
-            VirtualFlow<?> flow = (VirtualFlow) skin.getChildren().get(1);
-            if (flow != null) {
-
-                IndexedCell f = flow.getFirstVisibleCellWithinViewPort();
-                IndexedCell l = flow.getLastVisibleCellWithinViewPort();
-
-                if (f != null && l != null) {
-                    int firstVisibleRow = f.getIndex();
-                    int lastVisibleRow = l.getIndex();
-
-                    result = index >= firstVisibleRow && index <= lastVisibleRow;
-                }
-            }
-        }
-
-        return result;
+        return getSkin() instanceof JInvTableViewSkin<?> skin && skin.isVisibleRow(index);
     }
 
     public <P> boolean findRow(BiPredicate<S, P> predicat, P arg2) {
@@ -1004,23 +980,16 @@ public class JInvTable<S> extends TableView<S> implements IJInvControl, IChoiceC
         this.beforeActionHandler = beforeActionHandler;
     }
 
-    private VirtualScrollBar getScroll(Orientation orientation) {
-        return (VirtualScrollBar) this.lookupAll(".scroll-bar").
-            stream().filter((Node t) -> t instanceof VirtualScrollBar
-                && ((VirtualScrollBar) t).getOrientation().equals(orientation)).
-            findFirst().orElse(null);
+    public ScrollBar getScrollVertical() {
+        return getSkin() instanceof JInvTableViewSkin<?> skin ? skin.getVerticalScrollBar() : null;
     }
 
-    public VirtualScrollBar getScrollVertical() {
-        return getScroll(Orientation.VERTICAL);
-    }
-
-    public VirtualScrollBar getScrollHorisontal() {
-        return getScroll(Orientation.HORIZONTAL);
+    public ScrollBar getScrollHorisontal() {
+        return getSkin() instanceof JInvTableViewSkin<?> skin ? skin.getHorizontalScrollBar() : null;
     }
 
     public double getScrollVerticalPosition() {
-        VirtualScrollBar scrollBar = getScrollVertical();
+        ScrollBar scrollBar = getScrollVertical();
         if (scrollBar != null) {
             return scrollBar.getValue();
         } else {
@@ -1029,14 +998,14 @@ public class JInvTable<S> extends TableView<S> implements IJInvControl, IChoiceC
     }
 
     public void setScrollVerticalPosition(double position) {
-        VirtualScrollBar scrollBar = getScrollVertical();
+        ScrollBar scrollBar = getScrollVertical();
         if (scrollBar != null) {
             scrollBar.setValue(position);
         }
     }
 
     public double getScrollHorisontalPosition() {
-        VirtualScrollBar scrollBar = getScrollHorisontal();
+        ScrollBar scrollBar = getScrollHorisontal();
         if (scrollBar != null) {
             return scrollBar.getValue();
         } else {
@@ -1045,7 +1014,7 @@ public class JInvTable<S> extends TableView<S> implements IJInvControl, IChoiceC
     }
 
     public void setScrollHorisontalPosition(double position) {
-        VirtualScrollBar scrollBar = getScrollHorisontal();
+        ScrollBar scrollBar = getScrollHorisontal();
         if (scrollBar != null) {
             scrollBar.setValue(position);
         }

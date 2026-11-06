@@ -5,18 +5,10 @@
  */
 package ru.inversion.fx.form.controls.skin;
 
-import com.sun.javafx.scene.control.skin.TableHeaderRow;
-import com.sun.javafx.scene.control.skin.TableViewSkinBase;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.ScrollBar;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.skin.TableHeaderRow;
+import javafx.scene.control.skin.TableViewSkinBase;
 import javafx.scene.shape.Rectangle;
-import ru.inversion.fx.form.controls.filter.JInvFilterToolBar;
-
-import static ru.inversion.fx.form.controls.JInvTableColumn.COLUMN_MARK;
-
 
 /**
  *
@@ -24,80 +16,38 @@ import static ru.inversion.fx.form.controls.JInvTableColumn.COLUMN_MARK;
  */
 public class JInvTableHeaderRow extends TableHeaderRow {
 
-    private Node    corner;
-    private ScrollBar vBar;
+    private Node corner;
 
-    public JInvTableHeaderRow( final TableViewSkinBase<?, ?, ?, ?, ?, ?> skin ) {
+    public JInvTableHeaderRow(final TableViewSkinBase<?, ?, ?, ?, ?> skin) {
         super(skin);
     }
 
     @Override
     protected void layoutChildren() {
-
         super.layoutChildren();
+        updateClipWidth();
 
-        final Node corner = corner();
-        final ScrollBar vBar = vBar();
+        if (corner == null)
+            corner = lookup(".show-hide-columns-button");
 
-        final double cornerWidth = (vBar != null) ? Math.ceil(vBar.prefWidth(-1)) : 0.0;
-        final double prefHeight  = getHeight() - snappedTopInset() - snappedBottomInset();
-
-        if( corner != null && cornerWidth > 0 )
-            corner.resizeRelocate( getTableWidthWithoutFilterPane() - cornerWidth, snappedTopInset(), cornerWidth, prefHeight );
-
+        if (corner != null) {
+            // Ширину кнопки уже вычислил JavaFX с учётом вертикального scrollbar.
+            double cornerWidth = corner.getLayoutBounds().getWidth();
+            double height = getHeight() - snappedTopInset() - snappedBottomInset();
+            corner.resizeRelocate(Math.max(0, getWidth() - cornerWidth),
+                    snappedTopInset(), cornerWidth, height);
+        }
     }
 
     @Override
     protected void updateTableWidth() {
-        final Node clip = getClip();
-        if (clip instanceof Rectangle) {
-            ((Rectangle) clip).setWidth( getTableWidthWithoutFilterPane() );
-        }
-    }
-//
-//    @SuppressWarnings("unused")
-//    private static boolean isMarkColumn(TableColumn<?, ?> col) {
-//        if( col == null)
-//            return false;
-//        final Object v = col.getProperties().get(COLUMN_MARK);
-//        return Boolean.TRUE.equals(v);
-//    }
-
-    private Node corner() {
-        if( corner == null )
-            corner = lookup(".show-hide-columns-button");
-        return corner;
+        super.updateTableWidth();
+        updateClipWidth();
     }
 
-    private ScrollBar vBar() {
-        if (vBar == null) {
-            Node n = (getTableSkin().getSkinnable()).lookup(".scroll-bar:vertical");
-            if (n instanceof ScrollBar)
-                vBar = (ScrollBar) n;
-        }
-        return vBar;
-    }
-
-    private double getTableWidthWithoutFilterPane() {
-
-        final TableView<?> c = (TableView<?>) getTableSkin().getSkinnable();
-        final Insets insets  = (c.getInsets() == null) ? Insets.EMPTY : c.getInsets();
-        final double padding = Math.ceil(insets.getLeft()) + Math.ceil(insets.getRight());
-
-        double toolBarWidth = 0.0;
-
-        for (Object n : getTableSkin().getChildren()) {
-            if (n instanceof JInvFilterToolBar) {
-                final JInvFilterToolBar<?> tb = (JInvFilterToolBar<?>) n;
-                if (tb.isVisible()) {
-                    double pw = tb.prefWidth(-1);
-                    if (pw <= 0) pw = tb.getMinWidth();
-                    toolBarWidth = Math.ceil(pw);
-                }
-                break;
-            }
-        }
-
-        return c.getWidth() - padding - toolBarWidth;
+    private void updateClipWidth() {
+        // Skin уже выделил заголовку ширину без панели фильтра.
+        if (getClip() instanceof Rectangle clip)
+            clip.setWidth(Math.max(0, getWidth()));
     }
 }

@@ -1,17 +1,15 @@
 package ru.inversion.dataset.fx;
 
-import javafx.beans.InvalidationListener;
-import com.sun.javafx.scene.control.skin.VirtualScrollBar;
 import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
@@ -47,6 +45,7 @@ import ru.inversion.fx.form.controls.renderer.JInvCellFactoryProvider;
 import ru.inversion.fx.form.controls.renderer.JInvCheckBoxCellEditor;
 import ru.inversion.fx.form.controls.renderer.JInvTableCellMark;
 import ru.inversion.fx.form.controls.sortbutton.OrderByManager;
+import ru.inversion.fx.form.controls.skin.JInvTableViewSkin;
 import ru.inversion.icons.enums.FontAwesome;
 import ru.inversion.meta.EntityMetadataFactory;
 import ru.inversion.meta.IEntityMetaData;
@@ -298,6 +297,76 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         return bindTable(dataSet, tableView, cellValueChangeListener, false);
     }
 
+    private ScrollBar findVerticalScrollBar() {
+        if (tableView.getSkin() == null)
+            return null;
+        if (tableView.getSkin() instanceof JInvTableViewSkin<?> skin)
+            return skin.getVerticalScrollBar();
+
+        // Для обычного TableView берём только собственный scrollbar его VirtualFlow.
+        Node flow = tableView.lookup(".virtual-flow");
+        if (flow instanceof Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                if (child instanceof ScrollBar bar && bar.getOrientation() == Orientation.VERTICAL)
+                    return bar;
+            }
+        }
+        return null;
+    }
+
+    private final class SwappingScrollBinding {
+        private ScrollBar scrollBar;
+        private boolean activated;
+        private boolean listening;
+
+        private final ChangeListener<Number> valueListener = (observable, oldValue, newValue) -> {
+            ScrollBar bar = scrollBar;
+            if (bar == null || bulkAppend.get())
+                return;
+
+            double value = Double.isNaN(bar.getValue()) ? bar.getMax() : bar.getValue();
+            if (bar.getMax() - value < 1.1 * bar.getVisibleAmount()) {
+                synchronized (DATA_SET_LOCK) {
+                    try {
+                        eof.set(!dataSet.swappingData());
+                    } catch (DataSetException ex) {
+                        JInvErrorService.handleException(tableView.getScene().getWindow(), ex);
+                    }
+                }
+            }
+        };
+
+        private void install() {
+            activated = tableView.isFocused();
+            // Все слушатели устанавливаются один раз при bind, а не при каждом layout.
+            tableView.focusedProperty().addListener((observable, oldValue, newValue) -> {
+                activated = true;
+                refresh();
+            });
+            tableView.skinProperty().addListener((observable, oldValue, newValue) -> refresh());
+            tableView.needsLayoutProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue)
+                    refresh();
+            });
+            bulkAppend.addListener((observable, oldValue, newValue) -> refresh());
+            refresh();
+        }
+
+        private ScrollBar refresh() {
+            ScrollBar next = findVerticalScrollBar();
+            boolean shouldListen = next != null && activated && !bulkAppend.get();
+            if (scrollBar != next || listening != shouldListen) {
+                if (listening)
+                    scrollBar.valueProperty().removeListener(valueListener);
+                scrollBar = next;
+                listening = shouldListen;
+                if (listening)
+                    scrollBar.valueProperty().addListener(valueListener);
+            }
+            return scrollBar;
+        }
+    }
+
     /** Набор имен полей столбцов TableView участвующие в bindings */
     final private Set<String> columnFieldsSet = new HashSet<>();
 
@@ -369,12 +438,14 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
             }
         });
 
-        final VirtualScrollBar vsb = (VirtualScrollBar) tableView.lookup(".scroll-bar");
+        final SwappingScrollBinding scrollBinding = new SwappingScrollBinding();
+        scrollBinding.install();
 
         tableView.addEventFilter( KeyEvent.KEY_PRESSED, event ->
         {
             //Подгружаем записи по PageDown, если вдруг оказались на последней записи
-            if ( event.getCode() == KeyCode.PAGE_DOWN && vsb.getValue() >= vsb.getMax() ) {
+            ScrollBar vsb = scrollBinding.refresh();
+            if ( event.getCode() == KeyCode.PAGE_DOWN && vsb != null && vsb.getValue() >= vsb.getMax() ) {
                 try {
 //            logger.info( " -- SWAPPING on PGDN --" );
                     boolean isEof = !dataSet.swappingData();
@@ -392,59 +463,6 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
                 event.consume();
             }
         });
-        //
-        tableView.focusedProperty().addListener(new InvalidationListener() {
-            //Сработали разок – и хватит
-            boolean triggeredOnce = false;
-
-            @Override
-            public void invalidated(Observable observable) {
-                if ( triggeredOnce ){
-                    return;
-                }
-
-                // by psh
-                vsb.valueProperty().addListener (
-
-                    new ChangeListener< Number >() {
-
-                        {
-                            final ChangeListener<Number> _this = this;
-
-                            bulkAppend.addListener(new ChangeListener< Boolean >() {
-                                @Override
-                                public void changed( ObservableValue< ? extends Boolean > observable, Boolean oldValue, Boolean newValue ) {
-                                    if( newValue )
-                                        vsb.valueProperty().removeListener(_this);
-                                    else
-                                        vsb.valueProperty().addListener(_this);
-                                }
-                            });
-                        }
-
-                        @Override
-                        public void changed( ObservableValue< ? extends Number > observable, Number oldValue, Number newValue ) {
-
-                            double value = Double.isNaN(vsb.getValue()) ? vsb.getMax() : vsb.getValue();
-
-                            if( vsb.getMax() - value < 1.1 * vsb.getVisibleAmount() ) {
-                                synchronized (DATA_SET_LOCK) {
-                                    try {
-                                        eof.set(!dataSet.swappingData());
-                                    } catch( DataSetException ex ) {
-                                        JInvErrorService.handleException(tableView.getScene().getWindow(), ex);
-                                    }
-                                }
-                            }
-                        }
-                    });
-
-                triggeredOnce = true;
-
-                tableView.focusedProperty().removeListener(this);
-            }
-        });
-
         tableView.requestFocus();
 
         // Связывание данных
