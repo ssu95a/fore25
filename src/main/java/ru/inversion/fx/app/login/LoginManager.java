@@ -21,7 +21,6 @@ import ru.inversion.utils.Holder;
 import ru.inversion.utils.S;
 import ru.inversion.utils.dco.Dco;
 import ru.inversion.utils.dco.IDco;
-import sun.security.provider.X509Factory;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayInputStream;
@@ -46,6 +45,9 @@ import static ru.inversion.fx.app.property.PropertiesTypeEnum.PRP;
  */
 public class
 LoginManager {
+
+    private static final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
+    private static final String END_CERTIFICATE = "-----END CERTIFICATE-----";
 
     protected static final ResourceBundle fore = ResourceBundle.getBundle("fore");
 
@@ -306,10 +308,10 @@ LoginManager {
                     {
                         sw = new StringWriter();
                         final Base64.Encoder encoder = Base64.getEncoder( );
-                        sw.write( X509Factory.BEGIN_CERT );
+                        sw.write( BEGIN_CERTIFICATE );
                         sw.write( '\n' );
                         sw.write( encoder.encodeToString( certificate.getEncoded() ) );
-                        sw.write( X509Factory.END_CERT   );
+                        sw.write( END_CERTIFICATE   );
 
                         dcRet.e("certificate").value( sw.toString() );
                     }

@@ -4,13 +4,11 @@ import ru.inversion.fx.jinvtblexport.property.ExportFormatEnum;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.AccessController;
 
 import org.slf4j.LoggerFactory;
 import ru.inversion.fx.app.es.JInvErrorService;
 import ru.inversion.fx.report.drjasper.*;
 import ru.inversion.util.*;
-import sun.security.action.GetPropertyAction;
 
 /**
  * @author polyatykina
@@ -89,7 +87,7 @@ public class ExportSettings implements IDRJasperConst  {
 
   // Временная директория для сохранения файлов
 
-  private static final File javaFileTmpDir = new File(AccessController.doPrivileged(new GetPropertyAction("java.io.tmpdir")));
+  private static final File javaFileTmpDir = new File(System.getProperty("java.io.tmpdir"));
 
   private static final String javaTmpDir = System.getProperty("java.io.tmpdir");
 

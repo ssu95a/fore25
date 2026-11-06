@@ -188,7 +188,7 @@ public class LoginDialog extends Dialog<Boolean> {
 
         try {
 
-            String lang = sun.awt.im.InputContext.getInstance().getLocale().getISO3Language().toUpperCase();
+            String lang = java.awt.im.InputContext.getInstance().getLocale().getISO3Language().toUpperCase();
 
             Tooltip langTooltip = new Tooltip( lang );
             langTooltip.setAutoHide( true );
