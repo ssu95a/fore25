@@ -1,6 +1,6 @@
 package ru.inversion.dataset.fx;
 
-import com.sun.javafx.beans.event.AbstractNotifyListener;
+import javafx.beans.InvalidationListener;
 import com.sun.javafx.scene.control.skin.VirtualScrollBar;
 import javafx.application.Platform;
 import javafx.beans.Observable;
@@ -393,7 +393,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
             }
         });
         //
-        tableView.focusedProperty().addListener(new AbstractNotifyListener() {
+        tableView.focusedProperty().addListener(new InvalidationListener() {
             //Сработали разок – и хватит
             boolean triggeredOnce = false;
 

@@ -11,7 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Control;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import com.sun.javafx.scene.control.skin.TabPaneSkin;
+import javafx.scene.control.skin.TabPaneSkin;
 import javafx.scene.layout.StackPane;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;

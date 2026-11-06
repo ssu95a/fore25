@@ -1,6 +1,6 @@
 package ru.inversion.fx.form.controls.treetableex;
 
-import com.sun.javafx.scene.control.skin.TreeTableViewSkin;
+import javafx.scene.control.skin.TreeTableViewSkin;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.control.TreeTableView;
@@ -33,10 +33,10 @@ public class JInvTreeTableViewSkin extends TreeTableViewSkin<Object> {
     // https://stackoverflow.com/questions/27059701/javafx-in-treeview-need-only-scroll-to-index-number-when-treeitem-is-out-of-vie/27786741#27786741
     public boolean isIndexVisible(int index)
     {
-        if (flow.getFirstVisibleCell() != null &&
-                flow.getLastVisibleCell() != null &&
-                flow.getFirstVisibleCell().getIndex() <= index &&
-                flow.getLastVisibleCell().getIndex() >= index)
+        if (getVirtualFlow().getFirstVisibleCell() != null &&
+                getVirtualFlow().getLastVisibleCell() != null &&
+                getVirtualFlow().getFirstVisibleCell().getIndex() <= index &&
+                getVirtualFlow().getLastVisibleCell().getIndex() >= index)
             return true;
         return false;
     }

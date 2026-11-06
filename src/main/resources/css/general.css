@@ -330,7 +330,7 @@
 }
 
 .bar-button:current{
-    -fx-skin: "com.sun.javafx.scene.control.skin.ButtonSkin";
+    -fx-skin: "javafx.scene.control.skin.ButtonSkin";
     -fx-background-color: -fx-shadow-highlight-color, -fx-outer-border, -fx-inner-border, -fx-current-window-color;
     -fx-background-insets: 0 0 -1 0, 0, 1, 2;
     -fx-background-radius: 5, 5, 4, 3;

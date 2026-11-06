@@ -1,6 +1,6 @@
 package ru.inversion.fx.form;
 
-import com.sun.javafx.scene.control.skin.TableColumnHeader;
+import javafx.scene.control.skin.TableColumnHeader;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;

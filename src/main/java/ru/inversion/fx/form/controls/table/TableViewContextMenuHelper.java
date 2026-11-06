@@ -1,7 +1,7 @@
 package ru.inversion.fx.form.controls.table;
-import com.sun.javafx.scene.control.skin.TableColumnHeader;
-import com.sun.javafx.scene.control.skin.TableHeaderRow;
-import com.sun.javafx.scene.control.skin.TableViewSkin;
+import javafx.scene.control.skin.TableColumnHeader;
+import javafx.scene.control.skin.TableHeaderRow;
+import javafx.scene.control.skin.TableViewSkin;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;

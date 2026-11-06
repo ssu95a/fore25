@@ -1,7 +1,7 @@
 package ru.inversion.fx.form.controls.treetableex;
 
-import com.sun.javafx.scene.control.skin.TableHeaderRow;
-import com.sun.javafx.scene.control.skin.TableViewSkin;
+import javafx.scene.control.skin.TableHeaderRow;
+import javafx.scene.control.skin.TableViewSkin;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.geometry.Side;
