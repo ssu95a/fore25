@@ -1,9 +1,6 @@
 package ru.inversion.fx.form.controls.sheet;
 
-import com.sun.javafx.scene.control.behavior.BehaviorBase;
-import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
 import javafx.scene.text.Text;
-import impl.org.controlsfx.skin.PropertySheetSkin;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
@@ -36,12 +33,14 @@ import ru.inversion.icons.IconFactory;
 import ru.inversion.icons.enums.FontAwesome;
 import ru.inversion.utils.U;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.module.ModuleReader;
 import java.math.BigDecimal;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static impl.org.controlsfx.i18n.Localization.asKey;
-import static impl.org.controlsfx.i18n.Localization.localize;
 import static java.lang.invoke.MethodHandles.lookup;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -49,7 +48,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  *
  * @author antonovdi
  */
-public class JInvPropertySheetSkin extends BehaviorSkinBase<PropertySheet, BehaviorBase<PropertySheet>> {
+public class JInvPropertySheetSkin extends SkinBase<PropertySheet> {
     /**
      * ************************************************************************
      *
@@ -95,7 +94,7 @@ public class JInvPropertySheetSkin extends BehaviorSkinBase<PropertySheet, Behav
      */
     public JInvPropertySheetSkin(final PropertySheet control) {
 
-        super(control, new BehaviorBase<>(control, Collections.emptyList()));
+        super(control);
 
         scroller = new ScrollPane();
         scroller.setFitToWidth(true);
@@ -110,7 +109,7 @@ public class JInvPropertySheetSkin extends BehaviorSkinBase<PropertySheet, Behav
         toolbar.getItems().add(modeButton);
 
         // property sheet search
-        searchField.setPromptText(localize(asKey("property.sheet.search.field.prompt"))); //$NON-NLS-1$
+        searchField.setPromptText(localize("property.sheet.search.field.prompt")); //$NON-NLS-1$
         searchField.setMinWidth(0);
         HBox.setHgrow(searchField, Priority.SOMETIMES);
         searchField.managedProperty().bind(searchField.visibleProperty());
@@ -169,24 +168,24 @@ public class JInvPropertySheetSkin extends BehaviorSkinBase<PropertySheet, Behav
             tree.setRoot( pageTreeRoot );
             tree.setShowRoot( false );
             tree.setFocusTraversable( false );
-            tree.getSelectionModel().selectedItemProperty()
-                    .addListener( ( v, o, n ) -> {
-                        if ( n != null && n.getValue() != null ){
-                            ( (JInvPropertySheet) control ).pageProperty().set( n.getValue().getName() );
-                        }
-                    } );
-            registerChangeListener(( (JInvPropertySheet) control ).pageProperty(), "PAGE");
+            registerChangeListener(tree.getSelectionModel().selectedItemProperty(), observable -> {
+                TreeItem<SettingsPage> selected = tree.getSelectionModel().getSelectedItem();
+                if (selected != null && selected.getValue() != null) {
+                    ((JInvPropertySheet) control).pageProperty().set(selected.getValue().getName());
+                }
+            });
+            registerChangeListener(((JInvPropertySheet) control).pageProperty(), observable -> refreshProperties());
         }
 
-        // setup listeners
-        registerChangeListener(control.modeProperty(), "MODE"); //$NON-NLS-1$
-        registerChangeListener(control.propertyEditorFactory(), "EDITOR-FACTORY"); //$NON-NLS-1$
-        registerChangeListener(control.titleFilter(), "FILTER"); //$NON-NLS-1$
-        registerChangeListener(searchField.textProperty(), "FILTER-UI"); //$NON-NLS-1$
-        registerChangeListener(control.modeSwitcherVisibleProperty(), "TOOLBAR-MODE"); //$NON-NLS-1$
-        registerChangeListener(control.searchBoxVisibleProperty(), "TOOLBAR-SEARCH"); //$NON-NLS-1$
+        registerChangeListener(control.modeProperty(), observable -> refreshProperties());
+        registerChangeListener(control.propertyEditorFactory(), observable -> refreshProperties());
+        registerChangeListener(control.titleFilter(), observable -> refreshProperties());
+        registerChangeListener(searchField.textProperty(), observable -> control.setTitleFilter(searchField.getText()));
+        registerChangeListener(control.modeSwitcherVisibleProperty(), observable -> updateToolbar());
+        registerChangeListener(control.searchBoxVisibleProperty(), observable -> updateToolbar());
+        registerChangeListener(control.categoryComparatorProperty(), observable -> refreshProperties());
 
-        control.getItems().addListener((ListChangeListener<PropertySheet.Item>) change -> refreshProperties());
+        control.getItems().addListener(itemsListener);
 
         final ObservableMap<Object, Object> properties = control.getProperties();
         properties.remove("REFRESH");
@@ -196,6 +195,8 @@ public class JInvPropertySheetSkin extends BehaviorSkinBase<PropertySheet, Behav
         refreshProperties();
         updateToolbar();
     }
+
+    private final ListChangeListener<PropertySheet.Item> itemsListener = change -> refreshProperties();
 
     MapChangeListener<Object, Object> propertiesMapListener = c -> {
 
@@ -214,7 +215,11 @@ public class JInvPropertySheetSkin extends BehaviorSkinBase<PropertySheet, Behav
         refreshProperties();
     }
     @Override public void dispose() {
-        getSkinnable().getProperties().removeListener(propertiesMapListener);
+        PropertySheet control = getSkinnable();
+        if (control == null)
+            return;
+        control.getItems().removeListener(itemsListener);
+        control.getProperties().removeListener(propertiesMapListener);
         super.dispose();
     }
 
@@ -225,22 +230,6 @@ public class JInvPropertySheetSkin extends BehaviorSkinBase<PropertySheet, Behav
      *
      *************************************************************************
      */
-    @Override
-    protected void handleControlPropertyChanged(String p) {
-        super.handleControlPropertyChanged(p);
-
-        if (p == "MODE" || p == "EDITOR-FACTORY" || p == "FILTER" || p == "PAGE" ) {
-            refreshProperties();
-        } else if (p == "FILTER-UI") { //$NON-NLS-1$
-            getSkinnable().setTitleFilter(searchField.getText());
-        } else if (p == "TOOLBAR-MODE") { //$NON-NLS-1$
-            updateToolbar();
-        } else if (p == "TOOLBAR-SEARCH") { //$NON-NLS-1$
-            updateToolbar();
-        }
-    }
-
-
     @Override
     protected void layoutChildren(double x, double y, double w, double h) {
         content.resizeRelocate(x, y, w, h);
@@ -253,6 +242,37 @@ public class JInvPropertySheetSkin extends BehaviorSkinBase<PropertySheet, Behav
      *
      *************************************************************************
      */
+    private static Image loadModeImage(String name) {
+        String path = "org/controlsfx/control/" + name;
+        URL resource = PropertySheet.class.getResource("/" + path);
+        if (resource != null)
+            return new Image(resource.toExternalForm());
+
+        // В named module пакет ресурсов закрыт; ModuleReader не требует add-opens.
+        Module module = PropertySheet.class.getModule();
+        if (module.isNamed() && module.getLayer() != null) {
+            try (ModuleReader reader = module.getLayer().configuration()
+                    .findModule(module.getName()).orElseThrow().reference().open();
+                 InputStream stream = reader.open(path).orElseThrow(
+                         () -> new IOException("Missing ControlsFX resource: " + path))) {
+                return new Image(stream);
+            } catch (IOException ex) {
+                throw new IllegalStateException("Cannot load ControlsFX resource: " + path, ex);
+            }
+        }
+        throw new IllegalStateException("Missing ControlsFX resource: " + path);
+    }
+
+    private static String localize(String key) {
+        // Используем стандартную locale и ресурсы ControlsFX без обращения к impl API.
+        try {
+            return ResourceBundle.getBundle("controlsfx", Locale.getDefault(),
+                    PropertySheet.class.getClassLoader()).getString(key);
+        } catch (MissingResourceException ex) {
+            return "<" + key + ">";
+        }
+    }
+
     private void updateToolbar() {
         modeButton.setVisible(getSkinnable().isModeSwitcherVisible());
         searchField.setVisible(getSkinnable().isSearchBoxVisible());
@@ -389,8 +409,8 @@ public class JInvPropertySheetSkin extends BehaviorSkinBase<PropertySheet, Behav
      */
     private class ActionChangeMode extends Action {
 
-        private final Image CATEGORY_IMAGE = new Image(PropertySheetSkin.class.getResource("/org/controlsfx/control/format-indent-more.png").toExternalForm()); //$NON-NLS-1$
-        private final Image NAME_IMAGE = new Image(PropertySheetSkin.class.getResource("/org/controlsfx/control/format-line-spacing-triple.png").toExternalForm()); //$NON-NLS-1$
+        private final Image CATEGORY_IMAGE = loadModeImage("format-indent-more.png"); //$NON-NLS-1$
+        private final Image NAME_IMAGE = loadModeImage("format-line-spacing-triple.png"); //$NON-NLS-1$
 
         public ActionChangeMode(PropertySheet.Mode mode) {
             super(""); //$NON-NLS-1$
@@ -398,10 +418,10 @@ public class JInvPropertySheetSkin extends BehaviorSkinBase<PropertySheet, Behav
 
             if (mode == PropertySheet.Mode.CATEGORY) {
                 setGraphic(new ImageView(CATEGORY_IMAGE));
-                setLongText(localize(asKey("property.sheet.group.mode.bycategory"))); //$NON-NLS-1$
+                setLongText(localize("property.sheet.group.mode.bycategory")); //$NON-NLS-1$
             } else if (mode == PropertySheet.Mode.NAME) {
                 setGraphic(new ImageView(NAME_IMAGE));
-                setLongText(localize(asKey("property.sheet.group.mode.byname"))); //$NON-NLS-1$
+                setLongText(localize("property.sheet.group.mode.byname")); //$NON-NLS-1$
             } else {
                 setText("???"); //$NON-NLS-1$
             }
