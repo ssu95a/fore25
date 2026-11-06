@@ -1,6 +1,5 @@
 package ru.inversion.fx.report.drjasper.util;
 
-import com.sun.javafx.tk.*;
 import javafx.scene.text.*;
 import org.slf4j.*;
 import ru.inversion.fx.app.*;
@@ -31,9 +30,9 @@ public class FXInvUtil {
   /* ********************* Class Body *****************************/
   public static double getFontCharWidth(int prefColCount, Font font) {
     log.debug( format("getFontCharWidth..font= {0}", font) );
-    FontMetrics metrics = Toolkit.getToolkit().getFontLoader().getFontMetrics(font);
-//    float charWidth = metrics.computeStringWidth("7");
-    float charWidth = metrics.computeStringWidth("w");
+    Text text = new Text("w");
+    text.setFont(font);
+    double charWidth = text.getLayoutBounds().getWidth();
     double reslt = (prefColCount) * charWidth + 5;
 //    double reslt = (prefColCount + 2 ) * charWidth + 10;
     log.debug(format("PrefColCount= {0}; CharWidth= {1}; FontInfo= [{2}; {3}]; PrefColCountWidth= {4}", prefColCount, charWidth, font.getName(), font.getSize(), reslt));

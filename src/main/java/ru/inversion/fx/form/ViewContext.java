@@ -1,7 +1,5 @@
 package ru.inversion.fx.form;
 
-import com.sun.javafx.stage.StageHelper;
-import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -46,9 +44,10 @@ public class ViewContext {
         {
             if( BaseApp.APP() == null )
             {
-                final ObservableList< Stage > stages = StageHelper.getStages();
-                if( stages != null && !stages.isEmpty() )
-                    this.stage = stages.get(0);
+                this.stage = Window.getWindows().stream()
+                        .filter(Stage.class::isInstance)
+                        .map(Stage.class::cast)
+                        .findFirst().orElse(null);
             }
             else
                 this.stage = BaseApp.APP().getPrimaryStage();

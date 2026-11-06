@@ -1,7 +1,6 @@
 package ru.inversion.fx.form;
 
-import com.sun.javafx.tk.FontLoader;
-import com.sun.javafx.tk.Toolkit;
+import javafx.scene.text.Text;
 import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
@@ -112,7 +111,6 @@ public class F7FilterDialog extends GridPane {
 
     //Текущая максимальная ширина левой части (описание свойства). Обнуляется после использования.
     private double maxWidth = MIN_COLUMN_WIDTH;
-    private final FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
 
     private final JInvCheckBoxConverter converterForCheckBox = new JInvCheckBoxConverter();
     private final List<F7SearchModel>   searchDictionary     = new ArrayList<>();
@@ -206,7 +204,9 @@ public class F7FilterDialog extends GridPane {
                 .filter( node -> GridPane.getColumnIndex( node ) == 0 && node instanceof Label )
                 .map( node -> (Label)node )
                 .forEach( label -> {
-                    double labelWidth = fontLoader.computeStringWidth(label.getText(), label.getFont());
+                    Text text = new Text(label.getText());
+                    text.setFont(label.getFont());
+                    double labelWidth = text.getLayoutBounds().getWidth();
                     if ( labelWidth > maxWidth ){
                         maxWidth = labelWidth;
                     }

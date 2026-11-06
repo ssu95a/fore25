@@ -2,8 +2,7 @@ package ru.inversion.fx.form.controls.sheet;
 
 import com.sun.javafx.scene.control.behavior.BehaviorBase;
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
-import com.sun.javafx.tk.FontLoader;
-import com.sun.javafx.tk.Toolkit;
+import javafx.scene.text.Text;
 import impl.org.controlsfx.skin.PropertySheetSkin;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
@@ -78,7 +77,6 @@ public class JInvPropertySheetSkin extends BehaviorSkinBase<PropertySheet, Behav
     );
     private final TextField searchField = TextFields.createClearableTextField();
     private final TreeItem<SettingsPage> pageTreeRoot = new TreeItem<>(null);
-    private final FontLoader fontLoader = Toolkit.getToolkit().getFontLoader();
     //Показывать ли список страниц слева
     private boolean showPages;
     private TreeView<SettingsPage> tree;
@@ -489,7 +487,9 @@ public class JInvPropertySheetSkin extends BehaviorSkinBase<PropertySheet, Behav
                     ( (CheckBox) editor ).setGraphic( label );
                     add(editor, 1, row);
                 } else {
-                    labelWidth = fontLoader.computeStringWidth(label.getText(), label.getFont());
+                    Text text = new Text(label.getText());
+                    text.setFont(label.getFont());
+                    labelWidth = text.getLayoutBounds().getWidth();
 
                     AnchorPane labelAnchor = new AnchorPane();
                     labelAnchor.getChildren().add( label );

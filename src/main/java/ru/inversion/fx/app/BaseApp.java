@@ -1,7 +1,6 @@
 package ru.inversion.fx.app;
 
 import com.sun.javafx.css.StyleManager;
-import com.sun.javafx.stage.StageHelper;
 import com.sun.management.OperatingSystemMXBean;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -10,6 +9,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.scene.control.MenuBar;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.Pair;
 import org.apache.commons.lang.LocaleUtils;
 import org.slf4j.Logger;
@@ -492,8 +492,7 @@ public class BaseApp extends Application {
             showMainWindow( );
         }
 
-        //private API! replace with Window.getWindows() in JavaFX 9+ https://stackoverflow.com/a/58283054
-        StageHelper.getStages().forEach(stage -> {
+        Window.getWindows().stream().filter(Stage.class::isInstance).map(Stage.class::cast).forEach(stage -> {
             appLog.debug("found stage: {}, showing = {}", stage, stage.isShowing());
             if (stage != primaryViewContext.getStage() && stage.isShowing()) {
                 reportGuiLaunch();
