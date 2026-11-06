@@ -30,6 +30,10 @@
 
     <properties>
         <inversion.embed.sources.skip>true</inversion.embed.sources.skip>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <maven.compiler.release>25</maven.compiler.release>
+        <javafx.version>25</javafx.version>
     </properties>
 
   <build>
@@ -152,8 +156,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>8</source>
-          <target>8</target>
+          <release>${maven.compiler.release}</release>
         </configuration>
       </plugin>
     </plugins>
@@ -401,6 +404,26 @@
   </profiles>
 
   <dependencies>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>${javafx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-fxml</artifactId>
+      <version>${javafx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-swing</artifactId>
+      <version>${javafx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-web</artifactId>
+      <version>${javafx.version}</version>
+    </dependency>
     <dependency>
 <!--      <scope>provided</scope>-->
       <groupId>${project.groupId}</groupId>
