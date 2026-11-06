@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 package ru.inversion.fx.form.controls.skin;
-import com.sun.javafx.scene.control.skin.TextAreaSkin;
+import javafx.scene.control.skin.TextAreaSkin;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import javafx.application.Platform;
@@ -16,15 +16,16 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
-import javafx.geometry.HPos;
 import javafx.geometry.Orientation;
-import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextArea;
+import javafx.scene.input.Clipboard;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import ru.inversion.fx.app.es.JInvErrorService;
@@ -48,6 +49,11 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
     private final ObservableList<MenuItem> listPopulateContextMenu = FXCollections.observableArrayList();
     private Consumer<ContextMenu> onPopulateContextMenu;
     private JInvFEButton feButton;
+    private final ContextMenu textContextMenu = new ContextMenu();
+    private static final ResourceBundle menuBundle = ResourceBundle.getBundle(
+            "ru.inversion.fx.form.controls.skin.JInvTextAreaMenu");
+    private boolean disposed;
+
 
     public JInvFEButton getFeButton() {
         return feButton;
@@ -79,6 +85,32 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
         });
 
         initToolBar( textArea );
+        registerChangeListener(toolBar.visibleProperty(), observable -> textArea.requestLayout());
+        textContextMenu.setOnShowing(event -> populateContextMenu(textContextMenu));
+        populateContextMenu(textContextMenu);
+        registerChangeListener(textArea.contextMenuProperty(), observable -> installContextMenu());
+        installContextMenu();
+    }
+
+    private void installContextMenu() {
+        TextArea area = getSkinnable();
+        // Явное меню приложения и bound property остаются под управлением приложения.
+        if (!disposed && area.getContextMenu() == null && !area.contextMenuProperty().isBound())
+            area.setContextMenu(textContextMenu);
+    }
+
+    @Override
+    public void dispose() {
+        if (disposed)
+            return;
+        disposed = true;
+        TextArea area = getSkinnable();
+        textContextMenu.hide();
+        textContextMenu.setOnShowing(null);
+        textContextMenu.getItems().clear();
+        if (area.getContextMenu() == textContextMenu && !area.contextMenuProperty().isBound())
+            area.setContextMenu(null);
+        super.dispose();
     }
 
     public void initToolBar( final JInvTextArea textArea ) {
@@ -133,22 +165,11 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
     protected void layoutChildren(double x, double y, double w, double h) {
 
         if (toolBar.isVisible()) {
-            super.layoutInArea(
-                    toolBar,
-                    x + 2,
-                    y + 2,
-                    toolBar.getWidth()- 2,
-                    h - 4,
-                    -1,
-                    HPos.CENTER,
-                    VPos.TOP
-            );
-            super.layoutChildren(getX(x), y, getW(w), h);
-
-            toolBar.applyCss();
-
+            double width = Math.min(Math.max(0, w), Math.max(0, toolBar.prefWidth(-1)));
+            toolBar.resizeRelocate(x + 2, y + 2, Math.max(0, width - 2), Math.max(0, h - 4));
+            super.layoutChildren(x + width, y, Math.max(0, w - width), Math.max(0, h));
         } else {
-            super.layoutChildren(x, y, w, h);
+            super.layoutChildren(x, y, Math.max(0, w), Math.max(0, h));
         }
     }
 
@@ -206,15 +227,37 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
             }, null).handle(event);
         }
     }
-    @Override
     public void populateContextMenu(ContextMenu contextMenu) {
-        super.populateContextMenu(contextMenu);
+        TextArea area = getSkinnable();
+        boolean selected = area.getSelection().getLength() > 0;
+        contextMenu.getItems().clear();
+        if (area.isEditable()) {
+            contextMenu.getItems().addAll(
+                    menuItem("Undo", area::undo, !area.isUndoable()),
+                    menuItem("Redo", area::redo, !area.isRedoable()),
+                    menuItem("Cut", area::cut, !selected),
+                    menuItem("Copy", area::copy, !selected),
+                    menuItem("Paste", area::paste, !Clipboard.getSystemClipboard().hasString()),
+                    menuItem("DeleteSelection", area::deleteNextChar, !selected),
+                    new SeparatorMenuItem(),
+                    menuItem("SelectAll", area::selectAll, false));
+        } else {
+            contextMenu.getItems().addAll(menuItem("Copy", area::copy, !selected),
+                    new SeparatorMenuItem(), menuItem("SelectAll", area::selectAll, false));
+        }
         if (!(listPopulateContextMenu.isEmpty())) {
             listPopulateContextMenu.forEach((MenuItem items) -> contextMenu.getItems().add(0, items));
         }
         if ( onPopulateContextMenu != null ){
             onPopulateContextMenu.accept( contextMenu );
         }
+    }
+
+    private MenuItem menuItem(String key, Runnable action, boolean disabled) {
+        MenuItem item = new MenuItem(menuBundle.getString(key));
+        item.setDisable(disabled);
+        item.setOnAction(event -> action.run());
+        return item;
     }
 
     @Override

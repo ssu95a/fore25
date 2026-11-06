@@ -1,6 +1,6 @@
 package ru.inversion.fx.form.action;
 
-import com.sun.javafx.scene.control.skin.TextAreaSkin;
+import javafx.scene.TraversalDirection;
 import javafx.event.ActionEvent;
 import javafx.event.EventTarget;
 import javafx.scene.Cursor;
@@ -667,9 +667,7 @@ public class JInvKeyboardManager {
         }
 
         if (node instanceof TextArea) {
-            TextArea area = (TextArea) node;
-            TextAreaSkin skin = (TextAreaSkin) area.getSkin();
-            skin.getBehavior().traverseNext();
+            node.requestFocusTraversal(TraversalDirection.NEXT);
         } else {
             KeyEvent navigateEvent = null;
             if (event != null) {
@@ -688,9 +686,7 @@ public class JInvKeyboardManager {
     private static void fireBackwardEvent(KeyEvent event, Node node) {
         event.consume();
         if (node instanceof TextArea) {
-            TextArea area = (TextArea) node;
-            TextAreaSkin skin = (TextAreaSkin) area.getSkin();
-            skin.getBehavior().traversePrevious();
+            node.requestFocusTraversal(TraversalDirection.PREVIOUS);
         } else {
             KeyEvent navigateEvent = new KeyEvent( event.getSource(), event.getTarget(), event.getEventType(), event.getCharacter(),
                     event.getText(), KeyCode.TAB, true, false, false, false );
