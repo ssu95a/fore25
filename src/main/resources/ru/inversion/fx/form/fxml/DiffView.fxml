@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import ru.inversion.fx.form.controls.JInvButton?>
+<?import ru.inversion.fx.form.controls.JInvToolBar?>
+<?import ru.inversion.fx.form.controls.treetable.*?>
+<?import javafx.scene.control.ButtonBar?>
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.inversion.diff.DiffController">
+   <children>
+      <VBox fx:id="rootVBox" layoutX="357.0" layoutY="132.0" prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <JInvToolBar fx:id="toolBar" />
+            <JInvTreeTable fx:id="diffTreeTable" styleClass="diff_table" VBox.vgrow="ALWAYS">
+               <columns>
+                  <JInvTreeTableColumn fx:id="attributeColumn" prefWidth="150.0" text="%DIFF_ATTRIBUTE_COLUMN" transientColumn="false" />
+                  <JInvTreeTableColumn fx:id="oldValueColumn" prefWidth="150.0" text="%DIFF_OLD_VALUE_COLUMN" transientColumn="false" />
+                  <JInvTreeTableColumn fx:id="newValueColumn" prefWidth="150.0" text="%DIFF_NEW_VALUE_COLUMN" transientColumn="false" />
+                  <JInvTreeTableColumn fx:id="changeValueColumn" prefWidth="75.0" text="%DIFF_CHANGE_VALUE_COLUMN" transientColumn="false" />
+               </columns>
+            </JInvTreeTable>
+            <ButtonBar buttonMinWidth="80.0">
+               <buttons>
+                  <JInvButton fx:id="btOK"/>
+                  <JInvButton fx:id="btCancel"/>
+               </buttons>
+            </ButtonBar>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

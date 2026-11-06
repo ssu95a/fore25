@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import ru.inversion.fx.form.controls.JInvButton?>
+<?import ru.inversion.fx.form.controls.JInvRadioButton?>
+<?import ru.inversion.fx.form.controls.JInvTextField?>
+
+<?import ru.inversion.fx.form.controls.JInvChoiceBox?>
+<?import ru.inversion.fx.form.controls.JInvLabel?>
+<GridPane hgap="5.0" prefWidth="350.0" vgap="5.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.inversion.fx.help.controller.ExportController">
+  <columnConstraints>
+    <ColumnConstraints hgrow="SOMETIMES" />
+    <ColumnConstraints hgrow="ALWAYS" />
+  </columnConstraints>
+  <rowConstraints>
+    <RowConstraints vgrow="ALWAYS" />
+      <RowConstraints />
+      <RowConstraints />
+      <RowConstraints />
+  </rowConstraints>
+   <children>
+      <TitledPane animated="false" collapsible="false" text="%EXPORT_TO_FILE" GridPane.columnSpan="2">
+        <content>
+            <AnchorPane>
+               <children>
+                  <VBox spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <children>
+                         <JInvRadioButton fx:id="rbAll" text="%EXPORT_ALL" VBox.vgrow="ALWAYS">
+                             <toggleGroup>
+                                 <ToggleGroup fx:id="export" />
+                             </toggleGroup>
+                         </JInvRadioButton>
+                        <JInvRadioButton fx:id="rbMarked" text="%EXPORT_MARKED" toggleGroup="$export" VBox.vgrow="ALWAYS" />
+                        <JInvRadioButton fx:id="rbCurrent" text="%EXPORT_CURRENT" toggleGroup="$export" />
+                     </children>
+                     <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </padding>
+                  </VBox>
+               </children>
+            </AnchorPane>
+        </content>
+      </TitledPane>
+      <JInvLabel text="%EXPORT_FORMAT" GridPane.rowIndex="1"/>
+      <JInvChoiceBox fx:id="cbFormat" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+      <JInvLabel text="%EXPORT_FILE" GridPane.rowIndex="2"/>
+      <JInvTextField fx:id="edFile" GridPane.columnIndex="1" GridPane.rowIndex="2" required="true"/>
+
+      <ButtonBar buttonMinWidth="80.0" GridPane.columnSpan="2" GridPane.rowIndex="3">
+           <buttons>
+               <JInvButton fx:id="btOK" />
+               <JInvButton fx:id="btCancel" cancelButton="true" />
+           </buttons>
+       </ButtonBar>
+   </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+   </padding>
+</GridPane>

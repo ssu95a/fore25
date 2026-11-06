@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import ru.inversion.fx.form.controls.JInvButton?>
+<?import ru.inversion.fx.form.controls.JInvLabel?>
+<?import ru.inversion.fx.form.controls.JInvTextArea?>
+<?import ru.inversion.fx.form.controls.JInvTextField?>
+
+<VBox spacing="5.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.inversion.fx.form.controls.filter.impl.ManageFilterController">
+   <children>
+      <GridPane hgap="5.0" vgap="5.0">
+        <columnConstraints>
+          <ColumnConstraints />
+          <ColumnConstraints hgrow="ALWAYS" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints />
+          <RowConstraints />
+          <RowConstraints />
+          <RowConstraints />
+        </rowConstraints>
+         <children>
+            <JInvLabel linkFieldName="CFORMNAME" text="%MANAGE_FILTER.L_FORM_NAME" />
+            <JInvLabel linkFieldName="CBLOCKNAME" text="%MANAGE_FILTER.L_BLOCK_NAME" GridPane.rowIndex="1" />
+            <JInvLabel linkFieldName="CUSER" text="%MANAGE_FILTER.L_USER" GridPane.rowIndex="2" />
+            <JInvLabel linkFieldName="CWHERENAME" text="%MANAGE_FILTER.L_NAME" GridPane.rowIndex="3" />
+            <JInvTextField fx:id="CFORMNAME" fieldName="CFORMNAME" required="true" GridPane.columnIndex="1" />
+            <JInvTextField fx:id="CBLOCKNAME" fieldName="CBLOCKNAME" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <JInvTextField fx:id="CUSER" fieldName="CUSER" required="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <JInvTextField fx:id="CWHERENAME" fieldName="CWHERENAME" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+         </children>
+      </GridPane>
+      <AnchorPane VBox.vgrow="ALWAYS">
+            <TitledPane animated="false" collapsible="false" text="%MANAGE_FILTER.TAB_FILTER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              <content>
+                  <JInvTextArea fx:id="edCWHEREBLK" fieldName="CWHEREBLK" />
+              </content>
+            </TitledPane>
+      </AnchorPane>
+      <ButtonBar buttonMinWidth="80.0">
+          <buttons>
+            <JInvButton fx:id="btOK" />
+            <JInvButton fx:id="btCancel" />
+          </buttons>
+      </ButtonBar>
+   </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+   </padding>
+</VBox>

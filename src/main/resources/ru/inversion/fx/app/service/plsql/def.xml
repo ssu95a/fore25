@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sql_expr_list>
+    <expression name="saveSettings" lang="JDBC">
+        <script><![CDATA[CALL JF_PKG_UTIL.save_pref_ui_settings(:p_formname, :p_settings )]]></script>
+        <parameters>
+            <parameter name="p_formname" mode="IN" sqlType="VARCHAR" javaType="String"/>
+            <parameter name="p_settings" mode="IN" sqlType="ARRAY"
+                       elementType="JF_PKG_UTIL.SETTINGSLIST_T"
+                       javaType="ru.inversion.fx.app.service.PPrefComponent"/>
+        </parameters>
+    </expression>
+    <expression name="saveSettingsX" lang="JDBC">
+        <script><![CDATA[call jf_pkg_util.save_pref_ui_settings(:p_formname, :p_settings )]]></script>
+        <parameters>
+            <parameter name="p_formname" mode="IN" sqlType="VARCHAR"/>
+            <parameter name="p_settings" mode="IN" sqlType="CLOB"/>
+        </parameters>
+    </expression>
+</sql_expr_list>

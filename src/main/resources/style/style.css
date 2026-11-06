@@ -1,0 +1,36 @@
+/*inject_start*/
+@font-face {
+	src: url("fontawesome-webfont.ttf");
+}
+@font-face {
+	src: url("materialdesignicons-webfont.ttf");
+}
+@font-face {
+	src: url("ionicons.ttf");
+}
+@font-face {
+	src: url("entypo.ttf");
+}
+@font-face {
+    src: url("fa-regular-400.ttf");
+}
+@font-face {
+    src: url("fa-solid-900.ttf");
+}
+
+/*inject_end*/
+.button_ttf{
+    -fx-margin-right:1;
+}
+.button_ttf:tiny{
+    -fx-font-size:0.6em;
+}
+.button_ttf:small{
+    -fx-font-size:0.8em;
+}
+.button_ttf:medium{
+    -fx-font-size:1.16666em;
+}
+.button_ttf:large{
+    -fx-font-size:1.4em;
+}

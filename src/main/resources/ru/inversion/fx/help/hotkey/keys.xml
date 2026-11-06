@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<KeyGroups>
+    <KeyGroup name="GROUP_TABLE">
+        <Key name="GROUP_TABLE_CREATE" value="F2, F6" />
+        <Key name="GROUP_TABLE_CREATE_BY" value="Alt + F2, Alt + F6" />
+        <Key name="GROUP_TABLE_UPDATE" value="F4" />
+        <Key name="GROUP_TABLE_DELETE" value="Shift + F6" />
+        <Key name="GROUP_TABLE_REFRESH" value="F8"/>
+        <Key name="GROUP_TABLE_VIEW" value="F3"/>
+        <Key name="GROUP_TABLE_MARK_ROW" value="Insert, Space, Enter"/>
+        <Key name="GROUP_TABLE_SHOW_QUERY" value="Ctrl + Q"/>
+        <Key name="GROUP_TABLE_SHOW_DBMS" value="F5"/>
+        <Key name="GROUP_TABLE_MULTIPLE_SELECT" value="Ctrl + S"/>
+        <Key name="GROUP_TABLE_SHOW_COLUMN_CONTEXT_MENU" value="Shift + Space"/>
+    </KeyGroup>
+    <KeyGroup name="GROUP_FILTER_WORK">
+        <Key name="GROUP_FILTER_WORK_OPEN" value="F7"/>
+        <Key name="GROUP_FILTER_WORK_SAVE_CURRENT" value="Shift + F7"/>
+        <Key name="GROUP_FILTER_WORK_OPEN_SAVED" value="Shift + F8"/>
+        <Key name="GROUP_FILTER_WORK_FIND" value="F8"/>
+    </KeyGroup>
+    <KeyGroup name="GROUP_FILTER_DIALOG">
+        <Key name="GROUP_FILTER_DIALOG_OPEN_RESTORE" value="F7"/>
+        <Key name="GROUP_FILTER_DIALOG_LOV" value="Ctrl + L"/>
+        <Key name="GROUP_FILTER_DIALOG_EXPRESSION" value="Ctrl + E"/>
+        <Key name="GROUP_FILTER_DIALOG_VALUE_INPUT" value="Ctrl + T"/>
+        <Key name="GROUP_FILTER_DIALOG_DATE_RANGE_OPEN" value="F9"/>
+        <Key name="GROUP_FILTER_DIALOG_FIND" value="F8"/>
+        <Key name="GROUP_FILTER_DIALOG_CLOSE" value="Esc"/>
+    </KeyGroup>
+    <KeyGroup name="GROUP_EXTERNAL_EDITOR" descr="GROUP_EXTERNAL_EDITOR_DESCR">
+        <Key name="GROUP_EXTERNAL_EDITOR_OPEN" value="F4"/>
+        <Key name="GROUP_EXTERNAL_EDITOR_FORGET" value="Ctrl + F4"/>
+    </KeyGroup>
+    <KeyGroup name="GROUP_HELP">
+        <Key name="GROUP_HELP_SHOW_FORM_HELP" value="F1"/>
+        <Key name="GROUP_HELP_SHOW_ELEMENT_HELP" value="Alt + Left Mouse Button"/>
+        <Key name="GROUP_HELP_SHOW_DIALOG_ELEMENT_HELP" value="Ctrl + Alt + Left Mouse Button"/>
+    </KeyGroup>
+    <KeyGroup name="GROUP_FORM">
+        <Key name="GROUP_FORM_REFRESH_DIMENSIONS" value="Ctrl + Shift + R"/>
+        <Key name="GROUP_FORM_OPEN_FORM_CONTEXT_MENU" value="Ctrl + Space"/>
+    </KeyGroup>
+    <KeyGroup name="GROUP_LOV">
+        <Key name="GROUP_LOV_SHOW" value="F9"/>
+        <Key name="GROUP_LOV_CHOICE_ROW" value="Ctrl+Enter, F9"/>
+        <Key name="GROUP_LOV_FIND_BY_MASK" value="Enter"/>
+    </KeyGroup>
+    <KeyGroup name="GROUP_NAVIGATION">
+        <Key name="GROUP_NAVIGATION_ENTER" value="Enter"/>
+        <Key name="GROUP_NAVIGATION_DOWN" value="Down ↓"/>
+        <Key name="GROUP_NAVIGATION_UP" value="Up ↑"/>
+        <Key name="GROUP_NAVIGATION_LEFT" value="Left ←"/>
+        <Key name="GROUP_NAVIGATION_RIGHT" value="Right →"/>
+        <Key name="GROUP_NAVIGATION_SHIFT_TAB" value="Shift + Tab"/>
+        <Key name="GROUP_NAVIGATION_TAB" value="Tab"/>
+    </KeyGroup>
+</KeyGroups>

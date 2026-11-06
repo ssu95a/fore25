@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import ru.inversion.fx.form.controls.JInvButton?>
+<?import ru.inversion.fx.form.controls.JInvCheckBox?>
+<?import ru.inversion.fx.form.controls.JInvLabel?>
+<?import ru.inversion.fx.form.controls.JInvTable?>
+<?import ru.inversion.fx.form.controls.JInvTableColumn?>
+<?import ru.inversion.fx.form.controls.JInvTextField?>
+
+<VBox id="mainPane" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ru.inversion.fx.form.controls.filter.impl.ChoiceFilterController">
+<children>
+    <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+              <tabs>
+                <Tab fx:id="tabFilters" text="%CHOICE_FILTER_PANE.TAB_FILTERS_TITLE">
+                  <content>
+                      <VBox>
+                         <children>
+                            <HBox alignment="CENTER_LEFT" spacing="5.0">
+                               <children>
+                                  <JInvLabel linkFieldName="GROUP_NAME" text="%CHOICE_FILTER_PANE.LABEL_GROUPS_FILTER">
+                                 <HBox.margin>
+                                    <Insets left="5.0" right="5.0" top="5.0" />
+                                 </HBox.margin></JInvLabel>
+                                  <JInvTextField fx:id="edGR" fieldName="GROUP_NAME" HBox.hgrow="ALWAYS">
+                                     <HBox.margin>
+                                        <Insets left="5.0" right="5.0" top="5.0" />
+                                     </HBox.margin>
+                                  </JInvTextField>
+                               </children>
+                               <VBox.margin>
+                                  <Insets bottom="5.0" />
+                               </VBox.margin>
+                            </HBox>
+                            <HBox spacing="5.0">
+                               <VBox.margin>
+                                  <Insets bottom="5.0" top="5.0" />
+                               </VBox.margin>
+                               <children>
+                                  <JInvCheckBox fx:id="chAllUsersFilters" text="%FILTER_LIST_PANE.ALL_USERS_FILTERS">
+                                 <HBox.margin>
+                                    <Insets bottom="5.0" left="5.0" right="5.0" />
+                                 </HBox.margin></JInvCheckBox>
+                               </children>
+                            </HBox>
+                            <JInvTable fx:id="tblFlt" VBox.vgrow="ALWAYS">
+                              <columns>
+                                  <JInvTableColumn fx:id="CWHERENAME" editable="false" fieldName="CWHERENAME"  prefWidth="370" text="%CHOICE_FILTER_PANE.TBL_FLT_COLUMN_CWHERENAME" />
+                                  <JInvTableColumn fx:id="CUSER" editable="false" fieldName="CUSER" prefWidth="90" text="%CHOICE_FILTER_PANE.TBL_FLT_COLUMN_USER"  />
+                              </columns>
+                            </JInvTable>
+                         </children>
+                         <padding>
+                            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                         </padding>
+                      </VBox>
+                  </content>
+                </Tab>
+                <Tab fx:id="tabParam" text="%CHOICE_FILTER_PANE.TAB_PARAM_TITLE">
+                  <content>
+                  <VBox fx:id="paneParam" spacing="5.0">
+                     <children>
+                        <JInvTable fx:id="tblPrm" VBox.vgrow="ALWAYS">
+                          <columns>
+                              <JInvTableColumn editable="false" fieldName="IPARAMNUM" prefWidth="50.0" text="%CHOICE_FILTER_PANE.TBL_PRM_COLUMN_NOMER" transientColumn="false" />
+                              <JInvTableColumn editable="false" fieldName="CPARAMDESCR" text="%CHOICE_FILTER_PANE.TBL_PRM_COLUMN_PARAM" transientColumn="false" />
+                              <JInvTableColumn fx:id="colParamValue" editable="false" fieldName="CPARAMDEFAULT_CALC" prefWidth="50.0" text="%CHOICE_FILTER_PANE.TBL_PRM_COLUMN_VAL" />
+                          </columns>
+                           <columnResizePolicy>
+                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                           </columnResizePolicy>
+                           <VBox.margin>
+                              <Insets />
+                           </VBox.margin>
+                        </JInvTable>
+                     </children>
+                     <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </padding>
+                  </VBox>
+                  </content>
+                </Tab>
+                  <Tab fx:id="tabOption" text="%CHOICE_FILTER_PANE.TAB_OPT_TITLE">
+                    <content>
+                              <VBox spacing="5.0">
+                                 <children>
+                                    <CheckBox fx:id="chRun" mnemonicParsing="false" text="%CHOICE_FILTER_PANE.CHECK_BOX_RUN">
+                                       <VBox.margin>
+                                          <Insets left="5.0" right="5.0" top="5.0" />
+                                       </VBox.margin>
+                                    </CheckBox>
+                                    <Label text="%CHOICE_FILTER_PANE.LABEL_DEF">
+                                       <VBox.margin>
+                                          <Insets left="5.0" right="5.0" top="5.0" />
+                                       </VBox.margin>
+                                    </Label>
+                                    <HBox spacing="5.0">
+                                       <children>
+                                          <JInvTextField fx:id="edDefFilter" fieldName="NAME" HBox.hgrow="ALWAYS">
+                                             <HBox.margin>
+                                                <Insets />
+                                             </HBox.margin>
+                                          </JInvTextField>
+                                          <JInvButton fx:id="btSetCurrent" />
+                                          <JInvButton fx:id="btClear" />
+                                       </children>
+                                       <VBox.margin>
+                                          <Insets bottom="5.0" left="5.0" right="5.0" />
+                                       </VBox.margin>
+                                    </HBox>
+                                    <CheckBox fx:id="chFIX2" mnemonicParsing="false" text="%CHOICE_FILTER_PANE.CHECK_BOX_FIX">
+                                       <VBox.margin>
+                                          <Insets left="5.0" />
+                                       </VBox.margin>
+                                    </CheckBox>
+                                     <ButtonBar buttonMinWidth="100.0">
+                                     <buttons>
+                                           <JInvButton fx:id="btSave" />
+                                     </buttons>
+                                         <VBox.margin>
+                                             <Insets bottom="5.0" left="5.0" right="5.0" />
+                                         </VBox.margin>
+                                     </ButtonBar>
+                                 </children>
+                     <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </padding>
+                              </VBox>
+                    </content>
+                  </Tab>
+              </tabs>
+               <VBox.margin>
+                  <Insets left="5.0" right="5.0" />
+               </VBox.margin>
+            </TabPane>
+            <HBox spacing="5.0">
+               <children>
+                  <CheckBox fx:id="cbFix" mnemonicParsing="false" text="%CHOICE_FILTER_PANE.CHECK_BOX_FIX">
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                  </CheckBox>
+                  <CheckBox fx:id="cbAddCurr" mnemonicParsing="false" text="%CHOICE_FILTER_PANE.CHECK_BOX_ADD_CURRENT" />
+               </children>
+               <VBox.margin>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </VBox.margin>
+            </HBox>
+             <ButtonBar buttonMinWidth="80.0">
+                 <buttons>
+                     <JInvButton fx:id="btOK" />
+                     <JInvButton fx:id="btCancel" />
+                 </buttons>
+                 <VBox.margin>
+                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                 </VBox.margin>
+             </ButtonBar>
+         </children>
+      </VBox>

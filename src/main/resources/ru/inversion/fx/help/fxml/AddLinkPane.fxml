@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.*?>
+<?import ru.inversion.fx.form.controls.JInvTextField?>
+<?import ru.inversion.fx.form.lov.JInvLOVButton?>
+<?import ru.inversion.fx.form.controls.JInvButton?>
+<?import javafx.scene.control.ButtonBar?>
+<AnchorPane id="AnchorPane" prefHeight="72.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.inversion.fx.help.controller.AddLinkPaneController">
+   <children>
+      <VBox layoutX="10.0" layoutY="10.0" spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <GridPane>
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="140.0" minWidth="10.0" prefWidth="80.0" />
+                <ColumnConstraints hgrow="ALWAYS" maxWidth="227.0" minWidth="10.0" prefWidth="210.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <HBox alignment="CENTER_LEFT" GridPane.columnIndex="1">
+                     <children>
+                        <JInvTextField fx:id="edForm" HBox.hgrow="ALWAYS" />
+                        <JInvLOVButton fx:id="btnLovForm" />
+                     </children>
+                  </HBox>
+                  <Label text="Форма" />
+               </children>
+            </GridPane>
+             <ButtonBar buttonMinWidth="80.0">
+                 <buttons>
+                     <JInvButton fx:id="btOK"/>
+                     <JInvButton fx:id="btCancel"/>
+                 </buttons>
+             </ButtonBar>
+         </children>
+      </VBox>
+   </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+   </padding>
+</AnchorPane>

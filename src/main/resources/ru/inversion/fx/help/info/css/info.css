@@ -1,0 +1,30 @@
+body {
+    color: #333;
+    font-family: "Lucida Sans Unicode",sans-serif,serif;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 0;
+    margin: 0;
+}
+h3 {
+    font-weight: bold;
+    font-size: 16px;
+    vertical-align: central;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    min-height: 15px;
+    padding: 15px 15px 7px;
+    border-color: #e7eaec;
+    border-style: none none solid none;
+    border-width: 0 0 1px 0;
+    background-color: #f3f6fb;
+    color: #676A6C;
+}
+p{
+    line-height: 2;
+    padding: 0 20px;
+    margin: 0;
+}
+p > span {
+    color: #1AB394;
+}
