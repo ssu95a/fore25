@@ -59,7 +59,7 @@ public class JInvBigDecimalSpinner extends Control implements IJInvControl {
     }
 
     /**
-     * Default constructor. Returns a {@link BigDecimalField} with no number, minValue and maxValue set, but stepwidth 1 and default {@link NumberFormat}.
+     * Создаёт {@link JInvBigDecimalSpinner} без значения и границ, с шагом 1 и стандартным {@link NumberFormat}.
      */
     public JInvBigDecimalSpinner() {
         super();
@@ -91,7 +91,7 @@ public class JInvBigDecimalSpinner extends Control implements IJInvControl {
     }
 
     /**
-     * Returns a {@link BigDecimalField} with stepwidth 1 and {@link #number} set to initialValue.
+     * Создаёт {@link JInvBigDecimalSpinner} с шагом 1 и значением {@link #number}, равным initialValue.
      *
      * @param initialValue The initial BigDecimal value of this control.
      */
@@ -163,7 +163,7 @@ public class JInvBigDecimalSpinner extends Control implements IJInvControl {
         }
     }
     /**
-     * Contains the number that is controlled in this {@link jfxtras.labs.scene.control.BigDecimalField}.
+     * Числовое значение этого {@link JInvBigDecimalSpinner}.
      */
     final private ObjectProperty<BigDecimal> number;
 

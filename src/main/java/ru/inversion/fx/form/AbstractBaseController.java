@@ -1707,7 +1707,6 @@ public class AbstractBaseController<T> implements Initializable, IFormStateListe
      И восстанавливает его при получении фокуса на окно
      */
     private void initTextCaretKeeper() {
-        //javafx Stage/Window и jfxtras Window несовместимы :(
         javafx.stage.Stage stage = getViewContext().getStage();
 //        JInvMdiWindow window = getViewContext().getWindow();
 //        if ( stage == null && window == null ) {
