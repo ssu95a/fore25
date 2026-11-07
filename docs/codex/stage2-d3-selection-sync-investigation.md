@@ -292,3 +292,89 @@ clear:
 ## Состояние репозитория
 
 В конце read-only investigation HEAD оставался `16c794b63415b2c151625a0aa6b189377ce4a83a`; working tree был clean. По последующему разрешению пользователя добавляется только этот Markdown-отчёт. Production diff отсутствует. Commit и push не выполняются.
+
+## Follow-up: executable probe для corporate Java 25 / JavaFX 25
+
+### Контекст
+
+- Branch: `migration/java25-correctness`.
+- HEAD перед подготовкой probe: `ef8209852ba3c741387c312cf25ad9d2de8e08a8` (включает исходный investigation report).
+- **PRODUCTION CODE CHANGES: NONE.** DSFXAdapter, public/protected API и JInvCommon не изменены. D1/D2 и D4–D7 не затронуты.
+- Commit и push не выполнялись.
+
+### Созданные probe files
+
+- `src/test/probes/Test-D3SelectionSync.ps1` — Windows/PowerShell runner.
+- `src/test/probes/d3/D3SelectionSyncProbe.java` — executable Java probe.
+
+Runner компилирует проект и probe с настоящими Maven dependencies. Не копирует production logic, не создаёт fake DSFXAdapter или SelectionModel и не подменяет corporate dependencies. Служебные файлы помещаются в игнорируемый `target/d3-selection-probe/`.
+
+### Minimal setup
+
+Используются `Platform.startup`, настоящий DSFXAdapter из `target/classes`, JavaFX TableView с его штатной selection model и ArrayDataSet с тремя разными объектами A/B/C. Операции TableView выполняются только на FX Application Thread.
+
+TableView помещён в Scene, привязанную к Stage; Stage не показывается, business UI не запускается. У таблицы нет колонок, Dataset не SQL, `enableMark=false`. По исследованному коду это позволяет вызвать настоящий bindTable целиком, завершив bindColumns до metadata/controller/mark setup. Reflection-hacks, subclasses с переопределённым binding и production API для probe не используются.
+
+**HYPOTHESIS о минимальном setup:** этого lifecycle достаточно на корпоративных dependencies. Если реально потребуется BaseApp/controller или упадёт инициализация, probe выдаст UNKNOWN с причиной; setup не будет скрытно обходиться. Binding дополнительно проверяется по adapter.getDataSet/getTable и identity/order items/rows.
+
+### Corporate command
+
+Из корня репозитория с JAVA_HOME на JDK 25 и рабочим корпоративным Maven:
+
+```powershell
+.\src\test\probes\Test-D3SelectionSync.ps1
+```
+
+Runner выполняет Maven compile с согласованными параметрами и получает classpath тем же Maven:
+
+```powershell
+mvn -Pbuild "-Dmaven.buildNumber.skip=true" "-DskipTests" compile dependency:build-classpath "-Dmdep.outputFile=<generated absolute path>" "-DincludeScope=test"
+```
+
+Если `mvn` не найден, используется project `mvnw.cmd`. Ручных скачиваний альтернативных JavaFX/JInvCommon нет. javac/java запускаются через argument files, чтобы избежать ограничения длины Windows command line. Probe требует Java 25 и проверяет JavaFX version 25 после toolkit startup.
+
+### Matrix и queue semantics
+
+P2 выполняется первым как строгий control scenario, до вынесения D3 verdict.
+
+| Сценарий | Действие и проверка |
+| --- | --- |
+| Initial binding | Dataset current=2, TableView без selection; печатаются snapshots до binding и после flush без исправления состояния |
+| P2 | Из согласованного 0 выполняется Dataset setter 2; после flush строго проверяются оба индекса=2 и identity обоих объектов=C |
+| P1 | Из согласованного 0 выполняется table.select(2) без mouse/key events; проверяются оба индекса и объекты |
+| P3 | Из согласованного 0 выполняется selectLast; Dataset state выводится без навязывания ожидаемой позиции |
+| P4 | Из согласованного 1 выполняется clearSelection; выводятся index/item/current row без навязывания Dataset semantics |
+| P5 | Dataset setters 0,1,2 выполняются в одной FX task, до исполнения queued positionRow; финальный mismatch выводится отдельно |
+
+Baseline задаётся явно только для изоляции P1–P5. Наблюдение initial binding производится до этой подготовки.
+
+`onFx` использует FutureTask + Platform.runLater + timeout, а не Thread.sleep. Flush — четыре последовательных barrier cycles; каждый ставится после завершения предыдущего. Они покрывают известную ограниченную глубину вложенных runLater в изолированном setup. Это не детектор глобального idle произвольного business UI. Пока выполняется P5 task, queued FX tasks не могут исполняться на том же FX thread.
+
+Trace содержит BEFORE/IMMEDIATE/AFTER snapshots с table index/item, Dataset index/row и накопленными NAV/SEL/INPUT counters. Navigation и selection callbacks печатают порядок и thread name. Неперехваченная ошибка FX task делает probe INVALID.
+
+### Output и exit code
+
+- P2 FAIL → overall INVALID → D3 UNKNOWN → non-zero exit.
+- P1 table=2/C, Dataset=0/A → `D3 PROGRAMMATIC SELECTION GAP — CONFIRMED`.
+- P1 оба=2/C → `D3 PROGRAMMATIC SELECTION GAP — REJECTED`.
+- Неожиданное состояние, ошибка toolkit/binding/compilation или другая техническая ошибка → UNKNOWN, non-zero.
+- Технически завершённый probe с определённым CONFIRMED/REJECTED verdict → exit 0. Подтверждение bug само по себе не является ошибкой запуска.
+- P5 выводит PASS либо STALE_OR_MISMATCHED_SELECTION; последнее является наблюдением, не автоматически технической невалидностью P1.
+
+### Локальная проверка и ограничения
+
+**CONFIRMED:** PowerShell parser успешно разбирает runner; `-ValidateOnly` успешно разбирает Java source JDK 25 parser через JavacTask.parse без stubs и corporate dependencies. Это проверка синтаксиса/структуры, а не полноценная type-check/compile Java probe.
+
+```powershell
+.\src\test\probes\Test-D3SelectionSync.ps1 -ValidateOnly
+```
+
+**UNKNOWN / ENVIRONMENT CONSTRAINT:** полноценные corporate compile, минимальный настоящий binding, JavaFX 25 startup и результаты P1–P5 локально не проверены. Локальная syntax validation не меняет прежний D3 verdict UNKNOWN. Runner выполняет полную type-check/compile и runtime reproduction на корпоративной машине, прежде чем сообщать VALID verdict.
+
+`git diff --check` пройден. Изменения ограничены двумя probe files и этим отчётом; production diff отсутствует. `git status` показывает изменённый report и новые probe files. Commit и push не выполнялись.
+
+### Повторная проверка executable deliverable
+
+Подтверждено наличие обоих probe files в рабочем дереве. Запуск runner без `-ValidateOnly` действительно выполняет Maven compile, компиляцию отдельного Java probe и его main, запускающий toolkit и P1–P5. В output явно печатаются `MODE=CORPORATE_EXECUTION`, вход/возврат настоящего `bindTable` и `SCENARIOS COMPLETED=P1,P2,P3,P4,P5,INITIAL_BINDING` при технически успешном завершении. Это executable probe, а не только обновление отчёта.
+
+Повторно проверены PowerShell parsing, Java 25 syntax parsing и whitespace новых probe files. Corporate type-check и runtime результаты по-прежнему UNKNOWN до запуска на корпоративной машине. Конкретная невозможность минимального bindTable не установлена: код использует настоящий binding и при его ошибке выводит stack trace, UNKNOWN и non-zero, без fallback на fake/mock. Production code/API и JInvCommon не изменены; commit/push не выполнялись.
