@@ -1,6 +1,7 @@
 package ru.inversion.probes.d3;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.FutureTask;
@@ -36,6 +37,7 @@ public final class D3SelectionSyncProbe {
         final DSFXAdapter<Row> adapter = new DSFXAdapter<>();
         final Stage stage = new Stage();
         int navigationCallbacks;
+        final List<String> navigationTransitions = new ArrayList<>();
         int selectionCallbacks;
         int inputEvents;
         String phase = "INITIAL";
@@ -45,6 +47,7 @@ public final class D3SelectionSyncProbe {
             dataset.setCurrentRowNum(2);
             dataset.addNavigationListener(event -> {
                 navigationCallbacks++;
+                navigationTransitions.add(event.getOldRowIndex() + "->" + event.getNewRowIndex());
                 System.out.printf("%s NAV %d -> %d thread=%s%n", phase,
                         event.getOldRowIndex(), event.getNewRowIndex(), Thread.currentThread().getName());
             });
@@ -133,11 +136,12 @@ public final class D3SelectionSyncProbe {
         onFx(() -> fixture.snapshot("INITIAL AFTER BIND flush=4"));
         System.out.println("P2 control runs before the D3 verdict; no mouse/key events are generated.");
 
-        baseline(fixture, "P2", 0);
+        State p2Before = baseline(fixture, "P2", 0);
         State p2 = action(fixture, "P2", "dataset.setCurrentRowNum(2)", () -> {
             require(fixture.dataset.setCurrentRowNum(2), "P2 Dataset setter failed");
         });
         require(aligned(fixture, p2, 2), "P2 FAIL: Dataset navigation did not select row 2; probe INVALID");
+        require(p2.navigationCallbacks() - p2Before.navigationCallbacks() == 1, "P2 extra navigation callbacks");
         System.out.println("P2 RESULT=PASS");
 
         State before = baseline(fixture, "P1", 0);
@@ -155,23 +159,46 @@ public final class D3SelectionSyncProbe {
             throw new IllegalStateException("P1 unexpected state; verdict UNKNOWN");
         }
 
+        baseline(fixture, "P1.selectItem", 0);
+        State selectedItem = action(fixture, "P1.selectItem", "table.select(C)",
+                () -> fixture.table.getSelectionModel().select(fixture.rows.get(2)));
+        require(aligned(fixture, selectedItem, 2), "select(item) did not synchronize Dataset row");
+        baseline(fixture, "P1.selectFirst", 2);
+        State selectedFirst = action(fixture, "P1.selectFirst", "table.selectFirst()",
+                () -> fixture.table.getSelectionModel().selectFirst());
+        require(aligned(fixture, selectedFirst, 0), "selectFirst did not synchronize Dataset row");
+        baseline(fixture, "P1.clearAndSelect", 0);
+        State clearedAndSelected = action(fixture, "P1.clearAndSelect", "table.clearAndSelect(1)",
+                () -> fixture.table.getSelectionModel().clearAndSelect(1));
+        require(aligned(fixture, clearedAndSelected, 1), "clearAndSelect did not synchronize Dataset row");
+        System.out.println("P1 ADDITIONAL METHODS=PASS");
+
         baseline(fixture, "P3", 0);
         State p3 = action(fixture, "P3", "table.selectLast()", () -> fixture.table.getSelectionModel().selectLast());
-        require(p3.tableIndex() == 2 && p3.tableItem() == fixture.rows.get(2), "P3 selection did not reach last row");
-        System.out.println("P3 RESULT=OBSERVED dataset.index=" + p3.datasetIndex());
+        require(aligned(fixture, p3, 2), "P3 FAIL: selectLast did not synchronize Dataset row");
+        System.out.println("P3 RESULT=PASS");
 
-        baseline(fixture, "P4", 1);
-        action(fixture, "P4", "table.clearSelection()", () -> fixture.table.getSelectionModel().clearSelection());
-        System.out.println("P4 RESULT=OBSERVED (no Dataset expectation imposed)");
+        State p4Before = baseline(fixture, "P4", 1);
+        State p4 = action(fixture, "P4", "table.clearSelection()", () -> fixture.table.getSelectionModel().clearSelection());
+        require(p4.tableIndex() == -1 && p4.tableItem() == null
+                && p4.datasetIndex() == 1 && p4.datasetRow() == fixture.rows.get(1), "P4 FAIL: clearSelection semantics changed");
+        require(p4.navigationCallbacks() == p4Before.navigationCallbacks(), "P4 unexpectedly navigated Dataset");
+        System.out.println("P4 RESULT=PASS (Dataset remains on B)");
 
-        baseline(fixture, "P5", 0);
+        State p5Before = baseline(fixture, "P5", 0);
         State p5 = action(fixture, "P5", "dataset baseline=0 -> 1 -> 2 in one FX task", () -> {
             // Пока эта FX task выполняется, queued positionRow не может исполниться.
             require(fixture.dataset.setCurrentRowNum(1), "P5 setter 1 failed");
             require(fixture.dataset.setCurrentRowNum(2), "P5 setter 2 failed");
         });
-        require(p5.datasetIndex() == 2 && p5.datasetRow() == fixture.rows.get(2), "P5 Dataset navigation invalid");
-        System.out.println("P5 RESULT=" + (aligned(fixture, p5, 2) ? "PASS" : "STALE_OR_MISMATCHED_SELECTION"));
+        require(aligned(fixture, p5, 2), "P5 FAIL: final selection/current row mismatch");
+        onFx(() -> {
+            List<String> transitions = List.copyOf(fixture.navigationTransitions.subList(
+                    p5Before.navigationCallbacks(), fixture.navigationTransitions.size()));
+            require(transitions.equals(List.of("0->1", "1->2")), "P5 FAIL: reverse/extra navigation " + transitions);
+            System.out.println("P5 RESULT=PASS NAV=" + transitions);
+            return null;
+        });
         checkAsyncFailure();
         return verdict;
     }

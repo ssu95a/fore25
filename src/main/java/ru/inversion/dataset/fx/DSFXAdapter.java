@@ -429,6 +429,12 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         final ObservableList<T> ol = (ObservableList)rows;
 
         this.tableView.setItems( ol );
+        this.tableView.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
+            int index = newValue.intValue();
+            if( !insideInSetTableSelection && this.dataSet != null
+                && index >= 0 && index < this.tableView.getItems().size() )
+                refreshCurrentRow();
+        });
         this.tableView.getProperties().put( PROPERTY_DATA_SET_ADAPTER, this );
 
         //после установки адаптера таблицы для statusbar
@@ -865,6 +871,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     }
 
     private boolean insideInSetCurrentRow = false;
+    private boolean insideInSetTableSelection = false;
 
     /** */
     public void setCurRow(T row) {
@@ -1319,8 +1326,16 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
                     tableView.scrollTo(index);
                 }
 
-                if( tableView.getSelectionModel() != null )
-                    tableView.getSelectionModel().select(index);
+                if( tableView.getSelectionModel() != null ) {
+                    boolean previous = insideInSetTableSelection;
+                    insideInSetTableSelection = true;
+                    try {
+                        tableView.getSelectionModel().select(index);
+                    }
+                    finally {
+                        insideInSetTableSelection = previous;
+                    }
+                }
             }
 //logger.debug("exit LA positionRow: index - {}", index );
         });
