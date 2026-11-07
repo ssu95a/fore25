@@ -379,6 +379,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         this.dataSet.addRowListener(this);
         this.dataSet.addNavigationListener(this);
         this.dataSet.addDataSetListener(this);
+        updateEmptyProperty();
 
         this.tableView = tableView;
 //
@@ -461,6 +462,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     public void setDataSet( IDataSet<T> ds ) {
 
         super.setDataSet(ds);
+        updateEmptyProperty();
 
         if( dataSet != null )
         {
@@ -887,6 +889,9 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
 
     @Override
     public void dataSetChanged( DataSetEvent e ) {
+        if( e.isAfter() )
+            updateEmptyProperty();
+
         if( e.isAfter() && e.getEventType() == DataSetEvent.DataSetEventType.EXECUTE )
             Platform.runLater( this::refresh );
     }
@@ -905,6 +910,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     /** */
     @Override
     public void rowOperation( DataSetRowEvent<T> event ) {
+        updateEmptyProperty();
 
         if( event.getRowOperation() == UPDATE ) {
             positionRow( event.getRowIndex() );
@@ -1010,41 +1016,16 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
 
         if( emptyProperty == null ) {
 
-            emptyProperty = new ReadOnlyBooleanWrapper( true ) {
-
-                {
-                    if( getDataSet() != null )
-                    {
-                        getDataSet().addRowListener( (event) -> {
-                            fire( event.getRowOperation() == DataSetRowEvent.RowOperationEnum.DELETE );
-                        });
-
-                        getDataSet().addDataSetListener( (e)-> {
-                            if( e.isAfter() )
-                                fire(true);
-                        });
-                    }
-                }
-
-                private void fire( boolean delete ) {
-                    if( delete )
-                        set( getDataSet().isEmpty() );
-                    else
-                        set( false );
-                }
-
-                @Override
-                public Object getBean() {
-                    return DSFXAdapter.this;
-                }
-                @Override
-                public String getName() {
-                    return "emptyProperty";
-                }
-            };
+            emptyProperty = new ReadOnlyBooleanWrapper( this, "emptyProperty",
+                    getDataSet() == null || getDataSet().isEmpty() );
         }
 
         return emptyProperty.getReadOnlyProperty();
+    }
+
+    private void updateEmptyProperty() {
+        if( emptyProperty != null )
+            emptyProperty.set( getDataSet() == null || getDataSet().isEmpty() );
     }
 
     /** */
