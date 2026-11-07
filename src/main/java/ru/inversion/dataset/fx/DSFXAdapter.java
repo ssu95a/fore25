@@ -4,7 +4,6 @@ import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -367,9 +366,6 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         }
     }
 
-    /** Набор имен полей столбцов TableView участвующие в bindings */
-    final private Set<String> columnFieldsSet = new HashSet<>();
-
     /** */
     public DSFXAdapter bindTable( IDataSet<T> dataSet, TableView<T> tableView, ICellValueChangeListener cellValueChangeListener, boolean enableMark ) throws Exception {
 
@@ -392,51 +388,6 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         this.tableView.addEventFilter ( MouseEvent.MOUSE_RELEASED,( MouseEvent event ) -> refreshCurrentRow() );
         this.tableView.addEventFilter ( MouseEvent.MOUSE_PRESSED, ( MouseEvent event ) -> refreshCurrentRow() );
         this.tableView.addEventFilter ( MouseEvent.DRAG_DETECTED, ( MouseEvent event ) -> refreshCurrentRow() );
-
-        this.tableView.getColumns().addListener(new ListChangeListener<TableColumn<T, ?>>() {
-
-            private boolean insideChanging = false;
-
-            @Override
-            public void onChanged( Change<? extends TableColumn<T, ?>> change )
-            {
-                // Если мы уже внутри обновления, игнорируем, чтобы избежать зацикливания
-                if(insideChanging)
-                    return;
-
-                insideChanging = true;
-
-                try {
-
-                    while (change.next())
-                    {
-                        // 1. Удаление элементов
-                        if (change.wasRemoved())
-                        {
-                            for(TableColumn<T, ?> column : change.getRemoved())
-                            {
-                                String filedName = (String) column.getProperties().get(COLUMN_FIELD_NAME);
-                                if( S.isNullOrEmpty(filedName) )
-                                    columnFieldsSet.remove(filedName);
-                            }
-                        }
-
-                        // 2. Добавление элементов
-                        if( change.wasAdded())
-                        {
-                            for( TableColumn<T, ?> column : change.getAddedSubList() )
-                            {
-                                String filedName = (String) column.getProperties().get(COLUMN_FIELD_NAME);
-                                if( S.isNullOrEmpty(filedName) )
-                                    columnFieldsSet.add(filedName);
-                            }
-                        }
-                    }
-                } finally {
-                    insideChanging = false;
-                }
-            }
-        });
 
         final SwappingScrollBinding scrollBinding = new SwappingScrollBinding();
         scrollBinding.install();
@@ -909,7 +860,6 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         // пометка, если есть
         initMarkColumn(table);
 
-        //columnFieldsSet = null;
     }
 
     private boolean insideInSetCurrentRow = false;
@@ -1601,7 +1551,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         if( !U.containsNull( pd, control, tableView )
             && tableView.isTableMenuButtonVisible()
             && tableView.getColumnResizePolicy().equals(UNCONSTRAINED_RESIZE_POLICY)
-            && !columnFieldsSet.contains(pd.getColumnName())
+            && !checkColumnWithFieldNameExists(pd.getColumnName())
         )
         {
             StringProperty title = new SimpleStringProperty( pd.getPropertyName() );
@@ -1685,18 +1635,10 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     /** */
     private boolean checkColumnWithFieldNameExists( String columnName )
     {
-        Predicate<String> fieldPredicate = new Predicate<String>() {
-            @Override
-            public boolean test( String fieldName ) {
-                System.out.println( "col: " + columnName + ", fld: " + fieldName );
-                return fieldName.equals(columnName);
-            }
-        };
-
-        return tableView.getColumns()
-                    .stream().filter(c->c instanceof JInvTableColumn)
-                    .map(c->((JInvTableColumn)c).getFieldName())
-                    .anyMatch( fieldPredicate );
+        return Controls.getLeafColumnsFromTable(tableView).stream()
+                .map(column -> (String) column.getProperties().get(COLUMN_FIELD_NAME))
+                .filter(fieldName -> !S.isNullOrEmpty(fieldName))
+                .anyMatch(fieldName -> fieldName.equals(columnName));
     }
 
     @Deprecated
