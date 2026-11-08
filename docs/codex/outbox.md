@@ -90,3 +90,286 @@ FILES:
 
 LOCAL-COMMIT: 0dd94764ac4d75eccc75a57c85ad005676875d19
 PRODUCTION-PUSH: NO
+
+## Reply D4-002
+
+MESSAGE-ID: D4-002
+STATUS: DONE
+WORKING-BRANCH: migration/java25-correctness
+WORKING-HEAD: 0dd94764ac4d75eccc75a57c85ad005676875d19
+PRODUCTION-COMMIT: 0dd94764ac4d75eccc75a57c85ad005676875d19 (existing, unchanged)
+PARENT: f08248e4a4d90ae9423316e29f2197fee83fa9ba
+PUSH: NO (production); YES (mailbox reply only)
+
+SUMMARY:
+Review/report only. Код не менялся, amend не выполнялся, новых production commits нет.
+Ниже полные git diffs parent..commit без сокращений; методы взяты из того же commit.
+
+CONFIRMED:
+- D2 probe ранее извлекал super.setDataSet(ds)/updateEmptyProperty и проверял
+  успешную синхронизацию через setter, включая null. После решения запретить
+  каждый вызов setter этот source marker исчез, а прежние ожидания стали неверны.
+  Поэтому удалены extraction/template/assertions именно setter-сценария.
+  Initial bind и Row/DataSet event emptyProperty проверки сохранены (90 checks).
+  Новый контракт setter проверяется D4 probe, включая отказ без изменения dataSet.
+- close снимает DataSet listener при dataSet != null.
+- mark removal вызывается только для dataSet instanceof XXIDataSet. Наличие
+  фактической mark-подписки не отслеживается: removal вызывается и когда она не
+  устанавливалась. В доступном JInvCommon removal отсутствующего listener — no-op.
+  Поэтому cleanup работает и если enableMark/supportMark изменились после подписки.
+  Это условие по типу Dataset, а не условие по текущему enableMark.
+- super.close() снимает Row/Navigation listeners и затем обнуляет dataSet.
+- При штатном завершении первого close повторный close безопасен: dataSet уже null,
+  и оба null guards пропускают removal. close до binding также безопасен по коду.
+  Повторный close после обычного и mark binding покрыт D4 extraction probe.
+- Null safety относится к dataSet, а не к исключениям из сторонних remove методов:
+  try/finally здесь нет; если removal бросит исключение, дальнейший cleanup не
+  гарантирован. Потокобезопасность/concurrent close этим commit не добавлены.
+- Helpers/state специально для D4 не добавлялись. Только setter replacement и
+  close override; superclass и JInvCommon не менялись.
+
+UNKNOWN:
+Полный corporate JavaFX 25 build/runtime остаётся UNKNOWN из D4-001.
+Новых runtime-проверок в этом report-only follow-up не запускалось.
+Extraction probe не является запуском полного DSFXAdapter.bindTable/TableView;
+classpath локального Maven cache не подтверждает corporate build compatibility.
+
+FILES:
+Review material below: DSFXAdapter.java production diff and complete D4 methods;
+Test-D4Lifecycle.ps1 and Test-EmptyProperty.ps1 exact probe diffs.
+
+### Full production diff
+
+```diff
+diff --git a/src/main/java/ru/inversion/dataset/fx/DSFXAdapter.java b/src/main/java/ru/inversion/dataset/fx/DSFXAdapter.java
+index 5c4d7b3..ce8c42c 100644
+--- a/src/main/java/ru/inversion/dataset/fx/DSFXAdapter.java
++++ b/src/main/java/ru/inversion/dataset/fx/DSFXAdapter.java
+@@ -465,26 +465,21 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
+     }
+ 
+     /** */
++    @Override
++    @Deprecated
+     public void setDataSet( IDataSet<T> ds ) {
++        throw new UnsupportedOperationException("Changing Dataset for a bound TableView adapter is unsupported");
++    }
+ 
+-        super.setDataSet(ds);
+-        updateEmptyProperty();
+-
+-        if( dataSet != null )
+-        {
+-            // Связывание данных
+-            final List<T> rows = dataSet.getRows();
+-
+-            if( !(rows instanceof ObservableList) )
+-                throw new IllegalStateException( Tags.PRODUCT_LABEL + "Internal collection in DataSet is not ObservableList!" );
+-
+-            final ObservableList<T> ol = (ObservableList<T>)rows;
+-            this.tableView.setItems( ol );
+-        }
+-        else
+-        {
+-            this.tableView.setItems( FXCollections.emptyObservableList() );
++    /** */
++    @Override
++    public void close() {
++        if( dataSet != null ) {
++            dataSet.removeDataSetListener(this);
++            if( dataSet instanceof XXIDataSet )
++                ((XXIDataSet<T>) dataSet).removeMarkDataSetListener(this);
+         }
++        super.close();
+     }
+ 
+     /** */
+```
+
+### Full current methods (no D4 helper/state added)
+
+```java
+    @Override
+    @Deprecated
+    public void setDataSet( IDataSet<T> ds ) {
+        throw new UnsupportedOperationException("Changing Dataset for a bound TableView adapter is unsupported");
+    }
+
+    /** */
+    @Override
+    public void close() {
+        if( dataSet != null ) {
+            dataSet.removeDataSetListener(this);
+            if( dataSet instanceof XXIDataSet )
+                ((XXIDataSet<T>) dataSet).removeMarkDataSetListener(this);
+        }
+        super.close();
+    }
+```
+
+### Exact probe diff
+
+```diff
+diff --git a/src/test/probes/Test-D4Lifecycle.ps1 b/src/test/probes/Test-D4Lifecycle.ps1
+new file mode 100644
+index 0000000..c7c9086
+--- /dev/null
++++ b/src/test/probes/Test-D4Lifecycle.ps1
+@@ -0,0 +1,112 @@
++param([switch]$ExpectLeak, [string]$MavenRepository = 'D:/Java/.m2/repository')
++$ErrorActionPreference = 'Stop'
++$root = [IO.Path]::GetFullPath("$PSScriptRoot/../../..")
++$fx = Get-Content "$root/src/main/java/ru/inversion/dataset/fx/DSFXAdapter.java" -Raw -Encoding UTF8
++$base = Get-Content "$root/src/main/java/ru/inversion/dataset/fx/DSControlAdapter.java" -Raw -Encoding UTF8
++if ($fx -notmatch '@Override\s+@Deprecated\s+public void setDataSet\( IDataSet<T> ds \)') {
++    throw 'Public setter signature/annotations changed'
++}
++Write-Output 'PASS public void setDataSet(IDataSet<T>) with Override/Deprecated'
++function Method([string]$source, [string]$signature) {
++    $start = $source.IndexOf($signature)
++    if ($start -lt 0) { throw "Missing method $signature" }
++    $brace = $source.IndexOf('{', $start)
++    $depth = 1; $end = $brace + 1
++    while ($depth -gt 0) {
++        if ($source[$end] -eq '{') { $depth++ }
++        if ($source[$end] -eq '}') { $depth-- }
++        $end++
++    }
++    return $source.Substring($start, $end - $start)
++}
++$close = if ($ExpectLeak) { '' } else { Method $fx 'public void close(' }
++$setter = if ($ExpectLeak) { '' } else { Method $fx 'public void setDataSet(' }
++$start = $fx.IndexOf('        this.dataSet = dataSet;')
++$end = $fx.IndexOf('        this.tableView = tableView;', $start)
++$bind = $fx.Substring($start, $end - $start).Replace('        updateEmptyProperty();', '')
++$mark = [regex]::Match($fx, 'xxiDs\.addMarkDataSetListener\(this\);').Value
++if (!$mark) { throw 'Missing mark registration' }
++# Исполняются извлечённые lifecycle-блоки без UI; события доставляет настоящий JInvCommon.
++$template = @'
++import java.util.*;
++import ru.inversion.dataset.*;
++class Parent<T> implements IDataSetRowListener<T>, IDataSetNavigationListener<T> {
++    protected IDataSet<T> dataSet;
++    public void rowOperation(DataSetRowEvent<T> e) {}
++    public void navigated(DataSetNavigationEvent<T> e) {}
++    public void setDataSet(IDataSet<T> ds) {}
++__BASE_CLOSE__
++}
++public class D4LifecycleProbe<T> extends Parent<T> implements IDataSetListener, IDataSetMarkListener<T> {
++    int data, row, nav, mark;
++    public void dataSetChanged(DataSetEvent e) { data++; }
++    public void rowOperation(DataSetRowEvent<T> e) { row++; }
++    public void navigated(DataSetNavigationEvent<T> e) { nav++; }
++    public void markAction(DataSetMarkEvent<T> e) { mark++; }
++    void bind(IDataSet<T> dataSet) {
++__BIND__
++    }
++    void bindMark(XXIDataSet<T> xxiDs) { __MARK__ }
++__CLOSE__
++__SETTER__
++    static class Data extends ArrayDataSet<String> {
++        Data() { super(String.class, new ArrayList<>(), false); }
++        void fire() {
++            fireDataSetEvent(DataSetEvent.DataSetEventType.EXECUTE, false);
++            fireNavigationEvent(null, null, 0, 1);
++            fireRowEvent(DataSetRowEvent.RowOperationEnum.UPDATE, null, null, 0, 0);
++        }
++    }
++    static class MarkData extends XXIDataSet<String> {
++        @Override public boolean isSupportMark() { return true; }
++        void fire() { fireMarkDataSetEvent(DataSetMarkEvent.MarkActionEnum.REFRESH); }
++    }
++    static void check(String name, boolean ok) {
++        if (!ok) throw new AssertionError(name);
++        System.out.println("PASS " + name);
++    }
++    public static void main(String[] args) throws Exception {
++        boolean leak = Boolean.parseBoolean(args[0]);
++        var a = new D4LifecycleProbe<String>();
++        var ds = new Data();
++        if (!leak) reject(a, ds);
++        a.bind(ds); ds.fire();
++        check("all three callbacks before close", a.data == 1 && a.row == 1 && a.nav == 1);
++        if (!leak) { reject(a, ds); reject(a, new Data()); reject(a, null); }
++        a.close(); ds.fire();
++        check("Row/Navigation detached", a.row == 1 && a.nav == 1);
++        check(leak ? "REPRODUCED DataSet callback after close" : "DataSet detached", a.data == (leak ? 2 : 1));
++        check("dataSet cleared", a.dataSet == null);
++        a.close();
++        if (!leak) reject(a, ds);
++        var m = new D4LifecycleProbe<String>();
++        var md = new MarkData();
++        m.bind(md); m.bindMark(md); md.fire();
++        check("mark delivered before close", m.mark == 1);
++        m.close(); md.fire();
++        check(leak ? "REPRODUCED mark callback after close" : "mark detached", m.mark == (leak ? 2 : 1));
++        m.close();
++    }
++    static void reject(D4LifecycleProbe<String> a, IDataSet<String> ds) {
++        var before = a.dataSet;
++        try { a.setDataSet(ds); throw new AssertionError("setter returned"); }
++        catch (UnsupportedOperationException e) {
++            check("setter rejects without rebinding", a.dataSet == before && e.getMessage().equals("Changing Dataset for a bound TableView adapter is unsupported"));
++        }
++    }
++}
++'@
++$out = "$root/target/d4-lifecycle-probe".Replace('\','/')
++New-Item -ItemType Directory -Force $out | Out-Null
++$generated = $template.Replace('__BASE_CLOSE__', (Method $base 'public void close(')).Replace('__CLOSE__', $close).Replace('__SETTER__', $setter).Replace('__BIND__', $bind).Replace('__MARK__', $mark)
++[IO.File]::WriteAllText("$out/D4LifecycleProbe.java", $generated, [Text.UTF8Encoding]::new($false))
++$jars = Get-ChildItem $MavenRepository -Recurse -Filter *.jar | Select-Object -ExpandProperty FullName
++$cp = $jars -join ';'
++$compile = '-encoding UTF-8 -proc:none -cp "' + $cp.Replace('\','/') + '" -d "' + $out + '" "' + $out + '/D4LifecycleProbe.java"'
++[IO.File]::WriteAllText("$out/compile.args", $compile)
++& javac "@$out/compile.args"
++if ($LASTEXITCODE) { throw 'Compile failed' }
++$run = '-cp "' + $out + ';' + $cp.Replace('\','/') + '" D4LifecycleProbe ' + $ExpectLeak.IsPresent.ToString().ToLowerInvariant()
++[IO.File]::WriteAllText("$out/run.args", $run)
++& java "@$out/run.args"
++if ($LASTEXITCODE) { throw 'Probe failed' }
+diff --git a/src/test/probes/Test-EmptyProperty.ps1 b/src/test/probes/Test-EmptyProperty.ps1
+index ec1566f..0d00de8 100644
+--- a/src/test/probes/Test-EmptyProperty.ps1
++++ b/src/test/probes/Test-EmptyProperty.ps1
+@@ -21,9 +21,6 @@ $property = Get-SourceBetween '    private ReadOnlyBooleanWrapper emptyProperty;
+ $binding = Get-SourceBetween '        this.dataSet = dataSet;' '        this.tableView = tableView;'
+ $row = Get-SourceBetween '    public void rowOperation( DataSetRowEvent<T> event ) {' '        if( event.getRowOperation() == UPDATE )'
+ $data = Get-SourceBetween '    public void dataSetChanged( DataSetEvent e ) {' '        if( e.isAfter() && e.getEventType() == DataSetEvent.DataSetEventType.EXECUTE )'
+-$setter = Get-SourceBetween '        super.setDataSet(ds);' '        if( dataSet != null )'
+-# Здесь проверяется только начальная синхронизация setter, без переподключения listeners из D4.
+-$setter = $setter.Replace('super.setDataSet(ds);', 'this.dataSet = ds;')
+ $template = @'
+ import java.util.*;
+ import javafx.beans.property.*;
+@@ -35,9 +32,6 @@ public class DSFXAdapter<T> implements IDataSetRowListener<T>, IDataSetListener,
+     void bind(IDataSet<T> dataSet) {
+ __BINDING__
+     }
+-    void synchronizeSetter(IDataSet<T> ds) {
+-__SETTER__
+-    }
+ __PROPERTY__
+ __ROW__
+     }
+@@ -120,10 +114,6 @@ __DATA__
+             ds.event(type, false);
+             check(label + type + " AFTER empty", property.get());
+         }
+-        adapter.synchronizeSetter(new Data(1));
+-        check(label + "setDataSet initial synchronization", !property.get());
+-        adapter.synchronizeSetter(null);
+-        check(label + "setDataSet null synchronization", property.get());
+     }
+     public static void main(String[] args) {
+         scenario(false, 0);
+@@ -135,7 +125,7 @@ __DATA__
+     }
+ }
+ '@
+-$generated = $template.Replace('__BINDING__', $binding).Replace('__SETTER__', $setter).Replace('__PROPERTY__', $property).Replace('__ROW__', $row).Replace('__DATA__', $data)
++$generated = $template.Replace('__BINDING__', $binding).Replace('__PROPERTY__', $property).Replace('__ROW__', $row).Replace('__DATA__', $data)
+ $probeDir = Join-Path ([IO.Path]::GetTempPath()) ('fore25-empty-property-' + [Guid]::NewGuid().ToString('N'))
+ New-Item -ItemType Directory -Path $probeDir | Out-Null
+ $probeFile = Join-Path $probeDir 'DSFXAdapter.java'
+```
