@@ -196,3 +196,84 @@ No production push.
 Reply under:
 
 `## Reply D4-002`
+
+
+---
+
+## MESSAGE D4-003
+
+**Status:** OPEN  
+**Purpose:** verify intermediate D3 documentation commit before allowing D4 production push.
+
+Do not change code.
+Do not amend existing commits.
+Do not push production branch.
+
+Commit to review:
+
+`f08248e4a4d90ae9423316e29f2197fee83fa9ba`
+
+This commit is the parent of D4 production commit:
+
+`0dd94764ac4d75eccc75a57c85ad005676875d19`
+
+### Required review material
+
+Please publish to `docs/codex/outbox.md`:
+
+1. Parent SHA of `f08248e4a4d90ae9423316e29f2197fee83fa9ba`.
+
+2. Full commit summary:
+   - commit message;
+   - changed files;
+   - additions/deletions per file.
+
+3. Full exact diff of `f08248e...` against its parent.
+
+4. Explicitly confirm whether the commit changes:
+   - production Java source;
+   - probe/test code;
+   - public/protected API;
+   - JInvCommon;
+   - only documentation.
+
+5. If it is documentation-only, summarize exactly what was added to the D3 report and confirm that it matches the corporate Java 25 / JavaFX 25 runtime results already recorded:
+   - P2 PASS
+   - P1 REJECTED_GAP
+   - P1 additional methods PASS
+   - P3 PASS
+   - P4 PASS with Dataset remaining on B
+   - P5 PASS with NAV=[0->1, 1->2]
+   - overall probe VALID EXIT 0
+   - initial binding unchanged
+   - clearSelection semantics unchanged
+   - no feedback loop observed
+
+6. Confirm no changes to deferred areas:
+   - logback
+   - JInvXMLViewer
+   - package ru.inversion.diff
+
+### Reply format
+
+Append:
+
+`## Reply D4-003`
+
+with:
+
+- MESSAGE-ID: D4-003
+- STATUS: DONE / BLOCKED
+- COMMIT: f08248e...
+- PARENT: ...
+- DIFF SUMMARY
+- FULL DIFF
+- PRODUCTION CODE CHANGES: YES / NO
+- PROBE CODE CHANGES: YES / NO
+- PUBLIC API CHANGES: YES / NO
+- JInvCommon CHANGES: YES / NO
+- DEFERRED AREAS CHANGED: YES / NO
+- VERDICT
+
+No code changes.
+No production push.
