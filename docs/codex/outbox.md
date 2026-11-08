@@ -373,3 +373,151 @@ index ec1566f..0d00de8 100644
  New-Item -ItemType Directory -Path $probeDir | Out-Null
  $probeFile = Join-Path $probeDir 'DSFXAdapter.java'
 ```
+
+## Reply D4-003
+
+MESSAGE-ID: D4-003
+STATUS: DONE
+COMMIT: f08248e4a4d90ae9423316e29f2197fee83fa9ba
+PARENT: 475b24f935aa0f38e1ed6993809ec18d71f4ac5f
+WORKING-BRANCH: migration/java25-correctness
+WORKING-HEAD: 0dd94764ac4d75eccc75a57c85ad005676875d19
+PUSH: NO (production); YES (mailbox reply only)
+
+DIFF SUMMARY:
+Commit message (complete): docs: finalize D3 selection sync verification
+Changed files (complete):
+- M docs/codex/stage2-d3-selection-sync-investigation.md: +69 / -0.
+Total: 1 file changed, 69 insertions, 0 deletions.
+Parent relationship confirmed: this documentation commit is the direct parent
+of 0dd94764ac4d75eccc75a57c85ad005676875d19.
+
+PRODUCTION CODE CHANGES: NO
+PROBE CODE CHANGES: NO
+PUBLIC API CHANGES: NO
+JInvCommon CHANGES: NO
+DEFERRED AREAS CHANGED: NO
+ONLY DOCUMENTATION: YES
+
+CONFIRMED:
+Добавлен только раздел «D3 final corporate verification» в конец D3 report.
+Он фиксирует источник evidence (предоставленный пользователем corporate runtime
+Java 25.0.1 / JavaFX 25, настоящий DSFXAdapter/TableView/ArrayDataSet), исходный
+дефект до fix, root cause, принятый fix 475b24f, compatibility и итог D3 CLOSED.
+Описание selectedIndexProperty listener и directional guard относится к ранее
+принятому production fix; этот documentation commit Java-код не изменяет.
+
+Матрица и приведённый output согласуются со всеми результатами, указанными
+в D4-003 как уже записанные corporate results:
+- P2 PASS.
+- P1 REJECTED_GAP: Table и Dataset согласованы на row 2.
+- P1 additional methods PASS: select(item), selectFirst, clearAndSelect.
+- P3 PASS (selectLast).
+- P4 PASS: Dataset остаётся на B (index=1), Table index=-1/item=null.
+- P5 PASS: точный NAV=[0->1, 1->2].
+- SCENARIOS COMPLETED=P1,P2,P3,P4,P5,INITIAL_BINDING; PROBE STATUS=VALID EXIT=0.
+- Initial binding сохранён: Table selectedIndex=-1, Dataset current index=2.
+- clearSelection semantics сохранены; новая semantics отсутствующей current row
+  не вводилась.
+- Feedback loop не наблюдался в проверенном P5: дополнительных обратных
+  navigation callbacks не было. Это не обобщается на все interleavings/Datasets.
+
+Отчёт явно ограничивает вывод проверенной P1-P5 matrix, не объявляет устранёнными
+все stale-queue/interleaving риски и не включает D4-D7 в документационную задачу.
+logback, JInvXMLViewer и весь package ru.inversion.diff не изменены: полный diff
+затрагивает только один Markdown-файл, без удаления предыдущего содержимого.
+
+UNKNOWN:
+Это review сохранённого отчёта и его соответствия recorded corporate results,
+а не новый независимый запуск corporate runtime. Исходный внешний runtime log
+в этом follow-up не получен и заново не исполнялся.
+
+VERDICT:
+CONFIRMED documentation-only commit. Содержание согласовано с corporate results,
+перечисленными в D4-003; production/probe/API/JInvCommon/deferred изменений нет.
+Код не менялся, existing commits не amend, production branch не push.
+Этот ответ не выполняет и не предполагает разрешения на production push.
+
+FULL DIFF:
+Exact git diff 475b24f935aa0f38e1ed6993809ec18d71f4ac5f..f08248e4a4d90ae9423316e29f2197fee83fa9ba
+(no path filter, no omissions):
+
+```diff
+diff --git a/docs/codex/stage2-d3-selection-sync-investigation.md b/docs/codex/stage2-d3-selection-sync-investigation.md
+index 539c1ce..db1acaa 100644
+--- a/docs/codex/stage2-d3-selection-sync-investigation.md
++++ b/docs/codex/stage2-d3-selection-sync-investigation.md
+@@ -378,3 +378,72 @@ Trace содержит BEFORE/IMMEDIATE/AFTER snapshots с table index/item, Dat
+ Подтверждено наличие обоих probe files в рабочем дереве. Запуск runner без `-ValidateOnly` действительно выполняет Maven compile, компиляцию отдельного Java probe и его main, запускающий toolkit и P1–P5. В output явно печатаются `MODE=CORPORATE_EXECUTION`, вход/возврат настоящего `bindTable` и `SCENARIOS COMPLETED=P1,P2,P3,P4,P5,INITIAL_BINDING` при технически успешном завершении. Это executable probe, а не только обновление отчёта.
+ 
+ Повторно проверены PowerShell parsing, Java 25 syntax parsing и whitespace новых probe files. Corporate type-check и runtime результаты по-прежнему UNKNOWN до запуска на корпоративной машине. Конкретная невозможность минимального bindTable не установлена: код использует настоящий binding и при его ошибке выводит stack trace, UNKNOWN и non-zero, без fallback на fake/mock. Production code/API и JInvCommon не изменены; commit/push не выполнялись.
++
++## D3 final corporate verification
++
++### Контекст и источник evidence
++
++- Repository: `ssu95a/fore25`.
++- Branch: `migration/java25-correctness`.
++- Accepted production fix commit: `475b24f935aa0f38e1ed6993809ec18d71f4ac5f` — `fix: synchronize table selection with dataset row`.
++- Пользователь предоставил результаты повторного запуска probe на корпоративной машине: Java 25.0.1, JavaFX 25, production DSFXAdapter, настоящий TableView и ArrayDataSet.
++- Результаты ниже являются corporate runtime evidence пользователя, а не локальной симуляцией. Исторические UNKNOWN предыдущих разделов отражают состояние на момент первоначального investigation; для проверенной P1–P5 matrix они разрешены этим запуском.
++
++### CONFIRMED: defect до fix
++
++Контрольный Dataset → Table путь работал (P2 PASS), но programmatic `table.select(2)` оставлял Dataset на row 0 при Table selection 2 (P1 CONFIRMED_GAP). `selectLast()` воспроизводил то же расхождение: table.index=2, dataset.index=0.
++
++Root cause: DSFXAdapter не имел общего listener на изменение selection. Table → Dataset synchronization зависела от mouse/key events, которые programmatic selection не генерирует.
++
++### Accepted fix и compatibility
++
++В `src/main/java/ru/inversion/dataset/fx/DSFXAdapter.java` добавлен listener `selectedIndexProperty`, обрабатывающий только валидный индекс через существующий `refreshCurrentRow()` и прежний index-based Dataset setter. Private directional guard `insideInSetTableSelection` установлен непосредственно вокруг Dataset-driven `select(index)` в queued `positionRow`, чтобы изменение Table selection не инициировало обратный Dataset setter. Контракт существующего `insideInSetCurrentRow` и legacy mouse/key handlers сохранён.
++
++Public/protected API не изменён; изменений прикладного кода не требуется. Cleanup/rebinding listeners не расширялся до D4.
++
++### CONFIRMED: corporate results после fix
++
++| Сценарий | Результат |
++| --- | --- |
++| P2 Dataset → Table | PASS |
++| P1 programmatic select(2) | REJECTED_GAP: Table и Dataset согласованы на row 2 |
++| P1 additional methods | PASS: select(item), selectFirst, clearAndSelect |
++| P3 selectLast | PASS |
++| P4 clearSelection | PASS: Dataset остаётся на B |
++| P5 rapid Dataset navigation | PASS; точный trace NAV=[0->1, 1->2] |
++
++Итоговый output предоставленного запуска:
++
++```text
++P2 RESULT=PASS
++P1 RESULT=REJECTED_GAP
++P1 ADDITIONAL METHODS=PASS
++P3 RESULT=PASS
++P4 RESULT=PASS (Dataset remains on B)
++P5 RESULT=PASS NAV=[0->1, 1->2]
++SCENARIOS COMPLETED=P1,P2,P3,P4,P5,INITIAL_BINDING
++D3 PROGRAMMATIC SELECTION GAP — REJECTED
++PROBE STATUS=VALID EXIT=0
++```
++
++Точный P5 trace содержит только `0->1` и `1->2`. Дополнительных reverse navigation callbacks `2->1` / `1->2` нет: отсутствие feedback loop в этом сценарии подтверждено runtime probe.
++
++### Сохранённые semantics и границы
++
++Initial binding не изменён: после binding Table selectedIndex=-1, Dataset current index=2. Это отдельно подтверждено corporate запуском и остаётся отдельным вопросом, вне D3 fix.
++
++`clearSelection()` сохраняет прежнее observable behavior: Table index=-1 и item=null; Dataset index=1 и row=B. Новая semantics отсутствующей current row не вводилась.
++
++Закрытие относится к проверенному D3 contract валидного selection при прежнем index mapping. Оно не означает устранения всех возможных stale-queue/interleaving рисков или проверки всех Dataset implementations. D4–D7 не исправлялись; D4 не начат этой документационной задачей.
++
++### Итог
++
++**D3 — CLOSED**
++
++```text
++PUBLIC API CHANGES: NONE
++JInvCommon CHANGES: NONE
++D4-D7 CHANGES: NONE
++```
++
++В рамках final verification update изменён только этот Markdown-отчёт. Production и probe code не изменены. Push не выполнялся.
+```
