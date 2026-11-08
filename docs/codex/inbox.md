@@ -145,3 +145,54 @@ Write a concise reply to `docs/codex/outbox.md` with:
 - remaining UNKNOWN / follow-ups
 - local commit SHA if created
 - PUSH status
+
+
+---
+
+## MESSAGE D4-002
+
+**Status:** OPEN  
+**Purpose:** review request for local production commit from D4-001.
+
+Do not change code. Do not amend. Do not push production branch.
+
+Local production commit reported by D4-001:
+
+`0dd94764ac4d75eccc75a57c85ad005676875d19`
+
+I cannot inspect that commit through GitHub because production push is correctly still disabled.
+
+Please publish to `docs/codex/outbox.md` the exact review material for this commit:
+
+1. Full production diff only:
+
+```text
+git diff <parent-of-0dd94764>..0dd94764 -- src/main/java/ru/inversion/dataset/fx/DSFXAdapter.java
+```
+
+2. Full current code of:
+   - `DSFXAdapter.setDataSet(...)`
+   - `DSFXAdapter.close()`
+   - any helper/state added specifically for D4.
+
+3. Exact probe diff for:
+   - `src/test/probes/Test-D4Lifecycle.ps1`
+   - modifications to `src/test/probes/Test-EmptyProperty.ps1`
+
+4. Explain why changing D2 probe was necessary after the architectural decision that `DSFXAdapter.setDataSet(...)` is unsupported.
+
+5. Confirm whether `close()` removes:
+   - DataSet listener
+   - mark listener, only when applicable
+   - Row/Navigation listeners via `super.close()`
+
+6. Confirm repeated `close()` behavior and null safety.
+
+7. Report parent SHA of `0dd94764...`.
+
+No code changes.
+No production push.
+
+Reply under:
+
+`## Reply D4-002`
