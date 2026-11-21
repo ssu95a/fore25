@@ -607,7 +607,7 @@ Reply with `## Reply GUI-002` in mailbox `docs/codex/outbox.md` linking review s
 
 ## MESSAGE GUI-003
 
-**Status:** OPEN  
+**Status:** CLOSED  
 **Purpose:** publish accepted GUI-001 smoke harness, no other production work.  
 **Working branch:** `migration/java25-correctness`.
 
@@ -645,3 +645,66 @@ Publish `## Reply GUI-003` in `docs/codex/outbox.md`:
 - confirmation no production source/API changes.
 
 Then stop; no GUI-004 implementation, no D6/D7. Exclude logback, `JInvXMLViewer`, `ru.inversion.diff`.
+
+
+---
+
+## MESSAGE GUI-004
+
+**Status:** OPEN
+**Priority:** High; actual Legacy JavaFX 25 GUI behavior, not DSFXAdapter audit.
+**Working branch:** `migration/java25-correctness`
+**Expected current GitHub HEAD:** `504f94d6fa4331ce3fe5e561afb8a96e510ebacd` (SVN-only pom.xml cleanup, corporate BUILD SUCCESS).
+
+### Confirmed GUI-001 result supplied by the user
+
+The user executed `Test-LegacyGuiSmoke.ps1` on Windows using Oracle Java 25.0.1 / JavaFX 25 / the real project's compiled classes with a working custom Maven settings.xml and obtained:
+
+```text
+BUILD SUCCESS
+Stage shown; FXML/CSS loaded; Legacy table skin, layout,
+cell selection and editor focus/edit passed
+GUI-001 PASS
+```
+
+The visible window appeared. Warnings:
+- JavaFX unnamed module (classpath-based launch), nonblocking for this smoke.
+- `URIFacade - No icon path found!`, nonblocking for tested controls.
+
+Treat GUI-001 as **CLOSED for its tested matrix only**. Do not claim full form or component equivalence. No production modifications are necessary as a result of this smoke.
+
+### Task: GUI-004, one focused Legacy editor GUI smoke
+
+Next priority is behavioral verification of **real production Legacy TextArea and ComboBox** components and custom skins after migration JavaFX8 -> JavaFX25.
+
+Inspect actual classes first, especially `JInvTextArea` custom skin, `JInvComboBox`, `JInvComboBoxListViewSkin`, and focus/context-menu ownership code. Find the smallest realistic visible Stage + Scene test, using real control classes, no fake skins.
+
+Create at most one narrowly scoped new or extended GUI smoke harness under `src/test/probes/gui/`, with a PowerShell one-command launcher. Reuse GUI-001 infrastructure when practical; don't break existing GUI-001.
+
+Mandatory checks, if supported by real public API without app bootstrap:
+1. Java 25 and JavaFX 25, actual production controls and custom skins.
+2. Visible Scene/Stage and laid-out controls.
+3. TextArea programmatic focus, selection and text edit and meaningful context-menu ownership/availability assertion (do not invent context menu semantics).
+4. Editable ComboBox: editor text normalization, selection/value relationship, popup show/hide and focus behavior. Check at least one **actual popup shown** state after an FX pulse, not just invoking show().
+5. Record precise failures and distinguish setup/focus limitations from confirmed control bugs.
+
+Prefer deterministic FX barriers/timeouts, avoid relying on arbitrary sleeps. If CSS/resource setup requires BaseApp or an icon path, explain the minimal real dependency; do not replace production control with a standard JavaFX stand-in.
+
+### Constraints
+
+- First iteration TEST-ONLY. Do not change any production Java source, public/protected API, POM, Maven wrapper or JInvCommon.
+- Keep D6/D7 in backlog.
+- Do not touch DEFERRED logback, `JInvXMLViewer`, or `ru.inversion.diff`.
+- New source comments only in Russian.
+- Use current Maven with custom settings file (environment may have `MAVEN_ARGS` set to `-s <path>`). The runner should not forcibly replace the user's Maven settings or assume a home path.
+- No external DB, no full application login.
+
+### Deliverable and review
+
+- Produce a runnable test harness and exact corporate/home Windows PowerShell command.
+- Run PowerShell/java syntax checks and available checks locally.
+- Corporate JavaFX 25 runtime status UNKNOWN until user actually runs it.
+- One test-only **local commit** allowed, but **do not push** production branch pending review.
+- Reply in `docs/codex/outbox.md` on mailbox branch as `## Reply GUI-004`: files, commit SHA, exact source/diff for review (full sources may be attached on mailbox branch), tested behavior, limitations/UNKNOWN, working tree status, no production changes/push.
+
+Do not proceed to GUI-005 or wider GUI refactor. Stop for review.
