@@ -17,17 +17,6 @@
   <version>1.0.1</version>
   <packaging>jar</packaging>
 
-  <!--
-  Расположение исходного кода в svn. Необходимо для подгрузки версии текущей ревизии и принудительного update
-  при сборке и установки этого значения в манифест
-  -->
-  <scm>
-    <connection>scm:svn:svn://canopus:3690/products/core/fx/JInvFore/trunk</connection>
-    <developerConnection>scm:svn:svn://canopus:3690/products/core/fx/JInvFore/trunk</developerConnection>
-    <tag>HEAD</tag>
-    <url>scm:svn:svn://canopus:3690/products/core/fx/JInvFore/trunk</url>
-  </scm>
-
     <properties>
         <inversion.embed.sources.skip>true</inversion.embed.sources.skip>
         <maven.compiler.source>25</maven.compiler.source>
@@ -104,52 +93,8 @@
 
               <Class-Path>lib/jsr305.jar crypto-etoken.jar lib/ijdbc.jar lib/commons-beanutils.jar lib/dynamicreports-adhoc.jar lib/xmlgraphics-commons.jar lib/dynamicreports-core.jar lib/itext.jar lib/jasperreports.jar lib/castor-core.jar lib/castor-xml.jar lib/ecj.jar lib/jfreechart.jar lib/jcommon.jar lib/commons-digester.jar lib/jasperreports-fonts.jar lib/SparseBitSet.jar lib/commons-math3.jar
               </Class-Path>
-              <!--
-              Добавляем в манифест версия номер последнего комита
-              -->
-              <SCM-Revision>${buildNumber}</SCM-Revision>
             </manifestEntries>
           </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <!--Задача плагина перед началом сборки сделать update исходного кода и запомнить
-        номер последнего комита в переменную buildNumber -->
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>buildnumber-maven-plugin</artifactId>
-        <version>1.4</version>
-        <executions>
-          <execution>
-            <phase>validate</phase>
-            <goals>
-              <goal>create</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <doCheck>false</doCheck>
-          <doUpdate>true</doUpdate>
-          <providerImplementations>
-            <svn>javasvn</svn>
-          </providerImplementations>
-          <!--Для того, чтобы обновить исходный код плагину необходимо передавать логин пароль для svn
-          Если не указано, то будет пытаться вытащить из настроек клиента Subversion или ToruaseSvn
-          тут c:\Users\AntonovDI.INVERSION\AppData\Roaming\Subversion\auth\svn.simple\
-
-          Если этих данных нет, то можно сохранить эти переменные в settings.xml для
-          мавена.
-            <profile>
-              <id>default</id>
-              <activation>
-                <activeByDefault>true</activeByDefault>
-              </activation>
-          <properties>
-            <svnLogin>логин</svnLogin>
-            <svnPassword>ываываываываы</svnPassword>
--->
-
-          <username>${svnLogin}</username>
-          <password>${svnPassword}</password>
         </configuration>
       </plugin>
       <plugin>
@@ -431,34 +376,6 @@
       <version>1.0.0</version>
     </dependency>
     <!--Зависимости самого ядра-->
-    <dependency>
-      <groupId>com.google.code.maven-scm-provider-svnjava</groupId>
-      <artifactId>maven-scm-provider-svnjava</artifactId>
-      <version>2.1.2</version>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>commons-io</artifactId>
-          <groupId>commons-io</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jna</artifactId>
-          <groupId>net.java.dev.jna</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>plexus-utils</artifactId>
-          <groupId>org.codehaus.plexus</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jna-platform</artifactId>
-          <groupId>net.java.dev.jna</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>trilead-ssh2</artifactId>
-          <groupId>com.trilead</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
     <dependency>
       <groupId>org.controlsfx</groupId>
       <artifactId>controlsfx</artifactId>
