@@ -283,7 +283,7 @@ No production push.
 
 ## MESSAGE D5-001
 
-**Status:** OPEN  
+**Status:** CLOSED  
 **Mode:** READ-ONLY INVESTIGATION + targeted reproduction; NO production changes.  
 **Target branch:** `migration/java25-correctness`  
 **Expected GitHub HEAD:** `0dd94764ac4d75eccc75a57c85ad005676875d19` (D4 accepted, corporate build green).
@@ -330,3 +330,91 @@ Publish `## Reply D5-001` to `docs/codex/outbox.md` on `agent/codex-mailbox`, in
 - no production push.
 
 This is an investigation task, so local uncommitted probe files may be left pending review. Only the mailbox reply may be pushed.
+
+
+---
+
+## MESSAGE D5-002
+
+**Status:** OPEN  
+**Task type:** narrowly scoped correctness fix + regression tests, local commit only.  
+**Working branch:** `migration/java25-correctness`  
+**Expected baseline:** `0dd94764ac4d75eccc75a57c85ad005676875d19`
+
+### Decision following D5-001
+
+Investigation D5-001 accepted. The synchronous branch of
+`DSFXAdapter.executeQuery(BiConsumer<Boolean,Throwable>, IFormStateListener, boolean, boolean)`
+omits success callback after `getDataSet().executeQuery(readAllRecords)` returns normally.
+
+Implement a **minimal internal fix** and a reproducible regression probe.
+
+#### Required semantics (explicit user-facing engineering decision)
+
+- If the synchronous Dataset query **actually ran and returned normally**, invoke exactly once `callBack.accept(true, null)`.
+- If query or full-scan guard throws, preserve existing exactly-one attempted `callBack.accept(false, th)`, passing the original throwable.
+- If `checkForFullScan()` returns false (user declines / dismisses), **do not invoke success or failure callback**; preserve silent skip.
+- If `getDataSet()==null` on entry, preserve early return without callback.
+- If pre-try listener resolution fails, do not silently change that behavior.
+- If success callback itself throws, do **not** catch it as a query failure and invoke a second callback. Propagate its exception naturally, while preserving existing `positionRow(0)` attempt in the finally block.
+- Preserve positioning attempt and order in all cases where the original synchronous block did so, including declined guard, query errors and callback exceptions.
+- Preserve synchronous caller thread, `DATA_SET_LOCK` ownership, existing callback execution timing relative to queued positioning, and method signatures. Do not introduce asynchronous callback delivery.
+- Do not refactor parallel=true or full-scan dialog logic, even if separate flaws were observed.
+
+Investigate simplest boolean success flag scoped to sync path, with success callback **outside the query catch but before `positionRow(0)`**. Ensure exception behavior and exactly-once attempts are covered. Avoid code duplication.
+
+### Tests and regression
+
+Update existing untracked D5 probe files from D5-001:
+
+- `src/test/probes/Test-D5ExecuteQuery.ps1`
+- `src/test/probes/d5/D5ExecuteQueryProbe.java`
+
+Test both BEFORE and AFTER evidence where practical:
+1. success: one query, exactly one `(true,null)`;
+2. query exception: exactly one `(false, original throwable)`;
+3. guard exception: no query, one failure notification;
+4. guard refusal: no query, zero callbacks;
+5. Dataset null: zero callbacks;
+6. throwing success callback: only one callback attempt and no false retry; positioning still attempted;
+7. throwing failure callback: no retry; positioning still attempted;
+8. positioning enqueue failure: document masking/propagation behavior, no fake extra callback.
+
+If using source-extraction tests, explicitly state they are not equivalent to real `DSFXAdapter` integration. Ideally support a **single PowerShell command** for corporate Java 25 / JavaFX 25, deriving Maven dependencies from existing project instead of requiring manually filled environment variables. Do not download or substitute JavaFX/JInvCommon.
+
+### Compatibility and guardrails
+
+- Keep all public/protected signatures and runtime defaults unchanged.
+- `JInvCommon`: read-only; absolutely no modifications.
+- No D1-D4 or D6-D7 unrelated changes.
+- DEFERRED: logback, `JInvXMLViewer`, package `ru.inversion.diff`.
+- Source comments only in Russian.
+- No external DB operations.
+- `positionRow`, `clearSelection`, `setDataSet` and other lifecycle semantics outside this sync callback path must not change.
+
+### Git/review
+
+Start with `git status`, current branch, and HEAD. Check that only the two untracked D5 probes exist before modifications (or report deviations).
+
+Make **one local commit** with narrow production fix and tests after passing all available checks.
+
+Suggested commit message:
+
+`fix: notify synchronous query success`
+
+**Do not push production branch.**
+
+Reply through GitHub mailbox `docs/codex/outbox.md` as:
+
+`## Reply D5-002`
+
+Include:
+- exact commit SHA + parent;
+- complete production diff (not just summary);
+- exact changed file list and probe commands;
+- test matrix and results;
+- remaining UNKNOWN, especially corporate JavaFX25 integration;
+- public API compatibility;
+- production PUSH: NO.
+
+Do not start D6 or other work.
