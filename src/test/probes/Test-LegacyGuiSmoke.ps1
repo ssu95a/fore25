@@ -1,3 +1,11 @@
+param([switch] $Editors)
+
+$probeId = 'GUI-001'
+$probeClass = 'LegacyGuiSmoke'
+if ($Editors) {
+    $probeId = 'GUI-004'
+    $probeClass = 'LegacyEditorsSmoke'
+}
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
 if ($env:JAVA_HOME) {
@@ -12,43 +20,43 @@ if ($env:JAVA_HOME) {
 }
 $javaVersion = & $java '--version'
 if ($LASTEXITCODE -ne 0 -or ($javaVersion -join "`n") -notmatch '^(?:openjdk|java) 25(?:[. +\-]|$)') {
-    throw "GUI-001 requires Java 25. $java reported: $javaVersion"
+    throw "$probeId requires Java 25. $java reported: $javaVersion"
 }
 $javacVersion = & $javac '--version'
 if ($LASTEXITCODE -ne 0 -or ($javacVersion -join "`n") -notmatch '^javac 25(?:[. +\-]|$)') {
-    throw "GUI-001 requires javac 25. $javac reported: $javacVersion"
+    throw "$probeId requires javac 25. $javac reported: $javacVersion"
 }
 
 $maven = (Get-Command mvn -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1).Source
 if (!$maven) {
     $maven = Join-Path $root 'mvnw.cmd'
-    if (!(Test-Path -LiteralPath $maven -PathType Leaf)) { throw 'GUI-001 requires mvn or mvnw.cmd' }
+    if (!(Test-Path -LiteralPath $maven -PathType Leaf)) { throw "$probeId requires mvn or mvnw.cmd" }
 }
 
-$output = Join-Path $root ('target/gui-001-' + [Guid]::NewGuid().ToString('N'))
+$output = Join-Path $root ("target/$($probeId.ToLowerInvariant())-" + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $output | Out-Null
 $dependencyFile = Join-Path $output 'dependencies.txt'
 Push-Location $root
 try {
     & $maven '-Pbuild' '-Dmaven.buildNumber.skip=true' '-DskipTests' 'compile' 'dependency:build-classpath' "-Dmdep.outputFile=$dependencyFile" '-DincludeScope=test'
-    if ($LASTEXITCODE -ne 0) { throw 'GUI-001 Maven project compile/classpath failed' }
+    if ($LASTEXITCODE -ne 0) { throw "$probeId Maven project compile/classpath failed" }
 } finally {
     Pop-Location
 }
-if (!(Test-Path -LiteralPath $dependencyFile -PathType Leaf)) { throw 'GUI-001 Maven dependency classpath missing' }
+if (!(Test-Path -LiteralPath $dependencyFile -PathType Leaf)) { throw "$probeId Maven dependency classpath missing" }
 $dependencies = [IO.File]::ReadAllText($dependencyFile).Trim()
-if (!$dependencies) { throw 'GUI-001 Maven dependency classpath empty' }
+if (!$dependencies) { throw "$probeId Maven dependency classpath empty" }
 
 $classpath = (Join-Path $root 'target/classes') + [IO.Path]::PathSeparator + $dependencies
-$probeSource = Join-Path $PSScriptRoot 'gui/LegacyGuiSmoke.java'
+$probeSource = Join-Path $PSScriptRoot "gui/$probeClass.java"
 $compileArgs = Join-Path $output 'javac.args'
 $runArgs = Join-Path $output 'java.args'
 $runClasspath = $output + [IO.Path]::PathSeparator + $classpath
 [IO.File]::WriteAllLines($compileArgs, @('-cp', ('"' + $classpath.Replace('\', '/') + '"'),
     '-d', ('"' + $output.Replace('\', '/') + '"'), ('"' + $probeSource.Replace('\', '/') + '"')))
 [IO.File]::WriteAllLines($runArgs, @('--enable-native-access=ALL-UNNAMED',
-    '-cp', ('"' + $runClasspath.Replace('\', '/') + '"'), 'LegacyGuiSmoke'))
+    '-cp', ('"' + $runClasspath.Replace('\', '/') + '"'), $probeClass))
 & $javac "@$compileArgs"
-if ($LASTEXITCODE -ne 0) { throw 'GUI-001 smoke source compilation failed' }
+if ($LASTEXITCODE -ne 0) { throw "$probeId smoke source compilation failed" }
 & $java "@$runArgs"
-if ($LASTEXITCODE -ne 0) { throw 'GUI-001 JavaFX runtime/assertion failed' }
+if ($LASTEXITCODE -ne 0) { throw "$probeId JavaFX runtime/assertion failed" }
