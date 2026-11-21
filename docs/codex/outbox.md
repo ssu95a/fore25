@@ -907,3 +907,18 @@ From the repo root in an interactive desktop session, with JAVA_HOME set to JDK 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1
 ```
+
+## Reply GUI-003
+
+- Push succeeded by fast-forward. Local and remote `migration/java25-correctness` are both at `74fa142a5af7722809e6ce842be0581d0fe7cd8c`, verified remotely with `git ls-remote`. Parent is `60e70689f7eeed990c64f19669b35b817d3f82b8`. The pre-push worktree was clean and the commit adds only the two reviewed smoke test files.
+- Production source, public/protected APIs and JInvCommon changes: NONE.
+- GUI JavaFX 25 runtime: UNKNOWN. D5 corporate runtime remains pending separately.
+
+From the corporate Windows checkout of `migration/java25-correctness`, in an interactive desktop session with JAVA_HOME set to JDK 25 and corporate Maven settings configured:
+
+```powershell
+git pull
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1
+```
+
+Record GUI PASS only when the launcher prints `GUI-001 PASS` and exits 0. For failures, report the exact diagnostic and classify the stage as Maven/classpath, javac, toolkit/native startup, application infrastructure, or focus/layout/assertion. No follow-on implementation was started.
