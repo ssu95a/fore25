@@ -591,3 +591,79 @@ External sync callers and their cancellation/completion expectations; corporate 
 - `src/test/probes/d5/D5ExecuteQueryProbe.java`
 
 Only this mailbox reply is published.
+
+---
+
+## Reply D5-002
+
+- STATUS: DONE
+- BRANCH: `migration/java25-correctness`
+- LOCAL COMMIT: `692ed672b6215dd5845491b7bb818f36ae324b10`
+- PARENT: `0dd94764ac4d75eccc75a57c85ad005676875d19`
+- PRODUCTION PUSH: NO
+
+The initial checkout matched the expected baseline and contained only the two untracked D5 probes. The final production checkout is clean and one commit ahead of its origin tracking ref.
+
+### Changed files
+
+- `src/main/java/ru/inversion/dataset/fx/DSFXAdapter.java`
+- `src/test/probes/Test-D5ExecuteQuery.ps1`
+- `src/test/probes/d5/D5ExecuteQueryProbe.java`
+
+The inner catch covers the guard and Dataset query. Early returns for refusal and handled failure let successful execution fall through to one success callback without a flag. The outer finally still attempts row positioning on every path that enters the sync block. Success callback exceptions escape without a failure retry. The callback runs on the caller thread under the same lock before the positioning enqueue attempt. Public/protected signatures, runtime defaults, parallel execution, full-scan dialog logic, and JInvCommon are unchanged.
+
+### Complete production diff
+
+```diff
+diff --git a/src/main/java/ru/inversion/dataset/fx/DSFXAdapter.java b/src/main/java/ru/inversion/dataset/fx/DSFXAdapter.java
+index ce8c42c..d6969e3 100644
+--- a/src/main/java/ru/inversion/dataset/fx/DSFXAdapter.java
++++ b/src/main/java/ru/inversion/dataset/fx/DSFXAdapter.java
+@@ -1274,11 +1274,16 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
+             synchronized( DATA_SET_LOCK )
+             {
+                 try {
+-
+-                    if( checkForFullScan() )
++                    try {
++                        if (!checkForFullScan()) {
++                            return;
++                        }
+                         getDataSet().executeQuery(readAllRecords);
+-                } catch (Throwable th) {
+-                    callBack.accept( false, th );
++                    } catch (Throwable th) {
++                        callBack.accept(false, th);
++                        return;
++                    }
++                    callBack.accept(true, null);
+                 } finally {
+                     positionRow(0);
+                 }
+```
+
+### Probes
+
+Run from the repository root:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-D5ExecuteQuery.ps1 -Before
+powershell -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-D5ExecuteQuery.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-D5ExecuteQuery.ps1 -Corporate
+```
+
+BEFORE reads the parent source from Git without checking it out. AFTER reads the working source. Both extraction runs passed on JDK 25.0.1 (exit 0). They compile the extracted production prelude and sync block with test doubles; they do not exercise the real adapter, Dataset, dialog, or JavaFX queue.
+
+| Case | BEFORE | AFTER |
+| --- | --- | --- |
+| Successful query | 1 query, 0 callbacks | 1 query, 1 × `(true,null)`, then positioning attempt |
+| Query throws | 1 query, 1 × `(false, original)` | Same |
+| Guard throws | 0 queries, 1 × `(false, original)` | Same |
+| Guard declines | 0 queries, 0 callbacks, positioning attempted | Same |
+| Null Dataset | 0 queries, 0 callbacks, no positioning | Same |
+| Controller cast fails before try | Original cast exception escapes, no callback or positioning | Same |
+| Success callback throws | Callback never reached | 1 success attempt, original callback exception escapes after positioning attempt |
+| Failure callback throws | 1 failure attempt, original callback exception escapes after positioning attempt | Same |
+| Simulated positioning enqueue throws | Enqueue exception escapes and masks a pending failure callback exception, with no extra notification | Same, including masking of a pending success callback exception; a normal successful query still gets its one success callback before enqueue throws |
+
+Callback checks assert original Throwable identity on errors, caller thread, lock ownership, count and order. The corporate probe passed a JDK parser-only syntax check. Corporate mode uses installed Maven and the project's cached dependencies offline, with buildnumber skipped. Local invocation stopped before compilation because `mvn` is absent from PATH. The real adapter/JavaFX 25 integration result remains UNKNOWN. The corporate probe exercises success, query failure, both throwing callbacks, null Dataset, and pre-try cast. Real full-scan dialogs and positioning enqueue failure are outside that integration probe. No external DB was used.
