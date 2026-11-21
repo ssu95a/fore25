@@ -651,7 +651,7 @@ Then stop; no GUI-004 implementation, no D6/D7. Exclude logback, `JInvXMLViewer`
 
 ## MESSAGE GUI-004
 
-**Status:** OPEN
+**Status:** CLOSED
 **Priority:** High; actual Legacy JavaFX 25 GUI behavior, not DSFXAdapter audit.
 **Working branch:** `migration/java25-correctness`
 **Expected current GitHub HEAD:** `504f94d6fa4331ce3fe5e561afb8a96e510ebacd` (SVN-only pom.xml cleanup, corporate BUILD SUCCESS).
@@ -708,3 +708,83 @@ Prefer deterministic FX barriers/timeouts, avoid relying on arbitrary sleeps. If
 - Reply in `docs/codex/outbox.md` on mailbox branch as `## Reply GUI-004`: files, commit SHA, exact source/diff for review (full sources may be attached on mailbox branch), tested behavior, limitations/UNKNOWN, working tree status, no production changes/push.
 
 Do not proceed to GUI-005 or wider GUI refactor. Stop for review.
+
+
+---
+
+## MESSAGE GUI-005
+
+**Status:** OPEN  
+**Priority:** Legacy JavaFX25 GUI correctness, Stage 1 behavioral smoke  
+**Working branch:** `migration/java25-correctness`  
+**Expected current remote HEAD:** `504f94d6fa4331ce3fe5e561afb8a96e510ebacd`
+
+### Step A: publish accepted GUI-004 test-only commit
+
+GUI-004 is approved for its tested matrix. User ran the real visible GUI smoke successfully and reported:
+
+```text
+TextArea edit/menu ownership and ComboBox selection, commit and same-value normalization passed
+ComboBox popup window shown and hidden; focus returned to TextArea
+GUI-004 PASS
+```
+
+Local GUI-004 commit:
+`22d2dffff9d48558193a3c95184fe1ed94b51244`  
+Parent:
+`504f94d6fa4331ce3fe5e561afb8a96e510ebacd`
+
+Exact diff was independently reviewed: ONLY
+`src/test/probes/gui/LegacyEditorsSmoke.java`
+and `src/test/probes/Test-LegacyGuiSmoke.ps1` test-runner extension. No production/POM/API/JInvCommon changes.
+
+**Explicit one-time push approval:** If local HEAD is exactly the above commit, tree clean, remote branch HEAD exactly the above parent, and ancestry is linear, fast-forward push `migration/java25-correctness` **only to 22d2dffff9d48558193a3c95184fe1ed94b51244**. Never force push. If any discrepancy, stop as BLOCKED and report. Verify remote SHA.
+
+### Step B: GUI-005 investigate real Legacy table cell editing
+
+Main mission remains original Legacy GUI migration JavaFX8 -> JavaFX25, not a redesign.
+
+GUI-001 has already demonstrated visible JInvTable/JInvTextField, table layout, selection, editor focus. GUI-004 demonstrated TextArea/ComboBox skin, popup, text and context menu behavior.
+
+Next untested high-risk area is **editing inside real JInvTable cells**. Inspect actual production:
+- `JInvTable`, `JInvTableColumn`, `JInvTableViewSkin`;
+- existing Legacy cell factories/editors and their appropriate activation/commit/cancel contracts;
+- column read-only/editability defaults, custom skin focus and navigation, current editing semantics.
+
+Choose the smallest representative *real* editable Legacy column/editor, with an in-memory record and observable property, running in a visible Stage/Scene on JavaFX 25 without business DB or BaseApp if feasible.
+
+At most one **test-only** GUI harness under `src/test/probes/gui/` and a minimal extension to the existing GUI PowerShell runner, preserving GUI-001 and GUI-004 default/flag behavior.
+
+Aim to assert (according to actual production contract, not invented expectations):
+1. Legacy table and cell factory/skin are instantiated, laid out and editable;
+2. enter editing via real TableView edit path;
+3. value commit updates exactly the intended target model/property, without losing focus/selection unexpectedly;
+4. cancel edit leaves model value unchanged;
+5. moving between rows/cells gives coherent editing/selection state.
+Differentiate simulated programmatic edit/commit from physical key/mouse events. Do not assert persistence to DB.
+
+If the Legacy editor requires application infrastructure or the available cell classes are not directly usable without Dataset, explain exact blocker and produce minimal realistic alternative rather than faking the editor. Do not change production code to make a smoke pass.
+
+### Constraints and verification
+
+- NO production code, public/protected API, POM, Maven wrapper or JInvCommon modifications.
+- NO D6/D7 changes.
+- DEFERRED: logback, `JInvXMLViewer` and entire `ru.inversion.diff`.
+- New source comments Russian only.
+- Use the user's custom Maven settings via existing environment (`MAVEN_ARGS` if set); do not hard-code personal paths.
+- Run locally available syntax/compile checks and report limitations.
+- Corporate/actual JavaFX25 GUI result UNKNOWN until user runs test.
+- One local test-only commit allowed for GUI-005, NO push before review.
+
+### Reply
+
+Publish `## Reply GUI-005` to `agent/codex-mailbox:docs/codex/outbox.md` with:
+- GUI-004 fast-forward push status + verified SHA;
+- GUI-005 code inventory and exact test coverage;
+- new files, local commit SHA (if created) and parent;
+- full exact diff or mailbox-branch review attachment;
+- single Windows PowerShell command;
+- actual results vs UNKNOWN and failure diagnostics;
+- confirmation no production/API/JInvCommon/deferred changes.
+
+Stop for independent review. No GUI-006 work.
