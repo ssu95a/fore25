@@ -499,7 +499,7 @@ Then stop and wait for review.
 
 ## MESSAGE GUI-001
 
-**Status:** OPEN  
+**Status:** CLOSED  
 **Priority:** HIGH, top-level project goal: Java 8/JavaFX 8 -> Java 25/JavaFX 25 Legacy GUI migration.  
 **Target implementation branch:** `migration/java25-correctness`. Never write to `main`.
 
@@ -574,3 +574,30 @@ Do not touch:
 D6 (rowFinder listener finally) and D7 (bulkAppend reset) remain backlog, not priority.
 
 After GUI-001, stop for review. Do not begin GUI-002 without a new mailbox instruction.
+
+
+---
+
+## MESSAGE GUI-002
+
+**Status:** OPEN  
+**Mode:** READ-ONLY REVIEW MATERIAL, no code modifications, no commits/amends, no production push.  
+**Working branch:** `migration/java25-correctness`.  
+**Local test-only GUI commit:** `74fa142a5af7722809e6ce842be0581d0fe7cd8c`.  
+**Expected parent:** `60e70689f7eeed990c64f19669b35b817d3f82b8`.
+
+### Task
+
+GUI-001 has completed a local harness, but the commit has not been pushed and cannot yet be independently inspected via GitHub. Provide exact evidence for one-pass final review before publishing the GUI harness.
+
+1. Full exact diff of the local GUI commit against its parent (including new untracked-then-committed files). Report file list, counts and current HEAD/status.
+2. Provide COMPLETE contents of `src/test/probes/gui/LegacyGuiSmoke.java` and `src/test/probes/Test-LegacyGuiSmoke.ps1`. If long, place complete copies in a single `docs/codex/gui-001-review.md` file **on mailbox branch only**, referenced from outbox. Do not edit the production branch.
+3. Verify the smoke really creates/shows a visible Stage, instantiates REAL Legacy `JInvTable`, `JInvTextField` and their production skins, and asserts useful row/column selection, layout, focus and text replacement. Distinguish programmatic manipulation from actual physical input. Report if the use of an inline FXMLLoader/production CSS is faithful and where it might fail.
+4. Check for invalid assumptions about `Stage.show`, focus ownership when OS denies focus, FX queue barriers, toolkit shutdown, timeouts and JavaFX classpath/native module setup. Failures should say GUI UNKNOWN, not falsely PASS.
+5. Verify launcher Maven wrapper fallback and JDK selection, Windows paths with spaces, target output directory, and separation of Maven/build, javac and runtime errors.
+6. Ensure no production, public/protected API, JInvCommon or deferred area changes.
+7. Give exact corporate Windows PowerShell command. No external business database required.
+
+Reply with `## Reply GUI-002` in mailbox `docs/codex/outbox.md` linking review source if applicable.
+
+**No changes to production or local GUI commit. No production push.** Then stop.
