@@ -922,3 +922,28 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-L
 ```
 
 Record GUI PASS only when the launcher prints `GUI-001 PASS` and exits 0. For failures, report the exact diagnostic and classify the stage as Maven/classpath, javac, toolkit/native startup, application infrastructure, or focus/layout/assertion. No follow-on implementation was started.
+
+## Reply GUI-004
+
+- GUI-001 is CLOSED for its tested matrix based on the user's corporate BUILD SUCCESS, visible Stage and GUI-001 PASS. The user reported nonblocking unnamed-module and icon-path warnings. This is not evidence of complete component or full-form equivalence.
+- Added `src/test/probes/gui/LegacyEditorsSmoke.java` and extended `src/test/probes/Test-LegacyGuiSmoke.ps1` with `-Editors`. The default launcher still selects the original GUI-001 class. Maven settings, including MAVEN_ARGS, are inherited.
+- Local test-only commit `22d2dffff9d48558193a3c95184fe1ed94b51244` with parent `504f94d6fa4331ce3fe5e561afb8a96e510ebacd`. Clean working tree, one commit ahead of origin. [Exact review diff](gui-004-review.md).
+- Production source, API, POM, Maven wrapper and JInvCommon changes: NONE. Working branch push: NO.
+
+### Smoke coverage
+
+The harness uses real Legacy TextArea and editable ComboBox with their production skins, project CSS, a shown/focused Stage and nonzero layout. It exercises programmatic TextArea focus, selection and replacement. It checks the skin-installed menu is populated, yields to a request handler, leaves a caller-supplied menu intact, and restores the original skin menu after removal.
+
+The ComboBox test applies an explicit trim/uppercase converter, checks selection/index/value/editor consistency, and runs Legacy forceCommitValue for both a changed value and normalization back to the same value. It requests actual popup show/hide. After FX pulses it checks the skin popup content belongs to a showing PopupWindow owned by the Stage, then checks the window is hidden, combo focus is retained and focus can move back to the TextArea. The harness does not perform physical input or invoke a context-menu action, SQL extension styling, external editor, LOV, login, or database operations. No BaseApp bootstrap or icon path is configured. A resource or desktop failure should be classified from its diagnostic rather than treated as a confirmed control bug.
+
+### Checks and command
+
+Java 25 parser and PowerShell parser passed. Local Maven compile/classpath with existing settings and offline cache reported BUILD SUCCESS. Both smoke sources passed explicit javac type-check against the project's classes and dependency classpath. Git diff --check passed on the staged test files. No Stage was launched locally. **GUI-004 corporate JavaFX 25 runtime remains UNKNOWN.**
+
+From the checkout containing the local GUI-004 commit, run on an interactive Windows desktop with JDK 25 and Maven settings already configured:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -Editors
+```
+
+Expect GUI-004 PASS and exit 0 only after all assertions complete. The launcher distinguishes Maven/classpath, javac and JavaFX errors. The harness identifies focus/layout/menu/commit/popup failures and reports a focus/pulse timeout separately. No GUI-005 or other follow-on started.
