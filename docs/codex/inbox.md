@@ -449,7 +449,7 @@ Do not modify production, tests, docs on the production branch, the existing com
 
 ## MESSAGE D5-004
 
-**Status:** OPEN  
+**Status:** CLOSED  
 **Mode:** Narrow TEST-RUNNER reliability fix ONLY. No production code changes.
 **Working branch:** `migration/java25-correctness`.
 **Local accepted production commit:** `692ed672b6215dd5845491b7bb818f36ae324b10`.
@@ -493,3 +493,84 @@ Publish `## Reply D5-004` in mailbox outbox with:
 - production PUSH NO.
 
 Then stop and wait for review.
+
+
+---
+
+## MESSAGE GUI-001
+
+**Status:** OPEN  
+**Priority:** HIGH, top-level project goal: Java 8/JavaFX 8 -> Java 25/JavaFX 25 Legacy GUI migration.  
+**Target implementation branch:** `migration/java25-correctness`. Never write to `main`.
+
+### Step 0: publish accepted D5 work, then switch focus
+
+D5 production fix and corporate test runner were independently reviewed and approved.
+
+Local commits:
+- `692ed672b6215dd5845491b7bb818f36ae324b10` — sync query success callback
+- `60e70689f7eeed990c64f19669b35b817d3f82b8` — D5 corporate runner
+
+**Explicit permission:** push `migration/java25-correctness` up to and including `60e70689f7eeed990c64f19669b35b817d3f82b8` ONLY, provided `git status` is clean and the branch HEAD and linear ancestry match those SHAs. Never force push. Do not push any later commits.
+
+Report the pushed SHA in mailbox. D5 corporate JavaFX25 runtime remains UNKNOWN pending the user's corporate execution.
+
+**D6/D7 are postponed**, not cancelled. Do not continue `DSFXAdapter` audits now.
+
+### Step 1: prioritize real JavaFX25 GUI behavior
+
+Main mission is now the *original Legacy JavaFX GUI layer*, not framework redesign.
+
+Stage 1 source migration reached a corporate Maven Java25 compile milestone. The missing evidence is behavior at runtime: application controls, skins, CSS/FXML and interactions actually functioning in JavaFX 25.
+
+Conduct a narrowly scoped reconnaissance of current repository entrypoints and test paths:
+
+- `JInvTable`, `JInvTableViewSkin`, `JInvTableColumn` (selection, editing, sizing, focus).
+- TextField/TextArea custom skins, editor behavior, context menu ownership.
+- ComboBox editor/list custom skin and popup behavior.
+- Minimal FXML/SceneBuilder integration and style loading if present.
+- ControlsFX PropertySheet and toolbar interoperability as next tier.
+
+Find the smallest realistic **JavaFX25 GUI smoke path** that executes actual production Legacy controls, not replicas, with a visible Stage/Scene and no external business DB. Inspect existing test/demo launchers first; reuse them if practical.
+
+### Step 2: deliver one runnable GUI smoke test, not a huge report
+
+Implement **at most one narrow smoke harness** under `src/test/probes/gui/` (and an optional PowerShell launcher under `src/test/probes/`) to exercise:
+
+1. At least a real `JInvTable` or production table subclass if feasible, including actual skin/layout and selection;
+2. At least one real editable Legacy control (TextField/TextArea/ComboBox based on minimal dependencies) and its focus/edit interaction;
+3. A real FX toolkit/Stage/Scene shown where possible, not merely calling JavaFX constructors headlessly;
+4. No production code changes on this first GUI-001 iteration.
+
+Prefer corporate Maven dependency resolution + Java 25 + JavaFX25 and a one-command Windows PowerShell runner. Handle both `mvn` and `mvnw.cmd`, and avoid hard-coded home paths or unrelated downloads.
+
+If `BaseApp` or corporate application infrastructure is strictly required, explain the blocker and propose the smallest valid launcher. Do not work around required real behavior using fake controls.
+
+Crucial: a compiler-only probe or `-ValidateOnly` is NOT evidence of GUI runtime correctness. Separate local `UNKNOWN` from corporate runtime results.
+
+### Required report
+
+Publish `## Reply GUI-001` in `docs/codex/outbox.md` on `agent/codex-mailbox` with:
+
+- D5 push status / SHA;
+- GUI inventory and minimal real runtime path;
+- runnable harness source/command or exact blocker;
+- which GUI behaviors are actually tested versus still UNKNOWN;
+- local checks;
+- files changed;
+- whether a local test-only commit was created (optional), SHA and parent;
+- production changes NONE and GUI-001 push NONE.
+
+No general refactor. No UI public/protected API changes. No changes to `JInvCommon`.
+New source comments in Russian.
+
+### Explicit deferred exclusions
+
+Do not touch:
+- logback;
+- `JInvXMLViewer` legacy regex/formatting/security beyond accepted Stage1;
+- all `ru.inversion.diff`.
+
+D6 (rowFinder listener finally) and D7 (bulkAppend reset) remain backlog, not priority.
+
+After GUI-001, stop for review. Do not begin GUI-002 without a new mailbox instruction.
