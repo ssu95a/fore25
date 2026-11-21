@@ -723,3 +723,113 @@ if ($LASTEXITCODE -ne 0) { throw 'D5 JavaFX execution failed; inspect the runtim
 ```
 
 With the committed runner, a Maven nonzero exit gives `D5 corporate Maven compile/classpath failed`. Java source compilation diagnostics and runtime assertions/timeouts both give `D5 corporate probe failed`; inspect the launcher output to distinguish them. For the manual invocation, javac errors stop at the type-check step. JavaFX startup/linkage errors are runtime setup failures, and assertion/timeout diagnostics identify a failed or incomplete probe run. Exit 0 plus the AFTER FIX PASS marker is the expected integration result. The manual wrapper sequence was reviewed statically and has not been run against compatible corporate artifacts.
+
+## Reply D5-004
+
+- Status — DONE, pending corporate execution and review.
+- Local test-only commit — `60e70689f7eeed990c64f19669b35b817d3f82b8`.
+- Parent — `692ed672b6215dd5845491b7bb818f36ae324b10`.
+- Branch — `migration/java25-correctness`, clean and two commits ahead of its tracking ref.
+- Production changes — NONE. Production PUSH — NO.
+
+Corporate mode validates Java and javac 25 using JAVA_HOME first and PATH when unset. It prefers Maven on PATH and falls back to the repository wrapper. Maven can use the configured repositories. The runner compiles the probe with javac and runs the compiled class, using quoted argument files and a unique target directory. Maven compile/classpath, Java probe type-check and JavaFX runtime/assertion failures have separate messages and nonzero exits. The integration assertions and extraction test behavior are preserved.
+
+### Verification
+
+- PowerShell parser reported zero errors. Git diff --check passed.
+- BEFORE and AFTER extraction each passed all 12 scenarios with exit 0. BEFORE observed no success callback; AFTER observed one (true, null) callback before positioning.
+- An invalid JAVA_HOME was rejected with a JDK 25 diagnostic and nonzero exit.
+- A local JDK 25 smoke test independently verified javac/java argument files with paths containing spaces.
+- Actual corporate JavaFX 25 execution remains UNKNOWN pending the user run with compatible dependencies.
+
+### Corporate invocation
+
+From the repository root with JDK 25 and Maven settings/cache configured:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-D5ExecuteQuery.ps1 -Corporate
+```
+
+### Exact PowerShell diff
+
+```diff
+diff --git a/src/test/probes/Test-D5ExecuteQuery.ps1 b/src/test/probes/Test-D5ExecuteQuery.ps1
+index fb1a2ab..f05659e 100644
+--- a/src/test/probes/Test-D5ExecuteQuery.ps1
++++ b/src/test/probes/Test-D5ExecuteQuery.ps1
+@@ -6,25 +6,67 @@ param(
+ 
+ $ErrorActionPreference = 'Stop'
+ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
+-$java = (Get-Command java -ErrorAction Stop).Source
+ if ($Corporate) {
+-    $maven = (Get-Command mvn -ErrorAction Stop).Source
+-    $dependencyFile = Join-Path $root ('target/d5-dependencies-' + [Guid]::NewGuid().ToString('N') + '.txt')
++    if ($env:JAVA_HOME) {
++        $java = Join-Path $env:JAVA_HOME 'bin/java.exe'
++        $javac = Join-Path $env:JAVA_HOME 'bin/javac.exe'
++        if (!(Test-Path -LiteralPath $java -PathType Leaf) -or !(Test-Path -LiteralPath $javac -PathType Leaf)) {
++            throw "JAVA_HOME must point to a JDK 25 with java.exe and javac.exe: $env:JAVA_HOME"
++        }
++    } else {
++        $java = (Get-Command java -CommandType Application -ErrorAction SilentlyContinue).Source
++        $javac = (Get-Command javac -CommandType Application -ErrorAction SilentlyContinue).Source
++        if (!$java -or !$javac) { throw 'JDK 25 required: set JAVA_HOME or put java and javac on PATH' }
++    }
++    $javaVersion = & $java '--version'
++    if ($LASTEXITCODE -ne 0 -or ($javaVersion -join "`n") -notmatch '^(?:openjdk|java) 25(?:[. +\-]|$)') {
++        throw "D5 requires Java 25. $java reported: $javaVersion"
++    }
++    $javacVersion = & $javac '--version'
++    if ($LASTEXITCODE -ne 0 -or ($javacVersion -join "`n") -notmatch '^javac 25(?:[. +\-]|$)') {
++        throw "D5 requires javac 25. $javac reported: $javacVersion"
++    }
++
++    $maven = (Get-Command mvn -CommandType Application -ErrorAction SilentlyContinue).Source
++    if (!$maven) {
++        $maven = Join-Path $root 'mvnw.cmd'
++        if (!(Test-Path -LiteralPath $maven -PathType Leaf)) {
++            throw 'D5 requires mvn on PATH or mvnw.cmd in the project root'
++        }
++    }
++    $output = Join-Path $root ('target/d5-corporate-' + [Guid]::NewGuid().ToString('N'))
++    New-Item -ItemType Directory -Path $output | Out-Null
++    $dependencyFile = Join-Path $output 'dependencies.txt'
+     Push-Location $root
+     try {
+-        & $maven '-o' '-Pbuild' '-Dmaven.buildNumber.skip=true' '-DskipTests' 'compile' 'dependency:build-classpath' "-Dmdep.outputFile=$dependencyFile" '-DincludeScope=test'
++        & $maven '-Pbuild' '-Dmaven.buildNumber.skip=true' '-DskipTests' 'compile' 'dependency:build-classpath' "-Dmdep.outputFile=$dependencyFile" '-DincludeScope=test'
+         if ($LASTEXITCODE -ne 0) { throw 'D5 corporate Maven compile/classpath failed' }
+     } finally {
+         Pop-Location
+     }
++    if (!(Test-Path -LiteralPath $dependencyFile -PathType Leaf)) {
++        throw 'D5 corporate Maven compile/classpath failed: dependency file is missing'
++    }
+     $dependencies = [IO.File]::ReadAllText($dependencyFile).Trim()
+-    if (!$dependencies) { throw 'Maven returned an empty dependency classpath' }
++    if (!$dependencies) { throw 'D5 corporate Maven compile/classpath failed: dependency classpath is empty' }
+     $classpath = (Join-Path $root 'target/classes') + [IO.Path]::PathSeparator + $dependencies
+-    & $java '--enable-native-access=ALL-UNNAMED' '-cp' $classpath (Join-Path $PSScriptRoot 'd5/D5ExecuteQueryProbe.java')
+-    if ($LASTEXITCODE -ne 0) { throw 'D5 corporate probe failed' }
++    $probeSource = Join-Path $PSScriptRoot 'd5/D5ExecuteQueryProbe.java'
++    $compileArgs = Join-Path $output 'javac.args'
++    $runArgs = Join-Path $output 'java.args'
++    $runClasspath = $output + [IO.Path]::PathSeparator + $classpath
++    # Кавычки в файлах аргументов сохраняют пробелы, а прямые слеши исключают экранирование путей.
++    [IO.File]::WriteAllLines($compileArgs, @('-cp', ('"' + $classpath.Replace('\', '/') + '"'),
++        '-d', ('"' + $output.Replace('\', '/') + '"'), ('"' + $probeSource.Replace('\', '/') + '"')))
++    [IO.File]::WriteAllLines($runArgs, @('--enable-native-access=ALL-UNNAMED',
++        '-cp', ('"' + $runClasspath.Replace('\', '/') + '"'), 'D5ExecuteQueryProbe'))
++    & $javac "@$compileArgs"
++    if ($LASTEXITCODE -ne 0) { throw 'D5 corporate Java probe compilation/type-check failed' }
++    & $java "@$runArgs"
++    if ($LASTEXITCODE -ne 0) { throw 'D5 corporate JavaFX runtime/assertion failed' }
+     return
+ }
+ 
++$java = (Get-Command java -ErrorAction Stop).Source
+ $relativePath = 'src/main/java/ru/inversion/dataset/fx/DSFXAdapter.java'
+ if ($Before) {
+     $baseline = '0dd94764ac4d75eccc75a57c85ad005676875d19'
+```
