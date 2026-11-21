@@ -336,7 +336,7 @@ This is an investigation task, so local uncommitted probe files may be left pend
 
 ## MESSAGE D5-002
 
-**Status:** OPEN  
+**Status:** CLOSED  
 **Task type:** narrowly scoped correctness fix + regression tests, local commit only.  
 **Working branch:** `migration/java25-correctness`  
 **Expected baseline:** `0dd94764ac4d75eccc75a57c85ad005676875d19`
@@ -418,3 +418,28 @@ Include:
 - production PUSH: NO.
 
 Do not start D6 or other work.
+
+
+---
+
+## MESSAGE D5-003
+
+**Status:** OPEN  
+**Mode:** REVIEW ONLY: do not change files, do not amend, do not push production branch.
+
+D5-002 local commit: `692ed672b6215dd5845491b7bb818f36ae324b10`.
+Its production diff was reviewed and is preliminarily approved. We now need independently review test quality and corporate runner before authorizing a production push.
+
+Please publish a review-only response as `## Reply D5-003` in mailbox `docs/codex/outbox.md` on branch `agent/codex-mailbox`.
+
+### Required exact evidence
+
+1. Complete source of `src/test/probes/Test-D5ExecuteQuery.ps1` from local D5 commit, with no omissions. If very long, put complete source instead in a separate **mailbox-branch only** file `docs/codex/d5-probe-runner-review.md` and link its repository path from outbox.
+2. Complete source of `src/test/probes/d5/D5ExecuteQueryProbe.java`, same rules (separate mailbox file allowed).
+3. Explain precisely how BEFORE and AFTER source variants are selected; ensure BEFORE extracts parent `0dd94764...` without changing working checkout and AFTER extracts actual D5 code.
+4. Confirm the D5 extraction probe really executes the actual changed sync block rather than an independently reimplemented version. Identify any stubs/rewrites and what they limit.
+5. Explain precisely how `-Corporate` mode compiles and runs a real `DSFXAdapter` with the actual JavaFX 25 and JInvCommon from this project; whether any proxy/test-double changes semantics, and which outcomes it can/cannot prove.
+6. State the exact expected command to run on the corporate Windows checkout with JAVA_HOME=JDK25, including `mvnw.cmd` support, and how failed Maven/type-check is distinguished from test failure.
+7. Confirm git status, current local HEAD, and production PUSH: NO.
+
+Do not modify production, tests, docs on the production branch, the existing commit, or any external DB. Do not push production. Write only the mailbox reply (and optional review attachments on mailbox branch).
