@@ -29,7 +29,7 @@ git worktree remove ..\fore25-mailbox
 
 ## MESSAGE D4-001
 
-**Status:** OPEN  
+**Status:** CLOSED  
 **Target branch:** `migration/java25-correctness`  
 **Expected starting production commit:** `475b24f935aa0f38e1ed6993809ec18d71f4ac5f`
 
@@ -151,7 +151,7 @@ Write a concise reply to `docs/codex/outbox.md` with:
 
 ## MESSAGE D4-002
 
-**Status:** OPEN  
+**Status:** CLOSED  
 **Purpose:** review request for local production commit from D4-001.
 
 Do not change code. Do not amend. Do not push production branch.
@@ -202,7 +202,7 @@ Reply under:
 
 ## MESSAGE D4-003
 
-**Status:** OPEN  
+**Status:** CLOSED  
 **Purpose:** verify intermediate D3 documentation commit before allowing D4 production push.
 
 Do not change code.
@@ -277,3 +277,56 @@ with:
 
 No code changes.
 No production push.
+
+
+---
+
+## MESSAGE D5-001
+
+**Status:** OPEN  
+**Mode:** READ-ONLY INVESTIGATION + targeted reproduction; NO production changes.  
+**Target branch:** `migration/java25-correctness`  
+**Expected GitHub HEAD:** `0dd94764ac4d75eccc75a57c85ad005676875d19` (D4 accepted, corporate build green).
+
+### Task: D5 synchronous executeQuery callback contract
+
+Inspect `DSFXAdapter.executeQuery(BiConsumer<Boolean,Throwable> clb, IFormStateListener stateListener, boolean parallel, boolean readAllRecords)` and its public overloads, call sites, relevant full-scan guards and callback consumers.
+
+**Confirmed static observation:** in the `parallel=false` branch, after successful `getDataSet().executeQuery(readAllRecords)` there is no `callBack.accept(true,null)`. The catch invokes `callBack.accept(false,th)`; the finally invokes `positionRow(0)`.
+
+This is strong evidence of missing success notification, but do NOT assume a complete callback contract without inspecting usages.
+
+#### Required investigation
+
+1. Find all relevant callers of `executeQuery(..., parallel=false)` and consumers of `clb`; determine expected success/error semantics and callback count, documenting concrete call sites.
+2. Analyze `parallel=true` as a comparison only, including its asynchronous full-scan decision path, not as refactoring scope.
+3. **Distinguish the two overloaded `checkForFullScan` methods.** Trace `boolean checkForFullScan()` in the sync branch and its `false`/cancel/skip path. Determine if `false` means user-declined, query not run, or something else. Do not treat cancellation as successful execution.
+4. Analyze `getDataSet()==null` early return and any exception before entering the `try` block (e.g. controller/cast). Define what is CONFIRMED vs UNKNOWN. Do not broaden scope without proof.
+5. Map all outcomes: executed successfully, execution throws, full-scan declined, Dataset null, callback itself throws, positioning errors. Check exactly-once callback and whether it runs under `DATA_SET_LOCK`; record thread-affinity assumptions. Do NOT automatically refactor lock/callback threading in this task.
+6. Create a minimal regression probe (prefer `src/test/probes/`) using real project code/dependencies where feasible. Demonstrate **BEFORE FIX** callback counts/values; if full `DSFXAdapter` cannot be instantiated locally, clearly label extraction probe as limited (not integration). If JavaFX 25 needed, prepare exact one-command corporate runner rather than simulating production as proven.
+7. Propose one minimal internal fix preserving public/protected signatures and legacy behavior; identify decisions requiring user approval, especially the cancellation contract. **Do not implement the fix yet.**
+
+#### Guardrails
+
+- Production files unchanged; do not modify the public/protected API.
+- No change to `JInvCommon`.
+- Do not touch D1–D4, D6, D7 or other unrelated behavior.
+- DEFERRED: logback, `JInvXMLViewer`, whole `ru.inversion.diff`.
+- New code comments in Russian.
+- Do not run unsafe modifications of any external DB.
+- No production commit; no production push.
+- Report CONFIRMED / HYPOTHESIS / UNKNOWN separately.
+
+#### Reply
+
+Publish `## Reply D5-001` to `docs/codex/outbox.md` on `agent/codex-mailbox`, including:
+- branch + HEAD, status, production changes NONE;
+- exact contract inferred from call sites;
+- outcome matrix (success/error/cancel/null);
+- before-fix probe evidence and any limitations;
+- recommended minimal fix and open cancellation decision;
+- files created locally and corporate execution command if needed;
+- git status;
+- no production push.
+
+This is an investigation task, so local uncommitted probe files may be left pending review. Only the mailbox reply may be pushed.
