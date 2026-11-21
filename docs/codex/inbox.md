@@ -424,7 +424,7 @@ Do not start D6 or other work.
 
 ## MESSAGE D5-003
 
-**Status:** OPEN  
+**Status:** CLOSED  
 **Mode:** REVIEW ONLY: do not change files, do not amend, do not push production branch.
 
 D5-002 local commit: `692ed672b6215dd5845491b7bb818f36ae324b10`.
@@ -443,3 +443,53 @@ Please publish a review-only response as `## Reply D5-003` in mailbox `docs/code
 7. Confirm git status, current local HEAD, and production PUSH: NO.
 
 Do not modify production, tests, docs on the production branch, the existing commit, or any external DB. Do not push production. Write only the mailbox reply (and optional review attachments on mailbox branch).
+
+
+---
+
+## MESSAGE D5-004
+
+**Status:** OPEN  
+**Mode:** Narrow TEST-RUNNER reliability fix ONLY. No production code changes.
+**Working branch:** `migration/java25-correctness`.
+**Local accepted production commit:** `692ed672b6215dd5845491b7bb818f36ae324b10`.
+**Production PUSH:** still forbidden until review.
+
+### D5-003 review verdict
+
+The production change in `DSFXAdapter` is APPROVED.
+The extraction probe copies the real synchronous branch from source, and the BEFORE/AFTER comparison is credible within its documented limitations.
+The real JavaFX25 probe is appropriate for callback integration, but its launcher is not ready for our standard corporate workflow.
+
+### Task
+
+Improve **only** `src/test/probes/Test-D5ExecuteQuery.ps1` in `-Corporate` mode, preserving `-Before`/AFTER extraction behavior.
+
+1. Java/Javac must prefer tools under `JAVA_HOME\bin` when `JAVA_HOME` is set; otherwise use PATH. Validate JDK 25 before proceeding and print a clear error if not running under 25.
+2. Prefer `mvn` when it is available, otherwise fall back to the project's existing `mvnw.cmd`. If neither exists, report the missing executable clearly. Do not change Maven wrapper files, Java build POM, Nexus configuration or corporate dependencies.
+3. Do not force Maven offline mode (`-o`) by default. The corporate Maven execution may need Nexus. An explicit optional offline switch is acceptable if useful.
+4. Distinguish Maven project compile/classpath failure, Java probe type-check/compilation failure, and JavaFX/runtime/assertion failure. These must be distinct errors with nonzero exit.
+5. Prefer compiling the Java probe explicitly with JDK25 `javac` into a unique `target/d5-...` directory and running its compiled main class. This avoids ambiguous Java source-file mode and enables separate compile/run diagnostics. Preserve the real `target/classes` + Maven dependencies classpath. Account for Windows paths containing spaces (argument files if needed).
+6. Keep the integration test logic, test assertions, and production sync callback behavior unchanged.
+7. Print an exact one-command corporate invocation from the repo root; no manual environment-variable dependency classpath requirement.
+8. Validate PowerShell syntax and locally available `-Before` and AFTER extraction tests; `git diff --check`. Mark real corporate JavaFX 25 execution UNKNOWN until run by user.
+
+### Git
+
+Make a separate local test-only commit, e.g. `test: harden D5 corporate probe runner`.
+Do NOT amend previously accepted local production commit.
+Do NOT push `migration/java25-correctness`.
+Do NOT modify JInvCommon, D1-D4, D6-D7, logback, JInvXMLViewer, or ru.inversion.diff.
+
+### Reply
+
+Publish `## Reply D5-004` in mailbox outbox with:
+- local test-runner commit SHA and its parent;
+- exact PowerShell diff;
+- tests and results;
+- intended corporate command;
+- working-tree status;
+- production changes NONE;
+- production PUSH NO.
+
+Then stop and wait for review.
