@@ -580,7 +580,7 @@ After GUI-001, stop for review. Do not begin GUI-002 without a new mailbox instr
 
 ## MESSAGE GUI-002
 
-**Status:** OPEN  
+**Status:** CLOSED  
 **Mode:** READ-ONLY REVIEW MATERIAL, no code modifications, no commits/amends, no production push.  
 **Working branch:** `migration/java25-correctness`.  
 **Local test-only GUI commit:** `74fa142a5af7722809e6ce842be0581d0fe7cd8c`.  
@@ -601,3 +601,47 @@ GUI-001 has completed a local harness, but the commit has not been pushed and ca
 Reply with `## Reply GUI-002` in mailbox `docs/codex/outbox.md` linking review source if applicable.
 
 **No changes to production or local GUI commit. No production push.** Then stop.
+
+
+---
+
+## MESSAGE GUI-003
+
+**Status:** OPEN  
+**Purpose:** publish accepted GUI-001 smoke harness, no other production work.  
+**Working branch:** `migration/java25-correctness`.
+
+### Review verdict and authorization
+
+GUI-002 code review accepted:
+- local test-only commit `74fa142a5af7722809e6ce842be0581d0fe7cd8c`;
+- parent `60e70689f7eeed990c64f19669b35b817d3f82b8`;
+- two newly added files only:
+  `src/test/probes/gui/LegacyGuiSmoke.java`,
+  `src/test/probes/Test-LegacyGuiSmoke.ps1`;
+- production/public API/JInvCommon changes NONE.
+
+**Explicit one-time permission:** if local HEAD is exactly `74fa142a5af7722809e6ce842be0581d0fe7cd8c`, working tree is clean, origin `migration/java25-correctness` is at `60e70689f7eeed990c64f19669b35b817d3f82b8`, and history is linear, push the working branch **only to this accepted commit**. Do not force-push and do not include later commits. If conditions differ, STOP and report BLOCKED without guessing.
+
+After push, verify remote branch SHA using `git ls-remote origin refs/heads/migration/java25-correctness`.
+
+### Corporate handoff
+
+Provide concise commands from corporate Windows interactive desktop checkout:
+1. `git pull`
+2. `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1`
+
+Remember corporate JDK25 `JAVA_HOME` and Maven settings. Do not claim GUI PASS until that command actually runs successfully with `GUI-001 PASS`/exit 0. If failure, classify Maven/classpath, javac, toolkit/native, application infrastructure, focus/layout/assertion; avoid guessing the root cause.
+
+D5 JavaFX25 corporate probe remains pending separately.
+
+### Post back
+
+Publish `## Reply GUI-003` in `docs/codex/outbox.md`:
+- push status;
+- local and remote SHA;
+- exact next corporate command;
+- GUI runtime status UNKNOWN;
+- confirmation no production source/API changes.
+
+Then stop; no GUI-004 implementation, no D6/D7. Exclude logback, `JInvXMLViewer`, `ru.inversion.diff`.
