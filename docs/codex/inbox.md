@@ -1574,7 +1574,7 @@ Stop for review; do not begin VF-004 or implement a speculative fix.
 
 ## MESSAGE GUI-013
 
-**Status:** OPEN
+**Status:** DEFERRED (superseded by NUM-001, user prioritizes money and decimal fields)
 **Priority:** Java25 / JavaFX25 typed time and masked-field data integrity
 **Repository/branch:** `ssu95a/fore25` / `migration/java25-correctness`
 **Expected remote HEAD:** `e5e9032d3d455efb92f7cfabda0cdb4fbee86648`
@@ -1633,3 +1633,66 @@ Post `## Reply GUI-013` in mailbox outbox with:
 - recommended *single* next correctness fix based on highest-risk confirmed result.
 
 Stop after GUI-013, don't begin GUI-014 or production edits.
+
+
+---
+
+## MESSAGE NUM-001
+
+**Status:** OPEN
+**Priority:** CRITICAL financial data correctness, conversion/rounding and shared-state safety
+**Repo:** `ssu95a/fore25`
+**Work branch:** `migration/java25-correctness` (never touch `main`)
+**Expected remote HEAD:** `e5e9032d3d455efb92f7cfabda0cdb4fbee86648`
+
+### User's explicit priority change
+
+The user now wants **`JInvMoneyField` and `JInvBigDecimalField`**. Previous `GUI-013` (time/masks) is DEFERRED, and `JInvCustomValueField` remains unused/deferred. Do not work on GUI-013, FXFormLauncher, CustomValueField or LOV. If you already started GUI-013 locally, preserve nonconflicting user work, stop that task, report status, and switch to this assignment before making further production changes.
+
+GUI-012, GUI-012A, VF-001, VF-002 have user-confirmed Java25/JavaFX25 PASS for their *tested* matrices. Do not undo accepted fixes.
+
+### Confirmed source-level facts and candidates (must verify independently)
+
+- `JInvMoneyField` uses a **public static mutable `g_moneyFormat: DecimalFormat`**, initialized with 2 fractional digits, decimal '.', grouping spaces; `initDefaultMoneyFormatter(...)` can replace it. All MoneyStringConverter instances format via this global.
+- `MoneyStringConverter` has a shared static access-order `LinkedHashMap<String, BigDecimal>` parse cache, unsynchronized; access-order `get()` changes internal order, and writes evict after 250 entries. The converter parses spaces, comma/dot separator, +/- and K/К/T/Т (thousands) and M/М (millions). It calls `retValue.round(new MathContext(nFration));` **without using the result**. `MathContext` also limits significant digits, not digits after decimal, so don't “fix” by simply assigning this result.
+- `AbstractBigDecimalField.valueProperty()` overrides `set()` to apply `setScale(getFractionDigits(), HALF_UP)`; UI behavior may therefore conceal parsing/rounding issues in the converter. Test converter directly and fields separately.
+- `JInvBigDecimalField` caches `WeakReference<DecimalFormat>` by scale and grouping and returns the same **mutable `DecimalFormat` object** across instances; cache list access is synchronized only during lookup. Formatting occurs outside this lock.
+- `JInvBigDecimalField` converter replaces comma with dot, strips regex whitespace, and uses BigDecimalStringConverter. It also supports dynamic `setFractionDigits()/setShowGroups()`. `JInvPercentField` extends it with a default scale policy; include its dependencies in the assessment, but don't broaden scope unnecessarily.
+- Numeric `String` constructor initialization was fixed in `0ee740be` and tested. Typed sync, error recovery, and focus normalization were already covered by GUI-012. Extend rather than repeat those base cases.
+
+### Task A: source/usage analysis, correctness before implementation
+
+Map the actual contracts and real usages of `JInvMoneyField`, `JInvBigDecimalField`, `AbstractBigDecimalField`, `MoneyStringConverter`, and `JInvPercentField`. Distinguish whether formatters/converters are accessed exclusively on JavaFX thread vs background code; do not assert concurrency failure merely from lack of synchronization. Identify public API, initialization order, shared global settings, existing external/corporate usage UNKNOWN.
+
+Prioritize possible **silent numerical corruption**, stale text vs typed value, rounding/scale, locale/grouping, shared mutable formatter isolation, cache races, and then performance. Don't conflate display-only format rounding with actual BigDecimal rounding.
+
+### Task B: focused RED regression harness (test-only first)
+
+Prefer one new visible JavaFX25 `-MoneyDecimal` mode in existing `src/test/probes/Test-LegacyGuiSmoke.ps1`, keeping all existing flags and `-SettingsFile`. Use production `JInvMoneyField`, `JInvBigDecimalField` and skin, CSS; no DB/login/BaseApp.
+
+Validate with explicit `text`, `value`, `State`, error and notification counts:
+1. Direct `MoneyStringConverter.fromString/toString` behavior, separately from field `setScale`. Cases 1.005, -1.005, 0, grouped strings, comma/dot, nonbreaking spaces, shorthand K/T/M (including signs), malformed input, very long precisions, zero, and roundtrip invariants where supported.
+2. `JInvMoneyField` and `JInvBigDecimalField` typed `BigDecimal` assignment vs text edit, scale HALF_UP, extra input fraction digits, focus loss, `null`, invalid/recovery, and non-default locale presentation (without global default mutations unless restored).
+3. Dynamic `setFractionDigits` and `setShowGroups`: do existing instances refresh when settings change? Whether value changes without explicit user edit; when formatting occurs; stale formatters due to cache sharing.
+4. Two simultaneous fields using the same fraction/grouping settings: assess independence/identity and any cross-field mutable formatter mutation. Test `JInvMoneyField.initDefaultMoneyFormatter` as global reconfiguration and its impact on existing fields, restoring defaults after test. Check whether converter cache distinguishes global format settings.
+5. **Pure converter concurrency**, not JavaFX controls off the FX thread: deterministic multi-thread stress if needed, with precise exceptions/value mismatch reporting; avoid flaky arbitrary sleeps and false conclusions based only on source. Also inspect whether app code can use converter off-FX.
+6. Capture FX uncaught exceptions and keep sensitive settings/credentials out of logs.
+
+Produce per-case CONFIRMED / REJECTED / UNKNOWN. **Do not alter production code in NUM-001**, even on RED. One demonstrated issue per follow-up fix with RED/GREEN and compatibility review. If there is a clear deterministic correctness defect, make probe report it as RED with nonzero exit, not silently pass. If a historical conversion contract is unclear (e.g. `M` suffix or grouping), report observed behavior without inventing a rejection policy.
+
+### Constraints / Git
+
+TEST ONLY, no production changes, public/protected API or ctor signature modifications, POM, Maven wrapper, JInvCommon or main writes. No work on other deferred: D6/D7, logback, JInvXMLViewer, ru.inversion.diff, Caffeine. All source comments Russian.
+
+Git/GitHub operations pre-approved: after local JDK25 javac/PowerShell/Maven verification, commit only test changes and fast-forward push to `migration/java25-correctness`, verify remote SHA. Preserve user work and no force push. If a complete test cannot be made safe, report blocker and do not push incomplete code.
+
+### Reply
+
+Publish `## Reply NUM-001` in mailbox outbox with:
+- source and call-site evidence, including evidence for cross-thread use if any;
+- explicit observations vs hypotheses for rounding, formatter and cache behavior;
+- exact test diff and verified SHA, local JavaFX25 status;
+- Windows command `-MoneyDecimal -SettingsFile "D:\Java\.m2\settings.xml"`;
+- ONE prioritized next fix if a data-integrity problem is observed.
+
+Stop after NUM-001. Do not proceed to GUI-013 or NUM-002 without a new assignment.
