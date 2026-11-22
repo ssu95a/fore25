@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -36,24 +37,30 @@ public final class LegacyTableCancelSmoke {
     private final List<Commit> commits = new ArrayList<>();
     private final Row edited = new Row(new SimpleStringProperty("Original"));
     private final Row other = new Row(new SimpleStringProperty("Other"));
+    private final boolean reentry;
     private Stage stage;
     private JInvTable<Row> table;
     private JInvTableColumn<Row, String> column;
     private boolean started;
 
+    private LegacyTableCancelSmoke(boolean reentry) {
+        this.reentry = reentry;
+    }
+
     public static void main(String[] args) {
-        var smoke = new LegacyTableCancelSmoke();
+        var smoke = new LegacyTableCancelSmoke(args.length == 1 && "reentry".equals(args[0]));
+        String id = smoke.reentry ? "GUI-007" : "GUI-006";
         int exit = 1;
         try {
             require(Runtime.version().feature() == 25, "setup: Java 25 required");
             Platform.startup(() -> smoke.checked(smoke::show));
-            boolean mousePathObserved = smoke.verdict.get(30, TimeUnit.SECONDS);
-            System.out.println(mousePathObserved ? "GUI-006 PASS" : "GUI-006 UNKNOWN: mouse-capture path unconfirmed");
-            exit = mousePathObserved ? 0 : 2;
+            boolean conclusive = smoke.verdict.get(30, TimeUnit.SECONDS);
+            System.out.println(conclusive ? id + " PASS" : id + " UNKNOWN: mouse-capture path unconfirmed");
+            exit = conclusive ? 0 : 2;
         } catch (TimeoutException failure) {
-            System.err.println("GUI-006 UNKNOWN: timed out waiting for Stage focus or FX queue. Use an interactive desktop.");
+            System.err.println(id + " UNKNOWN: timed out waiting for Stage focus or FX queue. Use an interactive desktop.");
         } catch (Throwable failure) {
-            System.err.println("GUI-006 failed; see setup, focus or scenario diagnostics.");
+            System.err.println(id + " failed; see setup, focus or scenario diagnostics.");
             failure.printStackTrace(System.err);
         } finally {
             Platform.exit();
@@ -88,7 +95,7 @@ public final class LegacyTableCancelSmoke {
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/general.css"),
                 "setup: production CSS missing").toExternalForm());
         stage = new Stage();
-        stage.setTitle("GUI-006 Legacy table cancellation smoke");
+        stage.setTitle(reentry ? "GUI-007 Legacy editor reentry" : "GUI-006 Legacy table cancellation smoke");
         stage.setScene(scene);
         stage.focusedProperty().addListener((property, before, focused) -> {
             if (focused) later(() -> {
@@ -98,7 +105,12 @@ public final class LegacyTableCancelSmoke {
                     scene.getRoot().layout();
                     require(stage.isShowing() && table.getSkin() instanceof JInvTableViewSkin<?>,
                             "setup: visible Legacy table skin required");
-                    start(Scenario.PROGRAMMATIC);
+                    if (reentry) {
+                        selectAndEdit();
+                        later(this::discardDraftAndReopen);
+                    } else {
+                        start(Scenario.PROGRAMMATIC);
+                    }
                 }
             });
         });
@@ -107,20 +119,28 @@ public final class LegacyTableCancelSmoke {
     }
 
     private void start(Scenario scenario) {
-        table.requestFocus();
-        table.getSelectionModel().clearAndSelect(0, column);
-        table.edit(0, column);
+        selectAndEdit();
         later(() -> exercise(scenario));
     }
 
-    private void exercise(Scenario scenario) {
-        var cell = table.lookupAll(".table-cell").stream()
+    private void selectAndEdit() {
+        table.requestFocus();
+        table.getSelectionModel().clearAndSelect(0, column);
+        table.edit(0, column);
+    }
+
+    private JInvTextFieldTableCell<?, ?> editedCell() {
+        return table.lookupAll(".table-cell").stream()
                 .filter(node -> node instanceof JInvTextFieldTableCell<?, ?> candidate
                         && candidate.getIndex() == 0 && candidate.getTableColumn() == column
                         && !candidate.isEmpty() && candidate.getWidth() > 0 && candidate.getHeight() > 0)
                 .map(node -> (JInvTextFieldTableCell<?, ?>) node)
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("layout: no realized Legacy cell at row 0"));
+    }
+
+    private void exercise(Scenario scenario) {
+        var cell = editedCell();
         require(cell.isEditing() && cell.getGraphic() instanceof TextField, scenario + ": editor did not open");
         var editor = (TextField) cell.getGraphic();
         require(stage.isFocused() && editor.isFocused(), scenario + ": editor did not receive focus");
@@ -129,22 +149,108 @@ public final class LegacyTableCancelSmoke {
         System.out.println(scenario + " BEFORE " + snapshot(editor));
         editor.setText(draft);
         if (scenario != Scenario.PROGRAMMATIC) {
-            var pick = new PickResult(editor, 4, 4);
-            Event.fireEvent(editor, new MouseEvent(MouseEvent.MOUSE_PRESSED, 4, 4, 4, 4,
-                    MouseButton.PRIMARY, 1, false, false, false, false, true, false, false,
-                    true, false, true, pick));
+            pressEditor(editor);
             require(cell.isEditing() && editor.isFocused() && commits.isEmpty() && changes.isEmpty(),
                     scenario + ": press within editor changed state before cancellation");
         }
         require(draft.equals(editor.getText()), scenario + ": editor draft was replaced before cancellation");
         System.out.println(scenario + " ACTION " + snapshot(editor));
         if (scenario == Scenario.MOUSE_THEN_ESCAPE) {
-            Event.fireEvent(editor, new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ESCAPE,
-                    false, false, false, false));
+            escape(editor);
         } else {
             table.edit(-1, null);
         }
         later(() -> finish(scenario, cell, editor, draft));
+    }
+
+    private void discardDraftAndReopen() {
+        var cell = editedCell();
+        TextField editor = activeEditor(cell);
+        require(stage.isFocused() && editor.isFocused(), "focus: fresh editor did not receive focus");
+        System.out.println("FRESH " + snapshot(editor));
+        String discarded = "GUI-007 discarded draft";
+        editor.setText(discarded);
+        escape(editor);
+        later(() -> {
+            System.out.println("AFTER ESCAPE " + snapshot(editor));
+            require(table.getEditingCell() == null && !cell.isEditing() && cell.getGraphic() == null,
+                    "Escape did not close the editor");
+            require(commits.isEmpty() && changes.isEmpty() && "Original".equals(edited.value().get())
+                            && "Other".equals(other.value().get()),
+                    "Escape committed or changed the model before reentry");
+            selectAndEdit();
+            require(editedCell() == cell, "setup: reentry did not use the same realized cell");
+            TextField reopened = activeEditor(cell);
+            System.out.println("REOPEN IMMEDIATE reusedEditor=" + (reopened == editor) + " " + snapshot(reopened));
+            afterPulse(() -> cancelUntouched(cell, reopened, discarded));
+        });
+    }
+
+    private void cancelUntouched(JInvTextFieldTableCell<?, ?> cell, TextField editor, String discarded) {
+        require(activeEditor(cell) == editor && stage.isFocused() && editor.isFocused(),
+                "focus: reopened editor did not stay active through layout pulses");
+        String untouched = editor.getText();
+        System.out.println("REOPEN AFTER PULSE " + snapshot(editor));
+        pressEditor(editor);
+        require(activeEditor(cell) == editor && untouched.equals(editor.getText())
+                        && commits.isEmpty() && changes.isEmpty(),
+                "untouched reentry: editor or model changed before programmatic cancel");
+        table.edit(-1, null);
+        later(() -> {
+            System.out.println("AFTER UNTOUCHED CANCEL " + snapshot(editor));
+            require(table.getEditingCell() == null && !cell.isEditing() && cell.getGraphic() == null,
+                    "untouched reentry: cancellation did not close editor");
+            require("Other".equals(other.value().get()) && changes.stream().noneMatch(change -> change.row() == other),
+                    "untouched reentry: changed the other row");
+            require(commits.size() <= 1 && changes.size() <= 1, "untouched reentry: duplicate commit or property change");
+            if (!commits.isEmpty()) {
+                require(commits.equals(List.of(new Commit(0, column, untouched)))
+                                && Objects.equals(untouched, edited.value().get()),
+                        "untouched reentry: commit event and model disagree");
+                var expected = Objects.equals("Original", untouched) ? List.of()
+                        : List.of(new Change(edited, "Original", untouched));
+                require(changes.equals(expected), "untouched reentry: unexpected property changes");
+                require(!discarded.equals(edited.value().get()),
+                        "GUI-007 REPRODUCED: Escape-discarded draft was committed on untouched reentry");
+            } else {
+                require(changes.isEmpty() && "Original".equals(edited.value().get()),
+                        "untouched reentry: model changed without a commit event");
+            }
+            stage.close();
+            verdict.complete(!commits.isEmpty());
+        });
+    }
+
+    private static TextField activeEditor(JInvTextFieldTableCell<?, ?> cell) {
+        require(cell.isEditing() && cell.getGraphic() instanceof TextField, "editing: Legacy editor not active");
+        return (TextField) cell.getGraphic();
+    }
+
+    private static void pressEditor(TextField editor) {
+        var pick = new PickResult(editor, 4, 4);
+        Event.fireEvent(editor, new MouseEvent(MouseEvent.MOUSE_PRESSED, 4, 4, 4, 4,
+                MouseButton.PRIMARY, 1, false, false, false, false, true, false, false,
+                true, false, true, pick));
+    }
+
+    private static void escape(TextField editor) {
+        Event.fireEvent(editor, new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ESCAPE,
+                false, false, false, false));
+    }
+
+    private void afterPulse(Runnable action) {
+        new AnimationTimer() {
+            private boolean firstFrame = true;
+
+            @Override public void handle(long now) {
+                if (firstFrame) {
+                    firstFrame = false;
+                    return;
+                }
+                stop();
+                checked(action);
+            }
+        }.start();
     }
 
     private void finish(Scenario scenario, JInvTextFieldTableCell<?, ?> cell, TextField editor, String draft) {

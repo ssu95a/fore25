@@ -6,12 +6,15 @@ param(
     [switch] $TableEditing,
     [Parameter(ParameterSetName = 'TableCancel')]
     [switch] $TableCancel,
+    [Parameter(ParameterSetName = 'EditorReentry')]
+    [switch] $EditorReentry,
     [ValidateNotNullOrEmpty()]
     [string] $SettingsFile
 )
 
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
+$probeArgs = @()
 if ($Editors) {
     $probeId = 'GUI-004'
     $probeClass = 'LegacyEditorsSmoke'
@@ -21,6 +24,10 @@ if ($Editors) {
 } elseif ($TableCancel) {
     $probeId = 'GUI-006'
     $probeClass = 'LegacyTableCancelSmoke'
+} elseif ($EditorReentry) {
+    $probeId = 'GUI-007'
+    $probeClass = 'LegacyTableCancelSmoke'
+    $probeArgs = @('reentry')
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
@@ -78,7 +85,7 @@ $runClasspath = $output + [IO.Path]::PathSeparator + $classpath
 [IO.File]::WriteAllLines($compileArgs, @('-cp', ('"' + $classpath.Replace('\', '/') + '"'),
     '-d', ('"' + $output.Replace('\', '/') + '"'), ('"' + $probeSource.Replace('\', '/') + '"')))
 [IO.File]::WriteAllLines($runArgs, @('--enable-native-access=ALL-UNNAMED',
-    '-cp', ('"' + $runClasspath.Replace('\', '/') + '"'), $probeClass))
+    '-cp', ('"' + $runClasspath.Replace('\', '/') + '"'), $probeClass) + $probeArgs)
 & $javac "@$compileArgs"
 if ($LASTEXITCODE -ne 0) { throw "$probeId smoke source compilation failed" }
 & $java "@$runArgs"
