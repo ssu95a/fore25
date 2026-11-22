@@ -1242,3 +1242,24 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-L
 Omit `-SettingsFile` to use existing Maven configuration. `GUI-006 PASS` requires the expected Escape and control invariants plus observed mouse-armed commit. The harness reports the scenario and before/action/after diagnostics for investigation.
 
 Production code, public/protected API, POM, Maven wrapper, JInvCommon, main, D6/D7, logback, JInvXMLViewer and ru.inversion.diff were outside the change.
+
+
+
+---
+
+## Reply GUI-007
+
+**Status** DONE, investigation and test-only probe. Fast-forward to `0b4b2d65b05ec637959ca3a81a81df5d4d650cd3` from `8ead483ae4eba6a972b474ea969aa783e953b33e` on `migration/java25-correctness`. The test commit and this reply are published atomically and checked with `git ls-remote`. [Complete source diff](https://github.com/ssu95a/fore25/commit/0b4b2d65b05ec637959ca3a81a81df5d4d650cd3)
+
+**Observed in the user's GUI-006 run.** The mouse-plus-Escape scenario discarded the model change and emitted zero commits. The same editor reopened with that discarded draft while the model was still Original. In the next GUI-006 scenario, the user-supplied probe wrote a different draft before committing; that run does not establish that an untouched reentry commits the previous draft.
+
+**Lifecycle.** Legacy `startEdit()` calls `super.startEdit()` before using the editor. Local JavaFX 25 bytecode shows that `TableCell.startEdit()` calls its item-update routine before entering editing state. Legacy `updateItem(T, boolean)` assigns text to the editor only for a nonempty item while the cell is editing and the editor already exists. On first allocation Legacy explicitly clears the fresh TextField after creation. On reentry it reuses the field and sets the cell label from the converter, never assigning that label to the reused TextField at start. This establishes first-allocation behavior (blank), while the intended UX for each new session remains unspecified. Legacy cancel removes the graphic and filters without resetting the TextField, and JavaFX superclass cancel emits cancellation without refreshing item text. A dirty item can invoke an item refresh during a later layout and potentially reset text while editing. A layout pulse alone does not guarantee an item refresh. The reuse conditions of interest are the same realized cell, the existing editor and absence of a refreshing update during the new edit.
+
+**Probe.** `-EditorReentry` uses the production Legacy cell and skin in a visible Stage without a DB. It records the first edit, sets a unique draft, routes synthetic Escape, and requires the model and commit counts to stay unchanged. It reopens the same realized cell without editing its text and logs the initial editor identity, draft and model immediately and after a pulse. Then it routes an in-editor synthetic mouse press and calls `table.edit(-1, null)`. It correlates commit event row/column/value with actual property changes and requires the second row to stay untouched. The program prints GUI-007 REPRODUCED and exits nonzero only for the diagnosed stale-draft commit, or reports other invariant/setup failures independently. It reports UNKNOWN if no mouse-armed commit is observable. GUI-007 PASS means that the exercised commit carried a value other than the discarded draft. It imposes no exact initial-text policy. Physical click-away and Dataset persistence remain outside this scenario.
+
+**Local verification.** The four Java harness sources compiled against existing production classes and resolved JavaFX 25 dependencies. PowerShell parsing and dispatch passed for default, Editors, TableEditing, TableCancel and EditorReentry with SettingsFile. Staged whitespace checks passed. Interactive JavaFX 25 GUI-007 runtime remains UNKNOWN pending user execution. No production Java, API, POM, wrapper, JInvCommon or deferred-module change.
+
+```powershell
+git pull --ff-only
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -EditorReentry -SettingsFile 'C:\Path With Spaces\settings.xml'
+```
