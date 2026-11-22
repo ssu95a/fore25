@@ -139,28 +139,26 @@ public class JInvTextFieldTableCell<S, T> extends TableCell<S, T> {
 
     @Override
     public void startEdit() {
-        if (!isEditable() || !getTableView().isEditable() || !getTableColumn().isEditable()) {
+        if (isEditing() || !isEditable() || !getTableView().isEditable() || !getTableColumn().isEditable()) {
             return;
         }
         super.startEdit();
 
-//        if (isEditing()) {
-            if (textField == null) {
-                textField = createTextField();
-                if (textField instanceof TextField) {
-                    ((TextField) textField).setAlignment(alignment);
-                    textField.setText("");
-                }
-            }
-//        }
-
-        
-        if (converter != null && getItem() != null) {
-            this.setText(converter.get().toString(getItem()));
-        } else {
-            this.setText(textField.getText());
+        if (!isEditing()) {
+            return;
         }
-        //setText(converter.toString(getTableColumn().getCellObservableValue(editingCell.getRow()).getValue()));
+        if (textField == null) {
+            textField = createTextField();
+            if (textField instanceof TextField) {
+                ((TextField) textField).setAlignment(alignment);
+            }
+        }
+
+        T item = getItem();
+        StringConverter<T> valueConverter = getConverter();
+        String initialText = item == null ? "" : valueConverter == null ? item.toString() : valueConverter.toString(item);
+        textField.setText(initialText);
+        this.setText(initialText);
         this.setGraphic(textField);
 
         getTableView().addEventFilter(MouseEvent.MOUSE_PRESSED, _tblMouseHandler);

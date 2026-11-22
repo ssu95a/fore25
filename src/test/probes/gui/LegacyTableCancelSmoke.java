@@ -106,7 +106,7 @@ public final class LegacyTableCancelSmoke {
                     require(stage.isShowing() && table.getSkin() instanceof JInvTableViewSkin<?>,
                             "setup: visible Legacy table skin required");
                     if (reentry) {
-                        selectAndEdit();
+                        selectAndEdit(0);
                         later(this::discardDraftAndReopen);
                     } else {
                         start(Scenario.PROGRAMMATIC);
@@ -119,28 +119,28 @@ public final class LegacyTableCancelSmoke {
     }
 
     private void start(Scenario scenario) {
-        selectAndEdit();
+        selectAndEdit(0);
         later(() -> exercise(scenario));
     }
 
-    private void selectAndEdit() {
+    private void selectAndEdit(int row) {
         table.requestFocus();
-        table.getSelectionModel().clearAndSelect(0, column);
-        table.edit(0, column);
+        table.getSelectionModel().clearAndSelect(row, column);
+        table.edit(row, column);
     }
 
-    private JInvTextFieldTableCell<?, ?> editedCell() {
+    private JInvTextFieldTableCell<?, ?> editedCell(int row) {
         return table.lookupAll(".table-cell").stream()
                 .filter(node -> node instanceof JInvTextFieldTableCell<?, ?> candidate
-                        && candidate.getIndex() == 0 && candidate.getTableColumn() == column
+                        && candidate.getIndex() == row && candidate.getTableColumn() == column
                         && !candidate.isEmpty() && candidate.getWidth() > 0 && candidate.getHeight() > 0)
                 .map(node -> (JInvTextFieldTableCell<?, ?>) node)
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("layout: no realized Legacy cell at row 0"));
+                .orElseThrow(() -> new AssertionError("layout: no realized Legacy cell at row " + row));
     }
 
     private void exercise(Scenario scenario) {
-        var cell = editedCell();
+        var cell = editedCell(0);
         require(cell.isEditing() && cell.getGraphic() instanceof TextField, scenario + ": editor did not open");
         var editor = (TextField) cell.getGraphic();
         require(stage.isFocused() && editor.isFocused(), scenario + ": editor did not receive focus");
@@ -164,7 +164,7 @@ public final class LegacyTableCancelSmoke {
     }
 
     private void discardDraftAndReopen() {
-        var cell = editedCell();
+        var cell = editedCell(0);
         TextField editor = activeEditor(cell);
         require(stage.isFocused() && editor.isFocused(), "focus: fresh editor did not receive focus");
         System.out.println("FRESH " + snapshot(editor));
@@ -178,8 +178,8 @@ public final class LegacyTableCancelSmoke {
             require(commits.isEmpty() && changes.isEmpty() && "Original".equals(edited.value().get())
                             && "Other".equals(other.value().get()),
                     "Escape committed or changed the model before reentry");
-            selectAndEdit();
-            require(editedCell() == cell, "setup: reentry did not use the same realized cell");
+            selectAndEdit(0);
+            require(editedCell(0) == cell, "setup: reentry did not use the same realized cell");
             TextField reopened = activeEditor(cell);
             System.out.println("REOPEN IMMEDIATE reusedEditor=" + (reopened == editor) + " " + snapshot(reopened));
             afterPulse(() -> cancelUntouched(cell, reopened, discarded));
@@ -212,12 +212,41 @@ public final class LegacyTableCancelSmoke {
                 require(changes.equals(expected), "untouched reentry: unexpected property changes");
                 require(!discarded.equals(edited.value().get()),
                         "GUI-007 REPRODUCED: Escape-discarded draft was committed on untouched reentry");
+                require("Original".equals(untouched) && changes.isEmpty(),
+                        "untouched reentry: cancel changed the original model value");
             } else {
                 require(changes.isEmpty() && "Original".equals(edited.value().get()),
                         "untouched reentry: model changed without a commit event");
             }
+            boolean reentryCommitObserved = !commits.isEmpty();
+            commits.clear();
+            selectAndEdit(1);
+            afterPulse(() -> checkColdUntouched(reentryCommitObserved));
+        });
+    }
+
+    private void checkColdUntouched(boolean reentryCommitObserved) {
+        var cell = editedCell(1);
+        TextField editor = activeEditor(cell);
+        require(stage.isFocused() && editor.isFocused(), "focus: cold editor did not receive focus");
+        String untouched = editor.getText();
+        System.out.println("COLD FIRST EDIT " + snapshot(editor));
+        pressEditor(editor);
+        require(activeEditor(cell) == editor && untouched.equals(editor.getText())
+                        && commits.isEmpty() && changes.isEmpty(),
+                "cold first edit: press changed the editor or model before cancellation");
+        table.edit(-1, null);
+        later(() -> {
+            System.out.println("AFTER COLD UNTOUCHED CANCEL " + snapshot(editor));
+            require(table.getEditingCell() == null && !cell.isEditing() && cell.getGraphic() == null,
+                    "cold first edit: cancellation did not close editor");
+            require("Other".equals(untouched) && "Other".equals(other.value().get())
+                            && "Original".equals(edited.value().get()) && changes.isEmpty(),
+                    "GUI-008: cold untouched editor did not preserve the original value");
+            require(commits.isEmpty() || commits.equals(List.of(new Commit(1, column, "Other"))),
+                    "cold first edit: unexpected or duplicate commit event");
             stage.close();
-            verdict.complete(!commits.isEmpty());
+            verdict.complete(reentryCommitObserved && !commits.isEmpty());
         });
     }
 
