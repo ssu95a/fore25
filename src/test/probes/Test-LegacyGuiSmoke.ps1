@@ -8,6 +8,8 @@ param(
     [switch] $TableCancel,
     [Parameter(ParameterSetName = 'EditorReentry')]
     [switch] $EditorReentry,
+    [Parameter(ParameterSetName = 'DataBinding')]
+    [switch] $DataBinding,
     [ValidateNotNullOrEmpty()]
     [string] $SettingsFile
 )
@@ -28,6 +30,9 @@ if ($Editors) {
     $probeId = 'GUI-007'
     $probeClass = 'LegacyTableCancelSmoke'
     $probeArgs = @('reentry')
+} elseif ($DataBinding) {
+    $probeId = 'GUI-009'
+    $probeClass = 'LegacyDataBindingSmoke'
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
