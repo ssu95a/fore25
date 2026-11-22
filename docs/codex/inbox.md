@@ -1424,7 +1424,7 @@ Stop after VF-001; no automatic next task.
 
 ## MESSAGE VF-002
 
-**Status:** OPEN
+**Status:** AWAITING USER VALIDATION
 **Priority:** typed-field correctness / lifecycle, stale listeners and property-binding identity
 **Repository:** `ssu95a/fore25`
 **Working branch:** `migration/java25-correctness` (never modify `main`)
