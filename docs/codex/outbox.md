@@ -1216,3 +1216,29 @@ Review caveat. Programmatic cancellation does not exercise the branch where a ta
 git pull --ff-only
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableEditing
 ```
+
+
+
+---
+
+## Reply GUI-006
+
+**Status** DONE. Fast-forward publication to `migration/java25-correctness` from `13ceedc419941bb53b701707e2d0a737af9edeba` through the two commits below. The working tree was clean, and the two parents matched the authorized linear range. The branch and this reply are published atomically and the two remote refs are checked after push.
+
+- A, Maven settings. `e2d57812410df5ca800c4ade422286612d0ec803` adds optional `-SettingsFile` to the existing PowerShell runner. It resolves and validates a literal file path before Maven starts and supplies `-s` and the absolute path as separate arguments. Omission supplies no extra arguments and preserves the caller's Maven environment/defaults. [Exact commit diff](https://github.com/ssu95a/fore25/commit/e2d57812410df5ca800c4ade422286612d0ec803)
+- B, cancellation smoke. `8ead483ae4eba6a972b474ea969aa783e953b33e` adds `LegacyTableCancelSmoke.java` and `-TableCancel`. It shows a Stage with the real table, skin, column and cell factory. It runs unarmed programmatic cancel, an in-editor synthetic primary press followed by Escape dispatched to the focused editor, and the same press followed by `table.edit(-1, null)`. The probe records drafts, model values, actual property changes, commit event row/column/value, focus and selection across each action. It checks editor teardown, no commits or model changes in the first two cases, and no double commits or cross-row writes. [Exact commit diff](https://github.com/ssu95a/fore25/commit/8ead483ae4eba6a972b474ea969aa783e953b33e)
+
+**Confirmed in source.** The production table mouse filter records the editing position on press, Escape clears it, and `cancelEdit()` explicitly fires an edit-commit event when that position is present. A single event carrying the draft and matching a single model change after only press plus programmatic cancel supplies behavioral evidence of that branch without private-field access. That outcome is recorded and allowed. If no commit occurs, the probe reports UNKNOWN for mouse-capture coverage. Whether an actual outside click or native Escape reproduces the same behavior, and whether any genuine discard action incorrectly saves a value, remain open. Synthetic events exercise JavaFX dispatch. Native pointer targeting, focus-loss/click-away behavior and Dataset persistence are outside this probe.
+
+**Verification.** On JDK 25.0.1, compiled all four GUI harnesses against existing project classes and the resolved GUI-004 dependencies. PowerShell parsing and dispatch for default, `-Editors`, `-TableEditing`, and `-TableCancel` passed. A Windows batch receiver confirmed native argument boundaries for a settings path with spaces and brackets. Omitted and missing-file cases also passed. No Maven credentials were read for these checks. Both staged whitespace checks passed. GUI-005 PASS is the user's reported result for programmatic edit, synthetic Enter and programmatic cancel. GUI-006 interactive JavaFX 25 result remains UNKNOWN pending user execution.
+
+From the repository root on an interactive Windows desktop with JDK 25:
+
+```powershell
+git pull --ff-only
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableCancel -SettingsFile 'C:\Path With Spaces\settings.xml'
+```
+
+Omit `-SettingsFile` to use existing Maven configuration. `GUI-006 PASS` requires the expected Escape and control invariants plus observed mouse-armed commit. The harness reports the scenario and before/action/after diagnostics for investigation.
+
+Production code, public/protected API, POM, Maven wrapper, JInvCommon, main, D6/D7, logback, JInvXMLViewer and ru.inversion.diff were outside the change.
