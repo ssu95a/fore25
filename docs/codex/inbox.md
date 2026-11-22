@@ -1717,49 +1717,49 @@ Stop after NUM-001. Do not proceed to GUI-013 or NUM-002 without a new assignmen
 
 **Status:** ASSIGNED — production correctness fix; Windows independent RED confirmed 2026-11-22
 **Priority:** CRITICAL — preserve money typed value on incomplete sign-only user input
-**Repo:** \`ssu95a/fore25\`
-**Implementation branch:** \`migration/java25-correctness\` (never \`main\`)
-**Expected remote HEAD:** \`4c75d9943927aebe9c91e1ec235afce1c6a63f7d\`
-**Baseline probe:** \`src/test/probes/gui/LegacyMoneyDecimalSmoke.java\`, runner \`-MoneyDecimal\`
-**Reply ID:** \`NUM-002\`
+**Repo:** `ssu95a/fore25`
+**Implementation branch:** `migration/java25-correctness` (never `main`)
+**Expected remote HEAD:** `4c75d9943927aebe9c91e1ec235afce1c6a63f7d`
+**Baseline probe:** `src/test/probes/gui/LegacyMoneyDecimalSmoke.java`, runner `-MoneyDecimal`
+**Reply ID:** `NUM-002`
 
 ### Independent user confirmation (not only agent run)
 
 User ran visible JavaFX 25 NUM-001 on Windows. Observed:
-- \`MoneyStringConverter.fromString("+")\` and \`fromString("-")\` accepted invalid signs as \`BigDecimal.ZERO\`.
-- After valid \`JInvMoneyField\` amount \`12.34\`, editing text to \`-\` yielded \`text="-" value=0.00 state=VALUE\`, with \`textEvents=1, valueEvents=1\`. Thus a non-final draft overwrote the last valid amount.
-- Independent \`grouping=false\` roundtrip also RED; deliberately **not in NUM-002**.
-- Overall \`NUM-001 RED findings=4\`. PowerShell throws at runner line 123 because probe exit code is nonzero. This is a correct RED result, not a JavaFX launcher or infrastructure failure.
-- Valid direct parsing \`1.005\`, \`-1.005\`, long decimals, \`0\`, comma/dot, spaces/NBSP, verified signed K/T/M suffixes worked. Preserve those observations.
+- `MoneyStringConverter.fromString("+")` and `fromString("-")` accepted invalid signs as `BigDecimal.ZERO`.
+- After valid `JInvMoneyField` amount `12.34`, editing text to `-` yielded `text="-" value=0.00 state=VALUE`, with `textEvents=1, valueEvents=1`. Thus a non-final draft overwrote the last valid amount.
+- Independent `grouping=false` roundtrip also RED; deliberately **not in NUM-002**.
+- Overall `NUM-001 RED findings=4`. PowerShell throws at runner line 123 because probe exit code is nonzero. This is a correct RED result, not a JavaFX launcher or infrastructure failure.
+- Valid direct parsing `1.005`, `-1.005`, long decimals, `0`, comma/dot, spaces/NBSP, verified signed K/T/M suffixes worked. Preserve those observations.
 
 ### Confirmed root cause and existing recovery path
 
-\`MoneyStringConverter.fromString(String)\` initializes \`retValue = BigDecimal.ZERO\` and accumulates parsed numeric token items. A lone \`+\` or \`-\` consumes the sign, produces zero items and returns zero. That then drives a **real typed property change** in \`JInvMoneyField\`. This is not a rounding problem.
+`MoneyStringConverter.fromString(String)` initializes `retValue = BigDecimal.ZERO` and accumulates parsed numeric token items. A lone `+` or `-` consumes the sign, produces zero items and returns zero. That then drives a **real typed property change** in `JInvMoneyField`. This is not a rounding problem.
 
-\`JInvNumberField.updateValueFromText()\` already catches conversion exceptions, sets \`State.ERROR\` and preserves the previous typed value. Use this existing path, rather than redesigning field binding/listeners or adding a second validation mechanism.
+`JInvNumberField.updateValueFromText()` already catches conversion exceptions, sets `State.ERROR` and preserves the previous typed value. Use this existing path, rather than redesigning field binding/listeners or adding a second validation mechanism.
 
 ### Assignment: ONE narrow fix
 
-1. Make \`MoneyStringConverter.fromString\` throw \`NumberFormatException\` for sign-only input \`+\` and \`-\`, including surrounding parser-tolerated spaces (normal and NBSP), **before a value can be read from the parse cache**. An incomplete sign must never be interpreted as zero. Keep blank/whitespace-only input semantics unchanged (\`null\`). Avoid unnecessary regex / allocations in the per-keystroke hot path.
-2. Keep the existing parsing grammar, special suffix behavior and exact \`BigDecimal\` arithmetic. **Do not** change \`MathContext\`, BigDecimal scale/rounding, public API, converter caching design, grouping, locale behavior, formatter, or code unrelated to this defect. The current \`K -> 0\` and \`12K34 -> 12034\` behavior is observed but its intended contract is UNKNOWN. Do not silently change it in NUM-002.
+1. Make `MoneyStringConverter.fromString` throw `NumberFormatException` for sign-only input `+` and `-`, including surrounding parser-tolerated spaces (normal and NBSP), **before a value can be read from the parse cache**. An incomplete sign must never be interpreted as zero. Keep blank/whitespace-only input semantics unchanged (`null`). Avoid unnecessary regex / allocations in the per-keystroke hot path.
+2. Keep the existing parsing grammar, special suffix behavior and exact `BigDecimal` arithmetic. **Do not** change `MathContext`, BigDecimal scale/rounding, public API, converter caching design, grouping, locale behavior, formatter, or code unrelated to this defect. The current `K -> 0` and `12K34 -> 12034` behavior is observed but its intended contract is UNKNOWN. Do not silently change it in NUM-002.
 3. Tighten the existing focused GUI regression to assert separately:
-   - Direct parser rejects \`+\`, \`-\`, with tolerated spaces around them, with \`NumberFormatException\`.
-   - After a valid money amount, replacing text with either sign yields \`State.ERROR\`, retains the exact previous typed value, and produces **zero typed-value change notifications** (text event expected).
+   - Direct parser rejects `+`, `-`, with tolerated spaces around them, with `NumberFormatException`.
+   - After a valid money amount, replacing text with either sign yields `State.ERROR`, retains the exact previous typed value, and produces **zero typed-value change notifications** (text event expected).
    - Recovery from ERROR via a valid signed amount works; real zero and valid signed numeric/shorthand input remain valid.
-   - Existing \`JInvBigDecimalField\` cases and unrelated NUM-001 matrix remain intact.
-4. **Expected status of full \`-MoneyDecimal\` run after fix:** three sign-related RED assertions turn GREEN; **one remaining RED for \`grouping=false\` is expected and acceptable**, so full runner may still exit 1. Do not turn off that check, hide it, or claim overall PASS. Report focused sign invariants GREEN separately from the overall \`NUM-001 RED findings=1\` if it remains exactly one.
+   - Existing `JInvBigDecimalField` cases and unrelated NUM-001 matrix remain intact.
+4. **Expected status of full `-MoneyDecimal` run after fix:** three sign-related RED assertions turn GREEN; **one remaining RED for `grouping=false` is expected and acceptable**, so full runner may still exit 1. Do not turn off that check, hide it, or claim overall PASS. Report focused sign invariants GREEN separately from the overall `NUM-001 RED findings=1` if it remains exactly one.
 
 ### Scope and quality gates
 
-- Production edits restricted to \`src/main/java/ru/inversion/fx/form/controls/MoneyStringConverter.java\`. Test/runner edit only when needed for assertions. No POM, Maven wrapper, \`JInvMoneyField\`, \`JInvNumberField\`, other controls, \`JInvCommon\`, or \`main\` changes.
+- Production edits restricted to `src/main/java/ru/inversion/fx/form/controls/MoneyStringConverter.java`. Test/runner edit only when needed for assertions. No POM, Maven wrapper, `JInvMoneyField`, `JInvNumberField`, other controls, `JInvCommon`, or `main` changes.
 - Preserve Java 25 / JavaFX 25, source/binary-compatible public and protected API. Comments in new source must be Russian. Prefer tiny diff and no new dependencies.
 - Do not spend time on GUI multi-thread safety or memory optimization. Per-instance retained memory remains separate follow-up. Financial data correctness dominates.
-- Verify Maven compilation using available settings (on user machine: \`D:\Java\.m2\settings.xml\`), PowerShell probe script parsing, and visible JavaFX 25 GUI where possible. If GUI cannot be launched in agent environment, report UNKNOWN and use the strongest available isolated regression. Preserve user local work.
-- Git operations are pre-approved under project protocol. Verify repo/branch and expected HEAD before write; commit and fast-forward push verified changes to \`migration/java25-correctness\`, then re-read remote SHA. No force pushes. If diverged, STOP and report.
-- Reply in \`docs/codex/outbox.md\` on \`agent/codex-mailbox\` as \`## Reply NUM-002\`, with exact diff/SHA, test matrix, separately named focused GREEN / remaining grouping RED / UNKNOWN, any blockers, and Windows recheck commands:
-  \`\`\`powershell
+- Verify Maven compilation using available settings (on user machine: `D:\Java\.m2\settings.xml`), PowerShell probe script parsing, and visible JavaFX 25 GUI where possible. If GUI cannot be launched in agent environment, report UNKNOWN and use the strongest available isolated regression. Preserve user local work.
+- Git operations are pre-approved under project protocol. Verify repo/branch and expected HEAD before write; commit and fast-forward push verified changes to `migration/java25-correctness`, then re-read remote SHA. No force pushes. If diverged, STOP and report.
+- Reply in `docs/codex/outbox.md` on `agent/codex-mailbox` as `## Reply NUM-002`, with exact diff/SHA, test matrix, separately named focused GREEN / remaining grouping RED / UNKNOWN, any blockers, and Windows recheck commands:
+  ```powershell
   git pull --ff-only origin migration/java25-correctness
   git rev-parse HEAD
   powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -MoneyDecimal -SettingsFile "D:\Java\.m2\settings.xml"
-  \`\`\`
+  ```
 - **Stop after NUM-002**. Do not fix grouping, rewrite the parser, pursue memory optimizations, or begin NUM-003 until separately assigned.
