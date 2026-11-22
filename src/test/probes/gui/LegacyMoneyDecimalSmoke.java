@@ -122,12 +122,25 @@ public final class LegacyMoneyDecimalSmoke {
         directCases();
         fieldCases(money);
         fieldCases(decimal);
-        step("money sign-only edit after valid amount", money, () -> money.field.setText("-"));
-        check(bd("12.34").equals(money.field.getValue()) && money.field.getState() == State.ERROR,
-                "money sign-only draft changed the last valid amount: " + money.field.getValue());
+        checkSignEdit("-", "-12.35");
+        checkSignEdit("+", "+12.36");
         step("money recover for focus", money, () -> money.field.setText("12345,67"));
         step("decimal recover for focus", decimal, () -> decimal.field.setText("12345,67"));
         checkFocus(money, () -> checkFocus(decimal, this::settingsCases));
+    }
+
+    private void checkSignEdit(String sign, String recovery) {
+        BigDecimal previous = money.field.getValue();
+        Counts before = money.counts();
+        step("money sign-only edit [" + sign + "]", money, () -> replace(money.field, sign));
+        check(sign.equals(money.field.getText()) && previous.equals(money.field.getValue())
+                        && money.field.getState() == State.ERROR && money.valueEvents == before.value()
+                        && money.textEvents == before.text() + 1,
+                "money sign-only [" + sign + "] must preserve the amount and report ERROR: " + money.snapshot(before));
+        int beforeRecovery = money.valueEvents;
+        step("money signed recovery [" + recovery + "]", money, () -> replace(money.field, recovery));
+        expectValue(money, recovery, State.VALUE);
+        check(money.valueEvents == beforeRecovery + 1, "signed recovery must publish exactly one typed change");
     }
 
     private void directCases() {
@@ -141,7 +154,8 @@ public final class LegacyMoneyDecimalSmoke {
         for (String text : List.of("+1.25K", "-2T", "3M", "-1К", "+2Т", "3М", "12K34", "K")) {
             System.out.println("OBSERVED shorthand [" + text + "] -> " + parser.fromString(text));
         }
-        for (String malformed : List.of("abc", "1.2,3", "+", "-")) {
+        for (String malformed : List.of("abc", "1.2,3", "+", "-", " + ", " - ",
+                "\u00a0+\u00a0", "\u00a0-\u00a0", " \u00a0+ ", " -\u00a0 ")) {
             try {
                 BigDecimal result = parser.fromString(malformed);
                 check(false, "invalid numeric input [" + malformed + "] accepted as " + result);
@@ -149,6 +163,11 @@ public final class LegacyMoneyDecimalSmoke {
                 System.out.println("CONFIRMED direct rejected [" + malformed + "]");
             }
         }
+        check(bd("0").equals(parser.fromString("+0")) && bd("0").equals(parser.fromString("-0"))
+                        && bd("1250.00").equals(parser.fromString("+1.25K"))
+                        && bd("-2000").equals(parser.fromString("-2T"))
+                        && bd("3000000").equals(parser.fromString("+3M")),
+                "signed zero or signed shorthand conversion changed");
         BigDecimal amount = bd("-12345.67");
         roundTrip("default money", amount);
         check(parser.fromString("  ") == null && parser.toString(null) == null,

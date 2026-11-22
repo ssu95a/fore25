@@ -50,6 +50,16 @@ public class MoneyStringConverter extends BigDecimalStringConverter {
         if( S.isNullOrEmpty(value) )
             return null;
 
+        int i = skipSpaces(value, 0);
+        boolean sign = true;
+        if (i < value.length() && (value.charAt(i) == '-' || value.charAt(i) == '+')) {
+            sign = value.charAt(i) != '-';
+            i++;
+            if (skipSpaces(value, i) == value.length()) {
+                throw new NumberFormatException("Sign without amount: " + value);
+            }
+        }
+
         BigDecimal retValue = g_valueCacheMap.get(value);
         if( retValue != null )
             return retValue;
@@ -60,27 +70,7 @@ public class MoneyStringConverter extends BigDecimalStringConverter {
         
         char    ch;
         boolean afterSeparator = false;
-        boolean sign           = true;
-
-        int i = 0;
-
         int nFration = g_moneyFormat.getMaximumFractionDigits();
-        
-        for( ; i < value.length(); i++ ) {
-
-            ch = value.charAt(i);
-
-            if( Character.isSpaceChar(ch) || ch == (char)0xA0 )
-                continue;
-            
-            if( ch == '-' || ch == '+' ) {
-                if( ch == '-' ) {
-                    sign = false;
-                }
-                i++;
-            }
-            break;
-        }
 
         Pair<StringBuilder, Character> currentItem = Pair.makePair( new StringBuilder(), '_' );
         
@@ -167,5 +157,12 @@ public class MoneyStringConverter extends BigDecimalStringConverter {
         g_valueCacheMap.put( value, retValue );
         
         return retValue;
+    }
+
+    private static int skipSpaces(String value, int index) {
+        while (index < value.length() && Character.isSpaceChar(value.charAt(index))) {
+            index++;
+        }
+        return index;
     }
 }
