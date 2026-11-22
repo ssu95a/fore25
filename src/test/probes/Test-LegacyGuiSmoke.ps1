@@ -12,6 +12,8 @@ param(
     [switch] $DataBinding,
     [Parameter(ParameterSetName = 'FormLifecycle')]
     [switch] $FormLifecycle,
+    [Parameter(ParameterSetName = 'TextFields')]
+    [switch] $TextFields,
     [ValidateNotNullOrEmpty()]
     [string] $SettingsFile
 )
@@ -38,6 +40,9 @@ if ($Editors) {
 } elseif ($FormLifecycle) {
     $probeId = 'GUI-010'
     $probeClass = 'ru.inversion.fx.form.LegacyFormLifecycleSmoke'
+} elseif ($TextFields) {
+    $probeId = 'GUI-012'
+    $probeClass = 'LegacyTextFieldsSmoke'
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
