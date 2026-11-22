@@ -1616,3 +1616,30 @@ git pull --ff-only origin migration/java25-correctness
 git rev-parse HEAD
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -MoneyDecimal -SettingsFile "D:\Java\.m2\settings.xml"
 ```
+
+
+
+---
+
+## Reply NUM-003
+
+**Status** DONE / GREEN. Fast-forward from `13b60790a434a9d261dde3392342d6184823ac6b` to `2f88c30e8b46f0eeb51433265b1d9faaaf2d2a54` on `migration/java25-correctness`. Published atomically with this reply and verified via `git ls-remote`. [Exact source and regression diff](https://github.com/ssu95a/fore25/commit/2f88c30e8b46f0eeb51433265b1d9faaaf2d2a54)
+
+**Cause and fix.** The shared DecimalFormat inherited the FORMAT locale's default grouping flag because the factory changed the grouping symbol and size without applying the boolean argument. One call to `setGroupingUsed(grouping)` in `JInvMoneyField.initDefaultMoneyFormatter()` now applies the setting. Enabled grouping retains the configured space separator and group size three. Decimal separators, fraction digits, HALF_UP value assignment, display rounding, public/protected API, and parser grammar/cache are unchanged.
+
+**Local RED/GREEN on interactive Windows Java 25.0.1 / JavaFX 25.** The same strengthened smoke was used for both builds. RED found eight display/roundtrip assertion failures for disabled grouping (dot/comma, plus/minus), e.g. `12,345.67` and `-12,345,67`; the grouped cases and NUM-002 stayed green. After the fix, all eight US FORMAT combinations of sign, separator and grouping produced exact display strings and parsed to the original signed BigDecimal of scale 2:
+
+| Decimal separator | Grouping disabled | Grouping enabled |
+|---|---|---|
+| Dot | `12345.67`, `-12345.67` | `12 345.67`, `-12 345.67` |
+| Comma | `12345,67`, `-12345,67` | `12 345,67`, `-12 345,67` |
+
+At each formatter replacement, the already existing money field retained typed `71.005` and displayed `71,005`, with zero text and value notifications. The direct formatter output reflects the selected scale/display rules while the stored property stays intact. Existing scale/rounding, long precision, shorthand, grouping, ar-EG samples, BigDecimalField and sign-only regressions passed. Locale and original formatter are restored by the existing teardown. Results for other locales, physical input and actual persistence remain UNKNOWN.
+
+Maven -Pbuild compile, dependency lookup and probe javac passed with the existing settings. PowerShell parse and staged whitespace checks passed. The full local run produced `NUM-001 PASS (tested invariants)` and exit 0. Only the money formatter and its focused test changed.
+
+```powershell
+git pull --ff-only origin migration/java25-correctness
+git rev-parse HEAD
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -MoneyDecimal -SettingsFile "D:\Java\.m2\settings.xml"
+```
