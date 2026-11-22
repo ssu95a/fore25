@@ -65,10 +65,14 @@ public abstract class JInvValueField<T> extends JInvTextField  {
     public ClipboardContent getClipboardContent() {
         final String selectedText = getSelectedText();
         final String text = getText();
-        final T value = getValue();
         final ClipboardContent content = new ClipboardContent();
 
         if ( allTextSelected( selectedText, text ) ) {
+            if (getState() == State.ERROR) {
+                content.putString(selectedText);
+                return content;
+            }
+            final T value = getValue();
             if ( value != null ){
                 //Кладём Value в буфер обмена, если выделено всё
                 content.putString( value.toString() );

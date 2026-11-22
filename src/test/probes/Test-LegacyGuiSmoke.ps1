@@ -14,6 +14,8 @@ param(
     [switch] $FormLifecycle,
     [Parameter(ParameterSetName = 'TextFields')]
     [switch] $TextFields,
+    [Parameter(ParameterSetName = 'ValueFields')]
+    [switch] $ValueFields,
     [ValidateNotNullOrEmpty()]
     [string] $SettingsFile
 )
@@ -43,6 +45,9 @@ if ($Editors) {
 } elseif ($TextFields) {
     $probeId = 'GUI-012'
     $probeClass = 'LegacyTextFieldsSmoke'
+} elseif ($ValueFields) {
+    $probeId = 'VF-001'
+    $probeClass = 'LegacyValueFieldsSmoke'
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
