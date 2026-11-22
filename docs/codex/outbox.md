@@ -1283,3 +1283,27 @@ git pull --ff-only
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -EditorReentry -SettingsFile 'C:\Path With Spaces\settings.xml'
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableCancel -SettingsFile 'C:\Path With Spaces\settings.xml'
 ```
+
+
+
+---
+
+## Reply GUI-009
+
+**Status** DONE. Fast-forward from `fa4af1b688b4e20662663a110bad2b86fe1fe48c` to `0a328b9f1ec960837862db2cd785abf2a42309ec` on `migration/java25-correctness`. The test commit and this reply are published atomically and both remote refs are verified with `git ls-remote`. [Exact test and runner diff](https://github.com/ssu95a/fore25/commit/0a328b9f1ec960837862db2cd785abf2a42309ec)
+
+**Design.** A visible Stage with production CSS, real `JInvTable`, `JInvTableColumn`, `JInvTableViewSkin`, and the real `DSFXAdapter.bindTable()` binds three actual JInvCommon ArrayDataSet rows. Two ordinary JPA-annotated String properties bind via `setFieldName()`, EntityMetadataFactory and the production cell factory. The probe installs no custom cell factories or model copies. Source inspection found that a controller is optional in `bindColumns()`, and the fixture has neither SQL sort metadata nor a query expression needing a dialect. The skin's filter title listener branch applies to XXIDataSet. This route worked with no controller or BaseApp bootstrap.
+
+**Verified on local interactive Windows, Java 25.0.1 / JavaFX 25.**
+
+- The Legacy cells rendered A/Alpha, B/Bravo and C/Charlie in two columns. All three TableView entries were the identical objects returned by ArrayDataSet.
+- Synthetic Down sent through the focused table moved selection and Dataset 0->1. Then Dataset cursor 1->2 selected row 2. Independent traces for navigation and selection both read [0->1, 1->2], with exactly one adapter navigation callback per action and correct row identities throughout.
+- Mutating the existing bean left the visible text at Charlie through a pulse. The production column uses StubObservableValue, whose listener registration methods are no-ops. `adapter.refresh()` rebuilt visible values and rendered Charlie updated, keeping the selected row and the neighboring value.
+- The adapter observer overrides callbacks only to count and delegates each to the production implementation. A test subclass of real ArrayDataSet invokes its inherited event publisher to exercise Dataset-level notification, since ArrayDataSet.executeQuery(boolean) only positions the cursor. Independent listeners proved delivery before and after adapter.close(). After close, real cursor navigation, the explicitly emitted Dataset notification, and updateCurrentRow reached the independent listeners, with zero callbacks to the closed adapter and no selection move from post-close cursor navigation. The test does not treat adapter.close() as TableView disposal.
+
+**Checks.** JDK 25 javac for all GUI sources, PowerShell parsing and dispatch for all six modes, and staged whitespace checks passed. Full PowerShell launcher with the existing custom Maven settings and local cache completed Maven `-Pbuild compile` and dependency classpath resolution, then printed `GUI-009 PASS` and exited 0. A separate corporate rerun is pending. Physical input, SQLDataSet, business forms and DB persistence are outside the observed scope. Only the Java probe and PowerShell test runner changed.
+
+```powershell
+git pull --ff-only
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -DataBinding -SettingsFile 'C:\Path With Spaces\settings.xml'
+```
