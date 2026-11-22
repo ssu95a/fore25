@@ -18,6 +18,8 @@ param(
     [switch] $ValueFields,
     [Parameter(ParameterSetName = 'ValueLifecycle')]
     [switch] $ValueLifecycle,
+    [Parameter(ParameterSetName = 'MoneyDecimal')]
+    [switch] $MoneyDecimal,
     [ValidateNotNullOrEmpty()]
     [string] $SettingsFile
 )
@@ -53,6 +55,9 @@ if ($Editors) {
 } elseif ($ValueLifecycle) {
     $probeId = 'VF-002'
     $probeClass = 'LegacyValueLifecycleSmoke'
+} elseif ($MoneyDecimal) {
+    $probeId = 'NUM-001'
+    $probeClass = 'LegacyMoneyDecimalSmoke'
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
