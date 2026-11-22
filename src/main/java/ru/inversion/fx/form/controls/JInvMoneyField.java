@@ -53,6 +53,7 @@ public class JInvMoneyField extends AbstractBigDecimalField {
     /** */
     public JInvMoneyField(String arg0) {
         super(arg0);
+        initializeTextValue(JInvMoneyField.class);
     }
 
     /** */

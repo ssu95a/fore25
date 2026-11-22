@@ -23,6 +23,7 @@ public class JInvIntegerField extends JInvNumberField<Integer> {
     /** */
     public JInvIntegerField( String s) {
         super(s);
+        initializeTextValue(JInvIntegerField.class);
     }
 
     /** */

@@ -43,27 +43,7 @@ public class JInvNumberField< T extends Number > extends JInvValueField<T> {
             if ( S.isNullOrEmpty( o ) && S.isNullOrEmpty( n ) ){
                 return;
             }
-            try {
-                if (fromSetValue) {
-                    return;
-                }
-                fromSetText = true;
-                String text1 = getText();
-                try {
-                    if (S.isNullOrEmpty(text1)) {
-                        setValue(null);
-                    } else {
-                        setValue(getConverter().fromString(text1));
-                    }
-                    if (getState() == ERROR) {
-                        setState(getValue() == null ? State.NULL : State.VALUE);
-                    }
-                } finally {
-                    fromSetText = false;
-                }
-            } catch (Throwable th) {
-                setState(State.ERROR);
-            }
+            updateValueFromText();
         });
 
         focusedProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
@@ -102,6 +82,34 @@ public class JInvNumberField< T extends Number > extends JInvValueField<T> {
             }
         });
 
+        initializeTextValue(JInvNumberField.class);
+    }
+
+    final void initializeTextValue(Class<?> fieldClass) {
+        // Конвертер конкретного поля вызывается после инициализации его полей.
+        if (getClass() == fieldClass && S.isNotNullOrEmpty(getText())) {
+            updateValueFromText();
+        }
+    }
+
+    private void updateValueFromText() {
+        if (fromSetValue) {
+            return;
+        }
+        try {
+            fromSetText = true;
+            try {
+                String text = getText();
+                setValue(S.isNullOrEmpty(text) ? null : getConverter().fromString(text));
+                if (getState() == ERROR) {
+                    setState(getValue() == null ? State.NULL : State.VALUE);
+                }
+            } finally {
+                fromSetText = false;
+            }
+        } catch (Throwable th) {
+            setState(State.ERROR);
+        }
     }
 
     @Override

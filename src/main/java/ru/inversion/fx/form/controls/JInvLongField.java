@@ -24,6 +24,7 @@ public class JInvLongField extends JInvNumberField<Long> {
      *      */
     public JInvLongField(String s) {
         super(s);
+        initializeTextValue(JInvLongField.class);
     }
 
     /**

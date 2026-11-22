@@ -26,6 +26,7 @@ public class JInvPercentField extends JInvBigDecimalField {
      *      */
     public JInvPercentField(String arg0) {
         super(arg0);
+        initializeTextValue(JInvPercentField.class);
     }
 
     /**

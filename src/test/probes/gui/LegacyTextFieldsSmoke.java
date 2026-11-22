@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -17,6 +18,7 @@ import ru.inversion.fx.form.controls.JInvIntegerField;
 import ru.inversion.fx.form.controls.JInvLongField;
 import ru.inversion.fx.form.controls.JInvMoneyField;
 import ru.inversion.fx.form.controls.JInvNumberField;
+import ru.inversion.fx.form.controls.JInvPercentField;
 import ru.inversion.fx.form.controls.JInvTextField;
 import ru.inversion.fx.form.controls.skin.JInvTextFieldButtonSkin;
 
@@ -109,20 +111,12 @@ public final class LegacyTextFieldsSmoke {
         text.setContextMenu(null);
         check(text.getContextMenu() == own, "skin: own context menu not restored");
 
-        observeConstructor(new JInvIntegerField("42"));
-        observeConstructor(new JInvLongField("42"));
-        observeConstructor(new JInvBigDecimalField("42"));
-        observeConstructor(new JInvMoneyField("42"));
         checkNumber(integer, Integer.MIN_VALUE, "2147483647", Integer.MAX_VALUE, "2147483648");
         checkNumber(longField, Long.MIN_VALUE, "9223372036854775807", Long.MAX_VALUE, "9223372036854775808");
         decimal.setShowGroups(true);
         checkNumber(decimal, new BigDecimal("12345.675"), "12 345,685", new BigDecimal("12345.69"), "1,2.3");
         checkNumber(money, new BigDecimal("12345.675"), "12 345,685", new BigDecimal("12345.69"), "1,2.3");
         checkFocus(List.of(integer, longField, decimal, money), 0);
-    }
-
-    private void observeConstructor(JInvNumberField<?> field) {
-        System.out.println("OBSERVED String constructor " + describe(field));
     }
 
     private <T extends Number> void checkNumber(JInvNumberField<T> field, T assigned, String edit,
@@ -164,8 +158,7 @@ public final class LegacyTextFieldsSmoke {
 
     private void checkFocus(List<JInvNumberField<?>> fields, int index) {
         if (index == fields.size()) {
-            stage.close();
-            verdict.complete(List.copyOf(findings));
+            checkConstructors();
             return;
         }
         var field = fields.get(index);
@@ -183,6 +176,80 @@ public final class LegacyTextFieldsSmoke {
                         "focus: typed value/state mutated " + describe(field));
                 System.out.println("FOCUS " + describe(field) + " valueEvents=" + valueEvents.size());
                 checkFocus(fields, index + 1);
+            });
+        });
+    }
+
+    private void checkConstructors() {
+        var decimal42 = new BigDecimal("42.00");
+        var genericEdited = new JInvNumberField<Number>();
+        genericEdited.setText("42");
+        var generic = new JInvNumberField<Number>("42");
+        check(genericEdited.getState() == State.VALUE && generic.getState() == State.VALUE
+                        && Objects.equals(genericEdited.getValue(), generic.getValue()),
+                "constructor: generic Number conversion differs from an edit " + describe(generic));
+        List<JInvNumberField<?>> fields = List.of(
+                checkConstructor(JInvIntegerField::new, 42, 42),
+                checkConstructor(JInvLongField::new, 42L, 42L),
+                checkConstructor(JInvBigDecimalField::new, decimal42, new BigDecimal("42.56")),
+                checkConstructor(JInvMoneyField::new, decimal42, new BigDecimal("42.56")),
+                checkConstructor(JInvPercentField::new, decimal42, new BigDecimal("42.56")));
+        check(new JInvIntegerField(42).getValue().equals(42)
+                        && new JInvLongField(42L).getValue().equals(42L),
+                "constructor: typed integer or long value changed");
+        for (var field : List.of(new JInvBigDecimalField(new BigDecimal("42.555")),
+                new JInvPercentField(new BigDecimal("42.555")))) {
+            check(new BigDecimal("42.56").equals(field.getValue()) && field.getState() == State.VALUE,
+                    "constructor: typed decimal rounding/state " + describe(field));
+        }
+        var root = (VBox) stage.getScene().getRoot();
+        root.getChildren().setAll(text);
+        root.getChildren().addAll(fields);
+        checkConstructorFocus(fields, 0);
+    }
+
+    private JInvNumberField<?> checkConstructor(Function<String, ? extends JInvNumberField<?>> create,
+                                                Number expected, Number precision) {
+        var valid = create.apply("42");
+        var fractional = create.apply(precision instanceof BigDecimal ? "42.555" : "42");
+        var invalid = create.apply("invalid");
+        var missing = create.apply(null);
+        var emptyText = create.apply("");
+        System.out.println("CONSTRUCTOR initial " + describe(valid) + " invalid=" + describe(invalid));
+        check("42".equals(valid.getText()) && expected.equals(valid.getValue()) && valid.getState() == State.VALUE,
+                "constructor: initial valid text/value mismatch " + describe(valid));
+        check(precision.equals(fractional.getValue()) && fractional.getState() == State.VALUE,
+                "constructor: initial precision/state " + describe(fractional));
+        check("invalid".equals(invalid.getText()) && invalid.getValue() == null && invalid.getState() == State.ERROR,
+                "constructor: invalid initial text did not report ERROR " + describe(invalid));
+        for (var field : List.of(missing, emptyText)) {
+            check(empty(field.getText()) && field.getValue() == null && field.getState() == State.NULL,
+                    "constructor: null or empty did not preserve NULL " + describe(field));
+        }
+        return valid;
+    }
+
+    private void checkConstructorFocus(List<JInvNumberField<?>> fields, int index) {
+        if (index == fields.size()) {
+            stage.close();
+            verdict.complete(List.copyOf(findings));
+            return;
+        }
+        var field = fields.get(index);
+        var initial = field.getValue();
+        var valueEvents = new ArrayList<Number>();
+        field.valueProperty().addListener((property, before, after) -> valueEvents.add(after));
+        field.requestFocus();
+        afterPulse(() -> {
+            require(field.isFocused(), "focus: constructor field did not acquire focus " + describe(field));
+            text.requestFocus();
+            afterPulse(() -> {
+                require(text.isFocused() && !field.isFocused(), "focus: constructor field did not lose focus");
+                System.out.println("CONSTRUCTOR after focus " + describe(field) + " valueEvents=" + valueEvents.size());
+                check(initial != null && initial.equals(field.getValue()) && field.getState() == State.VALUE
+                                && !empty(field.getText()) && valueEvents.isEmpty(),
+                        "constructor: untouched focus loss did not preserve number " + describe(field));
+                checkConstructorFocus(fields, index + 1);
             });
         });
     }

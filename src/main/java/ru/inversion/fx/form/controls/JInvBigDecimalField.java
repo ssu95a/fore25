@@ -64,6 +64,7 @@ public class JInvBigDecimalField extends AbstractBigDecimalField {
      */
     public JInvBigDecimalField(String arg0) {
         super( arg0 );
+        initializeTextValue(JInvBigDecimalField.class);
     }
 
     /**
