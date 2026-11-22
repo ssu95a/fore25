@@ -1120,7 +1120,7 @@ Stop at GUI-010, no automatic GUI-011.
 
 ## MESSAGE GUI-011
 
-**Status:** OPEN
+**Status:** CLOSED (investigation done; full-launcher runtime BLOCKED)
 **Priority:** Full real Legacy form launcher lifecycle / JavaFX25 migration
 **Repository:** `ssu95a/fore25`
 **Working branch:** `migration/java25-correctness` (never modify `main`)
