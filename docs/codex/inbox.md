@@ -1055,7 +1055,7 @@ Publish `## Reply GUI-009` to mailbox outbox with design findings, exact diff/co
 
 ## MESSAGE GUI-010
 
-**Status:** OPEN
+**Status:** AWAITING USER VALIDATION
 **Priority:** Stage 4 JavaFX25 Legacy form lifecycle integration
 **Repository and branch:** `ssu95a/fore25` / `migration/java25-correctness`
 **Remote baseline SHA (verified):** `0a328b9f1ec960837862db2cd785abf2a42309ec`
