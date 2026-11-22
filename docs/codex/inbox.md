@@ -1517,7 +1517,7 @@ Stop after VF-002, do not automatically start the next task.
 
 ## MESSAGE VF-003
 
-**Status:** AWAITING DESIGN DECISION
+**Status:** DEFERRED (user confirms JInvCustomValueField unused)
 **Priority:** `JInvCustomValueField<T>` data integrity / stable typed-property contract
 **Repository:** `ssu95a/fore25`
 **Working branch:** `migration/java25-correctness` (main read-only)
@@ -1568,3 +1568,68 @@ Post `## Reply VF-003` to `agent/codex-mailbox:docs/codex/outbox.md` with:
 - confirmation working branch unchanged and remote SHA.
 
 Stop for review; do not begin VF-004 or implement a speculative fix.
+
+
+---
+
+## MESSAGE GUI-013
+
+**Status:** OPEN
+**Priority:** Java25 / JavaFX25 typed time and masked-field data integrity
+**Repository/branch:** `ssu95a/fore25` / `migration/java25-correctness`
+**Expected remote HEAD:** `e5e9032d3d455efb92f7cfabda0cdb4fbee86648`
+
+### User decision and handoff
+
+User explicitly confirms: **`JInvCustomValueField` is not used. Move on.** VF-003 configure-once/stable-property decision and any further work on CustomValueField are DEFERRED, **not approved for implementation**. VF-002 listener fix stays accepted. Do not revisit or request a CustomValueField design decision.
+
+GUI-012 and 012A numeric fields passed on user Windows Java25/JavaFX25; VF-001 and VF-002 passed. Next planned components:
+- `JInvTimeField` (`LocalTime`, own `JInvTimeSkin`, with/without seconds)
+- `JInvTimeFieldNew` (`LocalTime`, `TextFormatter` masking, timeWithoutSeconds)
+- `JInvTextFieldFormatted` (`String`, mask property, enableMaskValue).
+
+LOV still requires real BaseApp context for a concrete `AbstractLovBase`; defer full LOV lifecycle runtime. `FXFormLauncher` deferred by user.
+
+### Source-level candidates, not yet runtime-proven defects
+
+1. `JInvTimeFieldNew`: text listener calls `newValue.charAt(0)` without guarding null/empty, then `LocalTime.parse(newValue)`. Its formatter rewrites deletion into underscores; check whether actual `setText("")`, paste, clear, backspace, `setValue(null)`, or toggling seconds can surface exceptions. Catch/report FX thread failures. Do NOT assume a source candidate is an observed bug.
+2. `JInvTimeFieldNew` formatter and value listeners can perform nested text/value updates, partial/incomplete inputs, and mask switch; ensure no stale valid value is accidentally committed, no unhandled NumberFormatException/DateTimeParseException, and no unsafe feedback loops.
+3. `JInvTimeField` uses guarded text/value conversion and a custom `JInvTimeSkin`. Validate null/empty, invalid hours/minutes/seconds, converter modes, focus reformat, caret-based increase/decrease and boundaries, preserving actual intended behavior.
+4. `JInvTextFieldFormatted` installs a mask `TextFormatter` when `formatMask` changes; its `textProperty` listener writes `valueProperty` and state; its `valueProperty` listener writes text. Potential duplication, partial masks and accepted value policy need evidence. Study `# ? A U L *` and enableMaskValue semantics before assertions.
+
+### Phase 1: source contract map and deterministic RED smoke, TEST-ONLY
+
+Review exact current production source, existing uses/FXML and converter/skin dependencies. Produce one small **visible JavaFX 25 Stage** harness using all three production controls and production CSS, not standard JavaFX stand-ins, no BaseApp/DB. Add one mutually exclusive `-TimeMasks` switch to `src/test/probes/Test-LegacyGuiSmoke.ps1`; preserve existing GUI and VF flags and `-SettingsFile`.
+
+Test high-value cases with exact observable `text/value/state`, typed/model changes and exceptions:
+- Fresh fields and typed assignment, then focus loss and reentry.
+- Clearing and `setValue(null)`, including empty edit/delete paths and recovery.
+- Complete valid 24-hour time in HH:mm:ss and HH:mm where contract supports, plus invalid 25:xx, minute/second overflow, malformed/partial text, precision and seconds-mode toggle. No timezone/date assumptions.
+- `JInvTimeField` caret-based increment/decrement including boundary wrap only if backed by actual API semantics.
+- `JInvTextFieldFormatted` one simple stable mask: complete vs incomplete values, invalid character, paste/replacement, mask change and enableMaskValue true/false; verify model value and display relationship.
+- Event counts, no hidden typed mutation when text is ERROR, no recursive storms, no exceptions.
+- Explicitly note test-driven programmatic and synthetic interaction vs real physical keyboard.
+
+Probe should emit **clear per-scenario OBSERVED**, `PASS` only for supported invariants, `RED` for demonstrated data corruption/exception, `UNKNOWN` for untestable contract. If initial construction, skin or invalid operation throws, classify real reproduction vs flawed setup rather than weakening the test. Prefer pulse barriers to sleeps.
+
+### Phase 2: report results, NO production fix yet
+
+Do not change any production Java in GUI-013, even if RED. We want one focused RED/GREEN fix per distinct root cause in a later task after evidence. Don't quietly alter behavior to make the test green. Source comments Russian only.
+
+Do not change public/protected APIs, `main`, JInvCommon, POM/wrapper, JInvValueField/VF fixes, or any unrelated area. No FXFormLauncher, CustomValueField, LOV, D6/D7, logback, XMLViewer, ru.inversion.diff or Caffeine.
+
+### Git/process/return
+
+Git/GitHub operations pre-approved. Commit and fast-forward push test-only harness once checked, verify remote SHA. Preserve others' work. If blocked by infrastructure, don't create deceptive harness; report exact blocker.
+
+Custom Maven settings for user: `D:\Java\.m2\settings.xml` (pass as `-SettingsFile`, never hardcode).
+
+Post `## Reply GUI-013` in mailbox outbox with:
+- class-level behavior/risks, source vs actual runtime evidence,
+- exact test coverage, RED/PASS/UNKNOWN, any reproducible exception stack,
+- exact commit/diff and verified remote SHA,
+- local Maven/JDK25/PowerShell verification,
+- concrete user command `-TimeMasks -SettingsFile "D:\Java\.m2\settings.xml"`,
+- recommended *single* next correctness fix based on highest-risk confirmed result.
+
+Stop after GUI-013, don't begin GUI-014 or production edits.
