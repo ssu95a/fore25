@@ -1675,3 +1675,43 @@ git rev-parse HEAD
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -MoneyDecimal -SettingsFile "D:\Java\.m2\settings.xml"
 $LASTEXITCODE
 ```
+
+
+
+---
+
+## Reply NUM-005
+
+**Status** Read-only investigation DONE. Recommendation: **retain the lazy per-instance JInvBigDecimalConverter**. No compatible reduction in retained converter objects was established. Working branch and verified remote SHA remain `ca05ae3c991973f48269542309041fd3eaf426ec`. Only this mailbox reply was published.
+
+### Retention and usage
+
+| Layer | Incremental retained objects or references |
+|---|---|
+| JInvTextField / JavaFX | Control state, skin and its nodes, base formatter and text/focus/selection infrastructure belong to the shared control baseline. |
+| JInvNumberField | References the shared immutable NUM-004 default unless a different converter is assigned. The field already supplies text, focus and typed-value listener registrations. Both decimal and Money override converter selection. TypeStringConverter owns only a final Class and delegates conversion. |
+| AbstractBigDecimalField | One rounding ObjectProperty per used field, initialized by virtual valueProperty lookup when the base registers its listener. The shadowed parent slot adds no second allocated property. The setter applies current scale with HALF_UP; formatting is separate. |
+| JInvBigDecimalField | One lazy, stable nonstatic converter per field after getConverter is invoked. Its enclosing-instance reference provides the current formatter. Each field retains a formatter reference; the actual mutable DecimalFormat is shared by matching settings. Explicit fraction property access allocates an owner-specific IntegerPropertyBase with one change listener. Changing grouping does not need that property. |
+| JInvPercentField | Inherits the same converter and formatter; supplies its static default scale until its per-field fraction property is allocated. |
+| JInvMoneyField | Actual converter is static because its formatter is global; a different ownership contract. |
+
+Repository search found Controls constructing JInvBigDecimalField with no arguments, Percent as the in-repo subclass, and no FXML declarations or production caller retaining this field's public getConverter found. The public API still exposes a retained converter handle; external users and subclass expectations are UNKNOWN. JInvNumberField uses virtual getConverter for parse, typed display and focus normalization. The converter parses without owner settings, but its public toString calls that owner's formatter on each call. The legacy setConverter slot is separate from the overriding decimal getter. The converter/field back-reference is not by itself a leak; an external holder of the converter could extend the lifetime of its owning field. No such retention was demonstrated. [Decimal field](https://github.com/ssu95a/fore25/blob/ca05ae3c991973f48269542309041fd3eaf426ec/src/main/java/ru/inversion/fx/form/controls/JInvBigDecimalField.java#L27) [Numeric base](https://github.com/ssu95a/fore25/blob/ca05ae3c991973f48269542309041fd3eaf426ec/src/main/java/ru/inversion/fx/form/controls/JInvNumberField.java#L17) [Percent](https://github.com/ssu95a/fore25/blob/ca05ae3c991973f48269542309041fd3eaf426ec/src/main/java/ru/inversion/fx/form/controls/JInvPercentField.java#L9)
+
+### Evidence on visible Java 25 / JavaFX 25
+
+A temporary untracked diagnostic under target used production controls, skin and CSS on one Stage. With US FORMAT and argument 12345.6789, A at scale 2 ungrouped returned 12345.68; B at scale 3 grouped returned 12 345.679. After changing A to scale 4 grouped, the **same retained converter handle** returned 12 345.6789, and B's handle still returned 12 345.679. A kept its original property, typed value and displayed text at 12345.68 through the settings change. Percent with temporary default scale 4 rendered 12345.6789 and the same handle rendered 12345.679 after explicit scale 3. The FORMAT locale and Percent default were restored in the isolated process. Probe PASS, javac PASS. The accepted MoneyDecimal NUM-004 run already counted 100 actual converters and one formatter for 100 used Decimal fields, with one inherited default across both batches. No new heap measurement. Retained bytes UNKNOWN; object counts do not imply a byte saving, and allocation sampling would not establish retained size.
+
+### Weak DecimalFormat cache
+
+**Demonstrated:** while B held the US scale-3 grouped formatter, switching FORMAT to ar-EG and configuring a new field with the same key reused ASCII digits (first U+0031). A fresh scale-7 key used Arabic-Indic digits (first U+0661), and the localized sample parsed to the expected BigDecimal. This demonstrates locale-dependent reuse after an explicit in-process locale switch. Whether applications require live FORMAT switching or that display behavior reaches users is UNKNOWN. Current fields also hold their selected formatters directly. Sharing formatters is distinct from sharing converters.
+
+**Rejected by source inspection:** the proposed incorrect replacement index for the *first* cleared weak reference. The loop advances i for live entries only, but before the first dead slot all preceding entries are live, so i equals the actual list index when nullIndex is initially captured. Later dead entries do not replace nullIndex. For example, [live, dead, live, dead] records index 1 correctly. A matching live entry returns without pruning dead wrappers, and a miss reuses a single dead slot or appends when none is found. Cache size after workload churn and GC is UNKNOWN. No forced GC, leak conclusion or cache change.
+
+### Alternatives and recommendation
+
+- **Keep current lazy per-owner adapter.** Preserves stable handle identity, current settings, overridable scale and Percent behavior. One object per used field; unused fields retain no allocated adapter.
+- **Static nested adapter with explicit owner or supplier.** Still needs one adapter and a reference to owner-dependent state per used field; a capturing supplier can add another allocation. No demonstrated saving.
+- **Share immutable converters keyed by formatting configuration.** Could reduce adapter counts for common keys but changes previously obtained handles into settings snapshots, or changes identity on settings mutation. Both violate demonstrated live behavior. A mutable shared converter would cause cross-field settings interference. Per-owner delegation preserves behavior but reintroduces the per-owner object or additional tracking.
+- **Split a shared parser from display.** Parsing is owner-independent already, but keeping a live public getConverter still requires the owner-aware adapter. Extracting parsing alone offers no retained-adapter reduction. A weak owner reference also changes escaped-handle behavior and adds an object.
+
+Retain the current per-instance converter and existing formatter sharing. No production or tracked test change and no implementation-branch push. The verified dependency on live owner settings is stronger evidence than the speculative memory savings from converter sharing.
