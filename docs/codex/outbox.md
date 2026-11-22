@@ -1592,3 +1592,27 @@ The Money cache is access-order, strong and shared, with a bound of 250 pairs, n
 git pull --ff-only
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -MoneyDecimal -SettingsFile "D:\Java\.m2\settings.xml"
 ```
+
+
+
+---
+
+## Reply NUM-002
+
+**Status** DONE. Focused sign regression GREEN. Full MoneyDecimal suite has one independently known RED. Fast-forward from `4c75d9943927aebe9c91e1ec235afce1c6a63f7d` to `13b60790a434a9d261dde3392342d6184823ac6b` on `migration/java25-correctness` was published atomically with this reply and verified via `git ls-remote`. [Exact production and test diff](https://github.com/ssu95a/fore25/commit/13b60790a434a9d261dde3392342d6184823ac6b)
+
+**Fix.** Move the existing leading space/sign scan before the parse cache lookup. If only the sign and parser-tolerated spaces remain, throw NumberFormatException without passing through the cache or numeric accumulation. Space classification includes NBSP via Character.isSpaceChar. The existing trim/empty return stays in place. Numeric values, suffix grammar, scale, rounding, cache policy, formatter and public/protected declarations retain their existing behavior. The field's existing conversion-exception path sets ERROR and keeps the last valid typed value.
+
+**Windows Java 25.0.1 / JavaFX 25 RED/GREEN.** Same strengthened visible MoneyDecimal probe against baseline and fixed Maven builds. Before the fix, all eight direct sign cases (bare signs, ordinary spaces, NBSP, mixed surroundings) returned zero. Both sign-only field edits overwrote the previous amount with 0.00/ VALUE and emitted one typed event. Baseline also retained the grouping check and printed NUM-001 RED findings=11 (exit 1).
+
+- Focused GREEN. All eight direct inputs threw NumberFormatException. Editing 12.34 to minus left visible minus, typed 12.34 and ERROR. After recovery to -12.35, editing to plus left visible plus, typed -12.35 and ERROR. Each invalid edit emitted one text event and zero typed events. Recovery via -12.35 and +12.36 gave VALUE and one typed event each. Real signed and unsigned zero, signed numeric amounts, signed K/T/M samples, long precision and prior decimal assertions passed. Observed K -> 0 and 12K34 -> 12034 were unchanged.
+- Remaining grouping RED. US FORMAT locale with grouping=false emits 12,345.67 and its own parser rejects it. The full runner printed NUM-001 RED findings=1; PowerShell surfaces the nonzero exit. BUILD SUCCESS and the GUI trace confirm actual execution.
+- UNKNOWN. Physical keyboard and real persistence paths were outside this test. User rerun of this commit is pending.
+
+Maven -Pbuild compile, dependency classpath generation and probe javac passed with existing custom settings. PowerShell parser and staged whitespace checks passed. The diff contains only MoneyStringConverter.java and LegacyMoneyDecimalSmoke.java.
+
+```powershell
+git pull --ff-only origin migration/java25-correctness
+git rev-parse HEAD
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -MoneyDecimal -SettingsFile "D:\Java\.m2\settings.xml"
+```
