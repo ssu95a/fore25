@@ -1001,7 +1001,7 @@ Stop after GUI-008. Do not begin next task.
 
 ## MESSAGE GUI-009
 
-**Status:** OPEN
+**Status:** AWAITING USER VALIDATION
 **Priority:** Legacy JavaFX25 integration milestone, real data-bound visible table
 **Working repo/branch:** `ssu95a/fore25` / `migration/java25-correctness`
 **Expected remote starting HEAD:** `fa4af1b688b4e20662663a110bad2b86fe1fe48c`
