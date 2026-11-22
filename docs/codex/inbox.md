@@ -1928,7 +1928,7 @@ Publish `## Reply CTRL-001` into docs/codex/outbox.md on agent/codex-mailbox wit
 
 ## MESSAGE CTRL-002
 
-**Status:** ASSIGNED — narrow correctness fix with RED/GREEN regression
+**Status:** CLOSED — user independently confirmed Windows visible JavaFX 25 `CTRL-002 PASS` (2026-11-23). Implementation commit `dafb93d64e2a1a2d8cd47589aa6c672e574c35ca` accepted; full BaseApp/DB persistence outside tested scope.
 **Priority:** HIGH — prevent stale DatePicker value on DataSet navigation / null clear
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (never main)
@@ -1957,3 +1957,39 @@ Source-level cause: `Controls.setValue` accepts `control instanceof DatePicker` 
 - All ordinary Git/GitHub operations APPROVED under project protocol: verify repo and branch SHA, preserve unrelated local changes, make small reviewed commit and fast-forward push to migration/java25-correctness, verify remote SHA, no force or destructive update.
 - Publish `## Reply CTRL-002` in docs/codex/outbox.md on agent/codex-mailbox: failure mechanism, exact diff/commit/SHA, direct and Dataset RED/GREEN, Legacy sentinels PASS/UNKNOWN, Windows recheck command with `-SettingsFile "D:\Java\.m2\settings.xml"`, plus any limitations.
 - Stop after CTRL-002. Do NOT start CTRL-003 or unrelated fixes.
+
+---
+
+## MESSAGE CTRL-003
+
+**Status:** ASSIGNED — narrow correctness fix with RED/GREEN regression
+**Priority:** MED-HIGH — null Node leakage and predicate exception in Controls.getNodeList
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (never main)
+**Expected remote HEAD:** dafb93d64e2a1a2d8cd47589aa6c672e574c35ca
+**Reply ID:** CTRL-003
+
+### Independent prerequisite
+
+CTRL-002 has user-confirmed `CTRL-002 PASS` on Windows. Preserve the DatePicker change, and existing MoneyDecimal, DataBinding and other accepted GUI behavior. No changes beyond this task's scope.
+
+### Confirmed defect (CTRL-001)
+
+`Controls.helperGetListNodeInternal(List<Node>, Node, Predicate<Node>)` invokes predicat.test(n) before any null guard. In a live JavaFX 25 fixture, an empty TabPane Tab and an empty ScrollPane content caused `Controls.getNodeList` with the default/all predicate to return null elements. A predicate like `node -> node.getId() != null` threw NullPointerException on those absent contents. Source paths include Tab.getContent(), ScrollPane.getContent() and TitledPane.getContent(), which may legitimately be null. No production business crash was proven, but the public helper violates expected list-of-existing-nodes behavior.
+
+### One narrow fix
+
+1. Verify repo, work branch, current HEAD, and reproduce the exact source issue as **RED** in a focused Java 25 / JavaFX 25 probe with real controls. Cover an empty TabPane tab, an empty ScrollPane, an empty TitledPane, plus a nonempty nested node; include both null/default predicate and a predicate that dereferences node.getId(). Demonstrate what happens before any production edit.
+2. Modify ONLY `helperGetListNodeInternal` in `Controls.java` to skip null `Node` before applying predicate or adding to results. This is the smallest candidate. Preserve depth-first walk, visit order, container inclusion and existing exclusions (calendar/spinner/table/editor internals), explicit custom predicate behavior on actual nodes, and public signatures. Avoid a general rewrite of traversal or collection type.
+3. Regression GREEN: no null elements, no NPE on empty container branches, real nested nodes visited once in the fixture with their established order, predicate filters only actual nodes, `getNodeByFieldName` still works including duplicate-match detection. Compare with `getControlList` on same fixture where relevant. If a broader issue is observed, document it separately rather than broadening the fix.
+4. Retain unrelated `CTRL-002 -DatePickerBinding` and `NUM-001 -MoneyDecimal` PASS. Use existing GUI runner conventions; a new focused runner mode (`-NodeTraversal`) and standalone test under src/test/probes/gui are permitted. No BaseApp/DB required. Do not fabricate coverage of full forms or dynamic FXML trees.
+5. If an existing consumer demonstrably relies on null entries, stop and report compatibility risk rather than changing its contract silently. No evidence currently establishes that null nodes are intentional.
+
+### Strict scope / Git
+
+- Allowed production file: `src/main/java/ru/inversion/fx/form/controls/Controls.java`, only targeted node traversal helper. Test changes restricted to `src/test/probes/Test-LegacyGuiSmoke.ps1` and new/focused `src/test/probes/gui/*` regression. No other production, Maven POM/wrapper, dependencies, main or JInvCommon modifications.
+- No performance redesign, caching, retained memory optimization, `disableControl`, `Tooltip` reflection or other CTRL-001 findings in this task. All source comments added must be Russian.
+- Require independent RED/GREEN with Java 25 / JavaFX 25 (visible Stage if available), Maven -Pbuild compile with existing Maven settings, PowerShell runner parsing and no regression in existing `DatePickerBinding` and `MoneyDecimal`. Document environment/runtime UNKNOWN honestly if blocked.
+- Git/GitHub actions are APPROVED under project protocol. Commit and fast-forward push only verified, minimal code/test changes to migration/java25-correctness after verifying expected HEAD; no force. Verify remote SHA.
+- Publish `## Reply CTRL-003` in docs/codex/outbox.md on agent/codex-mailbox with exact commit and diff, RED/GREEN cases, verified branch SHAs, caveats, and reproducible Windows command with SettingsFile `D:\Java\.m2\settings.xml`.
+- Stop after CTRL-003. Do not begin CTRL-004 without separate assignment.
