@@ -1643,3 +1643,35 @@ git pull --ff-only origin migration/java25-correctness
 git rev-parse HEAD
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -MoneyDecimal -SettingsFile "D:\Java\.m2\settings.xml"
 ```
+
+
+
+---
+
+## Reply NUM-004
+
+**Status** DONE / GREEN. Fast-forward from `2f88c30e8b46f0eeb51433265b1d9faaaf2d2a54` to `ca05ae3c991973f48269542309041fd3eaf426ec` on `migration/java25-correctness`, published atomically with this reply and verified via `git ls-remote`. [Exact source and regression diff](https://github.com/ssu95a/fore25/commit/ca05ae3c991973f48269542309041fd3eaf426ec)
+
+**Compatibility.** TypeStringConverter stores only a final target Class and delegates parsing and display conversion to TypeConverter. No repository consumers of distinct default object identity or mutable converter state were found. The two Dataset aggregate controls create ordinary JInvNumberField instances and replace their converters using setConverter with the existing Long or Money converter. Integer, Long, Money and BigDecimal override converter selection; Percent inherits the BigDecimal path. The fix assigns one private static final default to the existing per-field slot. The setter still replaces only that field's slot, with no change to signatures, override dispatch, conversion/rounding, constructor order or listeners. External reliance on protected default-converter identity remains UNKNOWN.
+
+**Local visible Windows Java 25.0.1 / JavaFX 25.** The same strengthened MoneyDecimal test before and after the change showed:
+
+| Retained identity in the live batch | Baseline | Optimized |
+|---|---:|---:|
+| Inherited defaults in 100 used BigDecimal fields | 100 | 1 |
+| Inherited defaults in 100 used Money fields | 100 | 1, same object as BigDecimal batch |
+| Defaults in two ordinary Number fields | 2 | 1, same object as both batches |
+| Actual BigDecimal converter objects | 100 | 100 |
+| BigDecimal/Money typed properties | 100/100 | 100/100 |
+| Actual Money converter | 1 | 1 |
+
+Reflection read the retained references and verified actual Money converter dispatch for all Money fields. Constructor conversion on the two ordinary fields still yielded 7; a custom converter on the first parsed custom:21 and rendered custom:22, while the peer parsed 21 and rendered 22 using its original default. Baseline exited 1 only on the two new default-identity assertions. The optimized full run printed NUM-001 PASS (tested invariants) and exited 0. Existing grouping, sign-only, rounding, precision, locale and event assertions passed. Measured object identities, not retained bytes. Total retained bytes remain UNKNOWN.
+
+Maven -Pbuild compile, dependency classpath generation, probe javac and PowerShell parsing passed. Staged whitespace checks passed. Only JInvNumberField and the MoneyDecimal probe changed. No other memory tuning.
+
+```powershell
+git pull --ff-only origin migration/java25-correctness
+git rev-parse HEAD
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -MoneyDecimal -SettingsFile "D:\Java\.m2\settings.xml"
+$LASTEXITCODE
+```
