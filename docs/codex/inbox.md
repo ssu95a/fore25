@@ -887,7 +887,7 @@ Write `## Reply GUI-006` in `docs/codex/outbox.md` with per-commit SHAs, code/di
 
 ## MESSAGE GUI-007
 
-**Status:** OPEN
+**Status:** CLOSED
 **Working branch:** `migration/java25-correctness`
 **Expected remote HEAD:** `8ead483ae4eba6a972b474ea969aa783e953b33e`
 **Priority:** data integrity: stale editor draft across edit sessions in Legacy `JInvTextFieldTableCell`.
@@ -931,3 +931,67 @@ Conclusions: no commit for unarmed programmatic cancel or mouse+ESC; single comm
 The user pre-approved all Git/GitHub operations. Once syntax/compilation and test harness checks complete, commit this narrow test-only probe and push fast-forward to the working branch, verify remote SHA, without asking permission. Stop if user changes/conflicting history present. Source comments only in Russian.
 
 Reply `## Reply GUI-007` in `docs/codex/outbox.md` with complete source/diff, commit and verified SHA, code-level findings, exact user's PowerShell command with `-SettingsFile`, local validation, and interactive JavaFX25 result UNKNOWN pending user execution. No follow-up implementation or GUI-008 until evidence reviewed.
+
+
+---
+
+## MESSAGE GUI-008
+
+**Status:** OPEN
+**Priority:** CRITICAL, confirmed data-integrity defect, minimal production correctness fix
+**Repository:** `ssu95a/fore25`, **branch:** `migration/java25-correctness`
+**Expected remote HEAD:** `0b4b2d65b05ec637959ca3a81a81df5d4d650cd3`
+
+### Confirmed RED on real Java25/JavaFX25
+
+The user ran GUI-007 via `Test-LegacyGuiSmoke.ps1 -EditorReentry` (visible real JavaFX 25 Stage and production cell), yielding:
+
+```text
+FRESH draft=[] model=[Original, Other]
+AFTER ESCAPE draft=[GUI-007 discarded draft] model=[Original, Other]
+  commitEvents=[] propertyChanges=[]
+REOPEN IMMEDIATE reusedEditor=true
+  draft=[GUI-007 discarded draft] model=[Original, Other]
+REOPEN AFTER PULSE draft=[GUI-007 discarded draft] model=[Original, Other]
+AFTER UNTOUCHED CANCEL draft=[GUI-007 discarded draft]
+  model=[GUI-007 discarded draft, Other]
+  commitEvents=[Commit[row=0, value=GUI-007 discarded draft]]
+  propertyChanges=[Change[row=0, before=Original, after=GUI-007 discarded draft]]
+GUI-007 REPRODUCED: Escape-discarded draft was committed on untouched reentry
+```
+
+This is **CONFIRMED data-integrity defect**; GUI-007 test failing is an intentional red regression, not an infrastructure issue. JavaFX unnamed-module warning is nonblocking.
+
+### Root mechanism (source inspected)
+
+`src/main/java/ru/inversion/fx/form/controls/renderer/JInvTextFieldTableCell.java`:
+- `startEdit()` reuses `textField`; on an existing editor it updates the cell label via `setText(...)` but does **not** reset `textField.setText(...)` from model/current item.
+- `cancelEdit()` tears down graphic and filters but leaves stale draft in the reusable `textField`.
+- `updateItem()` updates editor only in limited item-refresh conditions, not guaranteed at reentry.
+- `tableMouseHandle` arms a separate Legacy commit-on-cancel behavior that may be intentional for clicking away; **do not remove it or redefine Escape semantics without a separate evidenced rationale.**
+- Freshly allocated editor is explicitly cleared in `startEdit()` (`textField.setText("")`), so original initial-input UX may intentionally differ from the expected standard TableCell editor. Do not silently assume that initial blank means current item should always be inserted; assess its contract.
+
+### Objective
+
+Make a targeted production correctness fix so an **Escape-discarded draft can never be committed on a later untouched reentry**. Keep compatibility (no public/protected signature changes).
+
+1. Analyze precise startEdit / updateItem / cancelEdit lifecycle and decide the minimal reliable initialization point for each edit session. Consider first allocation vs reused editor and null/converter handling. Avoid introducing re-entrant commit/focus loops.
+2. Strengthen an existing targeted smoke (or narrowly add an assertion) to distinguish **cold first edit untouched** from **reentry after Escape**, both with mouse-armed cancel. We must establish whether the existing blank-first-editor UX can itself silently change a model value without new typing. If it does, do not call the main issue fully fixed until that risk is classified; fix only when justified by same correctness invariant and explain any UX compatibility impact.
+3. Keep and **do not weaken** GUI-007 stale-draft invariant: `-EditorReentry` should no longer print `GUI-007 REPRODUCED`; it should PASS after red/green verification on actual desktop. Do not mask wrong behavior by merely changing test exit code or event collection.
+4. Preserve GUI-006 previously observed semantics: ESC discards model changes; mouse press plus programmatic cancel can produce one commit (the current Legacy mechanism), no duplicates or cross-row writes. Preserve GUI-001/004/005.
+5. Minimal source change confined to `JInvTextFieldTableCell` and focused tests. Russian comments for new source. No unrelated refactors.
+
+### Verification and Git
+
+Run available JDK25 tests, Maven `-Pbuild` compile, explicit checks of known GUI probes where locally feasible. The user's Maven settings are custom: do not hardcode path; GUI runner supports `-SettingsFile`. If no visible interactive desktop, mark GUI-007/008 runtime UNKNOWN, not PASS. Explain before/after code-level evidence and risks.
+
+All Git and GitHub operations are PRE-APPROVED. Commit small, validated changes and fast-forward push only `migration/java25-correctness`, verify SHA. Never change `main`, JInvCommon or API signatures. Do not touch D6/D7, logback, JInvXMLViewer, ru.inversion.diff. No speculative cleanup.
+
+Reply `## Reply GUI-008` in mailbox outbox including:
+- confirmed root cause and chosen fix, why alternative approaches were rejected;
+- exact diff/source and commit SHA, verified remote SHA;
+- exact regression matrix and commands with custom `settings.xml`;
+- test results split into local confirmed and interactive UNKNOWN until user reports;
+- any remaining limitations, particularly physical click-away vs synthetic MouseEvent.
+
+Stop after GUI-008. Do not begin next task.
