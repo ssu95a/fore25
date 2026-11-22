@@ -30,6 +30,7 @@ public class JInvMoneyField extends AbstractBigDecimalField {
         g_moneyFormat.setDecimalFormatSymbols(ds);
         g_moneyFormat.setDecimalSeparatorAlwaysShown(true);
         g_moneyFormat.setGroupingSize(3);
+        g_moneyFormat.setGroupingUsed(grouping);
         g_moneyFormat.setMaximumFractionDigits(fraction);
         g_moneyFormat.setParseBigDecimal(true);
         g_moneyFormat.setMinimumFractionDigits(fraction);

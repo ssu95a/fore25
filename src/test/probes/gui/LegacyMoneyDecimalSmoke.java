@@ -237,8 +237,10 @@ public final class LegacyMoneyDecimalSmoke {
         step("money typed under new scale", money, () -> money.field.setValue(bd("71.0054")));
         expectValue(money, "71.005", State.VALUE);
 
-        JInvMoneyField.initDefaultMoneyFormatter(2, '.', false);
-        roundTrip("grouping=false money, US FORMAT locale", bd("12345.67"));
+        checkGrouping('.', false, "12345.67");
+        checkGrouping('.', true, "12 345.67");
+        checkGrouping(',', false, "12345,67");
+        checkGrouping(',', true, "12 345,67");
 
         Locale locale = Locale.forLanguageTag("ar-EG");
         Locale.setDefault(Locale.Category.FORMAT, locale);
@@ -260,8 +262,28 @@ public final class LegacyMoneyDecimalSmoke {
         verdict.complete(List.copyOf(failures));
     }
 
+    private void checkGrouping(char separator, boolean grouping, String expected) {
+        String label = "US money, decimal=" + separator + ", grouping=" + grouping;
+        BigDecimal previous = money.field.getValue();
+        String previousText = money.field.getText();
+        Counts before = money.counts();
+        JInvMoneyField.initDefaultMoneyFormatter(2, separator, grouping);
+        check(previous.equals(money.field.getValue()) && Objects.equals(previousText, money.field.getText())
+                        && before.equals(money.counts()),
+                label + " changed the existing field: " + money.snapshot(before));
+        System.out.println("OBSERVED " + label + " existing field " + money.snapshot(before));
+        roundTrip(label, bd("12345.67"), expected);
+        roundTrip(label, bd("-12345.67"), "-" + expected);
+    }
+
     private void roundTrip(String label, BigDecimal value) {
+        roundTrip(label, value, null);
+    }
+
+    private void roundTrip(String label, BigDecimal value, String expectedDisplay) {
         String rendered = parser.toString(value);
+        check(expectedDisplay == null || expectedDisplay.equals(rendered),
+                label + " expected display [" + expectedDisplay + "], got [" + rendered + "]");
         try {
             BigDecimal parsed = parser.fromString(rendered);
             System.out.println("OBSERVED " + label + " format=[" + rendered + "] parsed=" + parsed);
