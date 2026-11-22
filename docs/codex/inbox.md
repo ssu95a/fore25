@@ -1860,7 +1860,7 @@ $LASTEXITCODE
 
 ## MESSAGE NUM-005
 
-**Status:** ASSIGNED — read-only architecture/memory investigation; NO implementation
+**Status:** CLOSED — read-only investigation completed: retain lazy per-instance JInvBigDecimalConverter; no safe retained object reduction proven. Locale-key cache reuse was demonstrated under runtime FORMAT locale change; first dead WeakReference index bug REJECTED; remote production remains ca05ae3c991973f48269542309041fd3eaf426ec.
 **Priority:** MEMORY — per-field allocations in JInvBigDecimalField
 **Repo:** ssu95a/fore25
 **Read-only production branch:** migration/java25-correctness
@@ -1885,3 +1885,41 @@ NUM-001/004 memory probe still shows 100 actual JInvBigDecimalConverter instance
 
 READ ONLY production branch. No production edits, test commits, POM/wrapper changes, or changes to main or JInvCommon. Existing MoneyDecimal tests must remain GREEN if run. All standard Git/GitHub operations approved only for reading and publishing the mailbox reply.
 Publish ## Reply NUM-005 to docs/codex/outbox.md on agent/codex-mailbox with source and usage evidence, per-field object analysis, confirmed vs UNKNOWN, proposed smallest next step. Do not push to implementation branch. Stop after report; no NUM-006 without a new assignment.
+
+---
+
+## MESSAGE CTRL-001
+
+**Status:** ASSIGNED — READ-ONLY architectural and correctness audit of Controls
+**Priority:** CORRECTNESS / DATA INTEGRITY > LIFECYCLE / MEMORY > PERFORMANCE > JavaFX 25 COMPATIBILITY
+**Repo:** ssu95a/fore25
+**Working code branch (READ ONLY):** migration/java25-correctness
+**Expected production HEAD:** ca05ae3c991973f48269542309041fd3eaf426ec
+**Reply ID:** CTRL-001
+
+### Reason and boundaries
+
+User requests assessment of Controls after JInvMoneyField and JInvBigDecimalField. NUM-001 through NUM-004 independently user-confirmed GREEN; NUM-005 recommends retaining the owner-bound lazy decimal converter. Do not broaden this task back into the numeric fields. A separate confirmed cache locale-key mismatch from NUM-005 is recorded for a later task, not a Controls fix.
+
+Audit the existing almost-1000-line static helper `src/main/java/ru/inversion/fx/form/controls/Controls.java` at the current HEAD. The purpose is to identify actual correctness, integrity, lifecycle, memory and JavaFX 25 migration risks, with evidence and the smallest next targeted test. Do NOT refactor, optimize or edit code in this task.
+
+### Analysis axes and candidates to investigate (hypotheses, NOT accepted defects)
+
+1. **Values and data integrity:** trace `Controls.setValue(Object,Object)`, `getValue(Object)`, `getStringValueFromEditor(Node)` with `JInvValueField`, generic FX controls, `ICustomValueControl`, `Binder`, `TypeConverter`, null, ERROR state and typed property. Identify asymmetries, unsupported cases, type conversions and observed runtime vs source-only suspicion. Preserve distinction between typed value and invalid editor draft. Include call sites and untested external usage as UNKNOWN.
+2. **Read-side effects and memory:** `isControlValueChanged(Node)` delegates to `getValueChangedProperty(Node)` which may allocate and attach a `SimpleBooleanProperty` on first read. `getNonControlComponentFromContainer(Parent)` creates a new ArrayList and installs a property even when only reading. Verify lazy allocation semantics, actual call patterns, retention/lifecycle and cost per control; do not infer leaks or exact bytes from object count.
+3. **Disable/enable lifecycle:** inspect `disableControl` routing and event-filter add/remove, repeat operations, normal mode and bound visible/editable properties. Check whether toggling restores preexisting user settings versus overwriting them. Do not assume an error without a realistic supported scenario.
+4. **Traversal and performance:** `getControlList`, `getNodeList`, `getNodeByFieldName`, `getParentStreamOfControl` and column helpers; inspect nested TabPane/SplitPane/ScrollPane/TitledPane, excluded composite controls, null children, visit order, duplicate nodes, linked-list vs array-list and per-call allocations. Test suspected correctness problems before proposing speed refactors. Preserve intentionally excluded controls unless confirmed wrong.
+5. **JavaFX 25:** `setTooltipStartTiming` uses reflection into private Tooltip BEHAVIOR and activationTimer; assess exact supported JavaFX 25 API/options, actual in-repo usages and real reproducible failures (module access) vs unproven risk. Do not broaden to general JavaFX internal API migration or change module settings.
+6. **Other high-risk call paths:** type→control construction (`getControlByClass`), controller lookup, property name parsing / clear logic, title resolution in TableView, simple get/set property. Prioritize any strong evidence of loss of data, wrong type or premature allocations, but do not attempt an exhaustive cosmetic rewrite.
+
+### Evidence and report
+
+- First map public static methods into functional groups and their in-repo callers. Distinguish CONFIRMED via executing actual JavaFX 25 scenario, SOURCE-PROVEN (path follows directly from code), HYPOTHESIS and UNKNOWN. Mark missing BaseApp/DB-dependent runtime explicitly.
+- If practical, run **untracked** small probes under ignored target with JDK25/JavaFX25 and actual FX controls (no fake business framework). Avoid new tracked files, POM changes or external dependencies. Existing GUI regression must remain unchanged.
+- Report prioritized findings in a compact table: method(s), severity, concrete input/call path, expected vs actual, impact on data/memory/performance, evidence quality, and the **one smallest next regression/fix task**. For memory, separate per-control retained references, global/static caches, and temporary allocations; do not use JVM free-memory deltas as measurements.
+- Keep public/protected API compatibility and FX thread assumptions. Do not choose stylistic cleanup over correctness and memory. Existing deliberate behavior may look unusual: distinguish contractual intent and UNKNOWN from bugs.
+
+### Git and stop conditions
+
+READ ONLY on migration/java25-correctness, main and JInvCommon. No implementation or test commits, no POM/wrapper changes, no code write to ANY production branch. Standard Git/GitHub operations APPROVED for reading and the mailbox report only.
+Publish `## Reply CTRL-001` into docs/codex/outbox.md on agent/codex-mailbox with exact source commit, scope, findings, evidence, and recommended next narrow task. Verify mailbox remote SHA. **STOP after CTRL-001**; no implementation, no CTRL-002 until assigned.
