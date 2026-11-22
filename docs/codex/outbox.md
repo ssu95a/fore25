@@ -1263,3 +1263,23 @@ Production code, public/protected API, POM, Maven wrapper, JInvCommon, main, D6/
 git pull --ff-only
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -EditorReentry -SettingsFile 'C:\Path With Spaces\settings.xml'
 ```
+
+
+
+---
+
+## Reply GUI-008
+
+**Status** DONE. Fast-forward to `fa4af1b688b4e20662663a110bad2b86fe1fe48c` from `0b4b2d65b05ec637959ca3a81a81df5d4d650cd3` on `migration/java25-correctness`. The fix and this reply are published atomically and both remote refs verified. [Exact production and regression diff](https://github.com/ssu95a/fore25/commit/fa4af1b688b4e20662663a110bad2b86fe1fe48c)
+
+**Root cause and fix.** Legacy `startEdit()` reuses the TextField and previously refreshed only the cell label. The JavaFX 25 superclass updates the item before entering editing state, so the Legacy update hook cannot be relied on for editor initialization. Each successful new session now initializes the editor from the current item before attaching it and requesting focus. An active session ignores another start request. Null starts blank. A configured converter formats non-null items, and string form is a defensive start-time fallback without a converter. Existing conversion on commit keeps its previous contract. Resetting only on Escape would leave the confirmed first-allocation problem. Relying on layout refresh would leave setup timing dependent on item invalidation. Disabling mouse-armed commit would change established Legacy behavior. The change in visible behavior is that first edit of a nonempty String now starts with its value instead of blank. Public/protected declarations match before and after, checked with javap. No changes to JInvCommon or deferred modules.
+
+**Local RED/GREEN on interactive Windows Java 25.0.1 / JavaFX 25.** The existing user-reported GUI-007 RED was reproduced locally against the baseline class. Escape produced zero commits and property changes. Untouched reentry kept the draft through a pulse, and synthetic mouse press plus programmatic cancel committed it exactly once to row 0. A separate cold-only run of the same cold assertion against the baseline showed row 1 change from Other to an empty string with zero typing. Both RED cases exited 1. On the fixed Maven-built class, Escape still produced zero commits. Reentry showed Original both immediately and after a pulse. Untouched armed cancel emitted one event carrying Original and zero property changes. Cold first edit showed Other and produced one event carrying Other and zero property changes. No cross-row writes or duplicate commits. The end-to-end runner printed GUI-007 PASS and exited 0.
+
+**Additional checks.** Local Maven 3.9.11 offline `-Pbuild compile` and the end-to-end dependency classpath build succeeded with the existing custom settings and cache. All smoke sources compiled on JDK 25. GUI-001, GUI-004, GUI-005 and GUI-006 also passed on the local JavaFX 25 desktop with the rebuilt cell and real project classes. Staged whitespace checks passed. The tests use synthetic input and in-memory properties. Physical click-away, production Dataset persistence and arbitrary converter round trips remain outside the matrix. A separate user rerun in the corporate environment is pending.
+
+```powershell
+git pull --ff-only
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -EditorReentry -SettingsFile 'C:\Path With Spaces\settings.xml'
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableCancel -SettingsFile 'C:\Path With Spaces\settings.xml'
+```
