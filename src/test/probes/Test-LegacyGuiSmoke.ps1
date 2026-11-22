@@ -4,6 +4,8 @@ param(
     [switch] $Editors,
     [Parameter(ParameterSetName = 'TableEditing')]
     [switch] $TableEditing,
+    [Parameter(ParameterSetName = 'TableCancel')]
+    [switch] $TableCancel,
     [ValidateNotNullOrEmpty()]
     [string] $SettingsFile
 )
@@ -16,6 +18,9 @@ if ($Editors) {
 } elseif ($TableEditing) {
     $probeId = 'GUI-005'
     $probeClass = 'LegacyTableEditingSmoke'
+} elseif ($TableCancel) {
+    $probeId = 'GUI-006'
+    $probeClass = 'LegacyTableCancelSmoke'
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
