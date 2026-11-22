@@ -20,6 +20,8 @@ param(
     [switch] $ValueLifecycle,
     [Parameter(ParameterSetName = 'MoneyDecimal')]
     [switch] $MoneyDecimal,
+    [Parameter(ParameterSetName = 'DatePickerBinding')]
+    [switch] $DatePickerBinding,
     [ValidateNotNullOrEmpty()]
     [string] $SettingsFile
 )
@@ -58,6 +60,9 @@ if ($Editors) {
 } elseif ($MoneyDecimal) {
     $probeId = 'NUM-001'
     $probeClass = 'LegacyMoneyDecimalSmoke'
+} elseif ($DatePickerBinding) {
+    $probeId = 'CTRL-002'
+    $probeClass = 'DatePickerBindingSmoke'
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))

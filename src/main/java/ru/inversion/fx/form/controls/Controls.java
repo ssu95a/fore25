@@ -135,7 +135,7 @@ public class Controls {
         } else if ( control instanceof DatePicker ) {
             if ( control instanceof JInvCalendarTime ) {
                 ( (JInvCalendarTime) control ).setDateTimeValue( TypeConverter.convert( value, LocalDateTime.class ) );
-            } else if ( control instanceof JInvCalendar ) {
+            } else {
                 ( (DatePicker) control ).setValue( TypeConverter.convert( value, LocalDate.class ) );
             }
         } else if ( control instanceof JInvComboBox ) {
