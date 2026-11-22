@@ -1640,7 +1640,7 @@ Stop after GUI-013, don't begin GUI-014 or production edits.
 ## MESSAGE NUM-001
 
 **Status:** OPEN
-**Priority:** CRITICAL financial data correctness, conversion/rounding and shared-state safety
+**Priority:** CRITICAL financial data correctness, conversion/rounding, AND memory footprint per GUI field
 **Repo:** `ssu95a/fore25`
 **Work branch:** `migration/java25-correctness` (never touch `main`)
 **Expected remote HEAD:** `e5e9032d3d455efb92f7cfabda0cdb4fbee86648`
@@ -1650,6 +1650,19 @@ Stop after GUI-013, don't begin GUI-014 or production edits.
 The user now wants **`JInvMoneyField` and `JInvBigDecimalField`**. Previous `GUI-013` (time/masks) is DEFERRED, and `JInvCustomValueField` remains unused/deferred. Do not work on GUI-013, FXFormLauncher, CustomValueField or LOV. If you already started GUI-013 locally, preserve nonconflicting user work, stop that task, report status, and switch to this assignment before making further production changes.
 
 GUI-012, GUI-012A, VF-001, VF-002 have user-confirmed Java25/JavaFX25 PASS for their *tested* matrices. Do not undo accepted fixes.
+
+### USER CLARIFICATION: MEMORY OVER GUI CONCURRENCY (2026-11-22)
+
+The user confirms ordinary UI controls run on the JavaFX application thread, so GUI-field multithreading is **NOT a priority**. By contrast, **extra retained memory/allocations per control instance IS a priority**: there may be many fields in forms. Do not spend time on multithreaded stress or redesign shared caches for thread-safety unless actual supported off-FX usage is independently evidenced. Code may note conditional concurrency exposure as LOW PRIORITY / UNKNOWN.
+
+Treat memory assessment as first-class alongside data correctness:
+- Distinguish **per-instance retained allocations** from static/global caches and one-off temporary allocations.
+- Inventory actual per-field retained allocations: `JInvBigDecimalField.formatter`, lazy `g_decConverter`, inherited value/text/skin/listeners/properties, `JInvMoneyField` static converter/global formatter, `AbstractBigDecimalField` property and formatter interactions. Focus *incremental cost* relevant to Money/BigDecimal vs common JInvTextField; avoid claiming entire JavaFX skin cost belongs to numeric subclass.
+- Evaluate whether WeakReference<DecimalFormat> cache genuinely reduces per-field formatter allocations, whether it causes a growing list of stale weak refs (index/count loop), and when formats are shared vs recreated on preference change/GC.
+- Assess shared MoneyStringConverter cache memory bounds (250 strong key/value pairs) vs per-component cost, and whether it offers measurable benefit. Do not infer a leak without evidence.
+- If practical, add reproducible memory diagnostic: count allocations / retained identities over a representative batch of 100 or 1000 fields, with realistic JVM warmed up, class static init excluded and JavaFX thread discipline; avoid unreliable `Runtime.totalMemory()-freeMemory()` claims and arbitrary exact-size numbers. Use JOL/JFR only if already available in environment; no new dependencies/POM edits. Otherwise report qualitative inventory and UNKNOWN numerical bytes.
+- Prioritize **numerical correctness first, then retained memory per field**, then secondary throughput; shared mutable formatters matter for isolation/formatting correctness, not speculative GUI races.
+- NO production optimization in NUM-001. Quantify before proposing a memory optimization.
 
 ### Confirmed source-level facts and candidates (must verify independently)
 
@@ -1662,9 +1675,9 @@ GUI-012, GUI-012A, VF-001, VF-002 have user-confirmed Java25/JavaFX25 PASS for t
 
 ### Task A: source/usage analysis, correctness before implementation
 
-Map the actual contracts and real usages of `JInvMoneyField`, `JInvBigDecimalField`, `AbstractBigDecimalField`, `MoneyStringConverter`, and `JInvPercentField`. Distinguish whether formatters/converters are accessed exclusively on JavaFX thread vs background code; do not assert concurrency failure merely from lack of synchronization. Identify public API, initialization order, shared global settings, existing external/corporate usage UNKNOWN.
+Map actual contracts and usage of `JInvMoneyField`, `JInvBigDecimalField`, `AbstractBigDecimalField`, `MoneyStringConverter`, and `JInvPercentField`. Focus on retained heap footprint per field and UI-thread semantics; note off-FX access only if real call sites establish it. Identify public API, initialization order, shared global settings, external/corporate usage UNKNOWN.
 
-Prioritize possible **silent numerical corruption**, stale text vs typed value, rounding/scale, locale/grouping, shared mutable formatter isolation, cache races, and then performance. Don't conflate display-only format rounding with actual BigDecimal rounding.
+Prioritize possible **silent numerical corruption**, stale text vs typed value, rounding/scale, locale/grouping, **memory retained per instantiated field**, shared formatter isolation, then performance. Cache races are not a GUI priority absent supported off-FX evidence. Don't conflate display-only format rounding with actual BigDecimal rounding.
 
 ### Task B: focused RED regression harness (test-only first)
 
@@ -1675,7 +1688,7 @@ Validate with explicit `text`, `value`, `State`, error and notification counts:
 2. `JInvMoneyField` and `JInvBigDecimalField` typed `BigDecimal` assignment vs text edit, scale HALF_UP, extra input fraction digits, focus loss, `null`, invalid/recovery, and non-default locale presentation (without global default mutations unless restored).
 3. Dynamic `setFractionDigits` and `setShowGroups`: do existing instances refresh when settings change? Whether value changes without explicit user edit; when formatting occurs; stale formatters due to cache sharing.
 4. Two simultaneous fields using the same fraction/grouping settings: assess independence/identity and any cross-field mutable formatter mutation. Test `JInvMoneyField.initDefaultMoneyFormatter` as global reconfiguration and its impact on existing fields, restoring defaults after test. Check whether converter cache distinguishes global format settings.
-5. **Pure converter concurrency**, not JavaFX controls off the FX thread: deterministic multi-thread stress if needed, with precise exceptions/value mismatch reporting; avoid flaky arbitrary sleeps and false conclusions based only on source. Also inspect whether app code can use converter off-FX.
+5. **Memory footprint**: produce per-instance vs global allocation inventory; inspect formatter sharing, cache entry retention and weak-reference lifecycle. If feasible measure with trustworthy JVM allocation/heap tooling already available, otherwise mark bytes UNKNOWN. NO speculative concurrency stress: the UI is single-threaded per the user's architecture clarification.
 6. Capture FX uncaught exceptions and keep sensitive settings/credentials out of logs.
 
 Produce per-case CONFIRMED / REJECTED / UNKNOWN. **Do not alter production code in NUM-001**, even on RED. One demonstrated issue per follow-up fix with RED/GREEN and compatibility review. If there is a clear deterministic correctness defect, make probe report it as RED with nonzero exit, not silently pass. If a historical conversion contract is unclear (e.g. `M` suffix or grouping), report observed behavior without inventing a rejection policy.
@@ -1689,7 +1702,7 @@ Git/GitHub operations pre-approved: after local JDK25 javac/PowerShell/Maven ver
 ### Reply
 
 Publish `## Reply NUM-001` in mailbox outbox with:
-- source and call-site evidence, including evidence for cross-thread use if any;
+- source and call-site evidence, per-component retained allocation inventory and memory evidence/UNKNOWN (off-FX use only if found);
 - explicit observations vs hypotheses for rounding, formatter and cache behavior;
 - exact test diff and verified SHA, local JavaFX25 status;
 - Windows command `-MoneyDecimal -SettingsFile "D:\Java\.m2\settings.xml"`;
