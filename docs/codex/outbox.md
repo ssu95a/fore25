@@ -1468,3 +1468,43 @@ Maven -Pbuild compile and dependency classpath generation succeeded with the exi
 git pull --ff-only
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ValueFields -SettingsFile "D:\Java\.m2\settings.xml"
 ```
+
+
+
+---
+
+## Reply VF-002
+
+**Status** Custom listener ownership FIXED and verified. Dynamic bound-property replacement needs a contract decision. LOV read-only, standalone runtime BLOCKED. Test/fix fast-forward from `44b7fed91ebe394cc691f553d74847df043c7c54` to `e5e9032d3d455efb92f7cfabda0cdb4fbee86648` on `migration/java25-correctness`, published atomically with this reply and verified via `git ls-remote`. [Exact fix and regression diff](https://github.com/ssu95a/fore25/commit/e5e9032d3d455efb92f7cfabda0cdb4fbee86648)
+
+### Custom implementation
+
+Repository Java and FXML search found no production callers of setCustomImpl and no dynamic replacement contract. The existing setter and delegated property support exercising implementation replacement and text callbacks in a standalone test. External callers and a promise of transparent migration of existing bindings are UNKNOWN. Since the field follows only one implementation for its value and type, letting retired implementations process current text is inconsistent with that ownership. Each setter call formerly added an anonymous listener capturing that implementation and never removed it. The narrow fix stores a single removable listener, detaches it before switching, uses only the active implementation, skips identity-repeat attachment and detaches on null. Installation still does not process existing text. On detach it leaves state alone and does not define typed access without an implementation. Property delegation, public and protected declarations, and JInvValueField clipboard/typed semantics are unchanged.
+
+### Exact RED/GREEN evidence on Windows Java 25.0.1 / JavaFX 25
+
+The visible real JInvCustomValueField used production skin and CSS. Counters A and B implement the real ICustom interface using distinct JavaFX properties. Initial text was `initial`, both callback counts were zero, state NULL and field/model null. A's original property was bound bidirectionally to an in-memory model. A's callback returns VALUE, B's ERROR, making the active state visible in the trace.
+
+| Action | RED callbacks | GREEN callbacks | GREEN field / state / model |
+|---|---|---|---|
+| A, edit one | A:one | A:one | A:one / VALUE / A:one |
+| Replace with B, edit two | A:two, B:two | B:two | B:two / ERROR / A:one |
+| Model writes model-only with B active | no additional text callback | no additional text callback | B:two / ERROR / model-only |
+| Install same B, edit three | A:three, B:three, B:three | B:three | B:three / ERROR / model-only |
+| Reinstall A, edit four | A:four, B:four, B:four, A:four | A:four | A:four / VALUE / A:four |
+| Clear implementation, edit detached | A:detached, B:detached, B:detached, A:detached | none | no active typed read / VALUE / A:four |
+
+RED exited 1. On RED, obsolete A wrote A:two and later A:three into the original bound model even while B owned the field; after detach, obsolete A wrote A:detached. GREEN printed VF-002 PASS (custom listener ownership) and exited 0. No FX exception was observed. In both versions, replacement exposed B's property and the model continued to bind to A's original property. Reinstalling A re-exposed that exact original property. On GREEN, model-only stayed on A while B's edits updated B only; A reinstallation recovered the model-only value before the next edit. Transparent replacement under an existing binding remains BLOCKED as a contract decision. Choose whether to require callers to unbind/rebind explicitly or design a stable field-owned property with defined transfer, rebinding and null semantics. There is no silent binding transfer in this fix.
+
+### LOV source audit and blocker
+
+`AbstractLovBase` initialization dereferences `BaseApp.APP().getViewPrefService().getLovSmallCountRows()` and catches AppException only. A standalone no-BaseApp provider subclass would therefore fail superclass initialization with a null dereference. An in-memory value property alone cannot reach the real LOV API. No fake BaseApp or bootstrap mutation was used. Source confirms that every `JInvTextField.setLOV` registration installs a new listener, replacement drops the reference without removing the old listener, and `unbindLOV` clears the reference and button only. The old provider property holds its listener, which captures the field and resolves current `getLOV()`; repeated same-provider calls also register multiple callbacks. Stale update, duplicate invocation and post-unbind exception are source-level candidates. Actual counts, field mutations, exception and reachability were not measured. Binder and form/filter call sites use setLOV for configured providers; none of the reviewed usages establishes same-instance reinstallation as a promised feature. A dedicated test in an authorized real BaseApp context should cover A -> B -> B -> unbind with a real no-query provider and separate callback, binding and provider ownership diagnostics before a fix. No LOV code changed.
+
+### Verification
+
+Maven -Pbuild compile and dependency classpath generation succeeded via the existing settings. Local VF-002 RED/GREEN and post-fix VF-001 PASS used actual interactive JavaFX 25. JDK 25 compiled all GUI sources; PowerShell parser and all ten dispatch modes passed. Staged whitespace checks passed. Full form, SQL and physical input remain outside this matrix.
+
+```powershell
+git pull --ff-only
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ValueLifecycle -SettingsFile "D:\Java\.m2\settings.xml"
+```
