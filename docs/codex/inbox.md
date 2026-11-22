@@ -1342,7 +1342,7 @@ Reply `## Reply GUI-012A` to `docs/codex/outbox.md` on mailbox branch with sourc
 
 ## MESSAGE VF-001
 
-**Status:** OPEN
+**Status:** AWAITING USER VALIDATION
 **Priority:** Core Legacy typed-field data integrity; `JInvValueField<T>`
 **Repo/branch:** `ssu95a/fore25` / `migration/java25-correctness`
 **Expected remote HEAD:** `0ee740be4ff8a314a0a3b08f280b0bbda3cde770`
