@@ -1,7 +1,7 @@
 package ru.inversion.fx.form.controls;
 
 import javafx.beans.property.Property;
-import javafx.beans.value.ObservableValue;
+import javafx.beans.value.ChangeListener;
 
 /**
  * Текстовое поле с поддержкой состояния.
@@ -12,6 +12,11 @@ import javafx.beans.value.ObservableValue;
 public class JInvCustomValueField<T> extends JInvValueField<T> {
     
     private ICustom custom = null;
+    private final ChangeListener<String> customTextListener = (observable, oldValue, newValue) -> {
+        if (custom != null) {
+            setState(custom.setText(newValue));
+        }
+    };
     
     /**
      * Интерфейс установки состояния
@@ -55,12 +60,16 @@ public class JInvCustomValueField<T> extends JInvValueField<T> {
      * @param custom 
      */
     public void setCustomImpl(ICustom custom) {
+        if (this.custom == custom) {
+            return;
+        }
+        if (this.custom != null) {
+            textProperty().removeListener(customTextListener);
+        }
         this.custom = custom;
-        textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            if (custom != null) {
-                setState(custom.setText(newValue));
-            }
-        });        
+        if (custom != null) {
+            textProperty().addListener(customTextListener);
+        }
     }  
     
 }
