@@ -1194,7 +1194,7 @@ Stop at GUI-011, no automatic GUI-012.
 
 ## MESSAGE GUI-012
 
-**Status:** AWAITING USER VALIDATION
+**Status:** CLOSED
 **Priority:** Critical field-value correctness and JavaFX25 GUI compatibility
 **Working repository/branch:** `ssu95a/fore25` / `migration/java25-correctness`
 **Expected remote HEAD:** `789c2e59de58a963701f72fa46fe5f02e3de3df8`
@@ -1276,3 +1276,63 @@ Publish `## Reply GUI-012` to `agent/codex-mailbox:docs/codex/outbox.md` with:
 - recommendation for a separate GUI-013 time/masked-field probe.
 
 Stop after GUI-012, no production fixes or follow-on task.
+
+
+---
+
+## MESSAGE GUI-012A
+
+**Status:** OPEN
+**Priority:** Data integrity / constructor semantics of numeric Legacy JavaFX25 fields
+**Repository/branch:** `ssu95a/fore25`, `migration/java25-correctness`
+**Expected remote baseline:** `2077722f0fb27b807dfa9bbac4bf9f43cf1d3dbc`
+
+### User verified GUI-012 on actual JavaFX25
+
+The user independently ran `-TextFields` with Java 25.0.1, using `D:\Java\.m2\settings.xml`:
+
+```text
+OBSERVED String constructor JInvIntegerField text=[42] value=null state=NULL
+OBSERVED String constructor JInvLongField text=[42] value=null state=NULL
+OBSERVED String constructor JInvBigDecimalField text=[42] value=null state=NULL
+OBSERVED String constructor JInvMoneyField text=[42] value=null state=NULL
+NUMERIC ... integer/long boundary, decimal/money rounding, valid/invalid/recovery: passed
+FOCUS ... valueEvents=0 for all four fields
+GUI-012 PASS (tested matrix)
+```
+
+GUI-012 is now CLOSED for its *tested matrix*, but the String-constructor inconsistency is CONFIRMED and remains unresolved.
+
+### Code-level mechanism verified
+
+`JInvNumberField(String arg0)` calls `super(arg0)`, thereby setting JavaFX TextField's initial text **before** the numeric field installs `textProperty` -> `valueProperty` conversion listener. Numeric type remains `null` and `State.NULL` even when the field visibly contains a valid string. `JInvIntegerField(String)`, `JInvLongField(String)`, `JInvBigDecimalField(String)`, `JInvMoneyField(String)` all forward their String argument. `JInvPercentField(String)` also forwards to decimal superclass and must be considered.
+
+### Task A: contract/usage analysis, mandatory before edits
+
+Review all public numeric constructors and in-repo instantiation sites (including compiled FXML usage if any). Determine whether String argument is intended to denote an initial numerical value, or display-only text, and whether caller code expects unparsed initial state. Search actual source, don't infer from name alone. Identify external usage as UNKNOWN.
+
+Inspect Java constructor ordering and subclass converter overrides, specifically `getConverter()`, `valueProperty()`, `getFractionDigits()` for Integer, Long, BigDecimal, Money, Percent, and generic JInvNumberField. Do not introduce unsafe virtual calls to uninitialized subclass fields. Consider whether empty/null and invalid String arguments need explicit semantic handling.
+
+### Task B: targeted regression and minimal fix if justified by a consistent numeric contract
+
+Prove as RED: `new JInvIntegerField("42")`, Long, BigDecimal, Money and Percent on real FX toolkit leave typed value `null` despite valid text, **including no edit and focus loss**. Check what happens to text on focus loss: a displayed value may disappear due to `State.NULL`. Distinguish null and empty String constructors, invalid values, and typed-value constructors. Record precise expected behavior and any disagreements with actual Legacy contract.
+
+If the intended invariant is clear (valid numeric initial text must produce matching typed value/state), make the narrowest production fix possible, preserving existing public signatures and runtime input semantics. Prefer registering the converter listener before assigning initial text at the right initialization phase; avoid `setText(null); setText(original)` hack, hardcoding leaf-specific parsers, spurious notification loops, or changes to value rounding/converter behavior. Review virtual dispatch into subclass properties/converters during super constructors carefully. If behavior cannot be established safely, stay TEST/INVESTIGATION ONLY and report BLOCKED with smallest needed contract decision.
+
+Keep a dedicated regression including: valid "42" on Integer/Long/BigDecimal/Money/Percent, null and empty, invalid input and ERROR/no silent numeric value, precision/scale, valid no-input focus loss, and no extra unexpected value notifications. Preserve existing GUI-012 numeric scenarios and base GUI modes.
+
+### Limits
+
+- No broad refactor of `JInvTextField`, skins, LOV, validator system or time/mask controls.
+- No public/protected method or constructor signature changes.
+- No JInvCommon, main, pom.xml, wrapper, BaseApp/FXFormLauncher/SQLDataSet changes.
+- Deferred: D6/D7, logback, XMLViewer, ru.inversion.diff, Caffeine.
+- Only focused code and test, all new comments Russian.
+- Preserve user custom settings via existing `-SettingsFile` (actual path `D:\Java\.m2\settings.xml`).
+- Do not weaken tests to make GREEN; separate source findings vs real FX evidence.
+
+### Execution/Git/Reply
+
+All Git/GitHub operations pre-approved by the user. Local validation with JDK25 and Maven; interactive FX test if available, otherwise mark UNKNOWN. If justified fix and test are checked, commit minimal changes and push fast-forward to `migration/java25-correctness`, verify remote SHA. If no justified fix, report findings without speculative production commit. Never change main/JInvCommon.
+
+Reply `## Reply GUI-012A` to `docs/codex/outbox.md` on mailbox branch with source usage/contract evidence, exact diff and commit, RED/GREEN results, effects of constructor ordering, remaining uncertainty and user's command including `-SettingsFile "D:\Java\.m2\settings.xml"`. Stop after this, do not start GUI-013 until this issue is classified.
