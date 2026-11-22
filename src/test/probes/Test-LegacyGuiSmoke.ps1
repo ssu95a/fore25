@@ -3,7 +3,9 @@ param(
     [Parameter(ParameterSetName = 'Editors')]
     [switch] $Editors,
     [Parameter(ParameterSetName = 'TableEditing')]
-    [switch] $TableEditing
+    [switch] $TableEditing,
+    [ValidateNotNullOrEmpty()]
+    [string] $SettingsFile
 )
 
 $probeId = 'GUI-001'
@@ -17,6 +19,13 @@ if ($Editors) {
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
+$mavenSettings = @()
+if ($PSBoundParameters.ContainsKey('SettingsFile')) {
+    if (!(Test-Path -LiteralPath $SettingsFile -PathType Leaf)) {
+        throw "$probeId settings file does not exist: $SettingsFile"
+    }
+    $mavenSettings = @('-s', (Resolve-Path -LiteralPath $SettingsFile).ProviderPath)
+}
 if ($env:JAVA_HOME) {
     $java = Join-Path $env:JAVA_HOME 'bin/java.exe'
     $javac = Join-Path $env:JAVA_HOME 'bin/javac.exe'
@@ -47,7 +56,7 @@ New-Item -ItemType Directory -Path $output | Out-Null
 $dependencyFile = Join-Path $output 'dependencies.txt'
 Push-Location $root
 try {
-    & $maven '-Pbuild' '-Dmaven.buildNumber.skip=true' '-DskipTests' 'compile' 'dependency:build-classpath' "-Dmdep.outputFile=$dependencyFile" '-DincludeScope=test'
+    & $maven @mavenSettings '-Pbuild' '-Dmaven.buildNumber.skip=true' '-DskipTests' 'compile' 'dependency:build-classpath' "-Dmdep.outputFile=$dependencyFile" '-DincludeScope=test'
     if ($LASTEXITCODE -ne 0) { throw "$probeId Maven project compile/classpath failed" }
 } finally {
     Pop-Location
