@@ -1201,3 +1201,18 @@ index 0000000000000000000000000000000000000000..94ef3631a2f6e523a9882ba2383f0a7e
 +    }
 +}
 ```
+
+
+
+---
+
+## Reply GUI-005-PUBLISH
+
+DONE. Fast-forwarded `migration/java25-correctness` from `22d2dffff9d48558193a3c95184fe1ed94b51244` to `13ceedc419941bb53b701707e2d0a737af9edeba` and verified the latter SHA with `git ls-remote`. The starting tree was clean. JDK 25 compilation against existing project classes and Maven dependencies, PowerShell parsing and `git diff --check` passed. See Reply GUI-005 for the exact diff. Interactive JavaFX 25 result remains UNKNOWN.
+
+Review caveat. Programmatic cancellation does not exercise the branch where a table mouse press sets the Legacy cell's `editingCell` field and `cancelEdit()` fires a commit event before calling its superclass. This is a potential data-integrity risk pending a targeted probe after the GUI-005 runtime result. Physical input, actual Escape cancellation and Dataset persistence are outside the current smoke. Enter is synthetic and the model is an in-memory JavaFX property.
+
+```powershell
+git pull --ff-only
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableEditing
+```

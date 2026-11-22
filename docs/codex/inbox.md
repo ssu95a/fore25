@@ -798,7 +798,7 @@ Stop after reporting results and the push. No GUI-006 work.
 
 ## MESSAGE GUI-005-PUBLISH
 
-**Status:** OPEN
+**Status:** CLOSED
 **Working branch:** `migration/java25-correctness`
 
 Independent review of GUI-005 exact diff in outbox complete. The test-only change is accepted for a **narrow programmatic-edit/cancel smoke**.
