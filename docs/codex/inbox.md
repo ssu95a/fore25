@@ -1639,7 +1639,7 @@ Stop after GUI-013, don't begin GUI-014 or production edits.
 
 ## MESSAGE NUM-001
 
-**Status:** OPEN
+**Status:** AWAITING USER RED VALIDATION
 **Priority:** CRITICAL financial data correctness, conversion/rounding, AND memory footprint per GUI field
 **Repo:** `ssu95a/fore25`
 **Work branch:** `migration/java25-correctness` (never touch `main`)
