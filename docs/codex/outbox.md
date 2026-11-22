@@ -1349,3 +1349,70 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-L
 Decide whether an existing, normally authenticated corporate JavaFX 25 desktop session may be used for a single TextArea form. Within that app's approved test entry point, invoke the real nonmodal `FXFormLauncher<String>` with its existing parent ViewContext, actual non-owned TaskContext, production JInvTextAreaForm FXML, fore bundle, a String payload and saved dimensions disabled. Register `controllerCallback` before show and use it to attach the lifecycle listener before the Stage is shown. Register `closeCallback` for exactly one RET_OK and error observation. Verify visible payload and BEFORE_INIT -> INIT -> AFTER_INIT -> RUNTIME, then press standard OK and observe ON_OK -> ON_CLOSE, window teardown, close-resource completion and parent context still operational. Treat any initialization exception, including caught indicator/prefs errors, as evidence to investigate. This is a plan only. No runtime proof of corporate services, preferences or cleanup exists yet for this path.
 
 Validation was inspection of repository sources and dependency bytecode, plus clean branch and whitespace checks. No application, login, SQL session or launcher was started. No `-FullFormLauncher` command exists. Production, tests and configuration were left intact. Caffeine remains deferred.
+
+
+
+---
+
+## Reply GUI-012
+
+**Status** DONE, test-only. Working branch fast-forward from `789c2e59de58a963701f72fa46fe5f02e3de3df8` to `2077722f0fb27b807dfa9bbac4bf9f43cf1d3dbc`, published atomically with this outbox reply and checked via `git ls-remote`. [Exact source diff](https://github.com/ssu95a/fore25/commit/2077722f0fb27b807dfa9bbac4bf9f43cf1d3dbc)
+
+### Confirmed hierarchy and source-level contracts
+
+```text
+TextField -> JInvTextField
+  -> JInvRegExpTextField
+  -> F7FilterTextField
+  -> ParamCellTextField (abstract; anonymous implementations in filter editors)
+  -> JInvTextFieldCUR -> JInvCURTextField (deprecated alias)
+  -> JInvValueField<T>
+       -> JInvNumberField<T>
+            -> JInvIntegerField
+            -> JInvLongField
+            -> AbstractBigDecimalField
+                 -> JInvBigDecimalField -> JInvPercentField
+                 -> JInvMoneyField
+       -> JInvTimeField
+       -> JInvTimeFieldNew
+       -> JInvTextFieldFormatted
+       -> JInvCustomValueField<T>
+PasswordField -> JInvPasswordField (adjacent)
+TextArea -> JInvTextArea (shared ITextFieldBase boundary)
+```
+
+| Class | Text, value, normalization and state | Runtime boundary / priority |
+|---|---|---|
+| JInvTextField | Text is the value surface. Case formatter, skin context menu, tooltip and selection cache; trim listener exists but is not installed by the constructor. State starts NULL. Validated LOV requires controller and validator manager in AFTER_INIT/RUNTIME; completion can replace or append text. | Base edit, menu and focus tested. LOV, skin replacement and external/inner button lifecycle UNKNOWN. |
+| JInvRegExpTextField | Inherits base formatter and skin. Text listener checks nonempty text/configured regex, marks ERROR on failure and restores NULL/VALUE from ERROR. No typed property. | Standalone regex cases feasible; validation transitions on initial entry and clearing UNKNOWN. |
+| F7FilterTextField | Text listener switches VALUE/LIST/EXPRESSION modes and validates according to filter metadata, with empty text leading to NULL on the value path. | Static colors dereference BaseApp view preferences; isolated construction is outside this probe. Filter correctness and LOV UNKNOWN. |
+| ParamCellTextField | Inherited text/formatter; overridden keyboard handlers send Enter/focus loss to commit and Escape to cancel. F9 can invoke LOV. Constructor changes shared focus-on-error flag. | Needs concrete filter cell integration to exercise commit/cancel; ordering and shared focus effect UNKNOWN. |
+| JInvTextFieldCUR | Separate String curValue trims and maps null to empty; writes text, and early form lifecycle changes sync the curValue. CUR validator and LOV button integrate with the form. | Default lazy LOV uses BaseApp common TaskContext; check/choice semantics UNKNOWN in real forms. |
+| JInvCURTextField | Deprecated alias inheriting CUR behavior and dependencies. | Same boundary as CUR. |
+| JInvValueField | Abstract typed property, inherited text and skin; clipboard copies full typed value or selected text without spaces; accepted LOV value is converted to declared type. Null/state semantics are subclass-owned. | Typed clipboard and LOV paths UNKNOWN. |
+| JInvNumberField | Text/value listeners use reentrancy flags. Empty maps to null/NULL after a real text change; converter exceptions mark ERROR. Focus loss reformats non-error values without reparsing through the text listener. | Constructor mismatch confirmed below. Real focus and event count tested in four descendants. |
+| JInvIntegerField | Nullable integer property and fixed TypeStringConverter through JInvCommon. Inherits base formatter and numeric focus/state rules. | Min/max and upper overflow tested. |
+| JInvLongField | Nullable long property and fixed TypeStringConverter. Same rules with 64-bit range. | Min/max and upper overflow tested. |
+| AbstractBigDecimalField | Non-null typed assignments use configured scale and HALF_UP. Null remains null; formatting delegated. | Data integrity on scale and locale round trips is higher priority than cosmetic output. |
+| JInvBigDecimalField | Parser maps comma to dot and removes regex whitespace. Display uses configured grouping, space separator and dot decimal. Defaults: scale 2, grouping off. Mutable formatters shared by a weak cache. | Grouped comma input, rounding and focus tested with grouping enabled. Dynamic scale/current rendered value and off-FX access UNKNOWN. |
+| JInvPercentField | Inherits decimal parser, display and rounding; configurable static default scale with per-field override. | Standalone feasible. No GUI-012 evidence for percent-specific scale changes. |
+| JInvMoneyField | Default scale 2; shared DecimalFormat, MoneyStringConverter and bounded parse cache. Accepts separators, grouping spaces and shorthand suffixes. Typed property enforces scale; converter discards its non-mutating round() return. | Grouped comma parse, HALF_UP and focus tested. Shorthand, malformed suffixes, settings changes, precision extremes and cross-thread formatter/cache behavior UNKNOWN. |
+| JInvTimeField | LocalTime, seconds mode, dedicated formatter and JInvTimeSkin. Guarded text/value updates; conversion failure marks ERROR, empty clears value, focus loss normalizes valid values. | Separate standalone time probe. Range, partial edits and seconds toggling UNKNOWN. |
+| JInvTimeFieldNew | LocalTime with replacing mask formatter. Text listener treats leading underscore as NULL and otherwise calls LocalTime.parse; no empty guard at charAt(0). Value changes write empty or formatted text. Inherited button skin. | Source-level exception candidate only, since the actual formatter may mask some empty paths. Check real clear/delete, paste, invalid time and seconds toggling in GUI-013. |
+| JInvTextFieldFormatted | String value, mask formatter replaces base formatter when configured. Empty clearText leads to empty value/NULL, partial masked text ERROR; complete text yields masked or stripped value, and value changes write back to text. | Standalone feasible. Partial masks, paste/delete, mask changes and feedback UNKNOWN. |
+| JInvCustomValueField | Delegates property, type and text-state calculation to ICustom. No default value/null contract. Each setCustomImpl adds another text listener capturing that implementation. | Lifecycle candidate when replacing implementations; no runtime proof. Use a real configured implementation for subsequent tests. |
+| JInvPasswordField | Separate JavaFX PasswordField with Legacy required/validation support. | Inventory only. |
+| JInvTextArea | Separate TextArea and skin; shares ITextFieldBase value/label/LOV boundary. | GUI-004 already covers its edit/menu behavior. |
+
+### Local interactive evidence and triage
+
+On Windows Java 25.0.1 / JavaFX 25, the visible Stage used production CSS and real JInvTextFieldButtonSkin instances. The plain field passed empty/null/normal text, programmatic selection and replacement, and menu ownership when an application handler or custom menu was present. All four numeric fields passed typed assignment, valid edit, invalid edit preservation with ERROR, same-value recovery, clear-to-null, and a second valid edit. Each produced four value notifications and six text notifications before focus testing, and zero value changes on focus loss. Integer/Long upper overflow retained the old value. Both decimals normalized grouped comma input to value 12345.69 at scale 2, and displayed 12 345.69 after focus loss on the test desktop. Solo constructor samples confirmed that all four numeric String constructors with "42" render "42" while typed value remains null and state NULL. Source explains the divergence: initial text is passed to super before the numeric listener is installed. This is a confirmed observable integrity inconsistency; intended constructor contract, external usages and persistence impact remain UNKNOWN. In-repo creation sites found use no-arg constructors. The diagnostic reports this observation separately from the PASS matrix.
+
+Prioritize that constructor/value divergence and time/mask conversion/clearing before lifecycle risks. Next lifecycle candidates are LOV listener replacement, repeated custom-implementation listeners and direct skin listeners surviving dispose. Shared DecimalFormat/cache concerns require workload/threading evidence; no performance or cosmetic fixes are proposed. GUI-013 should independently test both time fields and formatted masks through real clear/delete, invalid/partial text, paste, programmatic assignment, focus loss and seconds toggling, with uncaught FX exception capture. Keep that separate from numeric contract decisions.
+
+Full PowerShell launcher with existing custom settings completed Maven -Pbuild compile and dependency resolution, then printed GUI-012 PASS with exit 0. JDK 25 javac for all GUI sources, PowerShell parsing and all eight dispatch modes, and staged whitespace checks passed. The probe distinguishes RED invariants from execution/setup failures. Physical input, actual LOV providers, skin replacement and application validation dialogs were outside this run. No production changes.
+
+```powershell
+git pull --ff-only
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextFields -SettingsFile "D:\Java\.m2\settings.xml"
+```
