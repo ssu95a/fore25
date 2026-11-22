@@ -1508,3 +1508,44 @@ Maven -Pbuild compile and dependency classpath generation succeeded via the exis
 git pull --ff-only
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ValueLifecycle -SettingsFile "D:\Java\.m2\settings.xml"
 ```
+
+
+
+---
+
+## Reply VF-003
+
+**Status** Read-only architecture investigation complete. Design approval pending. Working branch and remote HEAD remain `e5e9032d3d455efb92f7cfabda0cdb4fbee86648`. Only this mailbox reply was published.
+
+### Evidence and current contract
+
+A repository-wide usage search, including Java and FXML, found no production installation of ICustom, no production implementation or FXML declaration of this field, and no advertised replacement contract. The only executable usage found is the VF-002 test. External consumers may call the public raw setter or depend on property-object identity, so their behavior is UNKNOWN. [Field and ICustom](https://github.com/ssu95a/fore25/blob/e5e9032d3d455efb92f7cfabda0cdb4fbee86648/src/main/java/ru/inversion/fx/form/controls/JInvCustomValueField.java#L12) [VF-002 sequence](https://github.com/ssu95a/fore25/blob/e5e9032d3d455efb92f7cfabda0cdb4fbee86648/src/test/probes/gui/LegacyValueLifecycleSmoke.java#L95)
+
+`valueProperty()` and `getClassValue()` delegate to the current implementation. The generic method and raw setter do not enforce a stable concrete runtime type or stable Property object across installations. `JInvValueField.getValue()/setValue()` consult the property at call time. Controls reads that typed value and writes by converting via the current type and setting the current property. The separate editor-string path reads displayed text. `Binder.bindValueControl()` instead calls `bindBidirectional` on the Property instance returned at bind time. JavaFX connects those objects; a later accessor returning another object cannot redirect the link. Binder also configures LOV and validation for the control at bind time. Native bidirectional relationships cannot be reliably detected or enumerated via Property.isBound(), which reports unidirectional binding. [JInvValueField](https://github.com/ssu95a/fore25/blob/e5e9032d3d455efb92f7cfabda0cdb4fbee86648/src/main/java/ru/inversion/fx/form/controls/JInvValueField.java#L40) [Controls set](https://github.com/ssu95a/fore25/blob/e5e9032d3d455efb92f7cfabda0cdb4fbee86648/src/main/java/ru/inversion/fx/form/controls/Controls.java#L112) [Controls get](https://github.com/ssu95a/fore25/blob/e5e9032d3d455efb92f7cfabda0cdb4fbee86648/src/main/java/ru/inversion/fx/form/controls/Controls.java#L159) [Binder](https://github.com/ssu95a/fore25/blob/e5e9032d3d455efb92f7cfabda0cdb4fbee86648/src/main/java/ru/inversion/fx/form/Binder.java#L101)
+
+### User-confirmed runtime, VF-002 on Java 25 / JavaFX 25
+
+| Phase | Display and state | Current typed property | Model bound at first setup |
+|---|---|---|---|
+| Install A on existing text | initial / NULL, no text callback | A, null | null on A |
+| Edit one with A | one / VALUE | A, A:one | A:one |
+| Install B, edit two | two / ERROR | B, B:two | A:one on A |
+| Model writes model-only; repeat B then edit three | three / ERROR, one B callback on edit | B, B:three | model-only on A |
+| Restore A, before editing | three / ERROR | original A, model-only | still model-only on A |
+| Edit four then detach with null and edit detached | detached / VALUE, zero callbacks after detach | no implementation | A:four on original A |
+
+A's original Property remains valid and bound, but is not the field property while B is installed. Runtime example: after B:two, a direct Controls.getValue read would see B:two by source, while a business-model read of the original binding sees A:one. VF-002 simulated the bind call with a JavaFX property, not a business form or persistence. After null, source guarantees that typed access via valueProperty/getValue/getClassValue or Controls conversion dereferences a missing implementation. The probe deliberately only observed text, the last state and the old model in that phase. Neither persistence impact nor a downstream broken caller is proven.
+
+### Options and recommendation
+
+| Contract | Correctness and compatibility |
+|---|---|
+| Configure once before any typed access or Binder call | Keeps the implementation-owned Property and its identity. Recommend treating the same instance as a no-op, null before configuration as still unconfigured, and rejecting a different instance or null after configuration before changing the listener, state or value. Typed access while unconfigured should fail explicitly, rather than reporting a false valid value. Requires ICustom to return the same nonnull Property and fixed compatible type for its configured lifetime. Preserves signatures and direct property ownership, but callers that legitimately replace or detach an already configured implementation would see a new failure. This cannot safely be limited to detected bound fields. |
+| Stable field-owned Property | Binder and external listeners keep one object while implementations change. Changes the published property identity and any consumer assumption of getting the implementation's own property or subtype. Before switching, choose authoritative value (preserve field/model value versus adopt the replacement's value), validate the type and writability and define null/detach; do not rely on bindBidirectional's initial synchronization direction. Detach old listeners, install the new delegate in defined order, suppress feedback and reentrant overwrites, and leave the old configuration intact if transfer fails. Optional unconfigured phase, binding before configuration and text/state synchronization need explicit contracts. Useful when live replacement is a real requirement, with the broadest compatibility surface. |
+| Caller-managed unbind/rebind | Retains current exposed property identity per implementation. Caller must retain and unbind the old Property, transfer the chosen authoritative value and reconnect the replacement to the model and dependent observers or validators. Existing Binder supplies no general automatic replacement protocol. Third-party bindings may be invisible, which makes missed rebinding a silent integrity risk. Could work inside a single audited owner transaction, but is unsuitable as a general field guarantee. |
+
+**Recommendation.** Approve a configure-once field with fail-fast replacement and detach after configuration. The single design decision is whether applications must support swapping an implementation on an already configured/bound field. No repository usage requires it. If such a requirement is confirmed, use the stable field-owned property design with an explicit transfer policy instead of claiming the existing API can migrate bindings transparently.
+
+**State is a separate axis.** Reinstalling A with B's ERROR and detaching with retained VALUE are confirmed stale states relative to the active implementation. State is only the last result returned by ICustom.setText and is independent of typed property changes; the current API has no side-effect-free validator or formatter from which to infer a new state. Setting NULL/VALUE from the typed value would conflate invalid draft and null model; calling setText during install could mutate an already-bound model. Under configure-once, rejecting the transitions before effects removes both replacement scenarios without assigning invented states. Initial nonempty text still has no defined replay policy. If replacement is required, specify a policy for text, typed value and validation state on replace/detach before implementation. Do not opportunistically reset ERROR or VALUE.
+
+**Smallest follow-up after approval.** For configure-once, add a focused regression for first configuration, idempotent same-instance assignment, stable Property and model on rejected B/null, unconfigured access and unchanged state/text on rejection. Keep the original VF-002 evidence as the pre-contract baseline and make any future probe changes explicit because its current accepted replacement path cannot also assert rejection. Preserve VF-001 and retain active-only listener coverage. No new runtime was executed in VF-003. This report uses the user's JavaFX 25 result plus source, usage and Git checks. No implementation, tests or application configuration changed.
