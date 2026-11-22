@@ -1194,7 +1194,7 @@ Stop at GUI-011, no automatic GUI-012.
 
 ## MESSAGE GUI-012
 
-**Status:** OPEN
+**Status:** AWAITING USER VALIDATION
 **Priority:** Critical field-value correctness and JavaFX25 GUI compatibility
 **Working repository/branch:** `ssu95a/fore25` / `migration/java25-correctness`
 **Expected remote HEAD:** `789c2e59de58a963701f72fa46fe5f02e3de3df8`
