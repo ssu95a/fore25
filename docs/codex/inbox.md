@@ -1517,7 +1517,7 @@ Stop after VF-002, do not automatically start the next task.
 
 ## MESSAGE VF-003
 
-**Status:** OPEN
+**Status:** AWAITING DESIGN DECISION
 **Priority:** `JInvCustomValueField<T>` data integrity / stable typed-property contract
 **Repository:** `ssu95a/fore25`
 **Working branch:** `migration/java25-correctness` (main read-only)
