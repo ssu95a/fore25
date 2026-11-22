@@ -955,11 +955,11 @@ Expect GUI-004 PASS and exit 0 only after all assertions complete. The launcher 
 ## Reply GUI-005
 
 **MESSAGE-ID:** GUI-005  
-**STATUS:** DONE, awaiting independent review and interactive runtime verification
+**STATUS:** DONE, published; interactive runtime verification pending
 
 **GUI-004 push:** Fast-forward from `504f94d6fa4331ce3fe5e561afb8a96e510ebacd` to `22d2dffff9d48558193a3c95184fe1ed94b51244`. Before push, the working tree was clean, the local branch and exact single parent matched the authorization, and `git ls-remote` returned the approved parent. After push, `git ls-remote` returned `22d2dffff9d48558193a3c95184fe1ed94b51244`. GUI-004 PASS is the user's reported interactive result for the TextArea and ComboBox matrix.
 
-**GUI-005 local only:** `migration/java25-correctness` at `13ceedc419941bb53b701707e2d0a737af9edeba`, parent `22d2dffff9d48558193a3c95184fe1ed94b51244`, clean tree, ahead by one. GUI-005 push NO.
+**GUI-005 push:** `migration/java25-correctness` at `13ceedc419941bb53b701707e2d0a737af9edeba`, parent `22d2dffff9d48558193a3c95184fe1ed94b51244`, clean tree. Fast-forward from the parent to this exact test-only commit under the confirmed standing approval.
 
 - Added `src/test/probes/gui/LegacyTableEditingSmoke.java` and extended `src/test/probes/Test-LegacyGuiSmoke.ps1` with `-TableEditing`. No flag still selects GUI-001 and `-Editors` selects GUI-004. Maven invocation retains the caller's environment and settings.
 - `JInvTable` inherits the TableView edit path, and its separate read-only setting controls table actions. `JInvTableColumn` constructors set JavaFX editable to false. The probe explicitly enables editability on table and column, uses the real `JInvTableViewSkin` and the public `JInvTextFieldTableCell.forTableColumn()` factory with an observable property per row. The editor is deprecated and has no in-repository instantiation outside its factory. The filter-specific `ChoiceFilterController.EditingCell` takes a `TaskContext` and couples commit to filter parameters and optional database persistence.
