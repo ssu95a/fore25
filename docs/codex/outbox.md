@@ -1416,3 +1416,22 @@ Full PowerShell launcher with existing custom settings completed Maven -Pbuild c
 git pull --ff-only
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextFields -SettingsFile "D:\Java\.m2\settings.xml"
 ```
+
+
+
+---
+
+## Reply GUI-012A
+
+**Status** DONE. Fast-forward from `2077722f0fb27b807dfa9bbac4bf9f43cf1d3dbc` to `0ee740be4ff8a314a0a3b08f280b0bbda3cde770` on `migration/java25-correctness`, published atomically with this reply and verified via `git ls-remote`. [Exact source and regression diff](https://github.com/ssu95a/fore25/commit/0ee740be4ff8a314a0a3b08f280b0bbda3cde770)
+
+**Contract and usage.** Source search of production Java, XML and FXML found no live String-constructor caller or FXML declaration for these numeric classes. Controls creates Integer, Long and BigDecimal via no-arg constructors; Part_FindById uses no-arg Long; the Dataset aggregators instantiate no-arg JInvNumberField. Runtime behavior in downstream callers remains UNKNOWN. String construction uses the initial-text superclass overload, while typed overloads explicitly set the typed property. Neither the constructor declarations nor repository callers establish a display-only numeric mode. The same text entered after construction parses immediately, and merely leaving a nonempty String-constructed field previously erased the text. Treat valid initial numeric text as input to the existing typed conversion, consistent with runtime edits. Preserve the literal entered spelling until normal focus formatting. Null and empty remain null/NULL; malformed text remains visible with ERROR and no typed number.
+
+**Fix.** Reuse the same text-to-value conversion routine from the text listener and constructor initialization. It keeps the existing guards, converter lookup, error handling, value property, and rounding. Generic JInvNumberField uses TypeStringConverter(Number.class); Integer and Long use their existing fixed converters and nullable properties. Decimal and Money continue to use their existing converters and AbstractBigDecimalField's scale/HALF_UP property; Percent continues to supply its own default scale through the decimal hierarchy. The initializer is package-private and each built-in concrete String constructor calls it only for its exact runtime class. Thus an ancestor cannot trigger a derived converter, value setter or scale override before the descendant is initialized, especially BigDecimal -> Percent. Unknown downstream subclasses keep their legacy initialization behavior. The pre-existing valueProperty lookup used for listener registration is unchanged. No text toggling and no new public/protected signatures.
+
+**Local RED/GREEN on interactive Windows JDK 25.0.1 / JavaFX 25.** On baseline, all five leaf String constructors with 42 displayed 42 with null/NULL, then lost all text after untouched focus loss. Invalid text stayed in NULL. The final harness was also run against the six recompiled baseline classes and printed GUI-012 RED (exit 1), including generic Number mismatch. On GREEN the same harness reported 42 or 42.00 with VALUE at construction and after untouched focus, with zero value notifications. Null/empty and invalid cases passed for all five fields; the three decimal leaves rounded 42.555 to 42.56. Typed Integer/Long/BigDecimal/Percent constructors and the existing GUI-012 live numeric and base field matrix passed. The generic Number initial value matched the existing edit path. Full PowerShell launcher with custom settings completed Maven -Pbuild compile and dependency classpath resolution, then printed GUI-012 PASS and exited 0. javap -protected output was identical for all six production classes. Staged whitespace checks passed; the runner and other modes were untouched. This establishes local behavior with programmatic focus and input, while a separate user rerun, downstream subclasses and domain persistence remain unverified.
+
+```powershell
+git pull --ff-only
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextFields -SettingsFile "D:\Java\.m2\settings.xml"
+```
