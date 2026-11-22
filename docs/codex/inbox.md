@@ -1813,7 +1813,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-L
 
 ## MESSAGE NUM-004
 
-**Status:** ASSIGNED — one narrow per-instance retained-allocation optimization
+**Status:** CLOSED — user independently confirmed Windows NUM-001 PASS (tested invariants) after ca05ae3c991973f48269542309041fd3eaf426ec (2026-11-23); code review accepted. Retained-byte reduction UNKNOWN.
 **Priority:** MEMORY — reduce unused objects per GUI numeric field; preserve correctness
 **Repo:** `ssu95a/fore25`
 **Work branch:** `migration/java25-correctness` (never `main`)
@@ -1855,3 +1855,33 @@ $LASTEXITCODE
 ```
 
 **Stop after NUM-004.** Do not begin NUM-005 or additional memory optimization without a new assignment.
+
+---
+
+## MESSAGE NUM-005
+
+**Status:** ASSIGNED — read-only architecture/memory investigation; NO implementation
+**Priority:** MEMORY — per-field allocations in JInvBigDecimalField
+**Repo:** ssu95a/fore25
+**Read-only production branch:** migration/java25-correctness
+**Expected production HEAD:** ca05ae3c991973f48269542309041fd3eaf426ec
+**Reply ID:** NUM-005
+
+### Starting point
+
+NUM-004 user-confirmed GREEN. Sharing the unused inherited default TypeStringConverter reduced its identities to one across 100 Money and 100 BigDecimal instances. Do not change this baseline.
+NUM-001/004 memory probe still shows 100 actual JInvBigDecimalConverter instances for 100 used BigDecimal fields, sharing one DecimalFormat under common settings. The converter is a nonstatic inner class whose toString calls its owning field's formatter(). It therefore depends on field-specific configuration. JInvMoneyField uses a static converter; Percent extends BigDecimalField with a separate scale default.
+
+### Assignment: read-only proof, not a speculative optimization
+
+1. Audit actual retained objects and public/protected contracts in JInvBigDecimalField, AbstractBigDecimalField, JInvNumberField, JInvPercentField and TypeStringConverter. Distinguish own converter, formatter, fractionDigitsProperty/listeners from shared JavaFX TextField baseline; identify concrete call sites and overrides.
+2. Establish why the actual decimal converter must access its owner under dynamic fractionDigits/grouping/locale. Check two live fields with differing settings and getConverter().toString(value), and effects of changing those settings. Preserve Percent semantics. Do not conflate sharing a converter with sharing a DecimalFormat.
+3. Compare realistic alternatives, including KEEP per-instance converter. A stateless shared converter is not a viable fix if field-specific formatting and getConverter() behavior cannot be preserved. Specify risk, compatibility and expected retained-memory benefit for each.
+4. Quantify per-field retained bytes only with suitable instrumentation (JOL/JFR/heap tools) if already available, no new dependencies. Identity counts are evidence of object count, NOT bytes. No Runtime.totalMemory()-freeMemory() retained-memory claims; no aggressive GC on live controls.
+5. Separately assess weak DecimalFormat cache source-level risks: cache lookup key omits FORMAT locale; dead weak-reference slot indexing may be incorrect. Clearly distinguish demonstrated defect, hypothesis and UNKNOWN. Do not implement fixes or broaden task to cache redesign or concurrency.
+6. Propose ONE narrowly scoped follow-up experiment or change with RED/GREEN acceptance criteria, or recommend retaining current per-instance converter if no safe memory gain is established.
+
+### Constraints and reporting
+
+READ ONLY production branch. No production edits, test commits, POM/wrapper changes, or changes to main or JInvCommon. Existing MoneyDecimal tests must remain GREEN if run. All standard Git/GitHub operations approved only for reading and publishing the mailbox reply.
+Publish ## Reply NUM-005 to docs/codex/outbox.md on agent/codex-mailbox with source and usage evidence, per-field object analysis, confirmed vs UNKNOWN, proposed smallest next step. Do not push to implementation branch. Stop after report; no NUM-006 without a new assignment.
