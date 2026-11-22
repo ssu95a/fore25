@@ -10,6 +10,8 @@ param(
     [switch] $EditorReentry,
     [Parameter(ParameterSetName = 'DataBinding')]
     [switch] $DataBinding,
+    [Parameter(ParameterSetName = 'FormLifecycle')]
+    [switch] $FormLifecycle,
     [ValidateNotNullOrEmpty()]
     [string] $SettingsFile
 )
@@ -33,6 +35,9 @@ if ($Editors) {
 } elseif ($DataBinding) {
     $probeId = 'GUI-009'
     $probeClass = 'LegacyDataBindingSmoke'
+} elseif ($FormLifecycle) {
+    $probeId = 'GUI-010'
+    $probeClass = 'ru.inversion.fx.form.LegacyFormLifecycleSmoke'
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
@@ -83,7 +88,8 @@ $dependencies = [IO.File]::ReadAllText($dependencyFile).Trim()
 if (!$dependencies) { throw "$probeId Maven dependency classpath empty" }
 
 $classpath = (Join-Path $root 'target/classes') + [IO.Path]::PathSeparator + $dependencies
-$probeSource = Join-Path $PSScriptRoot "gui/$probeClass.java"
+$sourceName = ($probeClass -split '\.')[-1]
+$probeSource = Join-Path $PSScriptRoot "gui/$sourceName.java"
 $compileArgs = Join-Path $output 'javac.args'
 $runArgs = Join-Path $output 'java.args'
 $runClasspath = $output + [IO.Path]::PathSeparator + $classpath
