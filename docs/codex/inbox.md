@@ -937,7 +937,7 @@ Reply `## Reply GUI-007` in `docs/codex/outbox.md` with complete source/diff, co
 
 ## MESSAGE GUI-008
 
-**Status:** OPEN
+**Status:** AWAITING USER VALIDATION
 **Priority:** CRITICAL, confirmed data-integrity defect, minimal production correctness fix
 **Repository:** `ssu95a/fore25`, **branch:** `migration/java25-correctness`
 **Expected remote HEAD:** `0b4b2d65b05ec637959ca3a81a81df5d4d650cd3`
