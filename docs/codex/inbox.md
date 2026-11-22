@@ -1424,7 +1424,7 @@ Stop after VF-001; no automatic next task.
 
 ## MESSAGE VF-002
 
-**Status:** AWAITING USER VALIDATION
+**Status:** CLOSED
 **Priority:** typed-field correctness / lifecycle, stale listeners and property-binding identity
 **Repository:** `ssu95a/fore25`
 **Working branch:** `migration/java25-correctness` (never modify `main`)
@@ -1511,3 +1511,60 @@ Publish `## Reply VF-002` to `agent/codex-mailbox:docs/codex/outbox.md` with:
 - no full form/SQL claims.
 
 Stop after VF-002, do not automatically start the next task.
+
+
+---
+
+## MESSAGE VF-003
+
+**Status:** OPEN
+**Priority:** `JInvCustomValueField<T>` data integrity / stable typed-property contract
+**Repository:** `ssu95a/fore25`
+**Working branch:** `migration/java25-correctness` (main read-only)
+**Expected remote HEAD:** `e5e9032d3d455efb92f7cfabda0cdb4fbee86648`
+
+### User confirmed VF-002 on interactive Java25/JavaFX25
+
+The user ran the production `-ValueLifecycle` smoke and obtained `VF-002 PASS (custom listener ownership)`.
+
+Confirmed runtime sequence:
+- A edit one -> A:one, model=A:one, state VALUE.
+- Replace A with B, edit two -> B:two, model remains A:one, `originalProperty=false`, state ERROR; no stale A callbacks.
+- Model writes "model-only" while B active -> old A property/model updated but current field is B:two.
+- Reinstall B, edit three -> single B callback, no duplicate.
+- Reinstall A -> field reads A's model-only value again, but `state=ERROR` remains until next text edit. Subsequent edit four -> A:four and model A:four, state VALUE.
+- Detach with `setCustomImpl(null)`, edit detached -> no callbacks; state remains VALUE although no implementation and `valueProperty()`/getValue() cannot safely be called.
+- `VF-002 PASS`.
+
+The previous focused fix `e5e9032d` is accepted for listener ownership ONLY. Dynamic value-property replacement and state lifecycle are NOT fixed.
+
+### Objective: choose a safe architectural contract before changing production
+
+Make an evidence-based read-only investigation of how to handle `JInvCustomValueField.setCustomImpl` and its typed value property.
+
+1. Inspect actual source of `JInvCustomValueField`, `JInvValueField`, `Binder.bindValueControl`, `Controls.getValue/setValue`, and relevant `ICustom<T>` implementations, FXML declarations, all uses of `setCustomImpl()` reachable in this repo. Check whether post-binding replacement is advertised, used, assumed or undocumented. External downstream use UNKNOWN.
+2. Trace exact JavaFX property identity and bidirectional binding behavior through A -> B -> A and null; distinguish displayed text, active implementation value, `State`, current `Property<T>`, and original business model binding.
+3. Evaluate at least these options with correctness/API/compatibility consequences:
+   - **Immutable implementation after initial configuration**: forbid replacement (fail fast) while retaining existing public method; determine how to handle same-instance repeat, null/unset, and whether this breaks legitimate reconfiguration of forms.
+   - **Stable field-owned valueProperty**: `JInvCustomValueField<T>` exposes one stable `Property<T>` regardless of implementation; evaluate safe synchronization with `ICustom.valueProperty()`, change ordering, generic type changes, reentrancy, `null`, existing external property-identity assumptions, and `Binder` compatibility.
+   - **Explicit rebinding contract**: caller must unbind old and bind new property after replacement, but consider API ergonomics and lack of reliable detection for existing bidirectional binding.
+4. Report a clear recommendation that prioritizes avoiding silent model divergence. If no single option is supported by current usage/contract, identify EXACTLY the one design decision needed from the user.
+5. Assess whether stale `State.ERROR` on A reinstall and retained state after `setCustomImpl(null)` are independent correctness defects, and whether they can be addressed without silently imposing a new contract.
+6. Distinguish CONFIRMED runtime behavior, source-level mechanisms, and UNKNOWN external caller impact. Preserve existing accepted VF-001 and VF-002 regressions.
+
+### Strict scope
+
+**READ-ONLY investigation only this turn. Do not alter production, tests, public/protected API or publish a code commit.** You may add an evidence report to mailbox branch (not implementation branch). Do not treat GUI-013 time/mask or LOV full bootstrap as part of this task. Do not work on FXFormLauncher, BaseApp/login, JInvCommon, main, POM, D6/D7, logback, JInvXMLViewer, ru.inversion.diff or Caffeine.
+
+All Git/GitHub operations approved for mailbox reporting. No changes in working branch. Comments in Russian for any code samples.
+
+### Deliverable
+
+Post `## Reply VF-003` to `agent/codex-mailbox:docs/codex/outbox.md` with:
+- exact contract/usage evidence and ambiguity;
+- one recommendation and its compatibility risks;
+- concrete behavioral examples for after-bind replacement and null;
+- smallest next implementation or test task once design contract is chosen;
+- confirmation working branch unchanged and remote SHA.
+
+Stop for review; do not begin VF-004 or implement a speculative fix.
