@@ -1342,7 +1342,7 @@ Reply `## Reply GUI-012A` to `docs/codex/outbox.md` on mailbox branch with sourc
 
 ## MESSAGE VF-001
 
-**Status:** AWAITING USER VALIDATION
+**Status:** CLOSED
 **Priority:** Core Legacy typed-field data integrity; `JInvValueField<T>`
 **Repo/branch:** `ssu95a/fore25` / `migration/java25-correctness`
 **Expected remote HEAD:** `0ee740be4ff8a314a0a3b08f280b0bbda3cde770`
@@ -1418,3 +1418,96 @@ Reply `## Reply VF-001` to outbox with:
 - what remains UNKNOWN; specific recommendation for VF-002 LOV/custom listener lifecycle.
 
 Stop after VF-001; no automatic next task.
+
+
+---
+
+## MESSAGE VF-002
+
+**Status:** OPEN
+**Priority:** typed-field correctness / lifecycle, stale listeners and property-binding identity
+**Repository:** `ssu95a/fore25`
+**Working branch:** `migration/java25-correctness` (never modify `main`)
+**Expected remote HEAD:** `44b7fed91ebe394cc691f553d74847df043c7c54`
+
+### Completed independent user milestone: VF-001 CLOSED
+
+User ran on actual Java 25 / JavaFX 25 with custom Maven settings `D:\Java\.m2\settings.xml` and reported:
+
+```text
+COPY JInvIntegerField invalid full expected=[bad integer] actual=[bad integer]
+COPY JInvMoneyField invalid full expected=[bad money] actual=[bad money]
+COPY valid full and partial selections all as expected
+BINDING JInvIntegerField ... five field/model changes, six text events
+BINDING JInvMoneyField ... five field/model changes, six text events
+FOCUS JInvIntegerField ... fieldEvents=0 modelEvents=0 textEvents=0
+FOCUS JInvMoneyField ... fieldEvents=0 modelEvents=0 textEvents=1
+VF-001 PASS
+```
+
+Keep this tested typed-value and clipboard contract. Do not reopen VF-001 or undermine its regression. `JInvValueField` remains the common abstraction; no broad TextFormatter<T> redesign.
+
+### Focus A: `JInvTextField.setLOV()/unbindLOV()` listener ownership
+
+Production source inspected:
+- `setLOV(lovObj,...)` sets `this.lov` to the new provider, calls `onSetLov(this)`, then `addLovValueListener(lovObj)`.
+- `addLovValueListener()` installs anonymous `lov.valueProperty().addListener(o -> setTextValueFromLov())` and the callback dereferences **current** `getLOV()`, not necessarily the owner that fired the notification.
+- `unbindLOV()` clears the reference and removes the inner button but **does not detach** the previous listener. Repeated same LOV assignment can add duplicate callbacks.
+- `JInvValueField.setTextValueFromLov()` does `setValue(TypeConverter.convert(getLOV().getValue(), getClassValue()))`; the stale callback could mutate the new typed value or throw on null.
+- `AbstractLovBase` has static initialization accessing `BaseApp.APP().getViewPrefService()`; assess whether a real no-DB LOV subclass can be instantiated in standalone GUI probe without fatal BaseApp dependencies. Do not bypass production bootstrap, fake global BaseApp or alter license/login.
+
+Prove, if feasible on real JavaFX25, this sequence: install provider A, A value change; replace with B, mutate A, mutate B; install B again, mutate B once; unbind, mutate B and A; count actual field text, typed value changes and callbacks. Classify stale notifications, duplicate listeners, retained owner references and exceptions separately. Do not assert that the same LOV instance's reinstallation is an intended supported feature without checking the contract.
+
+Prefer a minimal test-only provider implementing the real `AbstractLovBase` API using public abstract methods with in-memory values only. If this is infeasible because genuine BaseApp is mandatory, report exact blocker and keep this LOV phase read-only; don't disguise stand-in behavior as production.
+
+### Focus B: `JInvCustomValueField<T>.setCustomImpl()` lifecycle and property identity
+
+Actual source:
+```java
+public void setCustomImpl(ICustom custom) {
+    this.custom = custom;
+    textProperty().addListener((observable, oldValue, newValue) -> {
+        if (custom != null) setState(custom.setText(newValue));
+    });
+}
+```
+- Each call registers a new text listener capturing that specific implementation. Old implementations may receive callbacks after replacement and duplicate calls when reinstalled.
+- `valueProperty()` delegates to `custom.valueProperty()`. Replacing `custom` might change property identity while a previous `Property.bindBidirectional(model)` remains bound to the old implementation, silently stranding the model.
+- `getClassValue()` also delegates and `custom == null` may be unsupported; don't invent semantics for setting null.
+
+Implement a standalone test-only `ICustom` counter with real JavaFX properties, no fake JInv controls. Record the exact observed callback sequence, current property identity, model identity/bidirectional synchronization, and state after A -> B -> B -> A (or smaller supported sequence), plus initial nonempty text behavior. Prefer a visible Stage and production skin. Treat runtime replacement support as UNKNOWN until evidence; if it is unsupported, report that rather than silently redesign it.
+
+### Approach and constraints
+
+**Phase 1 is RED diagnosis, not speculative repair.** Diagnose each candidate independently. If the cause and intended contract are clear and a narrow fix preserves public/protected methods and existing semantics, produce separate minimal production commits (LOV and custom), with targeted RED/GREEN tests. Otherwise keep test-only and report the required contract decision. No production changes solely for cosmetic cleanup.
+
+Key invariants (where feature is supported):
+- Mutating a detached/obsolete LOV must never update the active field.
+- Each active provider value change must produce at most one expected typed/text update; unbound providers must have no effect.
+- Replacing an ICustom must not continue invoking retired implementations; repeated setting must not duplicate callbacks.
+- If dynamic ICustom replacement is supported, its externally bound typed property must remain correctly synchronized; if impossible without API/contract redesign, flag BLOCKED and request explicit design decision rather than manufacturing a green result.
+
+Preserve `JInvValueField` core and its callback/clipboard rules; do not change public/protected API signatures or underlying business semantics. Only `JInvTextField`, `JInvCustomValueField` and a minimal dedicated test harness may be touched by justified fixes.
+
+### Verification
+
+Use user-established GUI runner `src/test/probes/Test-LegacyGuiSmoke.ps1`, add distinct mutually exclusive `-ValueLifecycle` flag (or two independent flags if a real LOV needs separate setup), preserving all existing GUI/VF probes and `-SettingsFile`. Production CSS, Java 25 and JavaFX 25, visible Stage, stable pulse barriers, no arbitrary sleeps. Test actual errors without swallowing FX-thread exceptions. Do not require external DB, credentials, a full FXFormLauncher, or JInvCommon changes.
+
+Existing Maven settings path is `D:\Java\.m2\settings.xml`. Pass as a runner parameter, NEVER hard-code into source. Run available local Maven compile, javac, parser, probe and relevant existing regressions. Distinguish source inspection, runtime confirmation and UNKNOWN. If no interactive desktop, mark GUI runtime UNKNOWN.
+
+No changes to `main`, JInvCommon, POM, wrapper, FXFormLauncher, D6/D7, GUI-013 time/mask fields, Caffeine, logback, JInvXMLViewer, ru.inversion.diff.
+
+All Git/GitHub operations user-approved: commit and push verified focused work to `migration/java25-correctness` without seeking additional approval, only fast-forward, verify remote SHA. Do not overwrite user changes. New comments in Russian.
+
+### Reply contract
+
+Publish `## Reply VF-002` to `agent/codex-mailbox:docs/codex/outbox.md` with:
+- source contracts/usage evidence for LOV replacement and dynamic ICustom;
+- RED repro per scenario, plus GREEN if fixed, with exact callback count/state/model/field values;
+- whether original bound value property identity remains valid;
+- exact diff, commit(s) and verified remote SHA;
+- exact PowerShell command `-ValueLifecycle -SettingsFile "D:\Java\.m2\settings.xml"`;
+- residual blockers and per-part status;
+- no full form/SQL claims.
+
+Stop after VF-002, do not automatically start the next task.
