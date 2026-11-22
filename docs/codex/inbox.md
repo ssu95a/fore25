@@ -1282,7 +1282,7 @@ Stop after GUI-012, no production fixes or follow-on task.
 
 ## MESSAGE GUI-012A
 
-**Status:** AWAITING USER VALIDATION
+**Status:** CLOSED
 **Priority:** Data integrity / constructor semantics of numeric Legacy JavaFX25 fields
 **Repository/branch:** `ssu95a/fore25`, `migration/java25-correctness`
 **Expected remote baseline:** `2077722f0fb27b807dfa9bbac4bf9f43cf1d3dbc`
@@ -1336,3 +1336,85 @@ Keep a dedicated regression including: valid "42" on Integer/Long/BigDecimal/Mon
 All Git/GitHub operations pre-approved by the user. Local validation with JDK25 and Maven; interactive FX test if available, otherwise mark UNKNOWN. If justified fix and test are checked, commit minimal changes and push fast-forward to `migration/java25-correctness`, verify remote SHA. If no justified fix, report findings without speculative production commit. Never change main/JInvCommon.
 
 Reply `## Reply GUI-012A` to `docs/codex/outbox.md` on mailbox branch with source usage/contract evidence, exact diff and commit, RED/GREEN results, effects of constructor ordering, remaining uncertainty and user's command including `-SettingsFile "D:\Java\.m2\settings.xml"`. Stop after this, do not start GUI-013 until this issue is classified.
+
+
+---
+
+## MESSAGE VF-001
+
+**Status:** OPEN
+**Priority:** Core Legacy typed-field data integrity; `JInvValueField<T>`
+**Repo/branch:** `ssu95a/fore25` / `migration/java25-correctness`
+**Expected remote HEAD:** `0ee740be4ff8a314a0a3b08f280b0bbda3cde770`
+
+### User decision: finish JInvValueField correctness before broadening components
+
+The user confirmed GUI-012A on real Java25/JavaFX25:
+
+```text
+CONSTRUCTOR initial JInvIntegerField text=[42] value=42 state=VALUE
+CONSTRUCTOR initial JInvLongField text=[42] value=42 state=VALUE
+CONSTRUCTOR initial JInvBigDecimalField text=[42] value=42.00 state=VALUE
+CONSTRUCTOR initial JInvMoneyField text=[42] value=42.00 state=VALUE
+CONSTRUCTOR initial JInvPercentField text=[42] value=42.00 state=VALUE
+All invalid String constructors: value=null state=ERROR
+All untouched focus loss: value unchanged, valueEvents=0
+GUI-012 PASS (tested matrix)
+```
+
+GUI-012A CLOSED. **Defer GUI-013 time/mask testing and FXFormLauncher** until the JInvValueField core-value work is decided.
+
+### Grounded architecture findings (already independently checked)
+
+- `JInvValueField<T>` extends `JInvTextField`, defines abstract `valueProperty()`, `getClassValue()`, public `getValue()/setValue()`, `getClipboardContent()`, `showLOV()`, `setTextValueFromLov()`.
+- `Binder.bindValueControl` bidirectionally binds `valueProperty()` directly to business `fxEntity` property. `Controls.getValue` returns `getValue()` for JInvValueField.
+- `JInvNumberField` retains last valid typed value while malformed draft has `state=ERROR`. This alone is NOT a proven save bug.
+- Actual standard form gate: `AbstractBaseController.configControls()` calls `getValidMan().initStateValidator(getContentPane())` in VM_INS/VM_EDIT/VM_NONE. `ValidMan.validate()` runs `stateValidator.validate()` first. `AbstractBaseController.internalOnClose()` calls `validMan.validate()` on standard OK in those modes, so an ERROR blocks that specific path. **Other custom actions directly reading business properties may bypass validation**; do not claim they do without evidence.
+- `JInvValueField.getClipboardContent()` copies `value.toString()` when all visible text is selected and typed value nonnull; for a partial selection it copies selected text with spaces removed. This creates a concrete candidate when visible text is invalid and `state=ERROR` while typed value is stale.
+- `JInvTextField.setLOV()` calls `addLovValueListener`, whose listener calls `setTextValueFromLov()` using the **current** `getLOV()`. `unbindLOV()` clears the LOV reference and removes its button but does not unregister that listener. Replacing LOV may retain old listeners. This is a separate listener-ownership candidate, not yet a runtime-proven bug.
+- `JInvCustomValueField.setCustomImpl()` adds a text listener on every call, capturing the passed implementation; potential duplicate callbacks when implementation replaced. Separate investigation.
+
+### Phase 1, mandatory: test the typed-field contract before changing production
+
+Create one narrow **visible JavaFX25 Stage** regression under `src/test/probes/gui`, one new mutually exclusive `-ValueFields` option in `Test-LegacyGuiSmoke.ps1`, preserving all existing modes and `-SettingsFile`.
+
+Use real `JInvNumberField` descendants at minimum `JInvIntegerField` and `JInvMoneyField` (optionally BigDecimal), production skin, no application/login/DB. Use an actual `SimpleObjectProperty<T>` bound **bidirectionally by the same JavaFX API** as Binder (call this a contract simulation, NOT a fully exercised Binder/FXEntity/form).
+
+Minimum observable matrix:
+1. Start null; set valid typed or text value; verify text/value/state/model and exact listener events.
+2. Enter invalid text after a valid value; verify `state=ERROR`, draft visible, last valid typed value preserved, business-property surrogate retains last valid value, **no silent new typed commit**, and no callback storm.
+3. Recover valid, clear to null and recover, including programmatic focus transitions. Count property notifications and confirm no unintended model mutation on mere focus changes.
+4. Copy **all selected text** via actual `getClipboardContent()` in both valid and invalid state; also partial selection with grouping spaces. Distinguish returned ClipboardContent from writing to OS Clipboard. Confirm whether INVALID visible draft copies stale numeric typed value. Source says yes, but run actual case.
+5. Inspect actual validation gate source, optionally exercise `ValidMan.StateValidator` with real controls if safe without BaseApp. Do not create fake BaseApp/TaskContext or call a broken mock form "real validation". Explicitly report standard gate proof vs custom-action UNKNOWN.
+6. No real DB/persistence assertion.
+
+### Phase 2: only a confirmed clipboard correction, if unambiguous
+
+If RED confirms invalid draft copied as old typed value, adopt this narrowly scoped invariant:
+
+> For `state=ERROR`, a full-text copy must NOT silently export the last valid typed value in place of the visible invalid draft.
+
+Prefer copying the selected visible text in this case, while preserving existing behavior for full valid-selection (`value.toString()`) and partial selections. Implement smallest possible fix in `JInvValueField.getClipboardContent()`, with RED/GREEN regression and null handling. **Do not change `JInvNumberField` numeric sync or standard validation behavior; don't overhaul `TextFormatter<T>`.** If impact on the historical clipboard contract cannot be safely determined, report the proof and proposed contract as UNKNOWN/NEEDS DESIGN instead of guessing.
+
+### Phase 3: source-level LOV and custom-value lifecycle audit only
+
+Record exact ownership and replacement issues in `setLOV()/unbindLOV()` and `JInvCustomValueField.setCustomImpl()`. If easy, use no-DB probes, but **DO NOT modify LOV or custom-value production in VF-001**. Propose VF-002 separately. Don't induce a BaseApp bootstrap bypass.
+
+### Limits and Git
+
+- No public/protected API signature changes.
+- No POM, Maven wrapper, JInvCommon or main writes.
+- No FXFormLauncher, SQLDataSet, D6/D7, time/masked fields, logback, XMLViewer, ru.inversion.diff or Caffeine changes.
+- Source comments Russian only.
+- The user's custom Maven path: `D:\Java\.m2\settings.xml`; runner must accept `-SettingsFile`, not hard-code it.
+- Local JDK25 compile/PS parse and real GUI runtime if available. Distinguish no-runtime UNKNOWN.
+- All Git/GitHub operations pre-approved. After verified focused changes, commit and fast-forward push only `migration/java25-correctness`; verify remote SHA, do not lose other work.
+
+Reply `## Reply VF-001` to outbox with:
+- confirmed source contracts, simulated Binder binding and validation gate limitations;
+- RED/GREEN reproduction including exact clipboard content;
+- exact diff/commit and remote SHA if published;
+- exact Windows command `-ValueFields -SettingsFile "D:\Java\.m2\settings.xml"`;
+- what remains UNKNOWN; specific recommendation for VF-002 LOV/custom listener lifecycle.
+
+Stop after VF-001; no automatic next task.
