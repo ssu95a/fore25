@@ -16,10 +16,12 @@ import ru.inversion.utils.U;
  */
 public class JInvNumberField< T extends Number > extends JInvValueField<T> {
 
+    private static final StringConverter<Number> DEFAULT_CONVERTER = new TypeStringConverter<>(Number.class);
+
     private boolean fromSetText = false;
     private boolean fromSetValue = false;
 
-    private StringConverter stringConverter = new TypeStringConverter<>( Number.class );
+    private StringConverter stringConverter = DEFAULT_CONVERTER;
 
     protected Property<T> valueProperty;
 

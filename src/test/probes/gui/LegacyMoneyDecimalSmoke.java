@@ -17,6 +17,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 import ru.inversion.fx.form.controls.AbstractBigDecimalField;
 import ru.inversion.fx.form.controls.IStateControl.State;
 import ru.inversion.fx.form.controls.JInvBigDecimalField;
@@ -310,17 +311,28 @@ public final class LegacyMoneyDecimalSmoke {
             moneyField.setValue(BigDecimal.valueOf(i + 1));
             monies.add(moneyField);
         }
+        int decimalDefaults = identities(decimals, JInvNumberField.class, "stringConverter");
+        int moneyDefaults = identities(monies, JInvNumberField.class, "stringConverter");
+        int decimalConverters = identities(decimals, JInvBigDecimalField.class, "g_decConverter");
+        int decimalProperties = identities(decimals, AbstractBigDecimalField.class, "valueProperty");
+        int moneyProperties = identities(monies, AbstractBigDecimalField.class, "valueProperty");
+        Object defaultConverter = read(JInvNumberField.class, "stringConverter", decimals.getFirst());
+        check(decimalDefaults == 1 && moneyDefaults == 1
+                        && defaultConverter == read(JInvNumberField.class, "stringConverter", monies.getFirst()),
+                "expected one inherited default across both batches, got decimal/money=" + decimalDefaults + "/" + moneyDefaults);
+        check(decimalConverters == BATCH && decimalProperties == BATCH && moneyProperties == BATCH,
+                "decimal conversion or typed properties were unexpectedly shared");
+        checkMoneyConverters(monies);
+        checkOrdinaryConverters(defaultConverter);
         System.out.println("MEMORY live batch per type=" + BATCH + " decimal lazy converters/formats="
                 + lazyConverters + "/" + lazyFormats
                 + " decimal converter/formatter identities="
-                + identities(decimals, JInvBigDecimalField.class, "g_decConverter") + "/"
+                + decimalConverters + "/"
                 + identities(decimals, JInvBigDecimalField.class, "formatter")
                 + " decimal/money typed property identities="
-                + identities(decimals, AbstractBigDecimalField.class, "valueProperty") + "/"
-                + identities(monies, AbstractBigDecimalField.class, "valueProperty")
+                + decimalProperties + "/" + moneyProperties
                 + " decimal/money inherited converter identities="
-                + identities(decimals, JInvNumberField.class, "stringConverter") + "/"
-                + identities(monies, JInvNumberField.class, "stringConverter")
+                + decimalDefaults + "/" + moneyDefaults
                 + " actual money converter/formatter identities=1/1 (static)");
         var refs = (List<?>) read(JInvBigDecimalField.class, "g_decimalFormatList", null);
         long live = refs.stream().filter(reference -> ((Reference<?>) reference).get() != null).count();
@@ -334,6 +346,47 @@ public final class LegacyMoneyDecimalSmoke {
         check(cache.size() == 250 && !cache.containsKey(oldest), "money cache did not evict old entry at expected bound");
         Reference.reachabilityFence(decimals);
         Reference.reachabilityFence(monies);
+    }
+
+    private void checkMoneyConverters(List<JInvMoneyField> fields) {
+        try {
+            var getter = JInvMoneyField.class.getDeclaredMethod("getConverter");
+            getter.setAccessible(true);
+            for (var field : fields) {
+                check(getter.invoke(field) == JInvMoneyField.stringConverter,
+                        "money field did not use the shared money converter");
+            }
+        } catch (ReflectiveOperationException failure) {
+            throw new IllegalStateException("money converter diagnostic unavailable", failure);
+        }
+    }
+
+    private void checkOrdinaryConverters(Object defaultConverter) {
+        var first = new JInvNumberField<Number>("7");
+        var second = new JInvNumberField<Number>("7");
+        Object firstDefault = read(JInvNumberField.class, "stringConverter", first);
+        Object secondDefault = read(JInvNumberField.class, "stringConverter", second);
+        check(firstDefault == defaultConverter && secondDefault == defaultConverter,
+                "ordinary number fields did not share the inherited default");
+        check(first.getState() == State.VALUE && second.getState() == State.VALUE
+                        && first.getValue().intValue() == 7 && second.getValue().intValue() == 7,
+                "ordinary default constructor conversion changed");
+        first.setConverter(new StringConverter<Number>() {
+            @Override public String toString(Number value) { return "custom:" + value; }
+            @Override public Number fromString(String text) { return Integer.valueOf(text.substring("custom:".length())); }
+        });
+        first.setText("custom:21");
+        second.setText("21");
+        check(first.getState() == State.VALUE && second.getState() == State.VALUE
+                        && first.getValue().intValue() == 21 && second.getValue().intValue() == 21
+                        && secondDefault == read(JInvNumberField.class, "stringConverter", second),
+                "custom parsing on one field affected the other");
+        first.setValue(22);
+        second.setValue(22);
+        check("custom:22".equals(first.getText()) && "22".equals(second.getText()),
+                "custom formatting on one field affected the other");
+        System.out.println("MEMORY ordinary default identities=" + (firstDefault == secondDefault ? 1 : 2)
+                + " custom/peer text=[" + first.getText() + "]/[" + second.getText() + "]");
     }
 
     private static int identities(List<?> objects, Class<?> owner, String name) {
