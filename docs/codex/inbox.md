@@ -1055,7 +1055,7 @@ Publish `## Reply GUI-009` to mailbox outbox with design findings, exact diff/co
 
 ## MESSAGE GUI-010
 
-**Status:** AWAITING USER VALIDATION
+**Status:** CLOSED
 **Priority:** Stage 4 JavaFX25 Legacy form lifecycle integration
 **Repository and branch:** `ssu95a/fore25` / `migration/java25-correctness`
 **Remote baseline SHA (verified):** `0a328b9f1ec960837862db2cd785abf2a42309ec`
@@ -1114,3 +1114,77 @@ Send `## Reply GUI-010` in mailbox outbox, including:
 - remaining limitations/risks and recommended next move.
 
 Stop at GUI-010, no automatic GUI-011.
+
+
+---
+
+## MESSAGE GUI-011
+
+**Status:** OPEN
+**Priority:** Full real Legacy form launcher lifecycle / JavaFX25 migration
+**Repository:** `ssu95a/fore25`
+**Working branch:** `migration/java25-correctness` (never modify `main`)
+**Expected remote HEAD:** `789c2e59de58a963701f72fa46fe5f02e3de3df8`
+
+### Confirmed GUI-010 and scope boundary
+
+The user independently ran `Test-LegacyGuiSmoke.ps1 -FormLifecycle` on Java 25 / JavaFX 25 with their custom Maven settings and obtained:
+
+```text
+FXML production controller initialized; CSS, TextArea skin and standard OK laid out
+OK -> WINDOW_CLOSE_REQUEST -> [ON_OK, ON_CLOSE] -> RET_OK; cleanup window closed
+GUI-010 PASS (standalone production FXML/controller and SDI close)
+```
+
+GUI-010 is CLOSED for **standalone real FXML/controller plus SDI close**, not for full launcher initialization, login, TaskContext or full BaseApp services.
+
+### Objective
+
+Advance to exercising the **real production `FXFormLauncher.show()` -> `AbstractBaseController.internalShow()` -> `initFormController()` -> `internalInit()`** path under JavaFX25. We want a *meaningful integration proof*, not an artificial PASS.
+
+### First: evidence-based architecture/feasibility analysis
+
+Investigate in actual source (not assumptions):
+- `FXFormLauncher.showInternal()` delegates to `AbstractBaseController.internalShow()`.
+- `BaseApp.APP().reportGuiLaunch()`, frame mode and view preference service prerequisites.
+- `BaseApp.start(Stage)` invokes `LoginManager.login()`, after-login work and main-frame startup; distinguish full application from a safe test entry point.
+- `beforeInit()`: `checkLicense()`, `ModuleService`, `initFormStateDecorator()`, data object/FXEntity setup.
+- `initFormController()`: TaskContext, ViewContext, session title action, keyboard, form initialization, show/close.
+- `ViewContext.of(Stage)` and actual production `JInvTextAreaForm.fxml` / controller.
+- Any direct/indirect DB connections, current user or licensing dependencies even with null or non-owned TaskContext.
+- Existing app bootstrap code or in-repository test/smoke fixtures; whether a *real configured BaseApp instance* can be started without login/DB, or requires a sanctioned corporate runtime.
+
+Explicitly distinguish: CONFIRMED requirements, hypothesized requirements, UNKNOWN.
+
+### Then: minimum safe executable test, ONLY if possible without fake application environment
+
+If feasible using **real production API and configured services**, construct a test-only visible JavaFX25 `-FullFormLauncher` scenario that:
+1. Starts a genuinely initialized BaseApp/service context, or documents the authentic minimal bootstrap.
+2. Invokes actual `FXFormLauncher` (not direct `FXMLLoader`, manual `controller.init()`, reflection/private-field mutation, fake `BaseApp.APP()`, or bypassing `beforeInit`).
+3. Observes lifecycle `BEFORE_INIT -> INIT -> AFTER_INIT -> RUNTIME`, real Stage, user action, `ON_OK -> ON_CLOSE`, callback and resource cleanup.
+4. No hidden network/DB/login/licensing bypass. No credentials included in repo, logs, or mailbox.
+5. Preserves GUI-010 and all prior smoke modes. Optional `-SettingsFile` remains supported (user path: `D:\Java\.m2\settings.xml`), but do not hardcode user path in source.
+
+If **full launcher is not safely runnable in an isolated context** because it really requires BaseApp services/DB/license/login, STOP and report the precise blocking dependency chain, and propose a minimal supervised GUI-011 corporate interactive experiment or an explicitly *smaller* no-login test. Do not create fake services, bypass checks, or label bare FXMLLoader coverage as a full launcher test.
+
+### Safety, scope, Git
+
+- Phase one is **read-only investigation**. Only create a test-only harness and launcher switch when a real, supported execution route is established.
+- Do not change production Java, Maven POM, public/protected APIs, BaseApp/LoginManager/TaskContext implementation, JInvCommon or `main`.
+- Do not touch D6/D7, deferred logback, JInvXMLViewer, ru.inversion.diff, Caffeine upgrade.
+- Do not require or expose corporate credentials or commit settings.xml.
+- Real JavaFX25 GUI results must reflect actual execution, not inferred code inspection.
+- Source comments (if added): Russian.
+- All Git/GitHub operations pre-approved by user; test-only commit and fast-forward push permitted after validation, verify SHA. Do not push an incomplete/speculative harness. Preserve user work.
+
+### Deliverable
+
+Write `## Reply GUI-011` in mailbox outbox with:
+- exact full-launcher initialization chain and evidence for each blocker;
+- minimal real safe plan / executable smoke, if feasible;
+- exact diff, commit SHA and verified remote SHA if anything published;
+- command for the user's PowerShell including `-SettingsFile "D:\Java\.m2\settings.xml"` if an executable probe exists;
+- validation results, explicit UNKNOWN for untested runtime;
+- precise narrowest next decision for subsequent work.
+
+Stop at GUI-011, no automatic GUI-012.
