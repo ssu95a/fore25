@@ -8,7 +8,11 @@
 - Read this file after `git fetch origin`.
 - For a reply, update `docs/codex/outbox.md` on the mailbox branch.
 - Keep production commits on the working implementation branch.
-- Never push production changes unless the task explicitly permits it.
+- **Standing user approval (2026-11-22): ALL Git/GitHub operations are PRE-APPROVED within the current assigned task.** Do not ask the user for authorization to use Git or GitHub. You may independently fetch, pull, create/switch task branches and worktrees, commit, cherry-pick, rebase/merge task branches, push, create/update PRs, tags, and update the mailbox when needed to accomplish the task. Publish completed, verified task commits to `migration/java25-correctness` without waiting for a separate push approval.
+- This standing approval supersedes **all earlier procedural requirements** to wait for permission before commit/push/merge/rebase, including task-local "NO push before review" and "one-time push approval" clauses. It does **not** expand the scope of code changes, authorize work on `main`, or waive correctness, tests, and reporting.
+- Before any write, verify the correct repository and target branch; preserve user changes and others' commits. Prefer fast-forward pushes. For a non-fast-forward or potentially destructive history operation, verify ancestry and exactly what would be overwritten; never silently discard someone else's work. If state is ambiguous, STOP and report BLOCKED for a technical reason, not to request routine Git permission.
+- `main` remains STRICTLY read-only, unless the user expressly changes this restriction. `JInvCommon` remains read-only. Do not push to another repository or branch unrelated to the assigned task.
+- Maintain one logical change per commit where practical, run available validation, and verify the remote commit SHA after push; report what was pushed and what remains UNKNOWN.
 - Public/protected API compatibility remains mandatory unless the task explicitly says otherwise.
 - JInvCommon is read-only and MUST NOT be changed.
 - New source comments must be in Russian.
@@ -738,7 +742,7 @@ Exact diff was independently reviewed: ONLY
 `src/test/probes/gui/LegacyEditorsSmoke.java`
 and `src/test/probes/Test-LegacyGuiSmoke.ps1` test-runner extension. No production/POM/API/JInvCommon changes.
 
-**Explicit one-time push approval:** If local HEAD is exactly the above commit, tree clean, remote branch HEAD exactly the above parent, and ancestry is linear, fast-forward push `migration/java25-correctness` **only to 22d2dffff9d48558193a3c95184fe1ed94b51244**. Never force push. If any discrepancy, stop as BLOCKED and report. Verify remote SHA.
+**Already accepted GUI-004 push (also covered by standing Git approval):** If local HEAD is exactly the above commit, tree clean, remote branch HEAD exactly the above parent, and ancestry is linear, fast-forward push `migration/java25-correctness` **only to 22d2dffff9d48558193a3c95184fe1ed94b51244**. Never force push. If any discrepancy, stop as BLOCKED and report. Verify remote SHA.
 
 ### Step B: GUI-005 investigate real Legacy table cell editing
 
@@ -774,7 +778,7 @@ If the Legacy editor requires application infrastructure or the available cell c
 - Use the user's custom Maven settings via existing environment (`MAVEN_ARGS` if set); do not hard-code personal paths.
 - Run locally available syntax/compile checks and report limitations.
 - Corporate/actual JavaFX25 GUI result UNKNOWN until user runs test.
-- One local test-only commit allowed for GUI-005, NO push before review.
+- One local test-only commit allowed for GUI-005. Git/GitHub push is pre-approved by the standing user instruction: once locally checked, push the task commit to the working branch and report its verified remote SHA. Do not wait for an additional approval.
 
 ### Reply
 
@@ -787,4 +791,4 @@ Publish `## Reply GUI-005` to `agent/codex-mailbox:docs/codex/outbox.md` with:
 - actual results vs UNKNOWN and failure diagnostics;
 - confirmation no production/API/JInvCommon/deferred changes.
 
-Stop for independent review. No GUI-006 work.
+Stop after reporting results and the push. No GUI-006 work.
