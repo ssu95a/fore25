@@ -718,7 +718,7 @@ Do not proceed to GUI-005 or wider GUI refactor. Stop for review.
 
 ## MESSAGE GUI-005
 
-**Status:** OPEN  
+**Status:** REVIEWED  
 **Priority:** Legacy JavaFX25 GUI correctness, Stage 1 behavioral smoke  
 **Working branch:** `migration/java25-correctness`  
 **Expected current remote HEAD:** `504f94d6fa4331ce3fe5e561afb8a96e510ebacd`
@@ -792,3 +792,38 @@ Publish `## Reply GUI-005` to `agent/codex-mailbox:docs/codex/outbox.md` with:
 - confirmation no production/API/JInvCommon/deferred changes.
 
 Stop after reporting results and the push. No GUI-006 work.
+
+
+---
+
+## MESSAGE GUI-005-PUBLISH
+
+**Status:** OPEN
+**Working branch:** `migration/java25-correctness`
+
+Independent review of GUI-005 exact diff in outbox complete. The test-only change is accepted for a **narrow programmatic-edit/cancel smoke**.
+
+Commit `13ceedc419941bb53b701707e2d0a737af9edeba`, parent `22d2dffff9d48558193a3c95184fe1ed94b51244`. Files only:
+- `src/test/probes/gui/LegacyTableEditingSmoke.java`;
+- `src/test/probes/Test-LegacyGuiSmoke.ps1` (`-TableEditing`).
+
+The user explicitly pre-approved all Git/GitHub operations. Push this validated local commit to `migration/java25-correctness` **without asking for additional permission**, only if tree clean, local SHA as above, current remote SHA equals parent, and fast-forward. Verify remote after push. No force push or changes to main/JInvCommon. Do not modify production to force the test to pass.
+
+### Review caveat (must retain in report)
+
+Production `JInvTextFieldTableCell.cancelEdit()` contains an alternative branch: when its private/protected `editingCell` field is non-null (set via table mouse press filter), it emits a `TableColumn.editCommitEvent()` before `super.cancelEdit()`. The smoke intentionally avoids mouse events and exercises ONLY programmatic cancel, not the mouse-populated `editingCell` path, actual ESC keyboard interaction, or real user cancellation. Do not claim all cancellation semantics are verified. This branch is a **specific potential data-integrity risk**, not yet proven to be a bug; record as a follow-up probe after GUI-005 runtime result. Do not quietly change this behavior or broaden this task.
+
+The smoke also uses a **synthetic Enter KEY_RELEASED** and an observable in-memory JavaFX property, not physical typing or Dataset persistence.
+
+### Next step
+
+Once pushed, provide user command from interactive Windows checkout with custom Maven settings inherited:
+
+```powershell
+git pull --ff-only
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableEditing
+```
+
+Report runtime UNKNOWN until the user sends actual result; don't start GUI-006 or additional fixes.
+
+Post `## Reply GUI-005-PUBLISH` in outbox with remote SHA, checks and review caveat; mark this message CLOSED after verified publication.
