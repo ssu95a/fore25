@@ -1,10 +1,19 @@
-param([switch] $Editors)
+[CmdletBinding(DefaultParameterSetName = 'Default')]
+param(
+    [Parameter(ParameterSetName = 'Editors')]
+    [switch] $Editors,
+    [Parameter(ParameterSetName = 'TableEditing')]
+    [switch] $TableEditing
+)
 
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 if ($Editors) {
     $probeId = 'GUI-004'
     $probeClass = 'LegacyEditorsSmoke'
+} elseif ($TableEditing) {
+    $probeId = 'GUI-005'
+    $probeClass = 'LegacyTableEditingSmoke'
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
