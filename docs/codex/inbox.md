@@ -1282,7 +1282,7 @@ Stop after GUI-012, no production fixes or follow-on task.
 
 ## MESSAGE GUI-012A
 
-**Status:** OPEN
+**Status:** AWAITING USER VALIDATION
 **Priority:** Data integrity / constructor semantics of numeric Legacy JavaFX25 fields
 **Repository/branch:** `ssu95a/fore25`, `migration/java25-correctness`
 **Expected remote baseline:** `2077722f0fb27b807dfa9bbac4bf9f43cf1d3dbc`
