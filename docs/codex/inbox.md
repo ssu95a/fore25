@@ -1890,7 +1890,7 @@ Publish ## Reply NUM-005 to docs/codex/outbox.md on agent/codex-mailbox with sou
 
 ## MESSAGE CTRL-001
 
-**Status:** ASSIGNED — READ-ONLY architectural and correctness audit of Controls
+**Status:** CLOSED — agent read-only audit complete (Java 25 / JavaFX 25); plain DatePicker silent write failure independently reproduced by agent on actual DSControlAdapter + ArrayDataSet, production unchanged. Report published in outbox. First follow-up: CTRL-002.
 **Priority:** CORRECTNESS / DATA INTEGRITY > LIFECYCLE / MEMORY > PERFORMANCE > JavaFX 25 COMPATIBILITY
 **Repo:** ssu95a/fore25
 **Working code branch (READ ONLY):** migration/java25-correctness
@@ -1923,3 +1923,37 @@ Audit the existing almost-1000-line static helper `src/main/java/ru/inversion/fx
 
 READ ONLY on migration/java25-correctness, main and JInvCommon. No implementation or test commits, no POM/wrapper changes, no code write to ANY production branch. Standard Git/GitHub operations APPROVED for reading and the mailbox report only.
 Publish `## Reply CTRL-001` into docs/codex/outbox.md on agent/codex-mailbox with exact source commit, scope, findings, evidence, and recommended next narrow task. Verify mailbox remote SHA. **STOP after CTRL-001**; no implementation, no CTRL-002 until assigned.
+
+---
+
+## MESSAGE CTRL-002
+
+**Status:** ASSIGNED — narrow correctness fix with RED/GREEN regression
+**Priority:** HIGH — prevent stale DatePicker value on DataSet navigation / null clear
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (never main)
+**Expected remote HEAD:** ca05ae3c991973f48269542309041fd3eaf426ec
+**Reply ID:** CTRL-002
+
+### Confirmed defect, not a hypothetical root cause
+
+CTRL-001 read-only GUI probe on Java 25.0.1 / JavaFX 25 reproduced a plain `javafx.scene.control.DatePicker` write omission in `Controls.setValue(Object,Object)`: after an initial 2025-01-02, write 2025-03-04 and subsequent null clear returned normally but retained 2025-01-02. A real `DSControlAdapter.bindControl(picker, null, row -> row)` and in-memory ArrayDataSet navigated twice; the mapping callback ran but the DatePicker showed the old date. Actual DB save and third-party plain DatePicker usage remain UNKNOWN. Agent's exact report is `## Reply CTRL-001` in mailbox outbox.
+
+Source-level cause: `Controls.setValue` accepts `control instanceof DatePicker` but writes only if also `JInvCalendarTime` or `JInvCalendar`; ordinary DatePicker falls out silently. `Controls.getValue` already reads ordinary DatePicker. This is a correctness/integrity concern, not a presentation-only problem.
+
+### One narrow fix
+
+1. Verify the starting HEAD and inspect current source/actual `DSControlAdapter` call path. Create a focused automated **RED** Java 25 / JavaFX 25 regression for an ordinary DatePicker through both `Controls.setValue` and real `DSControlAdapter` with in-memory ArrayDataSet. Assert typed `LocalDate` after row navigation and `null` clear. Prove failure before production edit.
+2. In `Controls.setValue` DatePicker branch only: retain the `JInvCalendarTime` path first, preserving `LocalDateTime` and its time component; for other DatePicker instances use existing `TypeConverter.convert(value, LocalDate.class)` and `DatePicker.setValue(...)` (thereby preserving JInvCalendar), with the narrowest readable diff. No new public API or unnecessary cast/branch rewriting.
+3. Add sentinels for `JInvCalendar` LocalDate and `JInvCalendarTime` LocalDateTime (nonzero time, null clear if supported) where a legitimate standalone fixture can construct them. If a Legacy calendar needs BaseApp/bootstrap, mark that part UNKNOWN and do not fabricate a fake application context.
+4. Check conversion failure cannot silently clear/replace a previously valid typed value, and that same-value assignment does not create a spurious value event. Keep `Controls.getValue` typed read behavior, editor-string distinction, untouched.
+5. Retain broad correctness coverage: MoneyDecimal current user-confirmed GREEN, and any existing controls/GUI regressions compatible with the environment. Do not loosen old assertions or alter their baselines.
+
+### Scope / acceptance
+
+- Production modification allowed ONLY in `src/main/java/ru/inversion/fx/form/controls/Controls.java`. Test-only changes may extend `src/test/probes/Test-LegacyGuiSmoke.ps1` and add/modify a dedicated GUI probe under `src/test/probes/gui/`. No changes to other production, POM, wrapper, dependencies, main or JInvCommon.
+- Preserve all public/protected signatures, constructor and DatePicker/Legacy semantics. New source comments in Russian. Keep GUI memory, getNodeList, disableControl, tooltip reflection, column metadata out of this task.
+- On real visible JavaFX 25 Stage if available: targeted RED before and GREEN after on direct + ArrayDataSet/DSControlAdapter date/null scenarios. Compile with existing Maven custom settings; keep PowerShell parsing and all previous dispatch modes working. If full visible GUI unavailable, report exactly what is UNKNOWN, not a claimed PASS.
+- All ordinary Git/GitHub operations APPROVED under project protocol: verify repo and branch SHA, preserve unrelated local changes, make small reviewed commit and fast-forward push to migration/java25-correctness, verify remote SHA, no force or destructive update.
+- Publish `## Reply CTRL-002` in docs/codex/outbox.md on agent/codex-mailbox: failure mechanism, exact diff/commit/SHA, direct and Dataset RED/GREEN, Legacy sentinels PASS/UNKNOWN, Windows recheck command with `-SettingsFile "D:\Java\.m2\settings.xml"`, plus any limitations.
+- Stop after CTRL-002. Do NOT start CTRL-003 or unrelated fixes.
