@@ -718,7 +718,7 @@ Do not proceed to GUI-005 or wider GUI refactor. Stop for review.
 
 ## MESSAGE GUI-005
 
-**Status:** REVIEWED  
+**Status:** CLOSED  
 **Priority:** Legacy JavaFX25 GUI correctness, Stage 1 behavioral smoke  
 **Working branch:** `migration/java25-correctness`  
 **Expected current remote HEAD:** `504f94d6fa4331ce3fe5e561afb8a96e510ebacd`
@@ -827,3 +827,57 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-L
 Report runtime UNKNOWN until the user sends actual result; don't start GUI-006 or additional fixes.
 
 Post `## Reply GUI-005-PUBLISH` in outbox with remote SHA, checks and review caveat; mark this message CLOSED after verified publication.
+
+
+---
+
+## MESSAGE GUI-006
+
+**Status:** OPEN
+**Working branch:** `migration/java25-correctness`
+**Starting remote HEAD (verified):** `13ceedc419941bb53b701707e2d0a737af9edeba`
+**Priority:** correctness and data integrity of real Legacy TableCell cancellation; make GUI runner reproducible with custom Maven settings.
+
+### Confirmed by user and GitHub
+
+On interactive Windows Java 25.0.1 / JavaFX 25 user ran `Test-LegacyGuiSmoke.ps1 -TableEditing` and reported:
+
+```text
+Java=25.0.1+8-LTS-27 JavaFX=25
+Legacy controls=file:/D:/Java/Projects/fore25/target/classes/
+Legacy table edit, single-property commit, Enter navigation/focus and cancel passed
+GUI-005 PASS
+```
+
+The commit `13ceedc4...` is already published to `migration/java25-correctness`. Treat GUI-005 as CLOSED **only for programmatic edit/synthetic Enter/programmatic cancel**.
+
+### Task A: runner correctness, own minimal commit
+
+The GUI runner repeatedly fails on the user's home Windows machine because Maven uses a *custom* `settings.xml` path. Current working workaround: session `$env:MAVEN_ARGS = "-s `"<settings.xml path>`""`, but this is fragile across fresh PowerShell sessions.
+
+Make a minimal backwards-compatible enhancement to `src/test/probes/Test-LegacyGuiSmoke.ps1` to support optional explicit `-SettingsFile <path>` (and optional `-LocalRepository <path>` only if truly needed), passing `-s <path>` as **separate native arguments** to the Maven call and validating existence; if omitted, preserve the existing `MAVEN_ARGS`/defaults. Handle spaces in Windows paths robustly, no hardcoded user-specific paths. Preserve GUI-001/004/005 launch flags and compatibility. For tests, verify PS parser and argument construction; no Maven credentials in logs. Do not change `pom.xml`, wrapper, project parent/repository definitions.
+
+### Task B: GUI-006 targeted cancel correctness smoke, separate minimal commit
+
+Inspect actual `src/main/java/ru/inversion/fx/form/controls/renderer/JInvTextFieldTableCell.java`, especially:
+- `tableMouseHandle` assigns `editingCell = getTableView().getEditingCell()` on mouse press;
+- `tableFieldKeyHandler` clears `editingCell` when ESC is pressed;
+- `cancelEdit()` emits `TableColumn.editCommitEvent()` with the editor's text if `editingCell != null`, before `super.cancelEdit()`.
+
+This conditional commit-on-cancel is a **confirmed code path**, but whether or when it violates intended UX semantics is UNKNOWN. Distinguish actual user cancellation via ESC, mouse-click-away committing, and pure `table.edit(-1,null)` from GUI-005. Do not assume every cancel should discard changes if Legacy contract intentionally commits on focus loss/mouse elsewhere.
+
+Create a focused test-only JavaFX 25 visible-Stage probe under `src/test/probes/gui/`, reusing the production Legacy `JInvTable`, `JInvTableColumn`, and `JInvTextFieldTableCell`; extend the runner with a distinct `-TableCancel` switch. Use observable in-memory properties to count **actual change events** and monitor TableColumn.editCommitEvent; ensure tests prove the mouse-handler field was set through real/synthetic mouse event through appropriate event routing, not reflection or private fields; capture before/after editor drafts, event count, focus and selected position. Verify scenarios separately:
+1. true ESC cancellation (actual key event handling path): no unintended model mutation;
+2. mouse press while editing, then cancel: does current code perform a commit? Record precise actual behavior and assess vs Legacy intent; fail only if an agreed invariant is violated;
+3. no mouse and programmatic cancel: same as GUI-005 control case;
+4. no double-commit or cross-row mutations.
+
+If it is not feasible to reproduce original mouse semantics without native pointer or BaseApp, do not pretend coverage; report UNKNOWN and explain minimal reproduction. Scope is **test-only** for now. **Do not alter production editor behavior** and do not change public/protected APIs until evidence and explicit correctness rationale are reviewed.
+
+Use Java25 existing project classes and custom Maven settings. Keep GUI-001/004/005 available. Separate code vs hypothesis, use reproducible diagnostics.
+
+### Git and reporting
+
+All Git and GitHub operations are PRE-APPROVED by user. Work only on `migration/java25-correctness` and mailbox branch, not `main` or JInvCommon. Once checks pass, commit task A and task B separately and **push fast-forward without asking**; verify remote SHA. Preserve any existing user changes.
+
+Write `## Reply GUI-006` in `docs/codex/outbox.md` with per-commit SHAs, code/diff for review, exactly what was verified locally, precise Windows commands including optional `-SettingsFile`, interactive runtime UNKNOWN until user report, and confirmed/hypothesized cancellation behavior. Stop after report. D6/D7, logback, XMLViewer, ru.inversion.diff all out of scope.
