@@ -1715,7 +1715,7 @@ Stop after NUM-001. Do not proceed to GUI-013 or NUM-002 without a new assignmen
 
 ## MESSAGE NUM-002
 
-**Status:** ASSIGNED — production correctness fix; Windows independent RED confirmed 2026-11-22
+**Status:** CLOSED — Windows independent validation GREEN on sign-only, full NUM-001 RED findings=1 (grouping only), 2026-11-23
 **Priority:** CRITICAL — preserve money typed value on incomplete sign-only user input
 **Repo:** `ssu95a/fore25`
 **Implementation branch:** `migration/java25-correctness` (never `main`)
@@ -1763,3 +1763,48 @@ User ran visible JavaFX 25 NUM-001 on Windows. Observed:
   powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -MoneyDecimal -SettingsFile "D:\Java\.m2\settings.xml"
   ```
 - **Stop after NUM-002**. Do not fix grouping, rewrite the parser, pursue memory optimizations, or begin NUM-003 until separately assigned.
+
+---
+
+## MESSAGE NUM-003
+
+**Status:** ASSIGNED — targeted correction of money grouping flag
+**Priority:** HIGH — formatter/parser roundtrip and financial correctness
+**Repo:** `ssu95a/fore25`
+**Implementation branch:** `migration/java25-correctness` (never `main`)
+**Expected remote HEAD:** `13b60790a434a9d261dde3392342d6184823ac6b`
+**Reply ID:** `NUM-003`
+
+### User-confirmed regression, Windows JavaFX 25
+
+- NUM-002 is independently confirmed GREEN: direct sign-only input (including spaces/NBSP) rejected; field preserves prior typed values with `State.ERROR` and zero typed-value events; signed recovery passes.
+- The sole outstanding RED in the unchanged MoneyDecimal matrix: `JInvMoneyField.initDefaultMoneyFormatter(2, '.', false)` in `Locale.US` still formats `12345.67` as `12,345.67`. `MoneyStringConverter` parses comma as decimal separator, so formatted string fails at the second separator. Full run: `NUM-001 RED findings=1`; failure in PowerShell runner line 123 is only the expected consequence of nonzero probe exit.
+- NUM-002 production commit is accepted. Preserve it.
+
+### Source-level root cause candidate, verify before editing
+
+`JInvMoneyField.initDefaultMoneyFormatter(int fraction, char decimalSeparator, boolean grouping)` creates a new `DecimalFormat`, sets grouping separator to space only when `grouping=true`, and sets grouping size 3, but does not call `setGroupingUsed(grouping)`. Thus `grouping=false` inherits the formatter's locale-specific default grouping behavior. The direct candidate is `g_moneyFormat.setGroupingUsed(grouping)` during formatter construction. Verify it actually removes grouping before accepting the fix.
+
+### One narrow production fix
+
+1. Ensure `grouping=false` disables thousands separators in the shared money formatter, regardless of locale's default grouping choice. Ensure `grouping=true` preserves existing space-separated formatting, scale and decimal separator behavior.
+2. Keep `MoneyStringConverter` grammar/cache, exact arithmetic, `JInvMoneyField` static formatter API, rounding, `JInvBigDecimalField` and other field semantics unchanged. Do not rewrite or generalize parsing to accommodate ambiguous comma grouping. No new dependencies.
+3. Extend the existing visible `-MoneyDecimal` regression with focused formatter/parser roundtrips for both grouping modes, including `Locale.US`, a comma decimal separator, negative values and a value with at least five integral digits. Preserve existing sign-only, high-precision, suffix, typed-property event and locale assertions. If testing another locale, restore global FORMAT locale and money formatter under `finally`/existing teardown. Make no claim about untested locale output.
+4. Confirm on a **previously existing field** that replacing global formatter settings alone does not alter its typed value or generate typed notifications. Avoid introducing an unsolicited text refresh or scale change. Explicitly distinguish formatted display behavior from underlying `BigDecimal`.
+5. Target result: **all assertions in `NUM-001` GUI smoke PASS, `NUM-001 PASS (tested invariants)` and exit code 0**. If any unexpected regression appears, do not mask or relax checks; report RED/UNKNOWN.
+
+### Scope, verification and publication
+
+- Production edits only in `src/main/java/ru/inversion/fx/form/controls/JInvMoneyField.java`; test edits may touch `src/test/probes/gui/LegacyMoneyDecimalSmoke.java` only if required. Do not touch `MoneyStringConverter.java`, runner, POM, Maven wrapper, `main` or `JInvCommon`.
+- Preserve public/protected API and constructors; source comments in Russian. GUI concurrency stress and per-instance memory tuning are **out of scope**. Do not begin NUM-004 or deferred GUI/LOV tasks.
+- Run available Java 25 / JavaFX 25 compilation and visible GUI smoke using existing Maven settings. If no real GUI session, mark runtime UNKNOWN and give an independent user command; no deceptive PASS.
+- All ordinary Git/GitHub operations are APPROVED under the mailbox protocol. Verify repo, expected branch HEAD, and clean relevant changes. Commit a minimal tested diff, fast-forward push to `migration/java25-correctness`, verify remote SHA; never force or overwrite user changes.
+- Publish `## Reply NUM-003` into `docs/codex/outbox.md` on `agent/codex-mailbox` with exact commit/SHA, source evidence, comparison of old/new behavior, test summary and clear PASS/RED/UNKNOWN. Include user rerun command:
+
+```powershell
+git pull --ff-only origin migration/java25-correctness
+git rev-parse HEAD
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -MoneyDecimal -SettingsFile "D:\Java\.m2\settings.xml"
+```
+
+**Stop after NUM-003.** Retained per-field memory work is a separate future assignment.
