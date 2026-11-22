@@ -937,7 +937,7 @@ Reply `## Reply GUI-007` in `docs/codex/outbox.md` with complete source/diff, co
 
 ## MESSAGE GUI-008
 
-**Status:** AWAITING USER VALIDATION
+**Status:** CLOSED
 **Priority:** CRITICAL, confirmed data-integrity defect, minimal production correctness fix
 **Repository:** `ssu95a/fore25`, **branch:** `migration/java25-correctness`
 **Expected remote HEAD:** `0b4b2d65b05ec637959ca3a81a81df5d4d650cd3`
@@ -995,3 +995,57 @@ Reply `## Reply GUI-008` in mailbox outbox including:
 - any remaining limitations, particularly physical click-away vs synthetic MouseEvent.
 
 Stop after GUI-008. Do not begin next task.
+
+
+---
+
+## MESSAGE GUI-009
+
+**Status:** OPEN
+**Priority:** Legacy JavaFX25 integration milestone, real data-bound visible table
+**Working repo/branch:** `ssu95a/fore25` / `migration/java25-correctness`
+**Expected remote starting HEAD:** `fa4af1b688b4e20662663a110bad2b86fe1fe48c`
+
+### Baseline and latest user acceptance
+
+User ran GUI-007 `-EditorReentry` against GUI-008 production fix on **Java 25.0.1 / JavaFX 25**:
+- FRESH editor: `Original`, other row `Other`;
+- Escape: original model unchanged, zero commit events;
+- reentry immediately and after pulse: editor reset to `Original`, not discarded draft;
+- untouched mouse-armed cancel: event `Original`, zero property changes;
+- first edit of row 1: editor `Other`, untouched cancel event `Other`, zero property changes;
+- `GUI-007 PASS`.
+
+Thus GUI-008 production defect is CLOSED for the user-run regression. Codex also reported local GUI-001/004/005/006 PASS after the fix. Separate physical input, DB persistence, and custom converters remain beyond this milestone.
+
+### Goal: go beyond isolated controls without broad refactoring
+
+Build a minimal **visible JavaFX25 integration smoke** that uses together:
+- real production `JInvTable`, `JInvTableColumn`, `JInvTableViewSkin`;
+- real production `DSFXAdapter.bindTable(...)`;
+- real JInvCommon `ArrayDataSet` with 3 distinct in-memory records (not a mock replacement for `IDataSet`);
+- a visible Stage with actual column values rendered.
+
+D3 already verified `DSFXAdapter` + `ArrayDataSet` selection sync on a **plain TableView with no columns and not-shown Stage**. GUI-009 must add materially new coverage: production Legacy Table/skin/columns on-screen, with real binding. No SQL database or network is needed here. Be precise: this is **not** `SQLDataSet` integration and not a full business form.
+
+Minimum checks, only if supported by real APIs:
+1. After bind, visible rows/columns render expected values, and table items reference the actual Dataset rows (no copy).
+2. UI-driven selection/navigation moves Dataset current row exactly once and keeps row identity, and Dataset-driven cursor change updates TableView selection with no feedback loop. Record listener counts for duplicate/recursive events.
+3. An in-memory row value update refreshes visible presentation according to the actual documented binding contract; if refresh is required, invoke the legitimate production mechanism and explain why.
+4. Adapter lifecycle `close()` detaches Dataset-level and navigation subscriptions as established in D4; no late callbacks to closed adapter. Do not assume closing adapter disposes the entire TableView.
+
+Before implementation, inspect `DSFXAdapter.bindColumns` and `JInvTable` / `JInvTableColumn` metadata/controller/skin dependencies. If a controller or BaseApp bootstrap is truly necessary, report exact minimal setup and whether user can run on corporate Windows. Do not smuggle in fake controllers, stub internals, or production changes merely to make a test pass. Prefer a smaller accurate proof and an explicit UNKNOWN rather than a misleading PASS.
+
+### Execution
+
+Prefer extending `Test-LegacyGuiSmoke.ps1` with one new mutually exclusive `-DataBinding` flag, reusing its `-SettingsFile` and Maven implementation, while preserving GUI-001/004/005/006/007 flags. Add one test-only GUI harness under `src/test/probes/gui/` if feasible. JDK 25 + JavaFX 25, no credentials/DB, visible Stage, production CSS, deterministic FX pulse barriers, useful failure diagnostics. Synthetic events vs physical interaction distinguished.
+
+No change to production Java, public/protected APIs, POM, Maven wrapper, JInvCommon or main. Avoid D6/D7, logback, JInvXMLViewer and ru.inversion.diff. New comments Russian only.
+
+### Git, verification and report
+
+Git/GitHub operations within task pre-approved. If a valid, locally type-checked **test-only** harness is achieved, commit and fast-forward push only working branch; verify remote SHA. If blocked by real application infrastructure, do **not** push speculative/incomplete smoke. Describe precisely what dependency is missing and smallest next step.
+
+Run source/PowerShell parse checks, Maven compile and javac when available. If GUI cannot be run on a real interactive desktop, mark GUI-009 runtime UNKNOWN. Do not claim SQLDataSet/business form support.
+
+Publish `## Reply GUI-009` to mailbox outbox with design findings, exact diff/commit, command including `-SettingsFile`, source vs hypothesis, local verification, and outstanding blockers. Stop after GUI-009 for review.
