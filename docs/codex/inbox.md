@@ -1188,3 +1188,91 @@ Write `## Reply GUI-011` in mailbox outbox with:
 - precise narrowest next decision for subsequent work.
 
 Stop at GUI-011, no automatic GUI-012.
+
+
+---
+
+## MESSAGE GUI-012
+
+**Status:** OPEN
+**Priority:** Critical field-value correctness and JavaFX25 GUI compatibility
+**Working repository/branch:** `ssu95a/fore25` / `migration/java25-correctness`
+**Expected remote HEAD:** `789c2e59de58a963701f72fa46fe5f02e3de3df8`
+
+### Scope and priority change (explicit user decision)
+
+The user has **deferred full `FXFormLauncher` and BaseApp integration**. Do not continue GUI-011, real app/login/TaskContext/ModuleService or create GUI-011 launcher tests. New focus: **`JInvTextField` and its descendants**, preserving Legacy business behavior on Java25/JavaFX25. Main objective is value correctness, input normalization, focus, validation state, LOV integration semantics, skin and listener lifecycle. No large refactor.
+
+### Actual hierarchy (independently inspected)
+
+```text
+javafx.scene.control.TextField
+└─ JInvTextField
+   ├─ JInvRegExpTextField
+   ├─ JInvTextFieldCUR ─ JInvCURTextField
+   └─ JInvValueField<T>
+      ├─ JInvNumberField<T extends Number>
+      │  ├─ JInvIntegerField
+      │  ├─ JInvLongField
+      │  └─ AbstractBigDecimalField
+      │     ├─ JInvBigDecimalField ─ JInvPercentField
+      │     └─ JInvMoneyField
+      ├─ JInvTimeField
+      ├─ JInvTimeFieldNew
+      ├─ JInvTextFieldFormatted
+      └─ JInvCustomValueField<T>
+```
+
+`JInvPasswordField` extends JavaFX PasswordField, not JInvTextField. Treat it as an adjacent but separate branch; assess inventory only for now. Include JInvTextArea only for shared ITextFieldBase boundary and avoid redoing GUI-004.
+
+Inspect independently all classes and actual inheritance; correct the inventory if needed, don't assume this list is exhaustive.
+
+### Confirmed code observations to investigate, not yet runtime bugs
+
+- `JInvTextField` constructs a real `JInvTextFieldButtonSkin`, installs case-sensitive `TextFormatter`, focus/selection cache, LOV hooks, custom context menu and tooltip. A subclass can replace this formatter.
+- `JInvNumberField` has two-way `textProperty`/typed `valueProperty` listeners with `fromSetText`/`fromSetValue` guards; conversion failures set `State.ERROR`; focus loss re-renders typed values unless state ERROR.
+- `AbstractBigDecimalField` scales BigDecimal on assignment with HALF_UP; `JInvMoneyField` has a static `DecimalFormat`, so consider shared format/concurrency and loss of precision/rounding in the appropriate future test.
+- `JInvTimeFieldNew` text-change listener accesses `newValue.charAt(0)` without empty guard, and calls `LocalTime.parse(newValue)`. This is a concrete candidate defect but has NOT been runtime confirmed. Include in inventory and isolate separately; do not fix speculatively or combine time work with numeric fixes.
+- `JInvTextFieldCUR` involves LOV and form initialization; likely needs controller/services for some cases. Do not assume database-free end-to-end LOV behavior.
+
+### Task A: focused architecture/correctness inventory
+
+Map each production subclass to: `textProperty`, typed `valueProperty`, `TextFormatter`/converter, focus normalization, validation states, null/empty handling, skin/LOV infrastructure dependencies. Rank risks by **data integrity / correctness > lifecycle > performance > cosmetic**. Identify what is safely testable with a visible Stage and no BaseApp/DB, and what remains UNKNOWN. Distinguish confirmed suspicious paths from real observed bugs.
+
+### Task B: first high-value GUI smoke, baseline and numeric family ONLY
+
+If feasible, implement **test-only** `-TextFields` flag on existing `src/test/probes/Test-LegacyGuiSmoke.ps1` preserving all existing flags and `-SettingsFile`. Create one minimal visible JavaFX25 smoke in `src/test/probes/gui/` using production:
+- `JInvTextField` and its actual `JInvTextFieldButtonSkin`;
+- `JInvIntegerField`, `JInvLongField`, `JInvBigDecimalField` and `JInvMoneyField` only when safe standalone constructors work.
+
+Prefer a small matrix with:
+1. initial null/empty/normal text values; `setText`, select/replace and focus changes;
+2. `textProperty` and typed `valueProperty` consistency after programmatic set, valid edits, invalid edits and recovery, with explicit state checks;
+3. integer/long limits, BigDecimal grouping/decimal separator/scale/rounding only where production contract is clear; no locale assumptions; ensure value does not silently mutate due to mere focus change;
+4. skin identity, context-menu ownership, optional external/inner button and orderly dispose/recreate if meaningful;
+5. detect unexpected exception on FX thread, recursive text/value updates, duplicate listeners/changes.
+
+Use exact expected behavior derived from source/contracts; no invented UX assumptions. Test can report precise OBSERVED vs UNKNOWN where behavior is unspecified, and separately fail on clearly violated invariants. Use deterministic FX pulses/timeout instead of arbitrary sleeps. Do not introduce tests that require login, real database, LOV data provider, credentials or stubbed BaseApp. No physical input claims for synthetic events.
+
+### Strict constraints
+
+- **FIRST PASS IS READ/TEST ONLY:** do not change production Java, public/protected APIs, POM/wrapper, JInvCommon, main, or deferred modules.
+- No work on FXFormLauncher, D6/D7, logback, XMLViewer, ru.inversion.diff, Caffeine.
+- New source comments must be Russian.
+- User's custom Maven settings path is `D:\Java\.m2\settings.xml`; test runner accepts `-SettingsFile`. Do not hardcode local path in code.
+- Preserve the already green GUI-001/004/005/006/007/009/010 switches.
+- If a standalone constructor relies on external infrastructure, report exact blocker and skip that subclass rather than fake a PASS.
+
+### Git/reply
+
+All Git and GitHub operations are pre-approved. Commit and fast-forward push only tested/reviewable **test-only** code on `migration/java25-correctness`, verify remote SHA, no force pushes or lost user changes. If implementation blocked, send inventory only and no speculative commit.
+
+Publish `## Reply GUI-012` to `agent/codex-mailbox:docs/codex/outbox.md` with:
+- full hierarchy and per-class behavior/risk matrix,
+- explicit confirmed vs hypotheses vs UNKNOWN,
+- exact source diff/commit SHA and remote SHA if code published,
+- Java25/local checks, interactive GUI status (UNKNOWN if not actually launched),
+- PowerShell command with `-SettingsFile "D:\Java\.m2\settings.xml"`,
+- recommendation for a separate GUI-013 time/masked-field probe.
+
+Stop after GUI-012, no production fixes or follow-on task.
