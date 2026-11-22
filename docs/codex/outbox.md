@@ -1307,3 +1307,24 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-L
 git pull --ff-only
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -DataBinding -SettingsFile 'C:\Path With Spaces\settings.xml'
 ```
+
+
+
+---
+
+## Reply GUI-010
+
+**Status** DONE for standalone production FXML/controller and SDI close. Test-only fast-forward from `0a328b9f1ec960837862db2cd785abf2a42309ec` to `789c2e59de58a963701f72fa46fe5f02e3de3df8` on `migration/java25-correctness`. The test commit and this reply are published atomically. Both remote refs are checked with `git ls-remote`. [Exact test and runner diff](https://github.com/ssu95a/fore25/commit/789c2e59de58a963701f72fa46fe5f02e3de3df8)
+
+**CONFIRMED in source.** `FXFormLauncher.showInternal()` delegates to `AbstractBaseController.internalShow()`. It calls `BaseApp.APP().reportGuiLaunch()` before FXML and later uses the application's view preference service for frame mode. `initFormController()` attaches TaskContext and ViewContext, initializes keyboard handling, installs Stage close/show handlers and calls `initViewSettings()`. First show invokes `internalInit()`, whose `beforeInit()` needs BaseApp ModuleService and can check a license. `AbstractBaseController.initialize(URL, ResourceBundle)` is the separate FXMLLoader entry point that binds the return properties and registers the lifecycle listener. `ViewContext.of(stage)` can wrap an explicit Stage without application globals. The existing production `JInvTextAreaForm.fxml` declares its own `JInvTextAreaFormController`, injected TextArea, and standard OK button.
+
+**CONFIRMED on local interactive Windows, Java 25.0.1 / JavaFX 25.** FXMLLoader loaded the production resource and exact production controller. The fixture explicitly supplied an existing Stage, ViewContext, String payload, edit mode, empty init properties and a return callback, with saved dimensions disabled. Package access lets it invoke the real controller `init()`, standard button configuration and register the real SDI `internalOnClose` handler without reflection, subclassing or stubbing BaseApp. `init()` populated the injected editor from controller data. A pulse confirmed visible production CSS, Legacy TextArea skin and laid-out controls. Programmatic OK fired the production action, which set the bound return result and dispatched one WINDOW_CLOSE_REQUEST. The real handler reached ON_OK then ON_CLOSE, delivered one RET_OK callback with no exception and hid the form. The production close-resource progress Stage appeared and disappeared, leaving no showing windows. This uses the no-entity, no-owned-TaskContext branch. Saved dimensions are disabled and the form collects no preference records, so the DAO's empty-list guard avoids SQL.
+
+**UNKNOWN outside this run.** Full launcher startup, first-show BEFORE_INIT/INIT/AFTER_INIT/RUNTIME orchestration, login, keyboard setup, ModuleService, licensing, nonempty preferences, owned TaskContext cleanup, SQLDataSet, business forms and physical input. The next launcher check needs an actual initialized BaseApp with the application services and the form's supported TaskContext, on a sanctioned desktop. A standalone Stage cannot exercise that entry point. GUI-009 remains user-confirmed PASS for ArrayDataSet, and Caffeine 2.9.3 Unsafe warnings remain DEFERRED third-party compatibility debt.
+
+**Verification.** Compiled all GUI probe sources on JDK 25. PowerShell parser and dispatch checks passed for all seven modes. Maven `-Pbuild compile` and dependency classpath resolution completed with existing custom settings and local cache, followed by `GUI-010 PASS` and exit 0. Standalone direct GUI invocation also passed. The unnamed-module and missing icon path warnings were nonblocking. Staged whitespace checks passed. Only the probe and test runner changed.
+
+```powershell
+git pull --ff-only
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -FormLifecycle -SettingsFile 'C:\Path With Spaces\settings.xml'
+```
