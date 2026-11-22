@@ -833,7 +833,7 @@ Post `## Reply GUI-005-PUBLISH` in outbox with remote SHA, checks and review cav
 
 ## MESSAGE GUI-006
 
-**Status:** OPEN
+**Status:** CLOSED
 **Working branch:** `migration/java25-correctness`
 **Starting remote HEAD (verified):** `13ceedc419941bb53b701707e2d0a737af9edeba`
 **Priority:** correctness and data integrity of real Legacy TableCell cancellation; make GUI runner reproducible with custom Maven settings.
@@ -881,3 +881,53 @@ Use Java25 existing project classes and custom Maven settings. Keep GUI-001/004/
 All Git and GitHub operations are PRE-APPROVED by user. Work only on `migration/java25-correctness` and mailbox branch, not `main` or JInvCommon. Once checks pass, commit task A and task B separately and **push fast-forward without asking**; verify remote SHA. Preserve any existing user changes.
 
 Write `## Reply GUI-006` in `docs/codex/outbox.md` with per-commit SHAs, code/diff for review, exactly what was verified locally, precise Windows commands including optional `-SettingsFile`, interactive runtime UNKNOWN until user report, and confirmed/hypothesized cancellation behavior. Stop after report. D6/D7, logback, XMLViewer, ru.inversion.diff all out of scope.
+
+
+---
+
+## MESSAGE GUI-007
+
+**Status:** OPEN
+**Working branch:** `migration/java25-correctness`
+**Expected remote HEAD:** `8ead483ae4eba6a972b474ea969aa783e953b33e`
+**Priority:** data integrity: stale editor draft across edit sessions in Legacy `JInvTextFieldTableCell`.
+
+### Evidence from user's actual interactive Windows Java25/JavaFX25 GUI-006 PASS
+
+```text
+PROGRAMMATIC BEFORE draft=[] model=[Original, Other]
+PROGRAMMATIC ACTION draft=[Draft PROGRAMMATIC] model=[Original, Other]
+PROGRAMMATIC AFTER draft=[Draft PROGRAMMATIC] model=[Original, Other] commitEvents=[] propertyChanges=[]
+MOUSE_THEN_ESCAPE BEFORE draft=[Draft PROGRAMMATIC] model=[Original, Other]
+MOUSE_THEN_ESCAPE ACTION draft=[Draft MOUSE_THEN_ESCAPE] model=[Original, Other]
+MOUSE_THEN_ESCAPE AFTER draft=[Draft MOUSE_THEN_ESCAPE] model=[Original, Other] commitEvents=[] propertyChanges=[]
+MOUSE_THEN_PROGRAMMATIC BEFORE draft=[Draft MOUSE_THEN_ESCAPE] model=[Original, Other]
+MOUSE_THEN_PROGRAMMATIC AFTER draft=[Draft MOUSE_THEN_PROGRAMMATIC]
+  model=[Draft MOUSE_THEN_PROGRAMMATIC, Other]
+  commitEvents=[...value=Draft MOUSE_THEN_PROGRAMMATIC]
+  propertyChanges=[...before=Original, after=Draft MOUSE_THEN_PROGRAMMATIC]
+GUI-006 PASS
+```
+
+Conclusions: no commit for unarmed programmatic cancel or mouse+ESC; single commit and model change for mouse-armed programmatic cancel. GUI-006 PASS means the existing code path was observed, NOT that cancellation is defect-free. Synthetic events used, physical click-away semantics remain UNKNOWN.
+
+**Additional confirmed observation:** after cancel, the reopened editor starts with the previous session's *discarded draft*, even while the model still reads `Original`. It is very likely because `startEdit()` reuses `textField` and sets cell label `setText(...)` but does not refresh the editor `textField.setText(...)` except when `updateItem(...)` happens.
+
+### Task: isolate stale draft data integrity scenario
+
+1. Inspect `JInvTextFieldTableCell.startEdit/updateItem/cancelEdit` and JavaFX25 TableCell lifecycle. Identify precise lifecycle conditions where a TextField draft is reused, whether intended initial edit text is blank or model current value, and whether deferred FX updates could repair it.
+2. Create a **test-only** GUI-007 targeted regression/reproducer in visible Stage with the production Legacy cell/skin, no DB. The key scenario should be:
+   - edit row 0, change draft, ESC to discard, assert model unchanged;
+   - reopen the same cell and *do not type any new text*;
+   - capture initial editor text and model value, and optionally mouse-armed click-away / `table.edit(-1,null)` to test whether the *previous, canceled draft* gets committed without fresh typing.
+   - Count commit events and property changes; verify other row untouched. Clearly distinguish synthetic event behavior from real mouse clicks.
+   - Include a control case of fresh edit as needed, and characterize whether a rendering/pulse event resets the text.
+3. The desired invariant for analysis is **a canceled draft must not silently become a committed model value on a later untouched edit**. Do not overconstrain exact initial text if Legacy intentionally starts edits blank. Report reproduced/unsupported/UNKNOWN precisely.
+4. Preserve GUI-001/004/005/006 runner behavior, add a distinct switch `-EditorReentry` with optional existing `-SettingsFile`; no hardcoded paths. The probe should produce intelligible reproduction output; a failure of an intended invariant should be labeled clearly. Reproducible known-bug diagnostics are acceptable, but don't pretend PASS means fixed.
+5. **TEST/INVESTIGATION ONLY** this iteration. Do NOT modify production Java editor, public/protected API, POM, JInvCommon, or deferred modules. Do not make speculative repair to pass smoke. No D6/D7.
+
+### Git/process
+
+The user pre-approved all Git/GitHub operations. Once syntax/compilation and test harness checks complete, commit this narrow test-only probe and push fast-forward to the working branch, verify remote SHA, without asking permission. Stop if user changes/conflicting history present. Source comments only in Russian.
+
+Reply `## Reply GUI-007` in `docs/codex/outbox.md` with complete source/diff, commit and verified SHA, code-level findings, exact user's PowerShell command with `-SettingsFile`, local validation, and interactive JavaFX25 result UNKNOWN pending user execution. No follow-up implementation or GUI-008 until evidence reviewed.
