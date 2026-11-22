@@ -1768,7 +1768,7 @@ User ran visible JavaFX 25 NUM-001 on Windows. Observed:
 
 ## MESSAGE NUM-003
 
-**Status:** ASSIGNED — targeted correction of money grouping flag
+**Status:** CLOSED — user independently confirmed Windows Java 25 / JavaFX 25 `NUM-001 PASS (tested invariants)`, `$LASTEXITCODE=0` (2026-11-23). Implementation commit `2f88c30e8b46f0eeb51433265b1d9faaaf2d2a54` accepted.
 **Priority:** HIGH — formatter/parser roundtrip and financial correctness
 **Repo:** `ssu95a/fore25`
 **Implementation branch:** `migration/java25-correctness` (never `main`)
@@ -1808,3 +1808,50 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-L
 ```
 
 **Stop after NUM-003.** Retained per-field memory work is a separate future assignment.
+
+---
+
+## MESSAGE NUM-004
+
+**Status:** ASSIGNED — one narrow per-instance retained-allocation optimization
+**Priority:** MEMORY — reduce unused objects per GUI numeric field; preserve correctness
+**Repo:** `ssu95a/fore25`
+**Work branch:** `migration/java25-correctness` (never `main`)
+**Expected remote HEAD:** `2f88c30e8b46f0eeb51433265b1d9faaaf2d2a54`
+**Reply ID:** `NUM-004`
+
+### Confirmed baseline and scope decision
+
+The user independently reran Java 25 / JavaFX 25 MoneyDecimal after NUM-003: `NUM-001 PASS (tested invariants)`, PowerShell `$LASTEXITCODE=0`. All tested sign-only, money grouping, rounding, long precision, locale, property notification and recovery scenarios remain GREEN. Do not undo this baseline.
+
+The user explicitly prioritizes **retained memory per GUI control** over speculative UI concurrency. Source and NUM-001 warm-batch probe observed 100 distinct *inherited default* `JInvNumberField.stringConverter` objects across 100 `JInvBigDecimalField` and also 100 across 100 `JInvMoneyField`, although these numeric subclasses override `getConverter()` and use their own converters. In `JInvNumberField`, the field is initialized with `new TypeStringConverter<>(Number.class)` once per instance.
+
+`TypeStringConverter<P>` stores only a final `Class<P> clazz`; `toString`, `fromString` delegate to `TypeConverter`, and `getType` returns the class. No mutable per-converter state is evident in its source. This makes sharing the default converter a **candidate**, not a proven safe change until actual behavior and usage are checked.
+
+Do not mistake `AbstractBigDecimalField.valueProperty` shadowing for a second allocated value property: the parent slot is not allocated in the observed numeric subclasses. Likewise the `JInvBigDecimalField` converter is nonstatic because formatting uses its owning field's settings; **do not** replace it with a global converter in this task.
+
+### Assignment: one measured, compatible optimization
+
+1. Establish a reproducible baseline using the existing `-MoneyDecimal` GUI smoke and read-only code/usage review. Verify actual converter identity, concrete `JInvNumberField` access and public `setConverter` semantics. Search for any in-repo consumer that depends on the distinct identity or mutability of the default converter. External corporate callers UNKNOWN.
+2. If the source/usage evidence supports it, replace per-instance construction of the **default** `TypeStringConverter<>(Number.class)` in `JInvNumberField` with a shared immutable default (for example, one private static final instance), while preserving the per-field converter slot and `setConverter` override semantics. The singleton must not override custom converters, change access modifiers or API signatures, or change subclass dispatch.
+3. Extend the same visible JavaFX 25 regression with memory *identity* assertions: 100 used Decimal and 100 Money fields should now refer to **one** inherited default converter, not 100; the independently required actual decimal converter and typed property instances remain distinct; actual Money converter remains shared. Cover two ordinary `JInvNumberField` instances and `setConverter` isolation (custom on A does not change B), without assuming exact retained byte sizes.
+4. Keep all existing MoneyDecimal correctness tests. Compare baseline versus changed GUI probe on Java 25 / JavaFX 25 and report original/optimized inherited converter identity counts, overall PASS and exit 0. Report retained bytes as UNKNOWN unless measured with suitable tooling. Do not claim overall footprint savings in exact byte counts from identities alone.
+5. If any relevant consumer relies on converter identity or mutation, or a behavior-preserving solution is not established, **STOP before production edit**; report BLOCKED with evidence rather than changing contract silently.
+
+### Strict boundaries
+
+- Only permitted production file: `src/main/java/ru/inversion/fx/form/controls/JInvNumberField.java`; test expansion only in `src/test/probes/gui/LegacyMoneyDecimalSmoke.java` as needed. Do not change `TypeStringConverter`, other field implementations, wrapper/POM, parser/formatters/caches, `main` or `JInvCommon`.
+- No change to public/protected signatures or behavior, numeric parse/rounding semantics, constructor init/late initialization, binding, events, display, error recovery or custom-converter assignment. Comments in new source must be Russian.
+- GUI concurrency, unrelated stale weak references, locale cache key, memory leak claims, and general refactors are outside NUM-004.
+- Keep all existing smoke flags and original assertions. Verify PowerShell parsing, Maven `-Pbuild` compile, probe javac and **visible** JavaFX 25 smoke if possible. If no real GUI session, report runtime UNKNOWN, don't claim GREEN.
+- All ordinary Git/GitHub operations are pre-approved. Verify repo/branch/HEAD and preserve local user work. Commit/push only verified minimal change via fast-forward to `migration/java25-correctness`; verify remote SHA, no force.
+- Publish `## Reply NUM-004` to `docs/codex/outbox.md` on `agent/codex-mailbox` with exact diff/commit, baseline/after memory identities, compatibility considerations, PASS/UNKNOWN, and reproducible user command:
+
+```powershell
+git pull --ff-only origin migration/java25-correctness
+git rev-parse HEAD
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -MoneyDecimal -SettingsFile "D:\Java\.m2\settings.xml"
+$LASTEXITCODE
+```
+
+**Stop after NUM-004.** Do not begin NUM-005 or additional memory optimization without a new assignment.
