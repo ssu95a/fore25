@@ -1435,3 +1435,36 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-L
 git pull --ff-only
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextFields -SettingsFile "D:\Java\.m2\settings.xml"
 ```
+
+
+
+---
+
+## Reply VF-001
+
+**Status** DONE. Fast-forward from `0ee740be4ff8a314a0a3b08f280b0bbda3cde770` to `44b7fed91ebe394cc691f553d74847df043c7c54` on `migration/java25-correctness`, published atomically with this reply and verified using `git ls-remote`. [Exact production and regression diff](https://github.com/ssu95a/fore25/commit/44b7fed91ebe394cc691f553d74847df043c7c54)
+
+**Typed data and validation contract.** Binder.bindValueControl binds the field's typed valueProperty bidirectionally to the FXEntity property. Controls.getValue returns that typed value for JInvValueField. The visible VF-001 probe uses the same JavaFX bindBidirectional API with SimpleObjectProperty as an in-memory model surrogate, and does not exercise Binder, FXEntity or an actual form. The actual standard OK source path in VM_INS/VM_EDIT/VM_NONE installs the StateValidator via configControls, calls ValidMan.validate in internalOnClose before onOK, and consumes the close request on failure. ValidMan runs the state gate before the other validators when validation proceeds. StateValidator rejects an ERROR control when it is not read-only. This is source evidence only. Actual custom actions, validators and business persistence remain UNKNOWN.
+
+**Interactive RED/GREEN, Windows Java 25.0.1 / JavaFX 25.** Same visible Stage and production skin with JInvIntegerField and JInvMoneyField before and after. Initial state was null/NULL. Model assignment updated both sides; valid editing, invalid draft, recovery, clear-to-null and second recovery ran in sequence. In ERROR, the visible invalid draft kept the last valid field and model value and made no typed change. Per field, the pre-focus sequence had five exact field/model transitions and six text notifications. Valid focus loss made zero typed/model changes and at most one text reformat. No callback storm observed.
+
+| Returned ClipboardContent | RED | GREEN |
+|---|---|---|
+| Integer full ERROR, visible bad integer | 42 | bad integer |
+| Money full ERROR, visible bad money | 12346.70 | bad money |
+| Integer full valid | 42 | 42 |
+| Money full valid, visible 12 346,70 | 12346.70 | 12346.70 |
+| Money grouped partial, selected 12 346 | 12346 | 12346 |
+| Both ERROR partial, selected bad | bad | bad |
+| Both empty and cleared | no string | no string |
+
+The RED run exited 1 only on the invalid full-copy checks. The GREEN run printed VF-001 PASS and exited 0. Tests invoked actual getClipboardContent directly. The OS clipboard and physical input were outside the matrix. The correction is confined to JInvValueField.getClipboardContent: on full nonempty ERROR selection it returns the exact selected visible text. Full valid copies still use the typed value when nonnull. Partial copies still remove spaces. The numeric synchronization and standard validation code were untouched. No public/protected API change.
+
+**Source-only lifecycle findings.** JInvTextField.setLOV sets the new reference, invokes onSetLov and adds a new anonymous listener to that LOV's valueProperty. Neither replacement nor unbindLOV detaches the old listener; unbind clears the reference and removes the button. The listener calls setTextValueFromLov with a lookup of the current getLOV, so stale notifications could act on the replacement or a null reference. Repeated same-instance registration can attach multiple listeners. JInvCustomValueField.setCustomImpl updates the current implementation used by valueProperty and adds a listener that captures the passed implementation. Prior listeners can still invoke replaced implementations; reattaching the same implementation can duplicate the callback. Replacement of a bound implementation may also strand the original property binding, pending proof. For VF-002, use a supported real no-DB LOV provider if available, exercise A -> B -> unbind and repeated same-provider install with callback counts, then independently test custom implementation replacement, clearing and property identity. No lifecycle production changes in VF-001.
+
+Maven -Pbuild compile and dependency classpath generation succeeded with the existing custom settings for both runs. All GUI sources compiled with JDK 25. PowerShell parser and nine dispatch modes passed. Staged whitespace checks passed.
+
+```powershell
+git pull --ff-only
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ValueFields -SettingsFile "D:\Java\.m2\settings.xml"
+```
