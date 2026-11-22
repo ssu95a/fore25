@@ -1001,7 +1001,7 @@ Stop after GUI-008. Do not begin next task.
 
 ## MESSAGE GUI-009
 
-**Status:** AWAITING USER VALIDATION
+**Status:** CLOSED
 **Priority:** Legacy JavaFX25 integration milestone, real data-bound visible table
 **Working repo/branch:** `ssu95a/fore25` / `migration/java25-correctness`
 **Expected remote starting HEAD:** `fa4af1b688b4e20662663a110bad2b86fe1fe48c`
@@ -1049,3 +1049,68 @@ Git/GitHub operations within task pre-approved. If a valid, locally type-checked
 Run source/PowerShell parse checks, Maven compile and javac when available. If GUI cannot be run on a real interactive desktop, mark GUI-009 runtime UNKNOWN. Do not claim SQLDataSet/business form support.
 
 Publish `## Reply GUI-009` to mailbox outbox with design findings, exact diff/commit, command including `-SettingsFile`, source vs hypothesis, local verification, and outstanding blockers. Stop after GUI-009 for review.
+
+
+---
+
+## MESSAGE GUI-010
+
+**Status:** OPEN
+**Priority:** Stage 4 JavaFX25 Legacy form lifecycle integration
+**Repository and branch:** `ssu95a/fore25` / `migration/java25-correctness`
+**Remote baseline SHA (verified):** `0a328b9f1ec960837862db2cd785abf2a42309ec`
+
+### User-confirmed milestone, GUI-009 CLOSED
+
+User independently executed GUI-009 on Windows, actual JDK25.0.1/JavaFX25:
+```text
+RENDER A/Alpha B/Bravo C/Charlie; dataset row identity preserved
+NAV [0->1] SEL [0->1] adapterNav=2
+NAV [0->1, 1->2] SEL [0->1, 1->2] adapterNav=3
+UPDATE before refresh=[Charlie] after adapter.refresh=[Charlie updated]
+CLOSE Dataset, navigation and row notifications observed independently; adapter=Callbacks[navigation=3, rows=0, dataset=1]
+GUI-009 PASS
+```
+The `sun.misc.Unsafe::objectFieldOffset` warning comes from `com.github.ben-manes.caffeine:caffeine:2.9.3` under JDK25; this is nonblocking for GUI-009. Record as **DEFERRED third-party compatibility debt**. Don't upgrade Caffeine without dependency-tree/root/compatibility evidence.
+
+### Main task: first real Legacy form with a controller
+
+Advance beyond the GUI-001/004/005/006/007/009 isolated controls and bare data-bound table. Investigate and, **only if feasible with real APIs**, construct a visible minimal true Legacy form using actual:
+- `JInvFXFormController` or a concrete subclass of `AbstractBaseController`,
+- JavaFX `FXMLLoader`, actual form FXML/FX declarations and production CSS,
+- `FXFormLauncher` / `ViewContext` / appropriate Stage lifecycle when possible,
+- real Legacy controls and optional `ArrayDataSet` without any database.
+
+Read and map actual initialization/bootstrap requirements, including `AbstractBaseController.initialize(...)`, form initialize/close handling, `FXFormLauncher.showInternal`, `ViewContext`, and any `BaseApp.APP()` / `TaskContext` assumptions. Do not assume GUI-009's controller-less binding proves form lifecycle. Inspect existing in-repo form samples/tests/resources.
+
+Build a **test-only** visible smoke for genuine form lifecycle, if achievable:
+1. FXML loader creates/attaches a real controller and injected `@FXML` Legacy controls.
+2. Real form stage appears with CSS and form component layout; record actual controller lifecycle entry points and conditions.
+3. At least one form-level behavior is exercised (e.g., controller action/validation/form state, or real controller-driven table dataset integration) through **production** paths, not just direct control manipulation.
+4. Form closes normally and releases/reconciles resources, without invoking DB.
+5. Document which full-launcher semantics, login, TaskContext, BaseApp services, prefs, and SQLDataSet still remain unverified.
+
+Prefer an `-FormLifecycle` mutually exclusive switch in `src/test/probes/Test-LegacyGuiSmoke.ps1`, preserving `-SettingsFile` and all prior switches. Add minimal Java/FXML under test/probe or test resources only; no fake production controller, reflection or stubbing of BaseApp globals. Use `AnimationTimer`/runLater barriers rather than sleeps. In-memory `ArrayDataSet` only if it naturally fits real form contract. If full `FXFormLauncher` genuinely cannot run without BaseApp/TaskContext, **do not rename bare FXMLLoader smoke a full launcher proof**: show exact blocker and choose an honestly scoped FXML/controller test, or stop with an evidence-based investigation.
+
+### Limits
+
+- FIRST PASS is TEST-ONLY, no production Java, public/protected API, Maven POM, wrapper, JInvCommon, or main changes.
+- Do not disturb D6/D7 or deferred logback, XMLViewer, diff and Caffeine.
+- New comments in Russian.
+- No credentials, SQL connections, login or dependence on corporate system services.
+- Custom `settings.xml` supported using existing optional `-SettingsFile`; do not hardcode any user path.
+- No overclaiming real business form lifecycle if only partial coverage.
+- Maintain behavior/API compatibility.
+
+### Process
+
+All Git/GitHub operations already PRE-APPROVED by the user. Commit only a reviewable, locally checked **test-only** result and fast-forward push to `migration/java25-correctness`; verify remote SHA. If the real controller/launcher cannot run under these constraints, report a specific blocked dependency and minimal next step rather than introducing fake shims. Avoid changing someone else's work, and never change main/JInvCommon.
+
+Send `## Reply GUI-010` in mailbox outbox, including:
+- lifecycle architecture findings (CONFIRMED / UNKNOWN),
+- exact diff and commit SHA if produced,
+- local verification and real GUI runtime status (UNKNOWN unless actually executed),
+- exact Windows command with `-SettingsFile`,
+- remaining limitations/risks and recommended next move.
+
+Stop at GUI-010, no automatic GUI-011.
