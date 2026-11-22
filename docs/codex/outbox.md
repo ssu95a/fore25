@@ -1755,3 +1755,27 @@ Flags and non-control lists are per-node or per-container retained state. Linked
 Fix only the silent plain DatePicker write branch in Controls.setValue. Use the existing direct and real DSControlAdapter/ArrayDataSet fixtures as RED/GREEN for new date and null clear; add sentinels for JInvCalendar LocalDate and JInvCalendarTime LocalDateTime (including time), no spurious notifications when assigning the same value, and the generic unsupported-type route. The expected narrow design is to retain the time-aware case first, then apply the existing LocalDate conversion to ordinary DatePicker as well. Before accepting a fix, verify the Legacy cases and no mutation on conversion failure. This addresses confirmed data integrity before read allocations or migration cleanup.
 
 **Validation and limits.** JDK 25.0.1 javac against repository compiled classes; actual JavaFX 25 toolkit runs on both classpath and named modules, using standalone controls and real in-memory Dataset adapter. No new production build, full form, SQL, BaseApp or physical input exercise. No new production, test, API, module or dependency changes.
+
+
+---
+
+## Reply CTRL-002
+
+**Status:** Implemented. RED/GREEN verified on Windows, Java 25.0.1 and JavaFX 25 with a visible Stage. Implementation commit: [dafb93d64e2a1a2d8cd47589aa6c672e574c35ca](https://github.com/ssu95a/fore25/commit/dafb93d64e2a1a2d8cd47589aa6c672e574c35ca), parent ca05ae3c991973f48269542309041fd3eaf426ec, on `migration/java25-correctness`.
+
+**Root cause and diff.** `DSControlAdapter.navigated` queues a call to `Controls.setValue` with the mapped row value. The DatePicker branch used to skip the write to a plain DatePicker because its LocalDate arm required JInvCalendar. The only production diff changes that inner `else if` to `else`. The JInvCalendarTime branch still comes first and uses the existing LocalDateTime conversion. Other DatePicker instances use the existing LocalDate conversion, including JInvCalendar. The typed read path, editor handling and signatures are unchanged.
+
+| Check | RED on parent, exit 1 | GREEN on implementation, exit 0 |
+| --- | --- | --- |
+| Direct DatePicker write and null clear | Old typed date retained in both cases | 2025-03-04, then null, from both the value property getter and Controls.getValue |
+| Real DSControlAdapter and in-memory ArrayDataSet | Cursor advanced to the second date and then a row with a null date, but the picker retained 2025-01-02 | Picker and typed read follow 2025-01-02, 2025-03-04, null |
+| Invalid string and repeated equal LocalDate | Invalid string silently ignored because the write was skipped | TypeConverterException, prior typed date preserved, zero change events. Equal LocalDate reassignment adds zero change events |
+| JInvCalendar and JInvCalendarTime | PASS | PASS. JInvCalendar accepts LocalDate and null. JInvCalendarTime retains 13:42:17 and accepts null |
+
+**Additional checks.** Same regression source on RED and GREEN. PowerShell parse, Maven compile with existing custom settings, MoneyDecimal, DataBinding (GUI-009) and default GUI smoke (GUI-001) all passed. Remaining GUI dispatch modes were left untouched and were not rerun. Database save and forms requiring BaseApp bootstrap were outside the standalone fixture.
+
+Windows recheck from the repository root:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -DatePickerBinding -SettingsFile "D:\Java\.m2\settings.xml"
+```
