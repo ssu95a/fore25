@@ -1962,7 +1962,7 @@ Source-level cause: `Controls.setValue` accepts `control instanceof DatePicker` 
 
 ## MESSAGE CTRL-003
 
-**Status:** ASSIGNED — narrow correctness fix with RED/GREEN regression
+**Status:** CLOSED — independent user Windows JavaFX 25 regression `CTRL-003 PASS`, exit code `0` (2026-11-23). Exact implementation `c21a17e0b2ba8305a02d405449052f9aa0b5b607` accepted; only tested traversal matrix confirmed.
 **Priority:** MED-HIGH — null Node leakage and predicate exception in Controls.getNodeList
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (never main)
@@ -1993,3 +1993,31 @@ CTRL-002 has user-confirmed `CTRL-002 PASS` on Windows. Preserve the DatePicker 
 - Git/GitHub actions are APPROVED under project protocol. Commit and fast-forward push only verified, minimal code/test changes to migration/java25-correctness after verifying expected HEAD; no force. Verify remote SHA.
 - Publish `## Reply CTRL-003` in docs/codex/outbox.md on agent/codex-mailbox with exact commit and diff, RED/GREEN cases, verified branch SHAs, caveats, and reproducible Windows command with SettingsFile `D:\Java\.m2\settings.xml`.
 - Stop after CTRL-003. Do not begin CTRL-004 without separate assignment.
+
+---
+
+## MESSAGE CTRL-004
+
+**Status:** ASSIGNED — READ-ONLY contract investigation and GUI probe (untracked only)
+**Priority:** CORRECTNESS / GUI STATE / BINDINGS and lifecycle
+**Repo:** ssu95a/fore25
+**Code branch:** migration/java25-correctness (READ ONLY)
+**Expected production HEAD:** c21a17e0b2ba8305a02d405449052f9aa0b5b607
+**Reply ID:** CTRL-004
+
+### Context
+
+CTRL-003 accepted after independent Windows JavaFX 25 `CTRL-003 PASS`, exit 0. We are continuing the Controls audit. CTRL-001 reported that `Controls.disableControl(Node,boolean)` throws `A bound value cannot be set` for `TextInputControl` with bound editable property, while a Button with bound visible stays visible. More subtly, `enableControl` currently forces editable/visible/focusTraversable rather than restoring prior state. Whether this is an intentional contract is unresolved. Do not silently turn this into a general preservation/restoration feature.
+
+### Read-only assignment
+
+1. Trace all in-repository uses of `Controls.disableControl`, `enableControl` and `disableControl(Node, boolean)` and callers that own multiple disable reasons. Trace `JInvTextField` special behavior, `TextInputControl`, `DatePicker`, `Button`, `ChoiceBox`, `ComboBoxBase`, JInvXMLViewer and bypassed containers. Record source-level intended semantics and public API dependencies, not just class branches.
+2. With actual Java 25 / JavaFX 25 controls on the FX thread, reproduce four independent dimensions: (a) unbound initially editable/visible/focusTraversable false states, (b) corresponding bound properties, (c) repeated disable/enable and event filters, (d) nested or overlapping disable reasons if supported by real call sites. Observe exact property values, binding state, exceptions, and actual click/editability behavior where possible. Do not invent unsupported application-level ownership protocols.
+3. Distinguish `setDisable(true)` from the existing specialized editable/visible/focus policy. Do NOT recommend blindly replacing it with Node.disableProperty; applications might rely on the current visual and keyboard semantics.
+4. Compare a minimal fail-fast or skip-bound-property handling policy with preserving previous state or caller-managed restoration. Discuss integrity/UX/compatibility and per-control retained allocations. In particular a cache of original state on every node has memory consequences. If a safe narrow change can be proven, propose one RED/GREEN task; otherwise state the single decision that requires user approval.
+5. Check for JavaFX 25 API limitations on bound properties; avoid general concurrency stress. Distinguish CONFIRMED runtime findings, SOURCE-PROVEN call paths, HYPOTHESIS and UNKNOWN. Any standard form/DB validation not runnable is UNKNOWN.
+
+### Constraints and report
+
+READ ONLY production and tests. Temporary untracked experiments under ignored target are allowed. No POM/wrapper/dependency changes, no commits to production branch, main or JInvCommon. All GitHub/Git operations APPROVED only for reading and posting the mailbox reply. Do not begin CTRL-005.
+Publish `## Reply CTRL-004` in docs/codex/outbox.md on agent/codex-mailbox, with method/caller map, reproduction matrix, state ownership alternatives, priority and ONE narrow next step with exact testing criteria. Verify mailbox SHA, working branch SHA and unchanged production.
