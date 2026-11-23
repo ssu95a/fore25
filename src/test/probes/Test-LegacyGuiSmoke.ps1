@@ -24,6 +24,10 @@ param(
     [switch] $DatePickerBinding,
     [Parameter(ParameterSetName = 'NodeTraversal')]
     [switch] $NodeTraversal,
+    [Parameter(ParameterSetName = 'RadioReadOnly')]
+    [switch] $RadioReadOnly,
+    [Parameter(ParameterSetName = 'RadioReadOnly')]
+    [switch] $RobotInput,
     [ValidateNotNullOrEmpty()]
     [string] $SettingsFile
 )
@@ -68,6 +72,12 @@ if ($Editors) {
 } elseif ($NodeTraversal) {
     $probeId = 'CTRL-003'
     $probeClass = 'NodeTraversalSmoke'
+} elseif ($RadioReadOnly) {
+    $probeId = 'CTRL-006'
+    $probeClass = 'RadioReadOnlySmoke'
+    if ($RobotInput) {
+        $probeArgs = @('robot')
+    }
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))

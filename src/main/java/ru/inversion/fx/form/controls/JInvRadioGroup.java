@@ -64,7 +64,9 @@ public final class JInvRadioGroup extends ToggleGroup implements IJInvControl, I
 
         readOnlyProperty().addListener( (obs, oldV, newV) ->
                 getToggles().forEach(t ->{
-                    if (t instanceof Control) {
+                    if (t instanceof JInvRadioButton radio) {
+                        radio.refreshReadOnly();
+                    } else if (t instanceof Control) {
                         Controls.disableControl( (Control)t, obs.getValue());
                     }
                 }));
