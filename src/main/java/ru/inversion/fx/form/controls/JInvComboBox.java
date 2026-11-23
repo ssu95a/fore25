@@ -2,8 +2,13 @@ package ru.inversion.fx.form.controls;
 
 import javafx.beans.property.*;
 import javafx.collections.ObservableList;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.scene.AccessibleAttribute;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +37,21 @@ public class JInvComboBox<T, R> extends ComboBox<T> implements IJInvControl, IVa
 
     private final static Logger logger = LoggerFactory.getLogger( MethodHandles.lookup().lookupClass() );
     private static final ResourceBundle foreBundle = ResourceBundle.getBundle("fore");
+    private static final EventHandler<MouseEvent> READ_ONLY_MOUSE_FILTER = Event::consume;
+    private static final EventHandler<KeyEvent> READ_ONLY_KEY_FILTER = event -> {
+        var combo = (JInvComboBox<?, ?>) event.getSource();
+        if (!combo.isReadOnly()) {
+            return;
+        }
+        boolean changesSelection = event.getEventType() == KeyEvent.KEY_PRESSED
+                && (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.DOWN)
+                && !event.isAltDown() && !event.isControlDown() && !event.isMetaDown() && !event.isShiftDown();
+        boolean commitsEditor = event.getEventType() == KeyEvent.KEY_RELEASED
+                && event.getCode() == KeyCode.ENTER && combo.isEditable();
+        if (changesSelection || commitsEditor) {
+            event.consume();
+        }
+    };
 
     private Function<T, R> valueFactory;
     private final RequiredState requiredState = new RequiredState(this);
@@ -39,6 +59,7 @@ public class JInvComboBox<T, R> extends ComboBox<T> implements IJInvControl, IVa
     final private ObjectProperty<State> stateProperty = new ReadOnlyObjectWrapper<>(this, "stateProperty", NULL);
     private BooleanProperty nullable = new SimpleBooleanProperty();
     private StringProperty nullText = new SimpleStringProperty(foreBundle.getString("COMBOBOX_NULL"));
+    private boolean restoreEditorEditable;
 
     public Function<T, R> getValueFactory() {
         return valueFactory;
@@ -84,6 +105,13 @@ public class JInvComboBox<T, R> extends ComboBox<T> implements IJInvControl, IVa
         return new JInvComboBoxListViewSkin<T>(this);
     }
 
+    @Override
+    public void show() {
+        if (!isReadOnly()) {
+            super.show();
+        }
+    }
+
     /** Переносит значение из editor в value*/
     public void forceCommitValue()
     {
@@ -93,7 +121,13 @@ public class JInvComboBox<T, R> extends ComboBox<T> implements IJInvControl, IVa
 
     private void init() {
         //setSkin(new JInvComboBoxListViewSkin<>(this));
-        readOnlyProperty().addListener((obs, oldV, newV) -> Controls.disableControl(this, obs.getValue()));
+        readOnlyProperty().addListener((obs, oldValue, readOnly) -> applyReadOnly(readOnly));
+        editableProperty().addListener((obs, oldValue, editable) -> {
+            if (editable && isReadOnly()) {
+                lockEditor();
+            }
+        });
+        addEventFilter(KeyEvent.ANY, READ_ONLY_KEY_FILTER);
         JInvKeyboardManager.initNaviationOnNode(this);
         nullableProperty().addListener((v,o,n) -> {
 //            logger.info("{}: setting nullable to {}",this,n);
@@ -107,6 +141,43 @@ public class JInvComboBox<T, R> extends ComboBox<T> implements IJInvControl, IVa
         });
         setConverter(new NullableConverterDecorator(getConverter()));
 
+    }
+
+    private void applyReadOnly(boolean readOnly) {
+        if (!focusTraversableProperty().isBound()) {
+            setFocusTraversable(!readOnly);
+        }
+        if (readOnly) {
+            if (isEditable()) {
+                lockEditor();
+            }
+            disarm();
+            hide();
+            addEventFilter(MouseEvent.MOUSE_CLICKED, READ_ONLY_MOUSE_FILTER);
+            addEventFilter(MouseEvent.MOUSE_PRESSED, READ_ONLY_MOUSE_FILTER);
+            addEventFilter(MouseEvent.MOUSE_RELEASED, READ_ONLY_MOUSE_FILTER);
+        } else {
+            removeEventFilter(MouseEvent.MOUSE_CLICKED, READ_ONLY_MOUSE_FILTER);
+            removeEventFilter(MouseEvent.MOUSE_PRESSED, READ_ONLY_MOUSE_FILTER);
+            removeEventFilter(MouseEvent.MOUSE_RELEASED, READ_ONLY_MOUSE_FILTER);
+            if (restoreEditorEditable) {
+                restoreEditorEditable = false;
+                if (!getEditor().editableProperty().isBound()) {
+                    getEditor().setEditable(true);
+                }
+            }
+        }
+        pseudoClassStateChanged(DISABLED_GREY_STATE, readOnly || isDisabled());
+    }
+
+    private void lockEditor() {
+        // Черновик, введённый до блокировки, не должен стать значением при потере фокуса.
+        cancelEdit();
+        TextField editor = getEditor();
+        if (editor.isEditable() && !editor.editableProperty().isBound()) {
+            restoreEditorEditable = true;
+            editor.setEditable(false);
+        }
     }
     /**
      *

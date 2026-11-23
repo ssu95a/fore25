@@ -26,7 +26,10 @@ param(
     [switch] $NodeTraversal,
     [Parameter(ParameterSetName = 'RadioReadOnly')]
     [switch] $RadioReadOnly,
+    [Parameter(ParameterSetName = 'ComboReadOnly')]
+    [switch] $ComboReadOnly,
     [Parameter(ParameterSetName = 'RadioReadOnly')]
+    [Parameter(ParameterSetName = 'ComboReadOnly')]
     [switch] $RobotInput,
     [ValidateNotNullOrEmpty()]
     [string] $SettingsFile
@@ -75,6 +78,12 @@ if ($Editors) {
 } elseif ($RadioReadOnly) {
     $probeId = 'CTRL-006'
     $probeClass = 'RadioReadOnlySmoke'
+    if ($RobotInput) {
+        $probeArgs = @('robot')
+    }
+} elseif ($ComboReadOnly) {
+    $probeId = 'CTRL-007'
+    $probeClass = 'ComboReadOnlySmoke'
     if ($RobotInput) {
         $probeArgs = @('robot')
     }
