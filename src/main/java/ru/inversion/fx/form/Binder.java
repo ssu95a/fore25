@@ -440,7 +440,7 @@ public class Binder {
 
         if (!U.containsNull(fxEntity, dialogController)) {
 
-            List<Object> listNonControlComponents = Controls.getNonControlComponentFromContainer(dialogController.getContentPane());
+            List<Object> listNonControlComponents = Controls.findNonControlComponents(dialogController.getContentPane());
             listNonControlComponents.forEach((Object t) -> {
                 if (t instanceof JInvRadioGroup) {
                     JInvRadioGroup group = ((JInvRadioGroup) t);

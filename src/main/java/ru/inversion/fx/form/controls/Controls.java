@@ -412,13 +412,14 @@ public class Controls {
             title = columnHeader; //имя столбца из textProperty
         }
 
-        if (columnHeader == null && column.getGraphic() != null && column.getGraphic() instanceof Label) {
-            columnHeader = ((Label) column.getGraphic()).getText();
+        if (S.isNullOrEmpty(columnHeader) && column.getGraphic() instanceof Label label) {
+            columnHeader = label.getText();
         }
 
         if ( column instanceof JInvTableColumn ) {
             JInvTableColumn invColumn = (JInvTableColumn) column;
-            JInvFXFormController<?> controller = ( (JInvTable) invColumn.getTableView() ).getController();
+            JInvFXFormController<?> controller = invColumn.getTableView() instanceof JInvTable<?> table
+                    ? table.getController() : null;
 
             if ( S.isNotNullOrEmpty(columnHeader) ) {
                 title = columnHeader; //если кто-то присвоил лейбл с текстом в качестве заголовка
@@ -430,7 +431,7 @@ public class Controls {
             }
 
             //Если название слишком короткое, стараемся взять тултип
-            if ( S.isNotNullOrEmpty(invColumn.getToolTipText()) && title.length() < 6 ) {
+            if ( S.isNotNullOrEmpty(invColumn.getToolTipText()) && (title == null || title.length() < 6) ) {
                 title = invColumn.getToolTipText(); //тултип
             }
         } else {
@@ -586,25 +587,22 @@ public class Controls {
 
     public static <C extends AbstractBaseController<?>> ReadOnlyObjectProperty<C> getControllerProperty( Node control )
     {
-        final Stream<Parent> streamOfParent = getParentStreamOfControl(control);
-
-        Optional<ReadOnlyObjectProperty<C>> opt
-            = streamOfParent
-                .filter(t -> t.getProperties().getOrDefault(JInvFXFormController.PROPERTY_CONTROLLER, null) != null)
-                    .findFirst().map(t -> (ReadOnlyObjectProperty<C>) t.getProperties().get(JInvFXFormController.PROPERTY_CONTROLLER));
-
-        return opt.orElse(null);
-
-        /*
-        Parent parent = getParentStreamOfControl( control ).filter( ( Parent t ) -> (t instanceof Pane || t instanceof SplitPane) &&
-                        t.getProperties().getOrDefault( JInvFXFormController.PROPERTY_CONTROLLER, null ) != null ).
-                findFirst().orElse( null );
-        if ( parent != null ) {
-            return (ReadOnlyObjectProperty<C>) parent.getProperties().get( JInvFXFormController.PROPERTY_CONTROLLER );
-        } else {
-            return null;
+        for (Parent parent = firstParent(control); parent != null; parent = parent.getParent()) {
+            if (parent.hasProperties()) {
+                Object property = parent.getProperties().get(JInvFXFormController.PROPERTY_CONTROLLER);
+                if (property != null) {
+                    return (ReadOnlyObjectProperty<C>) property;
+                }
+            }
         }
-        */
+        return null;
+    }
+
+    private static Parent firstParent(Node node) {
+        if (node instanceof Parent parent) {
+            return parent;
+        }
+        return node == null ? null : node.getParent();
     }
 
     /**
@@ -646,9 +644,9 @@ public class Controls {
         }
         if ( n instanceof SplitPane ) {
             SplitPane pane = (SplitPane) n;
-            pane.getItems().stream().forEach( item -> {
+            for (Node item : pane.getItems()) {
                 helperGetListControlsInternal( controlList, item, predicat );
-            } );
+            }
         } else if ( n instanceof TabPane ) {
             ( (TabPane) n ).getTabs().forEach( ( Tab t ) -> {
                 helperGetListControlsInternal( controlList, t.getContent(), predicat );
@@ -662,9 +660,9 @@ public class Controls {
                 !( n instanceof JInvXMLViewer ) &&
                 !( n instanceof JInvTable ) &&
                 !( n instanceof JInvTextField ) ) {
-            ( (Parent) n ).getChildrenUnmodifiable().stream().forEach( child -> {
+            for (Node child : ((Parent) n).getChildrenUnmodifiable()) {
                 helperGetListControlsInternal( controlList, child, predicat );
-            } );
+            }
         }
     }
 
@@ -677,9 +675,9 @@ public class Controls {
         }
         if ( n instanceof SplitPane ) {
             SplitPane pane = (SplitPane) n;
-            pane.getItems().stream().forEach( item -> {
+            for (Node item : pane.getItems()) {
                 helperGetListNodeInternal( nodeList, item, predicat );
-            } );
+            }
         } else if ( n instanceof TabPane ) {
             ( (TabPane) n ).getTabs().forEach( ( Tab t ) -> {
                 helperGetListNodeInternal( nodeList, t.getContent(), predicat );
@@ -693,9 +691,9 @@ public class Controls {
                 !( n instanceof JInvXMLViewer ) &&
                 !( n instanceof JInvTable ) &&
                 !( n instanceof JInvTextField ) ) {
-            ( (Parent) n ).getChildrenUnmodifiable().stream().forEach( child -> {
+            for (Node child : ((Parent) n).getChildrenUnmodifiable()) {
                 helperGetListNodeInternal( nodeList, child, predicat );
-            } );
+            }
         }
     }
 
@@ -706,7 +704,7 @@ public class Controls {
      происходит поиск внутри компонентов JInvCalendr Spinner JInvTable, также в результирующий лист не добавляются компоненты: ButtonBar
      */
     public static List<Control> getControlList( Parent parent, Predicate<Control> predicat ) {
-        List<Control> controlList = new LinkedList<>();
+        List<Control> controlList = new ArrayList<>();
         helperGetListControlsInternal( controlList, parent, predicat == null ? c -> {
             return true;
         } : predicat );
@@ -729,7 +727,7 @@ public class Controls {
      Метод поиска компонентов в компоненте родителе (например в Pane).
      */
     public static List<Node> getNodeList( Parent parent, Predicate<Node> predicat ) {
-        List<Node> controlList = new LinkedList<>();
+        List<Node> controlList = new ArrayList<>();
         helperGetListNodeInternal( controlList, parent, predicat == null ? c -> {
             return true;
         } : predicat );
@@ -775,15 +773,21 @@ public class Controls {
      Возвращает коллекцию прикладных компонентов из контейнера(панели).
      */
     public static List<Object> getNonControlComponentFromContainer( Parent contentPane ) {
-        List<Object> list = new ArrayList<>();
-        List<Object> listNonControlComponent = (List<Object>) contentPane.getProperties()
-                .getOrDefault( LIST_NON_CONTROL_COMPONENT, null );
-        if ( listNonControlComponent == null ) {
+        List<Object> list = (List<Object>) contentPane.getProperties().get(LIST_NON_CONTROL_COMPONENT);
+        if (list == null) {
+            list = new ArrayList<>();
             contentPane.getProperties().put( LIST_NON_CONTROL_COMPONENT, list );
-        } else {
-            list = listNonControlComponent;
         }
         return list;
+    }
+
+    /** Возвращает существующий список или пустой список без изменения свойств контейнера. */
+    public static List<Object> findNonControlComponents(Parent contentPane) {
+        if (contentPane == null || !contentPane.hasProperties()) {
+            return Collections.emptyList();
+        }
+        List<Object> list = (List<Object>) contentPane.getProperties().get(LIST_NON_CONTROL_COMPONENT);
+        return list == null ? Collections.emptyList() : list;
     }
 
     /**
@@ -916,35 +920,50 @@ public class Controls {
     }
 
     public static void scrollToNode( Node node, ScrollPane scroll ) {
-//        double hGap = 5;
-        double topViewPort = scroll.getViewportBounds().getMinY() * -1;
-        double bottomViewPort = topViewPort + scroll.getViewportBounds().getHeight();
-//        double heightOfControl = node.getBoundsInLocal().getHeight();
-//        double buttomPositionOfControl = (heightOfControl + hGap) * (rowIndex + 1);
-        double buttomPositionOfControl = getRecursiveBoundsOfParent( node, node.getBoundsInLocal(), scroll.getContent() )
-                .getMaxY();
-        if ( buttomPositionOfControl < topViewPort || buttomPositionOfControl > bottomViewPort ) {
-            scroll.setVvalue( buttomPositionOfControl / scroll.getContent().getBoundsInLocal().getHeight() );
-//            System.out.println("невидимый");
-        } else {
-//            System.out.println("видимый");
+        Node content = scroll.getContent();
+        if (content == null || node == content) {
+            return;
+        }
+        Bounds bounds = getRecursiveBoundsOfParent(node, node.getBoundsInLocal(), content);
+        Bounds layout = content.getLayoutBounds();
+        double viewportHeight = scroll.getViewportBounds().getHeight();
+        double travel = layout.getHeight() - viewportHeight;
+        double range = scroll.getVmax() - scroll.getVmin();
+        if (travel <= 0 || viewportHeight <= 0 || range <= 0) {
+            return;
+        }
+        double top = layout.getMinY() + travel * (scroll.getVvalue() - scroll.getVmin()) / range;
+        double destination = top;
+        if (bounds.getMinY() < top || bounds.getHeight() > viewportHeight && bounds.getMinY() >= top + viewportHeight) {
+            destination = bounds.getMinY();
+        } else if (bounds.getMaxY() > top + viewportHeight && bounds.getHeight() <= viewportHeight) {
+            destination = bounds.getMaxY() - viewportHeight;
+        }
+        if (destination != top) {
+            double fraction = Math.clamp((destination - layout.getMinY()) / travel, 0, 1);
+            scroll.setVvalue(scroll.getVmin() + fraction * range);
         }
     }
 
     public static void scrollToNode( Node control ) {
-        Controls.getParentStreamOfControl(control)
-                .filter((Parent t) -> t instanceof ScrollPane)
-                .findFirst().ifPresent(parent -> Controls.scrollToNode(control, (ScrollPane) parent));
+        for (Parent parent = control == null ? null : control.getParent(); parent != null; parent = parent.getParent()) {
+            if (parent instanceof ScrollPane scroll) {
+                scrollToNode(control, scroll);
+                return;
+            }
+        }
     }
 
     public static Bounds getRecursiveBoundsOfParent( Node node, Bounds bounds, Node parent ) {
-        Bounds boundsInParent = node.localToParent( bounds );
-        Parent parentOfNode = node.getParent();
-        if ( parentOfNode.equals( parent ) ) {
-            return boundsInParent;
-        } else {
-            return getRecursiveBoundsOfParent( parentOfNode, boundsInParent, parent );
+        Objects.requireNonNull(parent, "parent");
+        while (node != parent) {
+            if (node == null) {
+                throw new IllegalArgumentException("parent is not an ancestor of node");
+            }
+            bounds = node.localToParent(bounds);
+            node = node.getParent();
         }
+        return bounds;
     }
 
     public static void setTooltipStartTiming( Tooltip tooltip, int timeInMilisec ) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException {

@@ -2373,7 +2373,7 @@ public class AbstractBaseController<T> implements Initializable, IFormStateListe
         timeCheck.fixTime("INIT_RADIO_BUTTONS_GROUPS_1");
         List<Control> listRadioButton = Controls.getControlList(getContentPane(), null, JInvRadioButton.class);
 
-        List<Object> listNonControlComponents = Controls.getNonControlComponentFromContainer(getContentPane());
+        List<Object> listNonControlComponents = Controls.findNonControlComponents(getContentPane());
 
         listRadioButton.stream().map((Control t) -> {
             return (JInvRadioButton) t;
@@ -2395,7 +2395,7 @@ public class AbstractBaseController<T> implements Initializable, IFormStateListe
 
         // Так в момент заполнения Entity кнопки еще не были привязаны, вызываем
         // принудительно считывание значение из valueProperty
-        Controls.getNonControlComponentFromContainer(getContentPane()).stream()
+        listNonControlComponents.stream()
                 .filter((Object t) -> t instanceof JInvRadioGroup).forEach((Object t) -> {
             ((JInvRadioGroup) t).refreshSelection();
         });
