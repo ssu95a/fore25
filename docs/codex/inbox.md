@@ -2207,3 +2207,35 @@ Current JInvCheckBox.init() registers a readOnly listener that calls Controls.di
 - Git/GitHub operations APPROVED within task. Commit only verified minimal code/test changes, fast-forward push to migration/java25-correctness, confirm exact remote SHA; never force or discard user changes.
 - Publish `## Reply CTRL-009` to `docs/codex/outbox.md` on `agent/codex-mailbox`, including code/source cause, exact diff/SHA, RED/GREEN event/model counts, user vs programmatic distinctions, String subclass checks, retained-memory effect, and independent Windows rerun command (`-CheckBoxReadOnly -SettingsFile "D:\Java\.m2\settings.xml"`).
 - STOP after CTRL-009; no wider readOnly rework without new assignment.
+
+---
+
+## MESSAGE CTRL-010
+
+**Status:** ASSIGNED — READ-ONLY feasibility/correctness audit of JInvChoiceBox readOnly; NO production or tracked-test changes
+**Priority:** HIGH — prevent user-driven selection/model change without a large JavaFX skin reimplementation
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (READ ONLY)
+**Expected HEAD:** 5fc050d452e32adf55407512c8e9b5e9cc13fa75
+**Reply ID:** CTRL-010
+
+### Context and architectural guardrails
+
+The previous CTRL-005 read-only audit reproduced JInvChoiceBox already-open popup selection (value A → B) while readOnly=true. The same probe FAILED to open a closed ChoiceBox popup even when UNLOCKED, so do not claim a closed-popup user route without a fresh positive control. Agent must establish positive controls BEFORE negative assertions. The user previously chose to stop extensive JInvComboBox readOnly rework. For this ChoiceBox investigation, FIRST decide whether minimal input prevention is possible; do not silently expand into skin redesign.
+
+User contract: readOnly blocks USER-originated selection changes and bound model notifications, while ChoiceBox.setValue, selectionModel.select, JInvChoiceBox.setSelectedValue, Binder/DSControlAdapter navigation and other programmatic model writes must still work. ReadOnly need not block focus, viewing or programmatic API calls unless a narrow, explicitly justified choice is made. Never rely on temporary model rollback after notification.
+
+Source-confirmed: JInvChoiceBox constructors delegate readOnly to Controls.disableControl; Controls branch uses setFocusTraversable and mouse filters, and can throw on bound focusTraversable before installing filters. JavaFX 25 ChoiceBoxSkin has an independent ContextMenu popup and its RadioMenuItem action calls selectionModel.select(index) directly; filtering only the ChoiceBox node cannot intercept all already-open popup selections.
+
+### READ ONLY investigation tasks
+
+1. Inspect current JInvChoiceBox.java, Controls.disableControl, upstream JavaFX25 ChoiceBox, ChoiceBoxSkin, ChoiceBoxBehavior and ContextMenu input routes. Identify actual keyboard selection and popup opening/closing mechanisms, including input while control is already focused, F4/Alt keys/Space where supported, accessibility SHOW, popup item action and programmatic show()/hide(). Distinguish SOURCE-PROVEN from runtime.
+2. Build a temporary ignored-target Java 25 / JavaFX 25 visible Stage fixture with production JInvChoiceBox, at least items A/B, bidirectional SimpleStringProperty model, selection/value/model notification counters. Establish *working unlocked* positive controls separately for keyboard open/select and pointer popup selection. Exercise popup opened before locking, lock while showing, popup item select B, locked closed-popup open attempts, focused keyboard selection, and native disabled state. Targeted JavaFX event dispatch is valid for routing tests but bypasses mouse picking. Use JavaFX Robot only if exclusive Windows input is actually available and explicitly label its provenance; otherwise say NOT RUN.
+3. Specifically test readOnly/focusTraversable bound properties, source transitions after lock, exception propagation, and repeat lock/unlock. Test popup show() invoked explicitly by application under readOnly and any accessibility show/selection effects. Assess whether closing on lock plus guarding user-originated reopening (not blanket API mutation) can be minimal/compatible; do not assume all show() calls represent user input.
+4. Check real JInvChoiceBox `setSelectedValue(valueFactory)` and programmatic `setValue`, `getSelectionModel().select` while locked, binding/DSControlAdapter navigation (A/B/null if supported). No suppression of model-to-GUI flow, and no spurious event count from blocked user input. Search actual app usages for explicit show(), popup listeners, and any custom skins or declarative state expectations.
+5. Propose ONE narrow correction only if scope is demonstrably small, with exact entry-point strategy, proof that popup menu actions cannot write the model while locked, public API/compatibility effects, and estimated instance-state/listener/memory overhead. If a custom skin rewrite, broad Controls redesign or change to programmatic show() semantics is required, report BLOCKED/POLICY DECISION and recommend documentation instead. Avoid the unapproved JInvComboBox redesign scenario.
+6. Keep existing CTRL-009 -CheckBoxReadOnly and other accepted regression tests GREEN if rerun. Separate CONFIRMED runtime, SOURCE-PROVEN, HYPOTHESIS, UNKNOWN and what still requires Robot/real application validation.
+
+### Strict limits / report
+
+READ-ONLY investigation only. No production, tracked tests, POM, Maven wrapper, dependency, schema, or source changes; temporary probes only in ignored target. No commits to migration/java25-correctness, main or JInvCommon. No work on ComboBox, radio, calendar or unrelated controls. ONLY Git/GitHub write allowed is append `## Reply CTRL-010` to docs/codex/outbox.md on agent/codex-mailbox (mailbox protocol approved), with branch SHA, exact Java/JavaFX versions, positive/negative matrix, any minimal-proposal vs reason for rejecting a fix, and concrete next action. Do not assign or start CTRL-011.
