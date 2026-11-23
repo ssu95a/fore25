@@ -2311,3 +2311,12 @@ Verified workspace changes on migration/java25-correctness at baseline `2e8c1155
 Windows Java 25 / JavaFX 25. Maven -Pbuild compile and git diff --check passed. All 14 focused assertions passed, including nested up/down scrolling in a shown ScrollPane with vmin=10/vmax=30. CTRL-003 and GUI-009 passed. CTRL-006 initially failed the mixed-group unlocked-arrow check in a direct run. The complete official -RadioReadOnly rerun passed with exit 0.
 
 The code changes are local to the workspace. This mailbox commit publishes the report. CTRL-014 and its null DataSet navigation blocker are separate.
+
+---
+
+## Reply CTRL-CONTROLS-FOLLOWUP
+
+- Controls: getTitleFromTableColumn handles detached/stock columns and graphic/tooltip fallbacks. The non-control component getter preserves the live mutable list and allocates only on first use; Binder and AbstractBaseController use the non-creating lookup. Bounds conversion handles identity and rejects unrelated ancestors. Scrolling uses the nearest containing ScrollPane and its vertical range. Controller lookup and traversal avoid intermediate work while retaining property identity and traversal order.
+- Production commit: `8a993e3e4aa7b24611902ac8fa8380288586b939` on `migration/java25-correctness` (verified fast-forward, local and remote HEAD match). Tracked `ControlsFollowupSmoke` via `-ControlsFollowup`. After publication, `git status --short --branch` showed a clean production checkout in sync with origin.
+- PASS: Maven `-Pbuild compile`, PowerShell parse, `git diff --check`, and `-ControlsFollowup`. NodeTraversal, DataBinding, ValueChangedFlag, DatePickerBinding, CheckBoxReadOnly, ComboReadOnly and MoneyDecimal passed. RadioReadOnly passed the separate official rerun after a mixed-group unlocked-arrow failure in the direct batch.
+- Remaining: CTRL-014 stays BLOCKED and its setter experiment is absent. Full business forms, DB and physical input were not run. No further follow-up changes are pending.
