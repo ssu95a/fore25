@@ -2131,7 +2131,7 @@ CTRL-005 real Windows JavaFX 25 Robot showed noneditable JInvComboBox with A sel
 
 ## MESSAGE CTRL-008
 
-**Status:** ASSIGNED — READ-ONLY contract and correctness investigation; NO production changes
+**Status:** CLOSED — agent read-only audit reported in outbox; explicit user architecture decision (2026-11-23): do NOT pursue full JInvComboBox readOnly support. Existing CTRL-007 remains accepted, but readOnly must NOT be relied upon to prohibit user-originated value changes in business forms. No CTRL-009 production task.
 **Priority:** HIGH — JInvComboBox readOnly completeness and programmatic API compatibility
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (READ ONLY)
@@ -2158,3 +2158,13 @@ CTRL-007 currently overrides `JInvComboBox.show()` to return when readOnly. It a
 
 READ ONLY. No production, tracked-test, POM, Maven-wrapper, dependency, module or other repository changes. Temporary untracked probes under ignored target are allowed. main and JInvCommon remain read-only. Do not start CTRL-009 or unrelated JInvChoiceBox/CheckBox/Calendar work.
 All routine Git/GitHub operations APPROVED for reading and publishing the mailbox report only. Post `## Reply CTRL-008` in docs/codex/outbox.md on agent/codex-mailbox, including exact branch SHA, test matrix, proof of user vs programmatic origin, policy implications and ONE recommended next task. No implementation branch push.
+
+### Architecture decision after CTRL-008 (user, 2026-11-23)
+
+**NO FURTHER COMBOBOX READONLY REWORK.** The user chose to stop adding interception logic to JInvComboBox. Its `readOnly` property/API remains for compatibility and CTRL-007 is NOT reverted, but **complete suppression of user-originated edits is NOT guaranteed** and consuming applications must not rely on it to protect mutable business-model values.
+
+Documented reason: real JavaFX 25 inner-editor focus-loss implicit commit can write a model even when readOnly is active, especially with a caller-bound editable property; a diagnostic asymmetric converter also wrote without a new user draft. Other routes include popup, skin, and validation callbacks. Fully blocking every route risks extensive skin/control redesign, additional state/listeners and API incompatibility. The default popup `show()` behavior introduced in CTRL-007 is unchanged; programmatic show compatibility remains an acknowledged limitation.
+
+Usage guidance: do not use `JInvComboBox.setReadOnly(true)` as the mechanism of enforcing a business-form read-only state. For a noninteractive control, prefer native `Node.setDisable(true)` after verifying that programmatic DataSet/Binder updates remain functional in that particular form. For a visible inspection-only value, use a separate display control such as Label if its semantics fit. Retain validation at the business/model boundary independently of UI mode.
+
+No production changes, no rollback, no new tests or CTRL-009 assignment authorized by this decision. The remaining findings are explicitly ACCEPTED LIMITATIONS, not resolved defects. The next Controls-audit task should target a different component or issue and requires separate assignment.
