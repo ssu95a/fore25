@@ -1961,3 +1961,44 @@ $LASTEXITCODE
 ```
 
 For the Robot variant, add `-RobotInput` to that command only after obtaining exclusive mouse and keyboard access, including RDP. The probe checks unlocked input before interpreting locked cases.
+
+---
+
+## Reply CTRL-007
+
+**Status** — Implemented and verified on Windows with Java 25.0.1 and JavaFX 25. The production branch advanced from `6797a24554d40026025e49cd26d73f8503f93cd5` to `cf7b05c45319624f3f0134a78d59410484829af9` via fast-forward. Both remote SHAs were checked. [Exact commit and diff](https://github.com/ssu95a/fore25/commit/cf7b05c45319624f3f0134a78d59410484829af9)
+
+### Root cause and change
+
+The inherited JavaFX list behavior handles Up/Down by calling the selection model, even when the focused control has been removed from focus traversal. The previous Controls call also wrote focusTraversable before installing mouse filters, so a binding exception prevented mouse protection. An already-open popup has separate event routing. In editable mode the inner TextField could change a draft, which JavaFX committed on focus loss. [JavaFX 25 ComboBoxListViewBehavior source](https://raw.githubusercontent.com/openjdk/jfx/jfx25/modules/javafx.controls/src/main/java/com/sun/javafx/scene/control/behavior/ComboBoxListViewBehavior.java)
+
+Only `JInvComboBox.java` changed in production. It guards Up/Down before skin selection and guards the editable Enter-release commit. It toggles the existing three mouse-filter event types locally and leaves a bound focus property owned by its source. Locking closes and disarms the popup. Calls to show() while locked leave it closed, including explicit programmatic show() calls. Unlock restores normal opening. The existing skin and the combo's editable property stay in use. For the standard writable editor flag, locking cancels the current draft and makes the inner editor non-editable. Unlock restores the flag only if the combo changed it. No converter, valueFactory, nullable, value/selection property or native disabled setting is replaced. Additional retained state is a boolean, self-owned listeners and registrations for shared handlers. Memory in bytes was not measured.
+
+### RED and GREEN
+
+The tracked regression first ran before production modification and returned RED with unlocked controls passing. The final probe also ran against an isolated compile of the original JInvComboBox and returned 1. GREEN on the real `JInvComboBoxListViewSkin` with Maven `-Pbuild` returned 0. Both used a shown Stage and real controls and model listeners.
+
+| Case | Original | Fixed |
+| --- | --- | --- |
+| Unlocked Down/Up and arrow/popup mouse selection | Each supported gesture changed selection/value/model once | Same |
+| Retained focus on Down/Up, unbound and bound focus | Selection/value/model each changed once under readOnly | Desired A or B retained, zero selection/value/model events |
+| Bound focus source true/false, source changed while locked, repeated lock/unlock | Bound-value exception and mouse could open popup | Binding intact, no exception, locked popup stays closed; after unlock arrows and popup selection work once |
+| Popup already open before lock | B could still be chosen, one model change | Closed on lock, A retained with zero events |
+| Editable Backspace then focus loss | Draft changed and committed into selection/value/model | Standard editor inhibits edit, A retained and zero events; combo remains editable |
+| Programmatic and model writes under lock | Updates work | setValue, selectionModel.select, setSelectedValue, Controls.setValue and bidirectional model write work, one event in each observable per change |
+| Actual ArrayDataSet and DSControlAdapter under lock | A, B, null in editable fixture | Same, one event in each observable per row transition |
+
+PowerShell parsing, `git diff --check`, `-RadioReadOnly`, `-NodeTraversal`, `-DatePickerBinding`, `-MoneyDecimal` and `-DataBinding` passed. Model binding coverage used SimpleStringProperty and the real adapter. Full business forms, FXEntity Binder integration and DB persistence remain UNKNOWN. The standard editor test uses a round-tripping converter. A caller-owned binding on the inner editor's editable property is left intact; if it keeps the editor editable, editing through that custom configuration is outside the verified protection. Replacing the skin and other readOnly controls are outside CTRL-007.
+
+Input for this change was targeted JavaFX dispatch, including popup cell events. It verifies skin processing but targeted mouse dispatch bypasses native scene hit testing. Robot was not run without confirmation of exclusive mouse and keyboard access. Hand-operated input was not tested. The Windows Robot audit from CTRL-005 remains prior baseline evidence.
+
+Independent Windows recheck from the repository root:
+
+```powershell
+git pull --ff-only origin migration/java25-correctness
+git rev-parse HEAD
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ComboReadOnly -SettingsFile "D:\Java\.m2\settings.xml"
+$LASTEXITCODE
+```
+
+For Windows Robot input, add `-RobotInput` only once exclusive mouse and keyboard access, including RDP, is confirmed.
