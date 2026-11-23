@@ -1935,7 +1935,21 @@ Tracked `RadioReadOnlySmoke` first ran RED before production editing, using real
 | Membership and native disabled | Detach could leave stale flags, and unlock could clear the native disabled pseudo-class | Reassign, detach, reattach, old/new group toggles and native ancestor disable pass |
 | Mixed plain group | Arrow from a stock radio can select a locked Legacy peer | Blocked across late stock attachment, detach/reattach and bulk attachment. Unlocked arrow still selects the next radio. |
 
-The input assertions use targeted `Event.fireEvent` and a separate direct accessibility action. Targeted mouse events bypass native scene picking. Testing used no shared mouse or keyboard control. A new Robot run for CTRL-006 requires exclusive input confirmation and was not run; native hit testing after the fix and hand-operated input are UNKNOWN. The exclusive CTRL-005 Robot run remains baseline evidence. Full application forms, real FXEntity integration, radio-specific DataSet navigation, and DB persistence are UNKNOWN. `-NodeTraversal`, `-DatePickerBinding`, `-MoneyDecimal` and `-DataBinding` (GUI-009) passed on the final version. PowerShell syntax and `git diff --check` passed.
+The matrix above uses targeted `Event.fireEvent` and a separate direct accessibility action. Targeted mouse events bypass native scene picking. Full application forms, real FXEntity integration, radio-specific DataSet navigation, and DB persistence are UNKNOWN. `-NodeTraversal`, `-DatePickerBinding`, `-MoneyDecimal` and `-DataBinding` (GUI-009) passed on the final version. PowerShell syntax and `git diff --check` passed.
+
+### Exclusive Windows Robot verification
+
+With the user's confirmation of exclusive mouse and keyboard access, the same tracked probe ran on Windows Java 25.0.1 / JavaFX 25 with Robot input. Both unlocked positive controls for Space and click passed on each revision, as did unlocked Right. The baseline exited 1 and the published fix exited 0 with `CTRL-006 PASS`.
+
+| Input case | Baseline | Published fix |
+| --- | --- | --- |
+| Robot click, both owners locked | A, zero model notifications | A, zero |
+| Robot click, either owner releases while the other holds | B, one notification for each release case | A, zero in both cases |
+| Robot Space on B with retained focus and Right from A, any locked case | B, one notification | A, zero |
+| Robot Right from a stock radio into a locked Legacy radio in a mixed group | B, including after detach/reattach and bulk attach | Arrow does not change selection. The stock radio stays selected. Unlocked Right still selects Legacy. |
+| Full unlock and separate programmatic updates while locked | B, one notification per tested change | B, one notification per tested change |
+
+Robot exercised Windows input routing and mouse picking. The accessibility action and explicit programmatic writes in the run were direct calls. Hand-operated input remains UNKNOWN.
 
 Independent Windows recheck from the repository root:
 
