@@ -2280,3 +2280,37 @@ All routine Git/GitHub actions APPROVED for reading and publishing mailbox repor
 **NO JInvTextField READONLY REWORK** is authorized from CTRL-011. Keep existing production and compatibility API unchanged. Do not add blanket TextFormatter vetoes, input filters, state snapshots, rollback or skin changes on this task. A future independently scoped fix for bound-property exception must be evaluated separately and must not be presented as complete readOnly support.
 
 Usage guidance: do not rely solely on the control's readOnly flag to protect business-model writes. Enforce authorization and validation at model/action/persistence boundaries. For display-only interaction use a suitable view; native disable may be an option after checking retained context-menu/LOV state and programmatic model-to-control updates in the actual form. This is the same policy category as accepted JInvComboBox and JInvChoiceBox limitations. No CTRL-012 is being assigned.
+
+---
+
+## MESSAGE CTRL-012
+
+**Status:** ASSIGNED — READ-ONLY feasibility/correctness investigation for JInvCalendar and JInvCalendarTime
+**Priority:** HIGH — date and datetime model integrity under readOnly
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (READ ONLY)
+**Expected remote HEAD:** 5fc050d452e32adf55407512c8e9b5e9cc13fa75
+**Reply ID:** CTRL-012
+
+### Goal / accepted architecture
+
+The user requested progression to the next Controls audit. CTRL-010 JInvChoiceBox and CTRL-011 JInvTextField were closed with explicit ACCEPTED LIMITATIONS because broad skin/input interception would be disproportionate. DO NOT resume either workstream or quietly redesign calendar controls. Analyze first whether a MINIMAL, correctness-preserving change exists; do not modify production in CTRL-012.
+
+Contract: readOnly=true means USER-originated modifications must not alter date/datetime or bound business model, but programmatic `setValue`, `dateTimeValue` updates, `Controls.setValue`, Binder, DSControlAdapter and DataSet navigation must continue working. In inspection state, copying/selection/focus may be useful. No after-the-fact value rollback that transiently notifies model.
+
+CTRL-005 Windows Java25/JavaFX25 audit already established: closed JInvCalendar/JInvCalendarTime popup did not open via tested F9 and arrow pointer gestures while locked. However an already-open JInvCalendar popup remained open after switching readOnly=true; targeted day-cell selection changed March 10 to March 12, and the live control value changed. Those targeted events bypass OS pointer picking. Real Robot or physical input post-change UNKNOWN. Original readOnly lock delegates to Controls.disableControl(DatePicker), which changes editable but doesn't hide existing popup. Source: JInvCalendar.show() gates on editable; F9 also checks editable; JInvCalendarTime synchronizes LocalDate and LocalDateTime and can preserve the time component during date change.
+
+### READ-ONLY investigation matrix
+
+1. Verify exact production HEAD and inspect BOTH JInvCalendar constructors (JInvCalendar() vs JInvCalendar(LocalDate)), JInvCalendarTime, factory skin feature `JInvDataPickerSkin` (when BaseApp.APP() exists), JavaFX25 DatePicker/DatePickerSkin/DatePickerContent and Controls.disableControl. Identify all ordinary user input routes: keyboard F9/F4/Alt arrows, arrow click, typing into editor, focused key events, date cell selection, popup already open, accessibility expand/commit and context menu. Distinguish JavaFX source analysis from actual runtime. Do not silently treat the default skin as custom BaseApp skin.
+2. Build ignored-target, untracked visible Stage fixture with actual JInvCalendar and JInvCalendarTime, unlocked positive controls for popup and day selection, bound LocalDate/LocalDateTime or real adapter where supported, and counters for date/value/model notifications. Include date change March 10 -> March 12 and CalendarTime fixed time 13:42; verify time preservation. Test lock before opening and lock after popup is showing, then day cell input. Test popup show/hide programmatically while locked and any native disabled interaction.
+3. Bound editableProperty or other bound writable flags: verify that readOnly listener does not throw and, if it does, whether a user can still modify the date/datetime and notify bound model. Test dynamic source true/false while locked and round-trip lock/unlock. Native `setDisable` and ancestor disable must not be assumed to automatically close existing popups.
+4. Test user-oriented text entry/commit (including focus loss and forced commit) and calendars' editor converter, formatting/invalid drafts, null clearing, and value/dateTimeValue propagation. Distinguish direct PROGRAMMATIC forceCommitValue/setValue from user-originated triggers such as validation mouse filters. Do not confuse normal model updates with user input. If any setup paths fail even unlocked, mark UNKNOWN instead of counting a locked PASS.
+5. Include explicit `LocalDate` and `LocalDateTime` programmatic writes under lock, actual `ArrayDataSet`/`DSControlAdapter` and any specialized adapter or Binder path relevant to each control, including null if supported. Check exact notification counts and absence of value/time loss. Note JInvCalendarTime's inherited readOnly and two-way date/datetime listeners.
+6. Assess if a single popup close on locking and narrowly gating reopening could solve the confirmed already-open popup case without breaking programmatic show() and current public API. Consider the default JavaFX skin and BaseApp-provided custom skin separately. If the popup can still commit through independent child handlers, or strict support requires skin redesign/formatters, report ACCEPTED-LIMITATION recommendation with evidence rather than proposing incomplete hardening. Any proposed future edit must be scoped and include per-instance state/listener allocations and lifecycle risks; exact retained bytes UNKNOWN unless measured.
+7. Use targeted JavaFX dispatch for diagnostic routing but explicitly label it; Robot only if exclusive Windows input is available. Establish positive controls first. Distinguish CONFIRMED runtime, SOURCE-PROVEN, HYPOTHESIS, UNKNOWN. Full business forms, DB persistence, externally supplied skin are UNKNOWN unless genuinely tested.
+
+### Strict scope and report
+
+READ ONLY. No production or tracked test edits, commits to implementation branch, dependency/POM/module/skin changes, no JInvCommon or main writes. Temporary probes may reside only in ignored target. Do NOT start CTRL-013 or unrelated controls. Ordinary Git/GitHub reading and mailbox report publication APPROVED.
+Publish `## Reply CTRL-012` to docs/codex/outbox.md on agent/codex-mailbox. Include exact SHA, Java/JavaFX versions, unlocked and locked matrix, input provenance, binding/model notification counts, CalendarTime date-time integrity, risk/compatibility and ONE recommended decision or minimal separate future task. Confirm production remained at baseline SHA.
