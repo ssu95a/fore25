@@ -2349,3 +2349,44 @@ Independent Windows rerun:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ChoiceAdapter -SettingsFile "D:\Java\.m2\settings.xml"
 $LASTEXITCODE
 ```
+
+---
+
+## Reply CTRL-016
+
+**Status:** READ-ONLY audit complete. CTRL-014 remains BLOCKED on the null policy. **Base:** `47c31310fac24692dc1b7b3118a127825de52a01`, verified local and remote after published DONE CTRL-015. Windows Java `25.0.1+8-LTS-27` / JavaFX `25`; actual controls, FX thread, direct programmatic operations. No synthetic or physical input was needed. Probe and exact event log are under ignored `target/ctrl016`.
+
+**CONFIRMED runtime.** Started each operation at B/index 1. Counts are selected-item/value/model notifications; index events and DataSet navigation are listed separately. Plain fixtures bind a T-valued property. The FXEntity fixtures use the actual production Binder and an annotated entity with an Integer field R.
+
+| Fixture / operation | Index transitions | Item/value/model changes | DataSet navigation / exception |
+| --- | --- | --- | --- |
+| A/B, positive non-null selection; structured key 2 → Row B | 0→1 | 1/1/1; Controls.getValue returns T | 0→1 for specialized adapter; no exception |
+| Any fixture, direct setSelectedValue(null) | none, stays 1 | 0/0/0 | none |
+| A/B, native setValue(null), clearSelection or select(-1) | 1→-1 | 1/1/1 | Specialized cursor stays 1, with no navigation event |
+| A/B/null and structured A/B/null, same three clear operations | 1→-1→2 | 1/1/1 | Specialized cursor 1→2 once, no exception without mapped FXEntity binding |
+| Explicit select(2) or valid DataSet navigation to literal null row | 1→2→-1→2 | 1/1/1 | One cursor event 1→2 when specialized |
+| Valid DataSet navigation to A; invalid DataSet -1/99 or selection 99 | A: 1→0; invalid: none | A: 1/1/1; invalid: 0/0/0 | A: 1→0 once; invalid: no event, cursor unchanged |
+| Mapped FXEntity with Row::key, non-null in both directions | A↔B once per call | 1/1/1 per direction, key 1↔2 | No exceptions or duplicate model notification |
+| Mapped FXEntity with Row::key, A/B, native setValue(null) and clearSelection | 1→-1 | 1/1/0, stale key 2 | One NullPointerException through FX thread handler |
+| Same strict FXEntity plus specialized A/B/null, native clear or DataSet nav to null | Clear 1→-1→2; navigation 1→2→-1→2 | 1/1/0, stale key 2 | Cursor 1→2 once; one NullPointerException |
+| Same specialized fixture with null-aware mapper | Same index and cursor transitions | 1/1/1; model becomes null | No exception; cursor still moves to row 2 |
+| Mapped FXEntity receives model key null; selected non-null item can itself project null | Key write leaves selection/cursor unchanged. Explicitly selecting a non-null item with a null key keeps that item selected. | Key change emits one model event in each case | No exception |
+
+Additional sentinels: with [A,null,B] and Row::key, a scan for matching key 2 or unmatched key 99 threw before reaching the tail, with zero selection/model/navigation events. Production Controls.setValue still threw Unsupported class control for both 2 and null.
+
+**SOURCE-PROVEN.** Controls.getValue exposes the control value T, with its existing empty-string normalization. The setter has no ChoiceBox branch. setSelectedValue scans for raw item equality or projected R equality and skips null input entirely; a scan can call the mapper on a null list element. FXEntity Binder uses bidirectional T binding without a factory; with a factory it projects cb.getValue unconditionally and calls setSelectedValue on model changes. The DataSet Binder overload constructs DSChoiceBoxAdapter rather than installing that FXEntity binding. Combined tests deliberately applied both APIs. JavaFX clears then reselects a matching null item via value/index synchronization. DSChoiceBoxAdapter forwards index changes to setCurrentRowNum; installed ArrayDataSet rejects negative and out-of-range indexes and accepts index 2 even when its row is null. Hence absence of choice (-1), valid null row (2), and null projected key are separate observable states.
+
+**Policy options (not implemented):**
+
+| Option | Compatibility and integrity impact |
+| --- | --- |
+| A. Forbid literal null items in specialized DataSet | Removes cursor selection of null by clearing, but rejects data currently accepted by ArrayDataSet and may need validation/migration for external forms. A null value still reaches strict FXEntity mappers when clearing. |
+| B. Keep literal null as a selectable row | Preserves explicit navigation and its cursor event. A generic clear must be distinguished from row selection; projected-null policy is still needed to avoid stale model keys. |
+| C. Allow generic clear only without literal null | The A/B runtime showed no cursor event. A guard can protect A/B/null from accidental navigation, but strict Binder still fails on A/B clear, and callers need a defined outcome when clear is refused. |
+| D. Explicit no-selection operation at the adapter boundary | Can express intent without overloading a selected null row. Needs an explicit cursor/model notification contract and a supported way to avoid JavaFX reselecting the null row. API/lifecycle changes and migration risk are larger. |
+
+**Recommended next RED/GREEN task, conditional on approval:** split out a non-null-only Controls.setValue dispatch for supported JInvChoiceBox lists, delegating to existing R mapping while preserving the currently unsupported generic null call. Verify one notification per real transition and zero for identical/unmatched keys on valid fixtures; include a literal-null-before-match sentinel so existing mapper failure is visible. Keep generic clear BLOCKED. This is a proposed separate scope, not approval to edit.
+
+**Architectural question:** should a future generic null write preserve the current selection and cursor, or clear selection and the model key while keeping the cursor, reserving literal-null row selection for explicit index/navigation?
+
+**HYPOTHESIS / UNKNOWN:** prevalence of literal null items and strict factories in external consuming forms, and real DB/persistence effects, remain unknown. The in-memory FXEntity result establishes property behavior, not a database write. Production and tracked tests were untouched in CTRL-016.
