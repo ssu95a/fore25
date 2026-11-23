@@ -2334,7 +2334,7 @@ Publish `## Reply CTRL-012` to docs/codex/outbox.md on agent/codex-mailbox. Incl
 
 ## MESSAGE CTRL-013
 
-**Status:** ASSIGNED — minimal RED/GREEN allocation and semantic fix in Controls.isControlValueChanged
+**Status:** CLOSED — independent user Windows `CTRL-013 PASS`, `$LASTEXITCODE=0` (2026-11-24); implementation `2e8c11556690e49968c575fd13d00e0b998dbacc` accepted. No further production edits authorized in this task.
 **Priority:** HIGH — prevent retained Node property/map allocation on a read-only query
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (never main)
