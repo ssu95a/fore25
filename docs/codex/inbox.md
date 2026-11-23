@@ -2168,3 +2168,42 @@ Documented reason: real JavaFX 25 inner-editor focus-loss implicit commit can wr
 Usage guidance: do not use `JInvComboBox.setReadOnly(true)` as the mechanism of enforcing a business-form read-only state. For a noninteractive control, prefer native `Node.setDisable(true)` after verifying that programmatic DataSet/Binder updates remain functional in that particular form. For a visible inspection-only value, use a separate display control such as Label if its semantics fit. Retain validation at the business/model boundary independently of UI mode.
 
 No production changes, no rollback, no new tests or CTRL-009 assignment authorized by this decision. The remaining findings are explicitly ACCEPTED LIMITATIONS, not resolved defects. The next Controls-audit task should target a different component or issue and requires separate assignment.
+
+---
+
+## MESSAGE CTRL-009
+
+**Status:** ASSIGNED — narrow RED/GREEN readOnly correctness fix for JInvCheckBox
+**Priority:** HIGH — prevent user-originated selected/model changes
+**Repo:** `ssu95a/fore25`
+**Implementation branch:** `migration/java25-correctness` (never main)
+**Expected remote HEAD:** `cf7b05c45319624f3f0134a78d59410484829af9`
+**Reply ID:** `CTRL-009`
+
+### Scope distinction
+
+Previous suggestion to continue a *ComboBox* fix under CTRL-009 was explicitly cancelled. The existing CTRL-008 decision not to rework JInvComboBox remains binding. THIS new CTRL-009 is only about JInvCheckBox; do not reopen ComboBox, edit Controls, or change the accepted limitations.
+
+### User's established contract and confirmed RED
+
+`readOnly=true` blocks USER-originated value changes, but DOES NOT block programmatic setSelected, selectedProperty writes, model binding, DataSet navigation, nor programmatic value update in `JInvCheckBoxString`. ReadOnly must not automatically forbid focus or inspection. A prior CTRL-005 visible JavaFX25/Windows Robot audit, with a passing unlocked positive control, confirmed that focused Space toggles JInvCheckBox from false to true while readOnly=true. Targeted mouse also toggled, but bypassed normal mouseTransparent hit testing, so it does not prove physical mouse bypass. This is a confirmed keyboard integrity defect.
+
+Current JInvCheckBox.init() registers a readOnly listener that calls Controls.disableControl(this, flag). The generic Controls path only changes focusTraversable, mouseTransparent and CSS; it does not prevent Space activation of an already-focused CheckBox. JInvCheckBoxString extends this class and synchronizes selected/indeterminate to its string valueProperty. Keep this mapping intact.
+
+### One focused implementation task
+
+1. Verify repo, correct branch and HEAD. Create a **tracked RED regression first** using a shown Stage, actual JInvCheckBox and a bidirectionally bound BooleanProperty model or equivalent listener. Assert positive unlocked Space toggle and one value/model notification. Request focus BEFORE setting readOnly=true, then use Space; demonstrate original selected/model changes, not merely state flags. Include focused keyboard activation through JavaFX event dispatch and, if exclusive Windows desktop input is available, JavaFX Robot; label provenance accurately.
+2. Implement the smallest user-activation gate in `JInvCheckBox` only, before native selection and model propagation. Cover the actual supported activation keyboard gesture(s), primary mouse activation where applicable, and accessibility FIRE if it is a genuine user route. Preserve focused inspection and do not use after-the-fact rollback. Preserve programmatic CheckBox.fire() behavior unless a verified contract explicitly requires a change; report any ambiguity.
+3. Respect bound focusTraversable or mouseTransparent: do not throw trying to write a unidirectionally bound property. A bound property must not bypass readOnly input gating. Avoid broad Controls or Native Node.disable rewrites. Preserve native disabled and CSS state on lock/unlock, plus repeated enable/disable without accumulating handlers.
+4. In the same probe cover JInvCheckBoxString (both constructors where feasible): checked/unchecked/indeterminate mapping, selected and string-model notifications; blocked user Space must leave values unchanged, while programmatic selected, setValue, indeterminate and bound model updates still work. If a String subclass defect requires modifications outside JInvCheckBox, do not silently expand scope: report BLOCKED with evidence.
+5. Check the plain JInvCheckBox selectedProperty direct updates, value initial true/false, repeated lock/unlock, focus retained, and bound selected/focus property behavior where meaningful. Test programmatic setSelected while locked and one notification per actual change. No new per-control cache or per-field object unless justified; exact retained bytes UNKNOWN.
+6. Keep previous accepted `-ComboReadOnly`, `-RadioReadOnly`, `-NodeTraversal`, `-DatePickerBinding`, `-MoneyDecimal` and `-DataBinding` regressions GREEN where available. No change to JInvCheckBoxCellEditor or table-cell behavior unless a concrete regression is discovered; report instead.
+
+### Constraints / verification / Git
+
+- ONLY production edit permitted: `src/main/java/ru/inversion/fx/form/controls/JInvCheckBox.java`. Test-only edits may add a focused JavaFX probe under `src/test/probes/gui/` and extend `src/test/probes/Test-LegacyGuiSmoke.ps1` with a new `-CheckBoxReadOnly` mode. Do not change JInvCheckBoxString, Controls, ComboBox, other controls, skin, POM/wrapper, dependencies, main or JInvCommon.
+- Preserve public/protected signatures and behavior, constructor semantics and bindings. New source comments in Russian. Prefer shared static event handlers over per-instance closures when feasible; do not introduce unsupported asynchronous work or threading stress.
+- Run RED on original production classes, GREEN after fix with actual JDK25/JavaFX25 Stage, Maven -Pbuild compile and PowerShell parsing. If Robot not run, mark mouse hit-testing / native gesture UNKNOWN. Do not call diagnostic green if unlocked positive control fails.
+- Git/GitHub operations APPROVED within task. Commit only verified minimal code/test changes, fast-forward push to migration/java25-correctness, confirm exact remote SHA; never force or discard user changes.
+- Publish `## Reply CTRL-009` to `docs/codex/outbox.md` on `agent/codex-mailbox`, including code/source cause, exact diff/SHA, RED/GREEN event/model counts, user vs programmatic distinctions, String subclass checks, retained-memory effect, and independent Windows rerun command (`-CheckBoxReadOnly -SettingsFile "D:\Java\.m2\settings.xml"`).
+- STOP after CTRL-009; no wider readOnly rework without new assignment.
