@@ -2008,7 +2008,7 @@ For Windows Robot input, add `-RobotInput` only once exclusive mouse and keyboar
 ## Reply CTRL-008
 
 **Status:** READ-ONLY investigation complete. Confirmed model writes under readOnly on the JavaFX 25 editor focus-loss path.
-**Status:** DONE. **Production:** `migration/java25-correctness` at `cf7b05c45319624f3f0134a78d59410484829af9`. Mailbox base `dbf85d264b987be74e5faa6e2641a7d4629da486`.
+**Production:** `migration/java25-correctness` at `cf7b05c45319624f3f0134a78d59410484829af9`. Mailbox base `dbf85d264b987be74e5faa6e2641a7d4629da486`.
 
 ### CONFIRMED runtime
 
@@ -2056,7 +2056,7 @@ Only this mailbox reply was prepared for publication. Production and tracked tes
 ## Reply CTRL-009
 
 **Status:** RED reproduced before the production edit. GREEN passed on Windows JDK 25.0.1 and JavaFX 25.
-**Status:** DONE. **Production:** `migration/java25-correctness` from `cf7b05c45319624f3f0134a78d59410484829af9` to `5fc050d452e32adf55407512c8e9b5e9cc13fa75`, fast-forward push and remote SHA verified.
+**Production:** `migration/java25-correctness` from `cf7b05c45319624f3f0134a78d59410484829af9` to `5fc050d452e32adf55407512c8e9b5e9cc13fa75`, fast-forward push and remote SHA verified.
 
 ### Cause and change
 
@@ -2103,7 +2103,7 @@ Expect `CTRL-009 PASS` and exit 0. Add `-RobotInput` only with exclusive Windows
 ## Reply CTRL-010
 
 **Status:** READ-ONLY audit complete. Selection/model writes confirmed. Preserving programmatic show while reliably preventing selection remains a policy/design decision.
-**Status:** DONE. **Production:** `migration/java25-correctness` at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `ab25df7ae3ad4cb7196091950e2ce01f900d792a`.
+**Production:** `migration/java25-correctness` at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `ab25df7ae3ad4cb7196091950e2ce01f900d792a`.
 
 ### CONFIRMED runtime
 
@@ -2147,7 +2147,7 @@ Robot was NOT RUN because exclusive Windows input was unavailable. Physical keyb
 ## Reply CTRL-011
 
 **Status:** READ-ONLY audit complete. Confirmed model writes under readOnly with a caller-owned editable binding. Recommend documenting the limitation.
-**Status:** DONE. **Production:** `migration/java25-correctness` at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `571e839a4f5186e7fb167b7219ed42eaf795cd76`.
+**Production:** `migration/java25-correctness` at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `571e839a4f5186e7fb167b7219ed42eaf795cd76`.
 
 ### CONFIRMED runtime
 
@@ -2190,7 +2190,7 @@ Robot NOT RUN because exclusive input was unavailable. Physical keyboard, mouse/
 ## Reply CTRL-012
 
 **Status:** READ-ONLY audit complete. Confirmed date/datetime writes from an already-open popup and additional bound-editor commit paths. Recommend documenting the limitation.
-**Status:** DONE. **Production:** `migration/java25-correctness` remained at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `34925e29513a8740c4c47d19d8434be08e104634`.
+**Production:** `migration/java25-correctness` remained at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `34925e29513a8740c4c47d19d8434be08e104634`.
 
 ### CONFIRMED runtime
 
@@ -2236,7 +2236,7 @@ BaseApp-provided/external skin behavior, physical picking/keyboard, OS accessibi
 ## Reply CTRL-013
 
 **Status:** RED reproduced before the production edit. GREEN verified on Windows JDK `25.0.1+8-LTS-27` and JavaFX `25`.
-**Status:** DONE. **Production:** `migration/java25-correctness`, baseline `5fc050d452e32adf55407512c8e9b5e9cc13fa75`, verified final commit `2e8c11556690e49968c575fd13d00e0b998dbacc`.
+**Production:** `migration/java25-correctness`, baseline `5fc050d452e32adf55407512c8e9b5e9cc13fa75`, verified final commit `2e8c11556690e49968c575fd13d00e0b998dbacc`.
 
 The prior predicate called getValueChangedProperty, which initializes a SimpleBooleanProperty and stores it in Node.getProperties. Inspection of the installed JavaFX 25 Node bytecode confirmed that getProperties creates the observable map and backing HashMap on first access. hasProperties only tests the existing field and map emptiness. Repository callers include F7FilterDialog through ValidMan.
 
@@ -2274,7 +2274,7 @@ Expect `CTRL-013 PASS` and exit 0.
 ## Reply CTRL-014
 
 **Status:** BLOCKED by unsafe null-clearing behavior in the supported selection-to-DataSet path. No production commit or push.
-**Status:** DONE. **Production:** `migration/java25-correctness` remains at `2e8c11556690e49968c575fd13d00e0b998dbacc`. Mailbox base `51cba63`.
+**Production:** `migration/java25-correctness` remains at `2e8c11556690e49968c575fd13d00e0b998dbacc`. Mailbox base `51cba63`.
 
 ### RED and provisional candidate
 
