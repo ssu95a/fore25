@@ -2059,7 +2059,7 @@ An effective `readOnly=true` must prevent interaction paths that change the valu
 
 ## MESSAGE CTRL-006
 
-**Status:** ASSIGNED — focused RED/GREEN correctness fix for JInvRadioButton + JInvRadioGroup
+**Status:** CLOSED — independent user Windows CTRL-006 PASS after commit 6797a24554d40026025e49cd26d73f8503f93cd5 (2026-11-23). Agent also ran exclusive Windows Robot baseline/fix RED/GREEN; independent user reported PASS without identifying Robot mode. Programmatic selection invariants passed in focused tests.
 **Priority:** CRITICAL — prevent user-originated radio edits and bound model writes under readOnly
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (never main)
@@ -2092,3 +2092,37 @@ Source: JInvRadioButton's readOnly listener calls Controls.disableControl(this, 
 - Maven/JDK25 GUI RED/GREEN on Windows if available; PowerShell parse and compilation. No speculative concurrency stress. Verify repo, current SHA, and clean relevant changes. ALL regular Git/GitHub operations APPROVED within task: commit verified code, fast-forward push to migration/java25-correctness, verify remote SHA; no force push.
 - Publish ## Reply CTRL-006 in docs/codex/outbox.md on agent/codex-mailbox: root cause, exact diff/commit/SHA, RED/GREEN matrix, keyboard/Robot vs physical evidence, programmatic selection invariants, group listener lifecycle, byte-memory UNKNOWN, and independent user command with -SettingsFile D:\Java\.m2\settings.xml.
 - STOP after CTRL-006; no broader readOnly fixes until separately assigned.
+
+---
+
+## MESSAGE CTRL-007
+
+**Status:** ASSIGNED — targeted RED/GREEN integrity fix for JInvComboBox readOnly keyboard input
+**Priority:** HIGH — prevent user-originated value updates while readOnly=true
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (never main)
+**Expected remote HEAD:** 6797a24554d40026025e49cd26d73f8503f93cd5
+**Reply ID:** CTRL-007
+
+### Contract and confirmed evidence
+
+User-confirmed: readOnly=true MUST suppress USER-ORIGINATED changes to value/model, but not programmatic setValue, setSelectedValue, selection or DataSet/Binder updates. Keyboard focus, viewing, and navigation need not be globally blocked. Do not replace this with native Node.setDisable(true), and do not block model-to-GUI writes.
+
+CTRL-005 real Windows JavaFX 25 Robot showed noneditable JInvComboBox with A selected, focus retained before readOnly=true: Down selected B and updated value under readOnly. Its Controls.disableControl branch sets focusTraversable=false and installs mouse filters, but that does not prevent keyboard selection with retained focus. When focusTraversable is bound, setting readOnly throws before mouse filters are installed; Robot click and Down could still select B. The agent validated the unlocked positive control. The same audit reported locked ChoiceBox and other controls, outside this task. CTRL-006 radio correctness is now independently user-confirmed PASS; preserve its code.
+
+### Narrow production assignment
+
+1. Establish RED in a **tracked**, focused JDK 25/JavaFX 25 GUI smoke with the real JInvComboBox and its real skin, visible Stage, items A/B and bound SimpleStringProperty model or equivalent value observer. Test unlocked positive control first. Focus before locking, then deliver Down and other supported value-changing keyboard actions via targeted JavaFX and, where exclusive input exists, Robot. Verify selection, value, model and change count. Distinguish synthetic event paths, Robot input and physical manual interaction.
+2. Fix input suppression **before changing selection/model**. At minimum cover focused Down and Up, and other keyboard selection keys actually handled by the skin. If a popup is already open and can still commit a new selection under readOnly, document and cover it if a safe minimal gate in JInvComboBox can enforce the same contract without changes outside authorized production files. Avoid after-the-fact selection rollback that emits transient model notifications.
+3. Preserve all programming paths: ComboBox.setValue, selectionModel.select, JInvComboBox.setSelectedValue, Controls.setValue, binder/data adapter navigation and null clear where supported. No spurious typed/value events on rejected user input. Preserve editable and noneditable mode contracts; if a new keyboard gate blocks legitimate non-value operations, report and revise.
+4. Specifically test a focusTraversableProperty bound source: do not try to set the bound property. readOnly must still suppress user-originated selection even if the binding source remains true and must not throw a bound-value exception. Test source switching true/false and unlock, preserving the binding. Examine actual popup mouse filtering and existing Controls behavior; do not silently claim full readOnly coverage when only keyboard tested.
+5. Make compatibility and lifecycle checks: repeated lock/unlock, continued focused input, normal unlocked keyboard and mouse, no duplicate event filters, no lingering listener references and no unnecessary per-instance allocation. Public/protected API, converter/valueFactory/nullable semantics, state, skin and programmatic selection must remain unchanged. If correct suppression would require broad skin redesign or cannot distinguish user vs programmatic selection reliably, STOP and report BLOCKED before any production commit.
+
+### Strict scope / validation / Git
+
+- Only permitted production path: src/main/java/ru/inversion/fx/form/controls/JInvComboBox.java. A minimal edit to its custom skin may only be proposed, NOT silently made; report a blocker if genuinely needed. Test-only changes allowed in src/test/probes/Test-LegacyGuiSmoke.ps1 and new focused GUI probe under src/test/probes/gui.
+- No changes to Controls.java, JInvRadioButton, JInvRadioGroup, JInvChoiceBox, CheckBox, Calendar, Button, Binder, POM/wrapper, dependencies, main or JInvCommon. New comments in production Russian.
+- Run targeted RED/GREEN on Windows Java 25 / JavaFX 25, Maven -Pbuild compile and PowerShell parsing. Preserve existing -RadioReadOnly (CTRL-006), -NodeTraversal (CTRL-003), -DatePickerBinding (CTRL-002), -MoneyDecimal (NUM-001) and -DataBinding (GUI-009) PASS; explicitly list any unrun cases as UNKNOWN.
+- Ordinary Git/GitHub operations APPROVED under mailbox protocol: verify current HEAD and preserve user work, publish a verified minimal commit by fast-forward push to migration/java25-correctness, verify exact remote SHA. Never force push.
+- Publish ## Reply CTRL-007 to docs/codex/outbox.md on agent/codex-mailbox with RED/GREEN results, exact production/test diff and SHA, input provenance, bound-property and model-update invariants, known remaining readOnly gaps and Windows recheck command with -SettingsFile D:\Java\.m2\settings.xml.
+- Stop after CTRL-007. Do not begin CTRL-008 or fix other controls.
