@@ -2026,7 +2026,7 @@ Publish `## Reply CTRL-004` in docs/codex/outbox.md on agent/codex-mailbox, with
 
 ## MESSAGE CTRL-005
 
-**Status:** ASSIGNED — READ-ONLY correctness and behavioral contract investigation; NO implementation
+**Status:** CLOSED — user contract confirmed and agent Windows Java 25 / JavaFX 25 Robot/targeted-event audit complete. Focused radio Space and partial release modified bound model during readOnly; programmatic model-to-radio updates worked. Production unchanged at c21a17e0b2ba8305a02d405449052f9aa0b5b607. Follow-up CTRL-006 assigned.
 **Priority:** HIGH — user-input suppression and DataSet/model value integrity
 **Repo:** ssu95a/fore25
 **Production code branch:** migration/java25-correctness (READ ONLY)
@@ -2054,3 +2054,41 @@ An effective `readOnly=true` must prevent interaction paths that change the valu
 - This is a READ-ONLY audit. Do NOT modify production, tracked tests, API, module flags, POM, wrappers, dependencies, main or JInvCommon. Temporary untracked probes under ignored target are allowed. Do not optimize memory or rewrite Controls, nor begin CTRL-006.
 - Reuse JDK 25.0.1 / JavaFX 25 and existing Maven settings. Do not fabricate coverage of full business forms, DB saves or physical interaction. Keep all previously accepted regression baselines unchanged.
 - All normal Git/GitHub operations are APPROVED only for reading and posting the mailbox report. Verify exact branch HEADs. Post `## Reply CTRL-005` in docs/codex/outbox.md on agent/codex-mailbox with full matrix, source/call-site evidence, risks, UNKNOWN, and one recommended narrow next action. No implementation branch push. STOP after report.
+
+---
+
+## MESSAGE CTRL-006
+
+**Status:** ASSIGNED — focused RED/GREEN correctness fix for JInvRadioButton + JInvRadioGroup
+**Priority:** CRITICAL — prevent user-originated radio edits and bound model writes under readOnly
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (never main)
+**Expected remote HEAD:** c21a17e0b2ba8305a02d405449052f9aa0b5b607
+**Reply ID:** CTRL-006
+
+### Established user contract
+
+readOnly=true suppresses USER-originated value changes while preserving programmatic control/model updates (group.valueProperty, ToggleGroup.selectToggle, selected property via model, DataSet navigation). Do not substitute native Node.disable globally, block model propagation, or treat programmatic selectToggle as a forbidden user edit. Focus, navigation and copy are not automatically prohibited.
+
+### Confirmed CTRL-005 RED
+
+Real JavaFX 25 shown Stage on Windows, targeted input and exclusive Robot rerun: when radio B was focused before both its own and its JInvRadioGroup readOnly became true, Robot Space selected B and updated the bidirectionally bound SimpleStringProperty model once; direct mouse click remained blocked in both-locked state, showing independent keyboard defect. If group readOnly was released while radio remained readOnly, OR radio readOnly released while group remained readOnly, Robot click and Space each selected B and wrote the bound model. Explicit programmatic selectToggle(B) and group model writes did work while locked, as they must continue to do. No physical hand-operated input or real DB persistence was tested.
+
+Source: JInvRadioButton's readOnly listener calls Controls.disableControl(this, flag); JInvRadioGroup's readOnly listener separately iterates toggles and calls Controls.disableControl on the same radio. Thus last-writer GUI state conflicts. Controls changes focusTraversable and mouseTransparent but focused Space still activates a radio.
+
+### Scope and acceptance
+
+1. Reproduce RED with a focused, **tracked** Java 25/JavaFX25 GUI regression before production modification. Use actual JInvRadioButton, JInvRadioGroup, a bidirectionally bound SimpleStringProperty model, shown Stage, and input delivered through realistic JavaFX/Robot paths. The first positive unlocked control must work; distinguish targeted Event.fireEvent, Robot and any manual physical input. Do not infer real mouse hit testing from an event dispatched directly to a mouseTransparent Node.
+2. Define effectiveReadOnly(B) = B.readOnly OR (B.current ToggleGroup instanceof JInvRadioGroup AND group.readOnly). Ensure the effective state recomputes on either property transition, attach/detach/reassign of group, and on existing toggles when group readOnly changes. When one owner releases while the other is still locked, effective readOnly stays true. No stale listeners or retention of detached group; avoid unnecessary per-control objects or broad snapshot/restore. Preserve the documented Controls enable semantics outside this targeted composition.
+3. Block **user-originated value-changing activation before selection and model notifications**, including focused Space, mouse and other supported activation keys. A cosmetic CSS state, focusTraversable=false, mouseTransparent alone, or reverting selection after an emitted value event is insufficient. Preserve programmatic ToggleGroup.selectToggle, group.setValue/FXEntity model-to-GUI updates and direct selected property writes while locked. Programmatic RadioButton.fire() vs real user action may be ambiguous; investigate that distinction and do not silently change it without documenting compatibility implications. Avoid indiscriminately swallowing unrelated navigation/focus events.
+4. Acceptance matrix: A initially selected, B focused before lock; both locked, group-only locked, radio-only locked, each partial release, fully unlocked; for every locked variant no user-originated change to selected toggle, group value and model property, zero model notifications. Full unlock: user activation selects B once, exactly one model change. Model→radio and selectToggle(B) while locked must change selection as requested without false ERROR or suppressed update. Include reassign/detach to a new/old group and repeat toggles for listener lifecycle; native ancestor-disabled state must remain effective.
+5. If a safe user-action gate respecting programmatic writes or group lifecycle cannot be proven, STOP before production commit, report BLOCKED with exact evidence. Do not weaken RED assertions merely to obtain GREEN.
+6. Retain earlier accepted -NodeTraversal (CTRL-003), -DatePickerBinding (CTRL-002) and -MoneyDecimal (NUM-001) regression PASS. Check any relevant existing radio/GUI-009 fixture. Mark actual business form/DB and untested physical input as UNKNOWN.
+
+### Strict limits and Git
+
+- Production modifications ONLY in src/main/java/ru/inversion/fx/form/controls/JInvRadioButton.java and JInvRadioGroup.java if both needed. Do NOT change Controls.java, JInvCheckBox, ComboBox, ChoiceBox, Calendar, Button, Binder, other production, POM/wrapper/dependencies, main or JInvCommon. Test-only change may extend Test-LegacyGuiSmoke.ps1 and add a focused probe in src/test/probes/gui.
+- Preserve public/protected API signatures, constructors, bindings, property identity and JavaFX 25 compatibility. New source comments in Russian. Keep the smallest compatible diff; if extra owner/listener state increases retained memory, account for it and justify it.
+- Maven/JDK25 GUI RED/GREEN on Windows if available; PowerShell parse and compilation. No speculative concurrency stress. Verify repo, current SHA, and clean relevant changes. ALL regular Git/GitHub operations APPROVED within task: commit verified code, fast-forward push to migration/java25-correctness, verify remote SHA; no force push.
+- Publish ## Reply CTRL-006 in docs/codex/outbox.md on agent/codex-mailbox: root cause, exact diff/commit/SHA, RED/GREEN matrix, keyboard/Robot vs physical evidence, programmatic selection invariants, group listener lifecycle, byte-memory UNKNOWN, and independent user command with -SettingsFile D:\Java\.m2\settings.xml.
+- STOP after CTRL-006; no broader readOnly fixes until separately assigned.
