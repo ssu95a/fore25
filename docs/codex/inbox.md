@@ -2097,7 +2097,7 @@ Source: JInvRadioButton's readOnly listener calls Controls.disableControl(this, 
 
 ## MESSAGE CTRL-007
 
-**Status:** ASSIGNED — targeted RED/GREEN integrity fix for JInvComboBox readOnly keyboard input
+**Status:** CLOSED — independent Windows Java 25 / JavaFX 25 user-confirmed `CTRL-007 PASS`, `$LASTEXITCODE=0` (2026-11-23). Production `cf7b05c45319624f3f0134a78d59410484829af9` accepted for tested invariants. Robot post-fix, external bound inner-editor editable and programmatic show contract remain separately UNKNOWN.
 **Priority:** HIGH — prevent user-originated value updates while readOnly=true
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (never main)
@@ -2126,3 +2126,35 @@ CTRL-005 real Windows JavaFX 25 Robot showed noneditable JInvComboBox with A sel
 - Ordinary Git/GitHub operations APPROVED under mailbox protocol: verify current HEAD and preserve user work, publish a verified minimal commit by fast-forward push to migration/java25-correctness, verify exact remote SHA. Never force push.
 - Publish ## Reply CTRL-007 to docs/codex/outbox.md on agent/codex-mailbox with RED/GREEN results, exact production/test diff and SHA, input provenance, bound-property and model-update invariants, known remaining readOnly gaps and Windows recheck command with -SettingsFile D:\Java\.m2\settings.xml.
 - Stop after CTRL-007. Do not begin CTRL-008 or fix other controls.
+
+---
+
+## MESSAGE CTRL-008
+
+**Status:** ASSIGNED — READ-ONLY contract and correctness investigation; NO production changes
+**Priority:** HIGH — JInvComboBox readOnly completeness and programmatic API compatibility
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (READ ONLY)
+**Expected production HEAD:** cf7b05c45319624f3f0134a78d59410484829af9
+**Reply ID:** CTRL-008
+
+### Baseline and contract
+
+CTRL-007 is independently user-confirmed PASS on Windows (`CTRL-007 PASS`, exit 0). Do not undo or expand that accepted production fix.
+User contract: `readOnly=true` prohibits **user-originated value modification**, but programmatic setValue, setSelectedValue, selection, Binder and DataSet updates must remain operational. Focus, viewing and read-only navigation are not categorically forbidden. There is no pre-approved rule that `readOnly` forbids opening a popup through an explicit programmatic show() call if user changes remain blocked.
+
+CTRL-007 currently overrides `JInvComboBox.show()` to return when readOnly. It also locks a standard inner TextField editor if editable and writable, but does not override an externally bound inner editor editable property. Agent reported the latter path UNKNOWN. A helper `forceCommitValue()` delegates to its custom skin. Scope the review to real semantics of these two boundaries and any closely related value commit path; do not broaden into other controls.
+
+### Read-only investigation
+
+1. Trace all in-repository callers of JInvComboBox.show(), hide(), getEditor().editableProperty(), `forceCommitValue()`, `cancelEdit()`, skin commit path, and `ComboBoxBase` popup/user event handlers. Check whether any business code intentionally opens a read-only combo for inspection, or whether popup opening leads to editable selection. External consumers UNKNOWN.
+2. On a visible JavaFX25 Stage using production JInvComboBoxListViewSkin and a valid unlocked positive control, reproduce an editable ComboBox with `getEditor().editableProperty()` bound to a true/false source. Set readOnly=true, then use targeted events and JavaFX Robot with exclusive input if available to attempt typing, focus loss, Enter, popup selection and other documented commit paths. Record draft text, committed value, selection and bound SimpleStringProperty/model notifications. Vary bound source while locked. Compare with unbound editor and standard CTRL-007 sentinel. Distinguish Robot vs targeted events vs direct programmatic calls.
+3. Investigate `show()` semantic regression: readOnly=true and an explicit programmatic combo.show(), while keeping popup selection blocked. Separate **opening for viewing** from **committing a new value**. Test the current actual behavior and any expected use cases from source. Do not decide the API contract by assumption or silently rewrite it.
+4. Check direct programmatic `forceCommitValue()`, direct setValue and DataSet navigation under readOnly. Determine which actions are protected user input, programmatic requests, or ambiguous; do not block legitimate programmatic model updates.
+5. If needed, inspect possible inaccessible/skin-specific editor event routes and the consequences for event consumption, copied text, focus and readOnly. Do not claim manual physical input or full BaseApp/DB coverage when not run. Evaluate smallest behavior-preserving correction and its memory/lifecycle impact.
+6. Report CONFIRMED runtime, SOURCE-PROVEN, HYPOTHESIS and UNKNOWN separately. Recommend ONE minimal follow-up RED/GREEN fix only if evidence establishes an integrity issue; otherwise specify precisely which policy decision is needed. Keep the existing -ComboReadOnly baseline GREEN if re-run.
+
+### Constraints and reply
+
+READ ONLY. No production, tracked-test, POM, Maven-wrapper, dependency, module or other repository changes. Temporary untracked probes under ignored target are allowed. main and JInvCommon remain read-only. Do not start CTRL-009 or unrelated JInvChoiceBox/CheckBox/Calendar work.
+All routine Git/GitHub operations APPROVED for reading and publishing the mailbox report only. Post `## Reply CTRL-008` in docs/codex/outbox.md on agent/codex-mailbox, including exact branch SHA, test matrix, proof of user vs programmatic origin, policy implications and ONE recommended next task. No implementation branch push.
