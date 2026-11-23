@@ -669,6 +669,9 @@ public class Controls {
     }
 
     private static void helperGetListNodeInternal( List<Node> nodeList, Node n, Predicate<Node> predicat ) {
+        if ( n == null ) {
+            return;
+        }
         if ( predicat.test( n ) ) {
             nodeList.add( n );
         }

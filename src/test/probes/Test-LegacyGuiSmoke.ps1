@@ -22,6 +22,8 @@ param(
     [switch] $MoneyDecimal,
     [Parameter(ParameterSetName = 'DatePickerBinding')]
     [switch] $DatePickerBinding,
+    [Parameter(ParameterSetName = 'NodeTraversal')]
+    [switch] $NodeTraversal,
     [ValidateNotNullOrEmpty()]
     [string] $SettingsFile
 )
@@ -63,6 +65,9 @@ if ($Editors) {
 } elseif ($DatePickerBinding) {
     $probeId = 'CTRL-002'
     $probeClass = 'DatePickerBindingSmoke'
+} elseif ($NodeTraversal) {
+    $probeId = 'CTRL-003'
+    $probeClass = 'NodeTraversalSmoke'
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
