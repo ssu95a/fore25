@@ -30,6 +30,8 @@ param(
     [switch] $ComboReadOnly,
     [Parameter(ParameterSetName = 'CheckBoxReadOnly')]
     [switch] $CheckBoxReadOnly,
+    [Parameter(ParameterSetName = 'ValueChangedFlag')]
+    [switch] $ValueChangedFlag,
     [Parameter(ParameterSetName = 'RadioReadOnly')]
     [Parameter(ParameterSetName = 'ComboReadOnly')]
     [Parameter(ParameterSetName = 'CheckBoxReadOnly')]
@@ -96,6 +98,9 @@ if ($Editors) {
     if ($RobotInput) {
         $probeArgs = @('robot')
     }
+} elseif ($ValueChangedFlag) {
+    $probeId = 'CTRL-013'
+    $probeClass = 'ValueChangedFlagSmoke'
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))

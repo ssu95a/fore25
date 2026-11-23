@@ -990,10 +990,10 @@ public class Controls {
 
     /** Возвращает признак изменённого значения на переданной Node */
     public static boolean isControlValueChanged(Node control) {
-        if (control != null) {
-            return getValueChangedProperty( control ).getValue();
-        } else {
+        if (control == null || !control.hasProperties()) {
             return false;
         }
+        BooleanProperty flag = (BooleanProperty) control.getProperties().get(CONTROL_VALUE_CHANGED);
+        return flag != null && flag.getValue();
     }
 }
