@@ -2366,7 +2366,7 @@ User preference: correctness and minimizing retained memory per control are high
 
 ## MESSAGE CTRL-014
 
-**Status:** ASSIGNED — focused RED/GREEN Controls.setValue support for JInvChoiceBox
+**Status:** BLOCKED — agent Reply CTRL-014 proved null-clearing can navigate specialized DSChoiceBoxAdapter cursor to literal null row (1→-1→2). Provisional Controls.setValue patch was discarded. Requires explicit null-item/clear-selection policy before production implementation. Do not resume CTRL-014 as part of CTRL-015.
 **Priority:** HIGH — programmatic value setting and data integrity, not readOnly
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (never main)
@@ -2394,3 +2394,36 @@ User approved closing remaining Controls issues as narrow fixes with correctness
 - Git/GitHub operations APPROVED within this task: minimal verified commit, fast-forward push to migration/java25-correctness, confirm exact remote SHA. NEVER force push or discard user changes. If blocker discovered, no production commit.
 - Publish `## Reply CTRL-014` on docs/codex/outbox.md in agent/codex-mailbox with exact baseline/final SHA, RED/GREEN matrix, null/valueFactory semantics, event counts, exact diff, and Windows independent rerun command `-ChoiceSetValue -SettingsFile "D:\Java\.m2\settings.xml"`.
 - Stop after CTRL-014; next detached-column title and non-control collection allocation cases are separate potential tasks.
+
+---
+
+## MESSAGE CTRL-015
+
+**Status:** ASSIGNED — focused RED/GREEN DSChoiceBoxAdapter listener registration and exception-safety
+**Priority:** HIGH — dataset correctness, duplicate events and stuck navigation state
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (never main)
+**Expected production HEAD:** 8a993e3e4aa7b24611902ac8fa8380288586b939
+**Reply ID:** CTRL-015
+
+### Evidence and strict separation
+
+CTRL-014 is BLOCKED pending explicit policy for literal null items vs clearing selection. DO NOT add Controls.setValue(JInvChoiceBox), change null policy, or alter JInvChoiceBox/ChoiceBoxSkin/Binder. The recent ControlsFollowup production commit `8a993e3e` has been pushed and its reported smoke tests passed, but user-independent acceptance remains UNKNOWN. Do not mix that code with this task.
+
+Source inspection on the above production SHA: `DSChoiceBoxAdapter` constructor executes `dataSet.addRowListener(this)` and `dataSet.addNavigationListener(this)` TWICE each. Whether the DataSet deduplicates these registrations, and whether callbacks duplicate in practice, are UNKNOWN until tested. Its `selectedIndexProperty` listener sets `insideInSetCurrentRow = true`, calls `dataSet.setCurrentRowNum(newIndex)` and then resets the flag without `finally`. If that call throws, subsequent navigation can be suppressed. This is a source-proven exception-safety risk.
+
+### RED/GREEN task
+
+1. Verify working tree, expected branch and remote HEAD. Read the actual `IDataSet`, listener registration/dispatch implementations and `ArrayDataSet` behavior before changing code. Establish whether double registration creates two entries or whether the DataSet deduplicates. Record source facts separately from runtime evidence.
+2. Create a TRACKED focused JavaFX 25/Java 25 GUI smoke with real JInvChoiceBox + real DSChoiceBoxAdapter, a small ArrayDataSet and counters for row/navigation events, selected index/value, and DataSet cursor. Establish positive controls with A/B and valid navigation. Reproduce duplicate callback behavior, if possible, using row INSERT and navigation events; do not equate registration counts with duplicate externally-visible events without proof. Distinguish second registration's effect from reentrant UI selection.
+3. Test a controlled `setCurrentRowNum` failure originating from selected-index change. Use a minimal real DataSet scenario or a strictly local test double, preserving actual listener dispatch semantics. Check whether `insideInSetCurrentRow` remains true and causes later programmatic DataSet navigation to fail to update selection. If a failure cannot be reproduced, explicitly state UNKNOWN and still assess source-level try/finally correctness.
+4. Only after establishing evidence, make the smallest production change in `src/main/java/ru/inversion/fx/form/controls/choicebox/DSChoiceBoxAdapter.java`: remove redundant listener registrations if they are indeed redundant, and use `try/finally` around `setCurrentRowNum()` to restore the reentrancy guard on exceptions. Preserve original exception propagation, listener order, synchronous selection/data cursor semantics and public API. Do not change null clearing, index -1 handling, weak/strong listener ownership or lifecycle in this task unless a blocker is demonstrated and separately reported. No new instance fields/allocations/handlers.
+5. Test normal UI→DataSet selection A→B and DataSet→UI navigation B→A, repeated selection, row INSERT, exception + recovery and stable event counts. Add a diagnostic for literal null row A/B/null and explicitly document cursor changes; DO NOT change its semantics or characterize an intentional null-row selection as an error without an approved policy.
+6. Maven `-Pbuild` compile, PowerShell syntax, `git diff --check`. Rerun accepted GUI smoke modes, including `-ControlsFollowup`, `-ValueChangedFlag`, `-CheckBoxReadOnly`, `-ComboReadOnly`, `-RadioReadOnly`, `-NodeTraversal`, `-DatePickerBinding`, `-MoneyDecimal`, `-DataBinding` where available. Report all unrun suites as UNKNOWN. Windows Java 25/JavaFX 25 targeted programmatic event tests are sufficient; Robot optional only with exclusive desktop access.
+
+### Boundaries and reporting
+
+- Production edit ONLY `src/main/java/ru/inversion/fx/form/controls/choicebox/DSChoiceBoxAdapter.java`. Tests ONLY under `src/test/probes/gui/` and `src/test/probes/Test-LegacyGuiSmoke.ps1` with a new `-ChoiceAdapter` mode. No changes to Controls, JInvChoiceBox, Binder, other adapters, POM/dependencies, main or JInvCommon. Comments in new source code Russian.
+- If there is an unresolvable contract conflict or the test demonstrates that even this narrow change would disturb correct navigation, STOP and report BLOCKED, no production commit.
+- Git/GitHub operations APPROVED for narrow verified fix: commit minimal changes, fast-forward push to `migration/java25-correctness`, verify remote SHA; do not force push or discard user changes. Publish `## Reply CTRL-015` in docs/codex/outbox.md on `agent/codex-mailbox` with RED/GREEN, duplicates evidence, exception recovery, exact SHA/diff, status of literal-null uncertainty, and a reproducible Windows command (`-ChoiceAdapter -SettingsFile "D:\Java\.m2\settings.xml"`).
+- STOP after CTRL-015; do not self-assign CTRL-016. Monitoring is hourly and will report your new outbox reply, but it does not approve future implementation steps.
