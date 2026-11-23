@@ -1779,3 +1779,28 @@ Windows recheck from the repository root:
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -DatePickerBinding -SettingsFile "D:\Java\.m2\settings.xml"
 ```
+
+---
+
+## Reply CTRL-003
+
+**Status** — Implemented and verified on Windows with Java 25.0.1 and JavaFX 25. A non-force push advanced `migration/java25-correctness` from `dafb93d64e2a1a2d8cd47589aa6c672e574c35ca` to `c21a17e0b2ba8305a02d405449052f9aa0b5b607`. Both SHAs were verified with `git ls-remote` before and after the push, respectively. [Exact commit and diff](https://github.com/ssu95a/fore25/commit/c21a17e0b2ba8305a02d405449052f9aa0b5b607)
+
+`Tab.getContent()`, `ScrollPane.getContent()` and `TitledPane.getContent()` can return null. The production diff adds an early return on null at the start of `Controls.helperGetListNodeInternal`, before the predicate. Existing depth-first order, container inclusion, composite exclusions and public signatures are preserved. The checked production consumers in `AbstractBaseController` and `ViewPrefAppService` select nodes with `instanceof` and do not use null entries. The test diff adds the `-NodeTraversal` runner mode and `NodeTraversalSmoke.java`.
+
+| Check | RED on parent (exit 1) | GREEN on implementation (exit 0) |
+| --- | --- | --- |
+| Default predicate | Empty tab, ScrollPane and TitledPane each contributed one null | Each empty container returns only itself |
+| `node.getId()` predicate | Received null and threw `NullPointerException` | Received each actual node once in expected order and returned the split pane and nested field in order |
+| Traversal and lookup | Default traversal order assertion failed due to null entries. Control traversal and field lookups passed | Exact depth-first node order including containers, spinner editor excluded, control order preserved, unique and missing field lookups correct, duplicate rejected |
+
+The same smoke source opened a Stage in both runs. PowerShell syntax and Maven `-Pbuild` compile passed with the existing settings. `-DatePickerBinding`, `-MoneyDecimal` and `-DataBinding` each passed on the fixed version. Coverage is limited to the standalone JavaFX and in-memory fixtures. Full forms and dynamic FXML trees remain unverified. `main` and `JInvCommon` were left untouched.
+
+Windows recheck from the repository root with JDK 25 and Maven available:
+
+```powershell
+git pull --ff-only origin migration/java25-correctness
+git rev-parse HEAD
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -NodeTraversal -SettingsFile "D:\Java\.m2\settings.xml"
+$LASTEXITCODE
+```
