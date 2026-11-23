@@ -2050,3 +2050,50 @@ Open one narrow RED/GREEN task for **preventing a user-edited inner-editor draft
 GREEN must show no user-driven draft or model change and zero selection/value/model notifications under the locked bound=true and false-to-true cases, while preserving copy/selection, normal unlocked typing/commit, CTRL-007, programmatic editor.setText + forceCommitValue, direct value/selection/model writes and real adapter navigation. Verify repeated lock/unlock and unchanged binding identity. Keep the asymmetric-converter case as an explicit known failing diagnostic until a compatible guard for the native implicit conversion has been proven; an input-only correction cannot solve it. Keep the standard popup opening behavior as-is in this task. If locked viewing is desired, decide the public show policy explicitly and first prove the popup cannot commit before changing it.
 
 Only this mailbox reply was prepared for publication. Production and tracked tests were left unchanged.
+
+---
+
+## Reply CTRL-009
+
+**Status:** RED reproduced before the production edit. GREEN passed on Windows JDK 25.0.1 and JavaFX 25.
+**Production:** `migration/java25-correctness` from `cf7b05c45319624f3f0134a78d59410484829af9` to `5fc050d452e32adf55407512c8e9b5e9cc13fa75`, fast-forward push and remote SHA verified.
+
+### Cause and change
+
+The old readOnly listener delegated to the generic Controls branch, which changed focus traversal, mouse transparency and the disabled pseudo-class. A CheckBox that had already acquired focus could still arm on Space press. JavaFX ButtonBehavior fired the CheckBox on Space release, writing selected and the bidirectionally bound model. The generic branch also wrote bound focus/mouse properties without checking binding ownership.
+
+JInvCheckBox now checks readOnly before native activation. A shared key filter blocks activation presses and disarms before release so the skin can clear its key-down state. A shared mouse filter blocks primary activation even with mouseTransparent bound false and prevents an armed gesture from completing across the lock. The accessibility FIRE override gates the assistive activation entry point. Direct CheckBox.fire() keeps its JavaFX behavior, including native disabled handling. A direct executeAccessibleAction(FIRE) call intentionally takes the same gated route as accessibility activation. The readOnly listener changes focus and mouse properties only when writable and preserves their existing lock/unlock defaults. Disabled CSS reflects readOnly or native/ancestor disabled. The fix adds no instance fields, cache or per-instance closures beyond those already present. It adds two event-filter registrations and one shared disabled-listener registration per control. Retained bytes were not measured.
+
+The exact diff adds the input/style changes in JInvCheckBox.java, the tracked CheckBoxReadOnlySmoke.java and the -CheckBoxReadOnly script mode. JInvCheckBoxString, renderer/table editor, Controls, ComboBox, build/dependency configuration, main and JInvCommon were untouched. [Production diff](https://github.com/ssu95a/fore25/commit/5fc050d452e32adf55407512c8e9b5e9cc13fa75)
+
+### RED/GREEN, shown Stage with production controls and skins
+
+Counts below are changes to selected/model plus emitted ActionEvent for the Boolean fixture. Keyboard/mouse results used targeted JavaFX events, including primary press/release sent to the actual control. Accessibility used a direct accessibility action call rather than a screen reader. Robot was not run because exclusive desktop input was not established. Native mouse hit testing, physical input and OS accessibility integration remain UNKNOWN.
+
+| Scenario | RED on original JInvCheckBox | GREEN |
+| --- | --- | --- |
+| Unlocked positive controls | Space, primary mouse gesture and accessibility FIRE each toggled false to true with 1/1/1 | Same |
+| Retained focus, locked Space from false and true | Both directions toggled selected/model, with 1/1/1 | State retained, 0/0/0 in both directions |
+| Space pressed before lock and released under lock | 1/1/1 in both directions | 0/0/0; next Space after unlock toggled once, 1/1/1 |
+| Primary press before lock, release under lock | 1/1/1 | 0/0/0 |
+| Bound readOnly, focusTraversable and mouseTransparent with live focus/mouse sources | Focus setter threw. Space, targeted primary mouse and accessibility FIRE each wrote the model | Bindings remained live and intact. Each activation attempt produced 0/0/0; no listener exception |
+| Unidirectionally bound selected | Space tried writing selected and threw | No throw or notifications from Space. Source change still updated selected once |
+| Ancestor native disable and CSS | Unlock cleared the native disabled pseudo-class. Ancestor reenable while readOnly cleared locked CSS | Both transitions preserved the applicable CSS state; native-disabled direct fire had 0/0/0 |
+| Programmatic setSelected, selectedProperty.set and bound Boolean model write while locked | 1/1/0 per change | 1/1/0 per change; no additional event for repeating the same value |
+| Direct programmatic fire while locked and native enabled | 1/1/1 | 1/1/1 |
+| Real ArrayDataSet with DSControlAdapter | false to true to false, 1/1/0 per transition | Same |
+
+Both JInvCheckBoxString constructors were exercised with Y/N mappings and a bidirectional StringProperty model. Locked Space from the checked state on RED changed Y to N and added one selected, one value and one string-model notification in each constructor. On GREEN, locked Space from unchecked, checked and indeterminate produced zero selected, indeterminate, value and string-model notifications. Programmatic selected, setValue and model writes still mapped Y/N with exactly one change per affected observable. Direct setIndeterminate(true) retains the constructor-specific behavior: the no-arg constructor maps the value/model to null once, while the text constructor changes indeterminate alone until setValue(null) is called. This distinction was also observed on RED. SetValue(null) produced no redundant notification when the value was already null. Full business forms and DB persistence were not exercised.
+
+PowerShell parsing and Maven -Pbuild compile passed. The final CTRL-009 script exited 0. Accepted regression probes ComboReadOnly, NodeTraversal, DatePickerBinding, MoneyDecimal and DataBinding passed when freshly compiled and run against the same Maven production classes and classpath. The initial direct RadioReadOnly run failed its mixed-group unlocked-arrow assertion; the official -RadioReadOnly script rerun passed the full matrix, including that assertion, with exit 0.
+
+### Independent Windows rerun
+
+```powershell
+git pull --ff-only origin migration/java25-correctness
+git rev-parse HEAD
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -CheckBoxReadOnly -SettingsFile "D:\Java\.m2\settings.xml"
+$LASTEXITCODE
+```
+
+Expect `CTRL-009 PASS` and exit 0. Add `-RobotInput` only with exclusive Windows desktop input available.
