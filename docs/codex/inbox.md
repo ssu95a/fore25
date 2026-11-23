@@ -2173,7 +2173,7 @@ No production changes, no rollback, no new tests or CTRL-009 assignment authoriz
 
 ## MESSAGE CTRL-009
 
-**Status:** ASSIGNED — narrow RED/GREEN readOnly correctness fix for JInvCheckBox
+**Status:** CLOSED — user independently confirmed Windows Java 25 / JavaFX 25 `CTRL-009 PASS` (2026-11-23). Production `5fc050d452e32adf55407512c8e9b5e9cc13fa75` accepted for the tested matrix. User supplied no separate exit code or Robot run; physical gestures and full business forms/DB persist remain UNKNOWN.
 **Priority:** HIGH — prevent user-originated selected/model changes
 **Repo:** `ssu95a/fore25`
 **Implementation branch:** `migration/java25-correctness` (never main)
