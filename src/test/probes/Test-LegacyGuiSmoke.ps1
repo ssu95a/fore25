@@ -28,8 +28,11 @@ param(
     [switch] $RadioReadOnly,
     [Parameter(ParameterSetName = 'ComboReadOnly')]
     [switch] $ComboReadOnly,
+    [Parameter(ParameterSetName = 'CheckBoxReadOnly')]
+    [switch] $CheckBoxReadOnly,
     [Parameter(ParameterSetName = 'RadioReadOnly')]
     [Parameter(ParameterSetName = 'ComboReadOnly')]
+    [Parameter(ParameterSetName = 'CheckBoxReadOnly')]
     [switch] $RobotInput,
     [ValidateNotNullOrEmpty()]
     [string] $SettingsFile
@@ -84,6 +87,12 @@ if ($Editors) {
 } elseif ($ComboReadOnly) {
     $probeId = 'CTRL-007'
     $probeClass = 'ComboReadOnlySmoke'
+    if ($RobotInput) {
+        $probeArgs = @('robot')
+    }
+} elseif ($CheckBoxReadOnly) {
+    $probeId = 'CTRL-009'
+    $probeClass = 'CheckBoxReadOnlySmoke'
     if ($RobotInput) {
         $probeArgs = @('robot')
     }

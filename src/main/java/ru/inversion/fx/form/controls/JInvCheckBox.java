@@ -1,13 +1,21 @@
 package ru.inversion.fx.form.controls;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.event.EventHandler;
+import javafx.scene.AccessibleAction;
 import javafx.scene.AccessibleAttribute;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import ru.inversion.dataset.fx.DSFXAdapter;
 import ru.inversion.fx.form.action.IAction;
 import ru.inversion.fx.form.action.JInvKeyboardManager;
@@ -22,6 +30,35 @@ import static ru.inversion.fx.form.controls.JInvTableColumn.COLUMN_SHOW_IN_FILTE
  * @author ssu @
  */
 public class JInvCheckBox extends CheckBox implements IJInvControl, IValidatableByChangeValueControl, IFilterControl {
+
+    private static final EventHandler<KeyEvent> READ_ONLY_KEY_FILTER = event -> {
+        var box = (JInvCheckBox) event.getSource();
+        if (box.isReadOnly() && (event.getCode() == KeyCode.SPACE || event.getCode() == KeyCode.ENTER)) {
+            if (event.getEventType() == KeyEvent.KEY_PRESSED) {
+                event.consume();
+            } else if (event.getEventType() == KeyEvent.KEY_RELEASED) {
+                // Скин должен сбросить своё состояние нажатой клавиши без вызова fire().
+                box.disarm();
+            }
+        }
+    };
+    private static final EventHandler<MouseEvent> READ_ONLY_MOUSE_FILTER = event -> {
+        var box = (JInvCheckBox) event.getSource();
+        if (!box.isReadOnly()) {
+            return;
+        }
+        var type = event.getEventType();
+        if ((type == MouseEvent.MOUSE_PRESSED && event.getButton() == MouseButton.PRIMARY)
+                || (type == MouseEvent.MOUSE_RELEASED && (event.getButton() == MouseButton.PRIMARY || box.isArmed()))
+                || (type == MouseEvent.MOUSE_ENTERED && event.isPrimaryButtonDown())) {
+            box.disarm();
+            event.consume();
+        }
+    };
+    private static final ChangeListener<Boolean> NATIVE_DISABLED_LISTENER = (property, oldValue, disabled) -> {
+        var box = (JInvCheckBox) ((ReadOnlyBooleanProperty) property).getBean();
+        box.refreshDisabledStyle();
+    };
 
     private final RequiredState requiredState = new RequiredState(this);
 
@@ -78,10 +115,37 @@ public class JInvCheckBox extends CheckBox implements IJInvControl, IValidatable
     }
 
     private void init() {
-        readOnlyProperty().addListener( (obs, oldV, newV) -> Controls.disableControl( this, obs.getValue() ) );
+        readOnlyProperty().addListener((obs, oldValue, readOnly) -> applyReadOnly(readOnly));
+        disabledProperty().addListener(NATIVE_DISABLED_LISTENER);
         JInvKeyboardManager.initNaviationOnNode(this);
+        addEventFilter(KeyEvent.ANY, READ_ONLY_KEY_FILTER);
+        addEventFilter(MouseEvent.ANY, READ_ONLY_MOUSE_FILTER);
         setMnemonicParsing(false);
         mnemonicParsingProperty().addListener( (v,o,n) -> {if (n) setMnemonicParsing(false);} );
+    }
+
+    private void applyReadOnly(boolean readOnly) {
+        if (readOnly) {
+            disarm();
+        }
+        if (!focusTraversableProperty().isBound()) {
+            setFocusTraversable(!readOnly);
+        }
+        if (!mouseTransparentProperty().isBound()) {
+            setMouseTransparent(readOnly);
+        }
+        refreshDisabledStyle();
+    }
+
+    private void refreshDisabledStyle() {
+        pseudoClassStateChanged(DISABLED_GREY_STATE, isReadOnly() || isDisabled());
+    }
+
+    @Override
+    public void executeAccessibleAction(AccessibleAction action, Object... parameters) {
+        if (action != AccessibleAction.FIRE || !isReadOnly()) {
+            super.executeAccessibleAction(action, parameters);
+        }
     }
 
     @Override
