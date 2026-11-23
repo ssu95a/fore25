@@ -2212,7 +2212,7 @@ Current JInvCheckBox.init() registers a readOnly listener that calls Controls.di
 
 ## MESSAGE CTRL-010
 
-**Status:** ASSIGNED — READ-ONLY feasibility/correctness audit of JInvChoiceBox readOnly; NO production or tracked-test changes
+**Status:** CLOSED — read-only investigation reported in `Reply CTRL-010` and user accepted the documented `JInvChoiceBox.readOnly` limitation (2026-11-23). No production changes or ChoiceBox skin rewrite authorized. User input can still select through a live popup; do not rely on readOnly for business-data integrity.
 **Priority:** HIGH — prevent user-driven selection/model change without a large JavaFX skin reimplementation
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (READ ONLY)
@@ -2239,3 +2239,36 @@ Source-confirmed: JInvChoiceBox constructors delegate readOnly to Controls.disab
 ### Strict limits / report
 
 READ-ONLY investigation only. No production, tracked tests, POM, Maven wrapper, dependency, schema, or source changes; temporary probes only in ignored target. No commits to migration/java25-correctness, main or JInvCommon. No work on ComboBox, radio, calendar or unrelated controls. ONLY Git/GitHub write allowed is append `## Reply CTRL-010` to docs/codex/outbox.md on agent/codex-mailbox (mailbox protocol approved), with branch SHA, exact Java/JavaFX versions, positive/negative matrix, any minimal-proposal vs reason for rejecting a fix, and concrete next action. Do not assign or start CTRL-011.
+
+---
+
+## MESSAGE CTRL-011
+
+**Status:** ASSIGNED — READ-ONLY feasibility/correctness audit of JInvTextField readOnly with externally bound editable
+**Priority:** CRITICAL — input integrity and unexpected model writes in common text controls
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (READ ONLY)
+**Expected HEAD:** 5fc050d452e32adf55407512c8e9b5e9cc13fa75
+**Reply ID:** CTRL-011
+
+### Confirmed baseline, source and contract
+
+Prior CTRL-005 Windows JDK25/JavaFX25 probe with a real JInvTextField and valid unlocked positive control confirmed: `readOnly=true` with `editableProperty().bind(sourceTrue)` causes the Controls.disableControl listener to raise a bound-value exception, while focused user-style typed input and Backspace continue changing text. Changing the editable source to false blocks those edits and permits copy. Native readOnly assignment itself stays true. Audit used real Stage, source flags and targeted JavaFX input; physical/Robot not demonstrated for this TextField binding path.
+
+Current production source: JInvTextField(String) registers readOnly listener -> `Controls.disableControl(this, flag)`. The TextInputControl branch of Controls sets `editable = !disable` without checking `editableProperty().isBound()`. JInvTextField additionally installs a per-field CaseSensitiveFormatter, context-menu population, F9/LOV handling (`isEditable() || getButtonIgnoresEditable()`), a `commitValue` path and a custom skin. It has selection caching, tooltip and external LOV button bindings. Do NOT assume TextField's native `editable=false` is the same as `readOnly`, or that simply adding a listener to block text changes preserves programmatic model writes.
+
+User contract: `readOnly=true` must prevent USER-originated text/value changes and any resulting Binder/DataSet/FXEntity model modifications; programmatic setText/textProperty changes, formatter/model-to-GUI normalization, DataSet navigation and LOV-driven **authorized programmatic** updates must remain allowed. Selection/copy/focus should remain available if they already work. No model-write rollback after emitting notifications. User agreed to accept documented limitations rather than complex control/skin reimplementations when scope is disproportionate (ComboBox and ChoiceBox precedents).
+
+### READ-ONLY investigation
+
+1. Verify exact production HEAD; inspect JInvTextField.java, custom skin, CaseSensitiveFormatter, Controls.disableControl, `ITextFieldBase`/validation/LOV and real Binder/DataSet binding route. Separate SOURCE-PROVEN, CONFIRMED runtime, HYPOTHESIS and UNKNOWN. Check subclass impact if any, but do not edit other controls.
+2. Build a *temporary ignored target* Java 25/JavaFX25 visible Stage audit with real JInvTextField skin and `SimpleStringProperty` bidirectionally bound model, text/model notification counters and tested unlocked positive controls. Establish normal typed text, Backspace, paste/cut/context menu, copy, selection and F9/LOV route as available. Then set readOnly on focused field with externally bound editable=true; record exceptions, text changes and model notifications. Dynamically change bound source true→false→true while locked; verify identity/liveness. Compare ordinary writable editable mode (CTRL-005 baseline) and repeated lock/unlock.
+3. Include KEY_TYPED, KEY_PRESSED/KEY_RELEASED, deletion, clipboard paste/cut, context menu, IME/undo/redo/drag-drop where feasible. Explicitly mark unrun paths UNKNOWN. Synthetic Event.fireEvent bypasses native hit testing; use Robot only if exclusive keyboard/mouse access is established; do not claim physical input without it. Disabled ancestor, focus retention, focused selection and Ctrl+C should be included if supported.
+4. Verify explicit programmatic setText, textProperty/model writes, actual ArrayDataSet + applicable DSControlAdapter and `Controls.setValue` while locked. Never confuse legitimate programmatic normalization with user edits; avoid a blanket property listener or value rollback that would block DataSet updates or produce transient notifications.
+5. Audit F9/LOV and contextual actions for a bound editable=true field locked by readOnly. Do not construct unsupported full LOV dependencies or claim DB behavior without a real fixture. Determine if `getButtonIgnoresEditable()` permits a user to mutate field value while readOnly, and whether current buttons' disableProperty bindings already prevent it. Check bound visible/disable/other critical properties only where they directly affect user editability.
+6. Explore the **smallest possible** compatible gate that prevents user-originated edits with editable externally bound TRUE, while preserving native editing API, copy and programmatic updates. Critically assess TextFormatter (application-owned per control), clipboard paths, input methods, and JavaFX TextInputControl internals. Estimate extra instance handlers, allocation and lifecycle risk. If straightforward and complete, propose one narrow RED/GREEN task; if not, recommend documented accepted limitation. Do not implement now.
+
+### Constraints and reporting
+
+READ ONLY. No modifications to production, tracked tests, POM, modules/dependencies, JavaFX controls, main or JInvCommon. Only ignored target temporary probe permitted; no commits to `migration/java25-correctness`. Scope limited to JInvTextField and its direct code paths. Do not start CTRL-012 or unrelated calendar/button fixes.
+All routine Git/GitHub actions APPROVED for reading and publishing mailbox report ONLY. Publish `## Reply CTRL-011` to `docs/codex/outbox.md` on `agent/codex-mailbox` with exact SHA/JavaFX versions, RED evidence/positive controls, user vs programmatic event/model counts, binding exception details, compatibility/per-instance-memory implications, and a SINGLE recommended next decision/task. Clearly say which input provenance and full app/DB cases remain UNKNOWN. Do not push implementation branch.
