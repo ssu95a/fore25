@@ -2427,3 +2427,34 @@ Source inspection on the above production SHA: `DSChoiceBoxAdapter` constructor 
 - If there is an unresolvable contract conflict or the test demonstrates that even this narrow change would disturb correct navigation, STOP and report BLOCKED, no production commit.
 - Git/GitHub operations APPROVED for narrow verified fix: commit minimal changes, fast-forward push to `migration/java25-correctness`, verify remote SHA; do not force push or discard user changes. Publish `## Reply CTRL-015` in docs/codex/outbox.md on `agent/codex-mailbox` with RED/GREEN, duplicates evidence, exception recovery, exact SHA/diff, status of literal-null uncertainty, and a reproducible Windows command (`-ChoiceAdapter -SettingsFile "D:\Java\.m2\settings.xml"`).
 - STOP after CTRL-015; do not self-assign CTRL-016. Monitoring is hourly and will report your new outbox reply, but it does not approve future implementation steps.
+
+---
+
+## MESSAGE CTRL-016
+
+**Status:** ASSIGNED / DEPENDENT — start ONLY after CTRL-015 completes successfully and `Reply CTRL-015` is published; never run concurrently. If CTRL-015 is BLOCKED or lacks a report, do NOT start CTRL-016; report WAITING and stop.
+**Type:** ~1-hour bounded READ-ONLY forensic audit with local ignored-target runtime experiments; NO production or tracked-test modifications
+**Priority:** HIGH — establish ChoiceBox/FXEntity/DataSet null semantics to resolve CTRL-014 safely
+**Repo:** ssu95a/fore25
+**Branch:** migration/java25-correctness (READ ONLY; use the verified HEAD after CTRL-015)
+**Reply ID:** CTRL-016
+
+### Background, evidence and invariant
+
+CTRL-014 is BLOCKED, not implemented. The generic `Controls.setValue(JInvChoiceBox, value)` lacks a branch. Provisional support for null via `choice.setValue(null)` caused JavaFX selection index `1 -> -1 -> 2` for real specialized Binder.bindChoiceBox + DSChoiceBoxAdapter with list `[A, B, null]`, moving the DataSet cursor 1 -> 2. `selectionModel.clearSelection()` had the same outcome. Meanwhile `JInvChoiceBox.setSelectedValue(null)` currently is a NO-OP. Thus `null` as a real item, `null` as a model value, and absence of selected row cannot be equated. Never silently change user data, cursor position or the public null contract.
+
+Source review also found `Binder.bindChoiceBox(IFXEntity, JInvChoiceBox)` with `valueFactory` installs `cb.valueProperty().addListener` calling `valueFactory.apply((T) cb.getValue())` with no null guard. Verify whether a null selection can throw or cause data/model inconsistency. Do NOT assume all valueFactory functions accept null. `DSChoiceBoxAdapter` is concurrently being investigated by CTRL-015 for duplicate listener registration and `insideInSetCurrentRow` exception safety; this assignment MUST NOT overlap or rewrite that work.
+
+### Time-boxed tasks (around one hour, stop at evidence, not exhaustive refactor)
+
+1. PRECONDITION: read fresh GitHub inbox/outbox, confirm `Reply CTRL-015` says DONE, production branch SHA matches the published final SHA (no unexpected advances), and local worktree is clean. If not, write a short WAITING/BLOCKED response only and stop. Never modify the in-progress CTRL-015 checkout.
+2. Trace and document current contracts among `Controls.getValue/setValue`, `JInvChoiceBox.setSelectedValue`, `Binder.bindChoiceBox` both FXEntity and DataSet overloads, `DSChoiceBoxAdapter`, JavaFX ChoiceBox value/list index semantics, and ArrayDataSet cursor behavior. Distinguish value T vs projected key R, `null item` vs no selection, and index `-1` vs a valid null-row index.
+3. Create temporary, UNTRACKED probes under ignored `target/ctrl016` only, using Java 25/JavaFX 25 actual classes on FX thread. Establish positive controls first. Compare at least these fixtures: `['A','B']`, `['A','B',null]`, and structured rows `[Row('A',1),Row('B',2),null]` (if row-null supported). Run native `setValue(null)`, `clearSelection()`, explicit select of null-row index, DataSet navigation to a valid row, and missing/invalid index. Record exact selected-index transitions, value/item/model change counts, cursor old/new indices and exceptions. Do not use UI synth dispatch to claim physical behavior; this is a programmatic API audit.
+4. Independently test FXEntity `valueFactory` binder when control value becomes null through both programmatic clear and DataSet navigation, verifying if `valueFactory.apply(null)` fails. Use a real minimal FXEntity if practical; otherwise mark as SOURCE-PROVEN risk and runtime UNKNOWN. Verify non-null key mapping and changes without duplicate notifications.
+5. Evaluate these policies without implementing: (A) forbid literal null items in specialized DataSet; (B) treat null item as a legitimate selectable DataSet row and specify what 'clear' means; (C) support clearing value only when no literal null item is present; (D) use an explicit 'no selection' operation at the adapter boundary. For each, give impact on legacy behavior, cursor correctness, model events, public API and migration risk. Do not invent a business rule or choose policy silently.
+6. Produce ONE recommended smallest next RED/GREEN task and one precise architectural question for the user if policy remains ambiguous. Recommend stop/accepted limitation rather than broad changes if no safe contract is demonstrable. Mark CONFIRMED runtime, SOURCE-PROVEN, HYPOTHESIS, UNKNOWN distinctly. At timebox limit, stop with findings so far; no unbounded research.
+
+### Hard constraints / reporting
+
+READ ONLY: no production commits, no tracked tests, no push to migration branch, no modification of main/JInvCommon/Controls/JInvChoiceBox/Binder/DSChoiceBoxAdapter or unrelated controls, no shell background scheduler or new automation. Local ignored-target probes permitted. Report exact Java/JavaFX versions, base SHA and input provenance.
+Only permitted write is `## Reply CTRL-016` appended to docs/codex/outbox.md on agent/codex-mailbox, after verifying SHA. Limit the reply to a compact matrix, source-cause, concrete recommendations and blockers; include enough detail for the architect to decide. Do not start CTRL-017. The hourly ChatGPT monitoring is notification-only, NOT authorization to merge or approve new production code.
