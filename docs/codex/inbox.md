@@ -2285,7 +2285,7 @@ Usage guidance: do not rely solely on the control's readOnly flag to protect bus
 
 ## MESSAGE CTRL-012
 
-**Status:** ASSIGNED — READ-ONLY feasibility/correctness investigation for JInvCalendar and JInvCalendarTime
+**Status:** CLOSED — read-only audit completed in Reply CTRL-012; user explicitly accepted documented JInvCalendar/JInvCalendarTime readOnly limitations (2026-11-24). No production/skin rework authorized. Do not rely on calendar readOnly for data-integrity enforcement; already-open popups and bound editable can write models. Native disable must not be assumed to close a popup.
 **Priority:** HIGH — date and datetime model integrity under readOnly
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (READ ONLY)
@@ -2314,3 +2314,18 @@ CTRL-005 Windows Java25/JavaFX25 audit already established: closed JInvCalendar/
 
 READ ONLY. No production or tracked test edits, commits to implementation branch, dependency/POM/module/skin changes, no JInvCommon or main writes. Temporary probes may reside only in ignored target. Do NOT start CTRL-013 or unrelated controls. Ordinary Git/GitHub reading and mailbox report publication APPROVED.
 Publish `## Reply CTRL-012` to docs/codex/outbox.md on agent/codex-mailbox. Include exact SHA, Java/JavaFX versions, unlocked and locked matrix, input provenance, binding/model notification counts, CalendarTime date-time integrity, risk/compatibility and ONE recommended decision or minimal separate future task. Confirm production remained at baseline SHA.
+
+---
+
+## BACKLOG CAL-TIME-001 — JInvCalendarTime implicit seconds mutation
+
+**Status:** DEFERRED / ACCEPTED FOR BACKLOG (user decision 2026-11-24); NOT ASSIGNED. No agent work or implementation authorized yet.
+**Priority when scheduled:** correctness / data integrity, independent of CTRL-012 readOnly policy.
+**Component:** `src/main/java/ru/inversion/fx/form/controls/JInvCalendarTime.java`, converter `InternalConverter.fromString`.
+**Baseline SHA:** `5fc050d452e32adf55407512c8e9b5e9cc13fa75` on `migration/java25-correctness`.
+
+**CONFIRMED in CTRL-012 Windows Java 25.0.1/JavaFX 25 runtime:** unchanged displayed `10.03.2026 13:42` (input mask only minute precision), locked `editableProperty` externally bound true, focus lost without user draft edit; business `dateTimeValue` changed `2026-03-10T13:42:14` → `2026-03-10T13:42:44`. Date event 0, datetime/model events 1/1. Source confirms minute-resolution `InternalConverter` parses then `.plusSeconds(LocalTime.now().getSecond())` instead of preserving prior hidden seconds. Full applications and persistence remain UNKNOWN.
+
+**Future RED/GREEN scope (only when separately assigned):** establish deterministic test for losing focus/committing untouched displayed value without changing datetime or emitting model notifications; test genuine newly entered minute-precision values, explicit seconds input, date-only mode, rangeable mode, null/invalid drafts, masked formatter semantics and `LocalDateTime` binding/DSControlAdapter navigation. Specify the policy for seconds on an actual new user edit before implementing it. Preserve all programmatic updates and user-visible converter behavior where required. Avoid work on full `readOnly` interception or calendar skin changes.
+
+**No assignment number CTRL-013**, no production change, no GitHub issue created in this step.
