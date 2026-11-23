@@ -1905,3 +1905,45 @@ Programmatic selectToggle(B) and model-to-radio writes each propagated once whil
 Scope the follow-up to JInvRadioButton/JInvRadioGroup user activation. Apply effective readOnly as the logical OR of the radio's own flag and its current Legacy group's flag, so either owner may release without enabling a radio still locked by the other. Gate value-changing user activation even when the radio has retained focus. Preserve programmatic setValue, ToggleGroup.selectToggle and bidirectional model updates; preserve public signatures and avoid global snapshot/restore state. Group attachment, reassignment and detachment must update effective state without leaving a listener or stale restriction on the old group. No broader focus policy is implied by the contract.
 
 RED/GREEN acceptance: on a shown JavaFX 25 Stage, compare both locked, each partial release, radio-only and group-only from a fresh fixture, then fully unlocked. With B focused before locking, try Space and any supported activation shortcut; use a physical mouse on B and verify by hand that all locked cases hold A with zero model notifications, with full unlock producing B and one notification. A native positive control must pass before treating a blocked physical gesture as evidence. Also assert equivalent targeted keyboard outcomes in automation and verify direct selection and model→radio still update once while locked. Exercise group reassign/detach and native ancestor disable as compatibility sentinels. Extend the independent Windows manual matrix to Tab/focus and copy, ComboBox Down, ChoiceBox/calendar popup lock while open, checkbox Space and bound text typing. These are verification cases for the audit findings, not additional implementation assignments.
+
+---
+
+## Reply CTRL-006
+
+**Status** — Implemented on Windows Java 25.0.1 and JavaFX 25. Production advanced by fast-forward from `c21a17e0b2ba8305a02d405449052f9aa0b5b607` to `6797a24554d40026025e49cd26d73f8503f93cd5`. Both revisions were checked with `git ls-remote`. [Exact commit and diff](https://github.com/ssu95a/fore25/commit/6797a24554d40026025e49cd26d73f8503f93cd5)
+
+### Change and compatibility
+
+The radio's own and group's listeners previously wrote interaction flags independently. An owner releasing its restriction could therefore re-enable the radio. Focus traversal flags and mouse transparency did not stop activation of a focused radio. JavaFX 25 toggle-arrow behavior calls `selectToggle` directly, so watching `fire()` alone would also miss selection through a sibling.
+
+`JInvRadioButton` now reads effective readOnly as the OR of its own property and its current Legacy group property. The existing group listener refreshes its current Legacy toggles, and the radio's toggle-group property listener refreshes on transitions to or from a locked group. The pre-selection guards cover Space and Enter activation, primary mouse activation, access through `AccessibleAction.FIRE`, and arrow selection of or from a locked radio. Arrow target resolution follows JavaFX 25 wraparound, orientation and disabled-target skipping. The plain-group filter covers standard ToggleButton peers in mixed groups such as the export controller's format group. Native disabled is respected and its CSS state is preserved when a read-only owner releases. Bound focus/mouse-transparency properties remain owned by their sources while activation is guarded. [JavaFX ButtonBehavior source](https://raw.githubusercontent.com/openjdk/jfx/jfx25/modules/javafx.controls/src/main/java/com/sun/javafx/scene/control/behavior/ButtonBehavior.java)
+
+Explicit programmatic `fire()` remains available and retains its original JavaFX behavior. The accessibility action is guarded independently. `selectToggle`, direct selected writes, group.setValue and bidirectional model writes use the existing selection pipeline. No public property identities, existing signatures, constructors or Binder behavior changed. Production diff is limited to the two authorized radio files.
+
+There is no effective-state property, per-radio snapshot or new reference from a Legacy group to a detached button. A radio stores one additional toggle-group listener registration, and JavaFX stores registrations for shared key and mouse handlers. For a plain group with Legacy members, a shared list listener watches membership and installs a shared arrow handler on standard toggle peers. The old peer is unregistered on removal, and remaining peer handlers and the list listener are removed after the last Legacy member leaves. The handlers capture no group or radio instance. No retained-byte measurements were performed.
+
+### RED and GREEN
+
+Tracked `RadioReadOnlySmoke` first ran RED before production editing, using real controls and a bidirectionally bound SimpleStringProperty on a shown Windows Stage. The final probe was additionally run against the original two production classes compiled into an isolated classpath overlay. Unlocked positive controls passed and RED returned 1. GREEN returned 0 using the normal runner with Maven `-Pbuild` and the user settings.
+
+| Case | RED | GREEN |
+| --- | --- | --- |
+| Unlocked Space, targeted click and Right | A → B, one model notification | A → B, one model notification |
+| Both locked, only group locked, only radio locked, either owner released | Targeted Space, Right from A, targeted click and accessibility FIRE each selected B and wrote the group/model once | Every case preserves selected A, group A and model A, with zero notifications |
+| Released both owners | Space selects B once | Space selects B once |
+| Programmatic write while locked | selectToggle, model write, group.setValue, selected write and explicit fire each select B once | Same five paths select B once |
+| Membership and native disabled | Detach could leave stale flags, and unlock could clear the native disabled pseudo-class | Reassign, detach, reattach, old/new group toggles and native ancestor disable pass |
+| Mixed plain group | Arrow from a stock radio can select a locked Legacy peer | Blocked across late stock attachment, detach/reattach and bulk attachment. Unlocked arrow still selects the next radio. |
+
+The input assertions use targeted `Event.fireEvent` and a separate direct accessibility action. Targeted mouse events bypass native scene picking. Testing used no shared mouse or keyboard control. A new Robot run for CTRL-006 requires exclusive input confirmation and was not run; native hit testing after the fix and hand-operated input are UNKNOWN. The exclusive CTRL-005 Robot run remains baseline evidence. Full application forms, real FXEntity integration, radio-specific DataSet navigation, and DB persistence are UNKNOWN. `-NodeTraversal`, `-DatePickerBinding`, `-MoneyDecimal` and `-DataBinding` (GUI-009) passed on the final version. PowerShell syntax and `git diff --check` passed.
+
+Independent Windows recheck from the repository root:
+
+```powershell
+git pull --ff-only origin migration/java25-correctness
+git rev-parse HEAD
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -RadioReadOnly -SettingsFile "D:\Java\.m2\settings.xml"
+$LASTEXITCODE
+```
+
+For the Robot variant, add `-RobotInput` to that command only after obtaining exclusive mouse and keyboard access, including RDP. The probe checks unlocked input before interpreting locked cases.
