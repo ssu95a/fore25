@@ -2097,3 +2097,47 @@ $LASTEXITCODE
 ```
 
 Expect `CTRL-009 PASS` and exit 0. Add `-RobotInput` only with exclusive Windows desktop input available.
+
+---
+
+## Reply CTRL-010
+
+**Status:** READ-ONLY audit complete. Selection/model writes confirmed. Preserving programmatic show while reliably preventing selection remains a policy/design decision.
+**Production:** `migration/java25-correctness` at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `ab25df7ae3ad4cb7196091950e2ce01f900d792a`.
+
+### CONFIRMED runtime
+
+Windows Java `25.0.1+8-LTS-27`, JavaFX `25`, production JInvChoiceBox and default ChoiceBoxSkin, FX thread and shown Stage. A/B items and a bidirectional SimpleStringProperty model. Counts are selected-index/value/model changes. The fixture recompiled the unmodified JInvChoiceBox against the local build and dependency classpath. The final audit process exited 0 after asserting the positive controls and reproductions. Inputs were targeted JavaFX events; pointer dispatch bypasses OS picking. Accessibility used direct calls to the control/menu item's accessibility entry points. Explicit API calls and adapter navigation are marked separately.
+
+| Scenario | Observation |
+| --- | --- |
+| Unlocked keyboard positive control | Space opens. Popup Down focuses B; Enter commits B and closes the popup. A→B, 1/1/1. |
+| Unlocked pointer positive control | Primary press/release at the control center opens. Targeted primary dispatch to the actual B menu-item node commits B, 1/1/1. Both positive controls passed before locked assertions. |
+| Open before lock | readOnly transition leaves popup showing and A unchanged initially, 0/0/0. Separate keyboard and pointer runs then commit B under readOnly, each 1/1/1. |
+| Focus retained, locked and originally closed | Space and Down reopen without an immediate value change; Down→Enter in each reopened popup commits B, 1/1/1. Up, F4, Enter, Alt+Up and Alt+Down did not open or select in either mode in this Windows fixture. Popup Escape closed when unlocked, 0/0/0. |
+| Targeted primary click, closed under lock | Writable focusTraversable case stayed closed, 0/0/0. |
+| readOnly and focusTraversable both bound | Two lock/unlock cycles generated four bound-value exceptions, delivered to the FX thread's uncaught-exception handler. Both bindings remained intact, and focus source false→true propagated while locked. In each locked cycle targeted primary click opened and B selection wrote the model, 1/1/1. |
+| Accessibility | Direct EXPAND opened the locked ChoiceBox, 0/0/0. Direct FIRE on the actual B menu-item node then committed B, 1/1/1. The SHOW_MENU action was not the ChoiceBox expansion entry point in this runtime. |
+| Application show()/hide() while locked | Explicit show opened with 0/0/0; B remained user-selectable through the live popup and changed the model, 1/1/1. Explicit hide closed normally. |
+| Native ancestor disabled | With popup initially closed, attempted explicit show, Space, pointer and EXPAND left it closed, 0/0/0. Model→control still worked, 1/1/1. Disabling the ancestor while the popup was already open left it visible, and targeted B pointer activation still committed, 1/1/1. |
+| Programmatic updates while locked | setValue, selectionModel.select, setSelectedValue using valueFactory and model→control updates each propagated exactly once. setValue(null) selected index -1 and propagated null, 1/1/1. setSelectedValue(null) retained B, 0/0/0, per existing API. |
+| DataSet navigation while locked | Real ArrayDataSet with Binder.bindChoiceBox and DSChoiceBoxAdapter navigated A→B→A, each 1/1/1. Separate diagnostic generic DSControlAdapter binding hit the existing unsupported Controls.setValue dispatch for JInvChoiceBox; the specialized ChoiceBox adapter is the supported path used for this check. Null-row behavior of the specialized adapter was not established. |
+
+### SOURCE-PROVEN on this checkout and installed JavaFX 25
+
+- Both JInvChoiceBox constructors call Controls.disableControl when readOnly changes. Its ChoiceBox branch writes focusTraversable before installing mouse filters, and has no bound-property guard, keyboard filter or popup hide. It does not set native disable.
+- ChoiceBoxBehavior maps Space release and Down release to showPopup; Space press cancels an existing popup. Escape/Cancel release cancel. Enter mappings live in a two-level-focus child input map; the Windows fixture did not activate them. Primary mouse release within the control opens a closed popup, and mouse release when already showing closes it. Neither focused opening nor public ChoiceBox.show commits by itself. JavaFX ChoiceBox.executeAccessibleAction maps EXPAND and COLLAPSE to show and hide. ChoiceBox.show checks native disabled state.
+- ChoiceBoxSkin owns a separate ContextMenu. Its popup accessor is package-private. The skin creates a RadioMenuItem action that resolves the item index and calls the live selection model directly. ContextMenuContent routes pointer, keyboard and accessibility through MenuItemContainer.doSelect. This checks item-level disable, updates the menu radio mark, then fires the item action. A filter on the ChoiceBox alone cannot protect that action. Native temporary window focus/resize behavior was not substituted for model protection.
+- Binder's field binding uses bidirectional FXEntity binding or valueFactory mapping and setSelectedValue. The public DataSet bind method constructs DSChoiceBoxAdapter, whose navigation calls selectionModel.select. Guarding the selection model or applying rollback after notification would break the contract. ExportController/Export.fxml is an actual repository use: it fills formats, sets initial value and reads the value. No application caller opening this ChoiceBox for locked viewing, specific popup hooks, or custom ChoiceBox skin was found in this checkout. External consumers are unknown.
+
+### Feasibility and concrete next action
+
+**Recommend documenting the limitation.** A small close-on-lock change plus bound-safe focus handling, control-level mouse/Space/Down guards, and an accessibility EXPAND guard can remove the ordinary reopening routes. Closing itself was tested: it left A and 0/0/0, but a subsequent explicit show reopened. While explicit show is supported, the baseline reproduced a subsequent menu action writing B. An unconditional show guard would change current public API semantics, including intentionally opening a list for viewing, so it needs a separate policy decision. Such a closure policy could reuse the existing readOnly listener and shared filters without adding an instance field; it would still add filter registrations. Exact retained bytes are unknown.
+
+A test-only ContextMenu ACTION filter, attached after discovering the visible stock popup via Window.getWindows and ownerNode identity, blocked targeted pointer, keyboard, accessibility FIRE and even a direct hidden MenuItem.fire, all with 0/0/0. But the menu checked B while the control still held A, and still showed B checked on reopen. Bytecode explains the mismatch: the menu sets the mark before sending ACTION. Disabling discovered menu entries preempted the tested pointer/accessibility activation, but a production solution would need dependable popup ownership/identity, lock/unlock, item regeneration and skin replacement handling. Owner-node discovery and the observed stock popup ID are not a supported typed ChoiceBox popup API. A discovery-based gate would add popup or per-item registrations and lifecycle management beyond the evidence for a narrow fix. It is not a proposed production solution.
+
+For a form that requires an input lock, document that JInvChoiceBox.readOnly is insufficient to protect the model. Close any open popup before applying native disable where disabled interaction is acceptable, and verify the form's model updates. A separate display control can serve inspection-only forms. If the application wants a production ChoiceBox policy change later, first decide whether explicit show under lock may be closed; the audit does not authorize that change.
+
+### UNKNOWN / validation limits
+
+Robot was NOT RUN because exclusive Windows input was unavailable. Physical keyboard/mouse picking, screen-reader integration, alternate skins/platforms, external callers, real FXEntity business forms and DB persistence remain unverified. The accepted regression suite was not rerun for this read-only task. The ignored local fixture is `target/ctrl010/ChoiceReadOnlyAudit.java`; runtime output and installed JavaFX bytecode diagnostics are in the same directory. No production or tracked-test changes were made.
