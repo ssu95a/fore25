@@ -2329,3 +2329,35 @@ Publish `## Reply CTRL-012` to docs/codex/outbox.md on agent/codex-mailbox. Incl
 **Future RED/GREEN scope (only when separately assigned):** establish deterministic test for losing focus/committing untouched displayed value without changing datetime or emitting model notifications; test genuine newly entered minute-precision values, explicit seconds input, date-only mode, rangeable mode, null/invalid drafts, masked formatter semantics and `LocalDateTime` binding/DSControlAdapter navigation. Specify the policy for seconds on an actual new user edit before implementing it. Preserve all programmatic updates and user-visible converter behavior where required. Avoid work on full `readOnly` interception or calendar skin changes.
 
 **No assignment number CTRL-013**, no production change, no GitHub issue created in this step.
+
+---
+
+## MESSAGE CTRL-013
+
+**Status:** ASSIGNED — minimal RED/GREEN allocation and semantic fix in Controls.isControlValueChanged
+**Priority:** HIGH — prevent retained Node property/map allocation on a read-only query
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (never main)
+**Expected production HEAD:** 5fc050d452e32adf55407512c8e9b5e9cc13fa75
+**Reply ID:** CTRL-013
+
+### Confirmed source issue
+
+`Controls.isControlValueChanged(Node)` currently calls `getValueChangedProperty(control).getValue()` for non-null nodes. This helper lazily creates a `SimpleBooleanProperty(control, "controlValueChanged")` and stores it under `IJInvControl.CONTROL_VALUE_CHANGED` in `node.getProperties()`. Hence a predicate READ on a pristine node creates a persisted BooleanProperty and can create the lazily allocated Node properties observable map. Upstream OpenJFX 25 Node.java confirms `getProperties()` lazily initializes `FXCollections.observableMap(new HashMap<>())`, whereas public `hasProperties()` returns `properties != null && !properties.isEmpty()` without initialization. This is significant in many GUI controls; direct caller chain `F7FilterDialog -> ValidMan.isControlValueChanged -> Controls.isControlValueChanged` exists.
+
+User preference: correctness and minimizing retained memory per control are higher priority than style; no unnecessary per-instance fields, listeners or cache. This is not a request to change unrelated Controls methods.
+
+### Narrow fix and RED/GREEN tests
+
+1. Verify repository/branch HEAD; create a tracked minimal test under `src/test/probes/gui/` and add a dedicated `-ValueChangedFlag` mode to `src/test/probes/Test-LegacyGuiSmoke.ps1` (or a comparably existing official GUI runner). Establish RED on original source: `Controls.isControlValueChanged(pristineNode)` returns false BUT changes `node.hasProperties()` to true or inserts `IJInvControl.CONTROL_VALUE_CHANGED`; the test must assert no retained mutation/metadata even on the first read. Use an actual Node with initially `hasProperties()==false`, e.g. `Pane`, `Group`, or stock suitable Node; establish unlocked/valid fixture positive control.
+2. Modify **only `Controls.isControlValueChanged` production implementation** to use public Node.hasProperties guard and lookup existing optional property *without calling the creating getter*. False for null, pristine, and unrelated Node properties; no map or BooleanProperty should be created on a read. Check `IJInvControl.CONTROL_VALUE_CHANGED` only when properties actually exist. Preserve value semantics and any existing cast/behavior for an already stored BooleanProperty. Avoid changing explicit property API, visibility or mutability.
+3. Assert explicit `Controls.getValueChangedProperty` still creates and stores the same writable property on demand, repeated calls preserve identity and listeners, `setControlValueChanged(node,true/false)` still writes and reports correct values, and a pre-existing bound/value property is observed without replacement. Access to other unrelated node.getProperties keys must remain unchanged. Null reads return false.
+4. Check that newly created/unset controls with metadata follow the same behavior; no redundant property instance is introduced on read, no per-instance listener registration. If duplicate property key has a custom or unexpected type, document existing contract rather than silently redesigning it.
+5. Run Java 25 / JavaFX 25 targeted test RED -> GREEN; Maven `-Pbuild` compile, PowerShell parsing and `git diff --check`; keep prior accepted `-CheckBoxReadOnly`, `-ComboReadOnly`, `-RadioReadOnly`, `-NodeTraversal`, `-DatePickerBinding`, `-MoneyDecimal`, `-DataBinding` green where available. If a probe requires a Windows Stage/toolkit, use actual JavaFX 25 and report exact provenance. A headless pure-Node test is acceptable if it is sufficient to establish properties-map allocation semantics. State any unrun test as UNKNOWN.
+
+### Strict scope / Git / mailbox
+
+- ONLY production modification permitted: `src/main/java/ru/inversion/fx/form/controls/Controls.java`, specifically `isControlValueChanged`. No change to `getValueChangedProperty` or `setControlValueChanged`, no F7FilterDialog/ValidMan edits, no broad Controls refactor, dependency/POM/wrapper, main or JInvCommon changes. Test only in `src/test/probes/gui` and dedicated runner mode.
+- New source comments in Russian. Preserve API and avoid additional retained memory; exact bytes UNKNOWN unless independently measured. Do NOT change the ComboBox/ChoiceBox/TextField/Calendar accepted readOnly limitations or deferred CAL-TIME-001 seconds finding.
+- Ordinary Git/GitHub actions APPROVED: commit verified minimal implementation on migration/java25-correctness, fast-forward push, confirm exact remote SHA; never force push. Publish `## Reply CTRL-013` in `docs/codex/outbox.md` on agent/codex-mailbox with baseline/final SHA, exact diff, test evidence, RED/GREEN allocation/property identity counts, and Windows recheck command with `-ValueChangedFlag -SettingsFile "D:\Java\.m2\settings.xml"`.
+- STOP after CTRL-013. Do not start CTRL-014 or edit other Controls helpers. Future `getTitleFromTableColumn` detached-column correctness and `getNonControlComponentFromContainer` allocation/API semantics are separate potential tasks.
