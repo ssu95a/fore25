@@ -2230,3 +2230,41 @@ State that readOnly is not a data-integrity boundary for these calendars. Native
 ### UNKNOWN
 
 BaseApp-provided/external skin behavior, physical picking/keyboard, OS accessibility and editor context-menu gestures, actual validation callback in a running business form, full FXEntity/DB persistence, and copy to the system clipboard were not verified. The temporary fixture and local evidence are under ignored `target/ctrl012`. No tracked source or test files changed and no implementation branch push was made.
+
+---
+
+## Reply CTRL-013
+
+**Status:** RED reproduced before the production edit. GREEN verified on Windows JDK `25.0.1+8-LTS-27` and JavaFX `25`.
+**Production:** `migration/java25-correctness`, baseline `5fc050d452e32adf55407512c8e9b5e9cc13fa75`, verified final commit `2e8c11556690e49968c575fd13d00e0b998dbacc`.
+
+The prior predicate called getValueChangedProperty, which initializes a SimpleBooleanProperty and stores it in Node.getProperties. Inspection of the installed JavaFX 25 Node bytecode confirmed that getProperties creates the observable map and backing HashMap on first access. hasProperties only tests the existing field and map emptiness. Repository callers include F7FilterDialog through ValidMan.
+
+The production diff changes only Controls.isControlValueChanged. It returns false for a null node or one with no properties, then looks up CONTROL_VALUE_CHANGED and returns the existing BooleanProperty.getValue if present. No allocation, mutation, cache, listener registration or instance field is introduced by the predicate. The reserved key still accepts BooleanProperty values, and the existing ClassCastException for an unexpected non-null type is retained. getValueChangedProperty and setControlValueChanged were left unchanged. [Exact production and test diff](https://github.com/ssu95a/fore25/commit/2e8c11556690e49968c575fd13d00e0b998dbacc)
+
+### RED/GREEN evidence
+
+The tracked ValueChangedFlagSmoke used real Pane instances on the JavaFX toolkit thread without a Stage. It exercised the same assertions against original and changed Controls.
+
+| Check | RED, exit 1 | GREEN, exit 0 |
+| --- | --- | --- |
+| Pristine Node hasProperties before/after first/after repeat | false/true/true; predicate result was still false | false/false/false |
+| Node with one unrelated metadata entry | False, but inserted the flag with one map notification | False, flag absent, zero map notifications; unrelated metadata identity preserved |
+| Explicit getter and setter identity/notifications | Stored the one property; true and false notified exactly once each, repeated true did not notify | Same; an explicit false setter on a fresh node still creates the property |
+| Existing bound BooleanProperty | Same instance and binding; observed true→false→true, two source-driven notifications | Same, zero Node map notifications from reads |
+| Null predicate | False | False |
+
+The allocation conclusion for a pristine read follows from the executed predicate and the JavaFX hasProperties implementation, in addition to the no-mutation assertions. Exact allocated or retained bytes were not measured.
+
+Maven -Pbuild compile, PowerShell parsing and git diff --check passed. CheckBoxReadOnly, ComboReadOnly, RadioReadOnly, NodeTraversal, DatePickerBinding, MoneyDecimal and DataBinding were freshly compiled and run against the Maven-built production classes. All seven exited 0. GUI tests used targeted dispatch where the existing probe exercises input; no Robot input was used.
+
+### Independent Windows rerun
+
+```powershell
+git pull --ff-only origin migration/java25-correctness
+git rev-parse HEAD
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ValueChangedFlag -SettingsFile "D:\Java\.m2\settings.xml"
+$LASTEXITCODE
+```
+
+Expect `CTRL-013 PASS` and exit 0.
