@@ -2361,3 +2361,36 @@ User preference: correctness and minimizing retained memory per control are high
 - New source comments in Russian. Preserve API and avoid additional retained memory; exact bytes UNKNOWN unless independently measured. Do NOT change the ComboBox/ChoiceBox/TextField/Calendar accepted readOnly limitations or deferred CAL-TIME-001 seconds finding.
 - Ordinary Git/GitHub actions APPROVED: commit verified minimal implementation on migration/java25-correctness, fast-forward push, confirm exact remote SHA; never force push. Publish `## Reply CTRL-013` in `docs/codex/outbox.md` on agent/codex-mailbox with baseline/final SHA, exact diff, test evidence, RED/GREEN allocation/property identity counts, and Windows recheck command with `-ValueChangedFlag -SettingsFile "D:\Java\.m2\settings.xml"`.
 - STOP after CTRL-013. Do not start CTRL-014 or edit other Controls helpers. Future `getTitleFromTableColumn` detached-column correctness and `getNonControlComponentFromContainer` allocation/API semantics are separate potential tasks.
+
+---
+
+## MESSAGE CTRL-014
+
+**Status:** ASSIGNED — focused RED/GREEN Controls.setValue support for JInvChoiceBox
+**Priority:** HIGH — programmatic value setting and data integrity, not readOnly
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (never main)
+**Expected production HEAD:** 2e8c11556690e49968c575fd13d00e0b998dbacc
+**Reply ID:** CTRL-014
+
+### Confirmed source facts
+
+`Controls.getValue(Object)` explicitly supports `JInvChoiceBox`, returning the selected item T. `Controls.setValue(Object,Object)` does NOT support JInvChoiceBox and throws `Unsupported class control`. This is source-proven and the previous CTRL-010 audit also observed the exception with a generic DSControlAdapter. `JInvChoiceBox<T,R>.setSelectedValue(R)` selects by mapped valueFactory R when configured, by raw item equality otherwise, and currently does nothing on null. Specialized Binder.bindChoiceBox/DSChoiceBoxAdapter is distinct; it must not be modified.
+
+User approved closing remaining Controls issues as narrow fixes with correctness/data integrity first. Earlier JInvChoiceBox.readOnly implementation limitations were ACCEPTED; DO NOT reopen that work or touch the popup/skin.
+
+### Work and acceptance criteria
+
+1. Verify expected branch, remote HEAD and clean working tree. Build a tracked JavaFX25 smoke under src/test/probes/gui and a dedicated -ChoiceSetValue mode in src/test/probes/Test-LegacyGuiSmoke.ps1. Establish positive control: direct `JInvChoiceBox.setSelectedValue("B")` works. Then RED: `Controls.setValue(choice,"B")` throws (record exact type/message, selection, model counts). Include Controls.setValue(Node) and Controls.setValue(Object) overloads.
+2. Test both JInvChoiceBox constructors, simple String items A/B, and a distinct T-record/R-key valueFactory case. Validate selected item T, Controls.getValue result T, mapped R selection, exactly one selection/value/model notification for a real change, zero on identical repeats. Include unmatched non-null key: preserve existing JInvChoiceBox.setSelectedValue no-change behavior. Distinguish R from T, and do NOT silently change getValue API.
+3. Test null explicitly: start with selected B. `Controls.setValue(choice,null)` should clear value/selection if consistent with generic Controls.setValue null meaning and model-to-GUI behavior. Compare `ChoiceBox.setValue(null)`, `selectionModel.clearSelection`, current `JInvChoiceBox.setSelectedValue(null)` (known no-op) and selection-to-dataset navigation. Do NOT change JInvChoiceBox's public setSelectedValue(null) semantics; handle null locally in Controls.setValue if safe. If clear invokes an unsafe dataset navigation or would violate existing required invariants, STOP and report BLOCKED with evidence rather than guessing.
+4. Implement the smallest production branch in `Controls.setValue(Object,Object)` only. For non-null call existing JInvChoiceBox.setSelectedValue with the projected R. If null semantics are verified safe, clear appropriately without extra model-change events. Preserve dispatch precedence and APIs for ICustomValueControl, DatePicker, JInvComboBox, ComboBox, CheckBox, RadioGroup etc. No new per-instance allocations, caches, listeners, or wide refactor.
+5. Verify generic DSControlAdapter navigation/update path where feasible, including non-null and null/missing rows. Do not modify adapter, Binder, or specialized DSChoiceBoxAdapter. Explicit programmatic updates during `readOnly=true` must continue to succeed; no change to user-origin input policy. Annotate tests with correct provenance and use actual Java 25.0.1 / JavaFX 25 Stage and FX thread when required.
+6. Run real Windows RED before production edit and GREEN after. Maven -Pbuild compile, PowerShell syntax, git diff --check; rerun relevant existing `-ValueChangedFlag`, `-CheckBoxReadOnly`, `-ComboReadOnly`, `-RadioReadOnly`, `-NodeTraversal`, `-DatePickerBinding`, `-MoneyDecimal`, `-DataBinding` smoke modes as practical. Any unrun cases remain UNKNOWN. Robot unnecessary as this is programmatic API behavior.
+
+### Strict scope, Git, reply
+
+- ONLY production edit: src/main/java/ru/inversion/fx/form/controls/Controls.java, specifically setValue(Object,Object). Test-only addition in src/test/probes/gui and optional -ChoiceSetValue runner. Do not edit JInvChoiceBox, adapters, Binder, other methods of Controls, dependencies/POM/wrapper, main or JInvCommon. Comments newly added in production in Russian.
+- Git/GitHub operations APPROVED within this task: minimal verified commit, fast-forward push to migration/java25-correctness, confirm exact remote SHA. NEVER force push or discard user changes. If blocker discovered, no production commit.
+- Publish `## Reply CTRL-014` on docs/codex/outbox.md in agent/codex-mailbox with exact baseline/final SHA, RED/GREEN matrix, null/valueFactory semantics, event counts, exact diff, and Windows independent rerun command `-ChoiceSetValue -SettingsFile "D:\Java\.m2\settings.xml"`.
+- Stop after CTRL-014; next detached-column title and non-control collection allocation cases are separate potential tasks.
