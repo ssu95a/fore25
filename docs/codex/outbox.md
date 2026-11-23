@@ -2141,3 +2141,46 @@ For a form that requires an input lock, document that JInvChoiceBox.readOnly is 
 ### UNKNOWN / validation limits
 
 Robot was NOT RUN because exclusive Windows input was unavailable. Physical keyboard/mouse picking, screen-reader integration, alternate skins/platforms, external callers, real FXEntity business forms and DB persistence remain unverified. The accepted regression suite was not rerun for this read-only task. The ignored local fixture is `target/ctrl010/ChoiceReadOnlyAudit.java`; runtime output and installed JavaFX bytecode diagnostics are in the same directory. No production or tracked-test changes were made.
+
+---
+
+## Reply CTRL-011
+
+**Status:** READ-ONLY audit complete. Confirmed model writes under readOnly with a caller-owned editable binding. Recommend documenting the limitation.
+**Production:** `migration/java25-correctness` at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `571e839a4f5186e7fb167b7219ed42eaf795cd76`.
+
+### CONFIRMED runtime
+
+Windows Java `25.0.1+8-LTS-27` and JavaFX `25`, real JInvTextField/JInvTextFieldButtonSkin, shown Stage, focused field and bidirectional SimpleStringProperty model. Counts are text/model notifications per operation. Keyboard and committed IME text used targeted JavaFX events. Clipboard used actual Windows clipboard text with probe data. The built-in menu used real MenuItem nodes and direct accessibility FIRE; the fixture explicitly refreshed the stock menu before the menu checks. OS clipboard access for popup tests required the normal Windows execution context; the initial restricted run could not establish menu Paste. Clipboard snapshot restoration was attempted after the run if the current text still matched the probe's last write.
+
+| Scenario | Result |
+| --- | --- |
+| Unlocked, editable bound true, positive controls | KEY_TYPED, Backspace, Delete, Ctrl+V, Ctrl+X, synthetic committed IME text, stock menu Paste/Cut, and shortcut undo/redo each worked, 1/1. Selection, Ctrl+C and stock menu Copy put selected text on clipboard with 0/0. |
+| Locked, editable bound true | Lock kept focus and readOnly=true. The listener emitted JInvTextField.editable: A bound value cannot be set to the FX thread's uncaught-exception handler. The same mutations still worked, 1/1 each. Copy/selection still worked, 0/0. |
+| Bound source true→false→true while locked | Binding intact. With false, the tested key/IME mutations stayed at 0/0 and freshly populated menu omitted Paste/Cut. With true again the same edits resumed, 1/1. Unlock while bound also emitted the bound-value exception. |
+| Locked, ordinary writable editable | Native editable=false blocked the tested key/IME routes and omitted Paste/Cut in a freshly populated menu. Selection, keyboard and menu Copy still worked with 0/0. |
+| Menu generated before lock, ordinary writable editable | Menu stayed showing after editable became false. The already-enabled Cut entry remained actionable; direct FIRE on the live menu node changed abcd→cd, 1/1. |
+| Direct accessibility SET_TEXT | In the locked writable case with editable=false, the direct accessibility entry point changed text and model, 1/1. OS screen-reader availability of this action remains unverified. |
+| Ancestor disabled with readOnly active | Targeted typing/Backspace left text unchanged, 0/0; model→GUI still worked, 1/1. This check did not establish clipboard/menu/accessibility behavior across ancestor disable. |
+| Programmatic paths | Locked setText, textProperty and model writes and Controls.setValue each gave 1/1 with the bound-true field. With the ordinary locked field, the stock uppercase formatter normalized programmatic setText, textProperty and Controls.setValue without replacing the formatter, 1/1 per change. |
+| Real ArrayDataSet and DSControlAdapter | While locked with editable bound true, navigation made A→B→null visible in text and model, 1/1 per row. |
+| Diagnostic custom TextFormatter veto | Returning null for content changes under lock blocked targeted typing with 0/0. It also blocked setText and textProperty writes with 0/0. The already-seeded native undo changed text/model, 1/1, bypassing the filter. A formatter value-model write still reached the display with 1/1 through the formatter's separate value/display path. |
+
+### F9, LOV and contextual changes
+
+- Used a small JInvTextField subclass overriding only showLOV to record calls and optionally publish a distinct test result. It retained the production F9 handler, native control and skin. Unlocked F9 entered the route and the stub result wrote text/model once. Locked F9 with editable bound true did the same. With source false, F9 was blocked until buttonIgnoresEditable=true; that flag restored the locked user-key path and the stub result generated 1/1. Direct programmatic showLOV on the fixture also still delivered its result.
+- The real JInvLOVButton installed through setInnerButton was disabled through a binding and invisible under lock; direct Button.fire had no effect. A real external JInvLOVButton attached through setTextField in the tested ordering was registered as the external button, visible and enabled under lock. Its **direct** Button.fire reached the same stub and generated 1/1. This demonstrates the action wiring, not physical button hit testing or all external-button layouts.
+- Production F9 calls commitValue before showLOV and checks editable OR buttonIgnoresEditable plus validation state, with no readOnly check. With a real converter-backed TextFormatter and a stub chooser that performed no write, targeted typing produced text seedx while the formatter model remained seed (1 text event, 0 formatter-model events). F9 then changed the formatter model to seedx exactly once, with zero additional text events.
+- Actual showLOV delegates to AbstractLovBase.showChoiceList when present; the LOV value listener updates text via setText or append/replace depending on configuration. Authorized programmatic LOV updates must retain both forms. The real chooser, validation and DB-backed results were not run. The stock extra Edit Dialog item goes through JInvFEButton/JInvFEDialog. The dialog binds its inner area's editable to the source field but uses a null result converter when its opening snapshot is readOnly, so that built-in route has a separate write-back check. A dialog opened before switching readOnly relies on its opening snapshot; actual late-lock dialog behavior was not tested.
+
+### SOURCE-PROVEN and feasibility
+
+JInvTextField constructors install the readOnly→Controls.disableControl listener. Controls attempts setEditable on TextInputControl with no binding guard, and the exception occurs before the CSS update. Merely skipping the setter preserves the binding and leaves the bound-true field editable. Binder.bindTextField binds text bidirectionally through TFSCnv; DSControlAdapter navigation sends values through Controls.setValue. A content mutation can therefore reach the model before any later listener rollback.
+
+The stock CaseSensitiveFormatter is already field-owned and can delegate to an inner filter; JInvTextFieldFormatted and time controls can install different formatters. JavaFX 25 uses a formatter filter for both edit replacements and ordinary programmatic text assignment. Undo/redo operate on content directly; direct accessibility SET_TEXT uses setText. The stock menu snapshots editable at population and calls programmatic mutation APIs, and the skin deliberately preserves application-owned menus/handlers. F9, external buttons and delayed LOV results are independent routes. A single key filter misses menu, IME and accessibility. A blanket replacement/mutation override would also intercept API calls used for application updates. Origin cannot be inferred from TextFormatter.Change, and the temporary veto demonstrated both overblocking and bypass.
+
+**Single recommended next action:** document that JInvTextField.readOnly with caller-bound editable is insufficient to protect mutable model values. The audit did not establish a small, complete fix that keeps the binding, application formatter and programmatic APIs compatible. Hardening only F9, or closing and guarding the stock context menu, fixes specific entry points but leaves the rest. Complete support under arbitrary caller binding would require coordinated input/IME, contextual, accessibility and LOV policy and lifecycle handling. Shared filters could avoid new per-instance handler objects, but still add registrations; formatter wrappers or menu/LOV tracking would add per-instance state and lifecycle costs. Exact retained bytes are unknown. Forms that require enforcement should enforce it at their model/action boundary and verify the display/inspection path independently.
+
+### UNKNOWN
+
+Robot NOT RUN because exclusive input was unavailable. Physical keyboard, mouse/clipboard gestures, OS IME composition, drag/drop, screen-reader behavior, app-owned context handlers, full FXEntity forms, real LOV/DB and production subclass runtime matrices remain unverified. No accepted regressions were rerun in this read-only audit. The local fixture and evidence are under ignored `target/ctrl011`. No production or tracked-test files changed.
