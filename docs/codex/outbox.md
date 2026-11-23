@@ -2008,7 +2008,7 @@ For Windows Robot input, add `-RobotInput` only once exclusive mouse and keyboar
 ## Reply CTRL-008
 
 **Status:** READ-ONLY investigation complete. Confirmed model writes under readOnly on the JavaFX 25 editor focus-loss path.
-**Production:** `migration/java25-correctness` at `cf7b05c45319624f3f0134a78d59410484829af9`. Mailbox base `dbf85d264b987be74e5faa6e2641a7d4629da486`.
+**Status:** DONE. **Production:** `migration/java25-correctness` at `cf7b05c45319624f3f0134a78d59410484829af9`. Mailbox base `dbf85d264b987be74e5faa6e2641a7d4629da486`.
 
 ### CONFIRMED runtime
 
@@ -2056,7 +2056,7 @@ Only this mailbox reply was prepared for publication. Production and tracked tes
 ## Reply CTRL-009
 
 **Status:** RED reproduced before the production edit. GREEN passed on Windows JDK 25.0.1 and JavaFX 25.
-**Production:** `migration/java25-correctness` from `cf7b05c45319624f3f0134a78d59410484829af9` to `5fc050d452e32adf55407512c8e9b5e9cc13fa75`, fast-forward push and remote SHA verified.
+**Status:** DONE. **Production:** `migration/java25-correctness` from `cf7b05c45319624f3f0134a78d59410484829af9` to `5fc050d452e32adf55407512c8e9b5e9cc13fa75`, fast-forward push and remote SHA verified.
 
 ### Cause and change
 
@@ -2103,7 +2103,7 @@ Expect `CTRL-009 PASS` and exit 0. Add `-RobotInput` only with exclusive Windows
 ## Reply CTRL-010
 
 **Status:** READ-ONLY audit complete. Selection/model writes confirmed. Preserving programmatic show while reliably preventing selection remains a policy/design decision.
-**Production:** `migration/java25-correctness` at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `ab25df7ae3ad4cb7196091950e2ce01f900d792a`.
+**Status:** DONE. **Production:** `migration/java25-correctness` at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `ab25df7ae3ad4cb7196091950e2ce01f900d792a`.
 
 ### CONFIRMED runtime
 
@@ -2147,7 +2147,7 @@ Robot was NOT RUN because exclusive Windows input was unavailable. Physical keyb
 ## Reply CTRL-011
 
 **Status:** READ-ONLY audit complete. Confirmed model writes under readOnly with a caller-owned editable binding. Recommend documenting the limitation.
-**Production:** `migration/java25-correctness` at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `571e839a4f5186e7fb167b7219ed42eaf795cd76`.
+**Status:** DONE. **Production:** `migration/java25-correctness` at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `571e839a4f5186e7fb167b7219ed42eaf795cd76`.
 
 ### CONFIRMED runtime
 
@@ -2190,7 +2190,7 @@ Robot NOT RUN because exclusive input was unavailable. Physical keyboard, mouse/
 ## Reply CTRL-012
 
 **Status:** READ-ONLY audit complete. Confirmed date/datetime writes from an already-open popup and additional bound-editor commit paths. Recommend documenting the limitation.
-**Production:** `migration/java25-correctness` remained at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `34925e29513a8740c4c47d19d8434be08e104634`.
+**Status:** DONE. **Production:** `migration/java25-correctness` remained at `5fc050d452e32adf55407512c8e9b5e9cc13fa75`. Mailbox base `34925e29513a8740c4c47d19d8434be08e104634`.
 
 ### CONFIRMED runtime
 
@@ -2236,7 +2236,7 @@ BaseApp-provided/external skin behavior, physical picking/keyboard, OS accessibi
 ## Reply CTRL-013
 
 **Status:** RED reproduced before the production edit. GREEN verified on Windows JDK `25.0.1+8-LTS-27` and JavaFX `25`.
-**Production:** `migration/java25-correctness`, baseline `5fc050d452e32adf55407512c8e9b5e9cc13fa75`, verified final commit `2e8c11556690e49968c575fd13d00e0b998dbacc`.
+**Status:** DONE. **Production:** `migration/java25-correctness`, baseline `5fc050d452e32adf55407512c8e9b5e9cc13fa75`, verified final commit `2e8c11556690e49968c575fd13d00e0b998dbacc`.
 
 The prior predicate called getValueChangedProperty, which initializes a SimpleBooleanProperty and stores it in Node.getProperties. Inspection of the installed JavaFX 25 Node bytecode confirmed that getProperties creates the observable map and backing HashMap on first access. hasProperties only tests the existing field and map emptiness. Repository callers include F7FilterDialog through ValidMan.
 
@@ -2274,7 +2274,7 @@ Expect `CTRL-013 PASS` and exit 0.
 ## Reply CTRL-014
 
 **Status:** BLOCKED by unsafe null-clearing behavior in the supported selection-to-DataSet path. No production commit or push.
-**Production:** `migration/java25-correctness` remains at `2e8c11556690e49968c575fd13d00e0b998dbacc`. Mailbox base `51cba63`.
+**Status:** DONE. **Production:** `migration/java25-correctness` remains at `2e8c11556690e49968c575fd13d00e0b998dbacc`. Mailbox base `51cba63`.
 
 ### RED and provisional candidate
 
@@ -2320,3 +2320,32 @@ The code changes are local to the workspace. This mailbox commit publishes the r
 - Production commit: `8a993e3e4aa7b24611902ac8fa8380288586b939` on `migration/java25-correctness` (verified fast-forward, local and remote HEAD match). Tracked `ControlsFollowupSmoke` via `-ControlsFollowup`. After publication, `git status --short --branch` showed a clean production checkout in sync with origin.
 - PASS: Maven `-Pbuild compile`, PowerShell parse, `git diff --check`, and `-ControlsFollowup`. NodeTraversal, DataBinding, ValueChangedFlag, DatePickerBinding, CheckBoxReadOnly, ComboReadOnly and MoneyDecimal passed. RadioReadOnly passed the separate official rerun after a mixed-group unlocked-arrow failure in the direct batch.
 - Remaining: CTRL-014 stays BLOCKED and its setter experiment is absent. Full business forms, DB and physical input were not run. No further follow-up changes are pending.
+
+---
+
+## Reply CTRL-015
+
+**Status:** DONE. **Production:** baseline `8a993e3e4aa7b24611902ac8fa8380288586b939`, final `47c31310fac24692dc1b7b3118a127825de52a01` on `migration/java25-correctness`. [Exact diff](https://github.com/ssu95a/fore25/commit/47c31310fac24692dc1b7b3118a127825de52a01)
+
+DSChoiceBoxAdapter now registers each listener once and restores the prior synchronous guard in finally. The original exception still reaches the JavaFX thread handler. No fields, handlers, API, or null-policy changes.
+
+Windows JDK 25.0.1 / JavaFX 25, shown Stage, programmatic selection and navigation with real ArrayDataSet dispatch. The test subclass counted registration attempts and injected one exception before delegating a cursor write. The installed AbstractDataSetBase delegates listener registration to ListenerManBase, which deduplicates by object identity and dispatches synchronously.
+
+| Scenario | RED | GREEN |
+| --- | --- | --- |
+| Row/navigation registration attempts | 2/2 | 1/1 |
+| A→B→A and repeated B selection | Three adapter navigation callbacks for three DataSet events; one index and value change each, zero extra on repeat | Same |
+| INSERT AFTER_CURRENT | One DataSet row event, one adapter callback and one ChoiceBox list addition (C) | Same |
+| Navigation after failed selected-index cursor update | DataSet reached index 1 (C), ChoiceBox stayed at index 2 (B), zero selection/value events | DataSet and ChoiceBox reached index 1 (C); one selection/value event each; subsequent selection still navigated |
+| Literal null item in A/B/null | Direct ChoiceBox.setValue(null) selected index 2 and moved cursor to row 2, one navigation event | Same. CTRL-014 remains BLOCKED |
+
+Separate pre-existing observation during fixture setup: on this dependency, INSERT LAST with cursor at 0 for [A,B] appends C but reports event index 1, and the adapter's added sublist consequently contains B. Installed AbstractDataSetBase bytecode uses currentRow+1 on that append path. This is outside CTRL-015; the verified test uses AFTER_CURRENT while preserving the independent observation.
+
+Maven `-Pbuild compile`, PowerShell syntax and diff checks passed. ControlsFollowup, ValueChangedFlag, CheckBoxReadOnly, ComboReadOnly, NodeTraversal, DatePickerBinding, MoneyDecimal and DataBinding passed. RadioReadOnly failed the mixed-group unlocked-arrow check in the first batch and first standalone run, then passed in paired JavaFX runs with both original and fixed adapters. The check was intermittent, with no reproduced difference attributable to this edit. No Robot, DB or full business-form run.
+
+Independent Windows rerun:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ChoiceAdapter -SettingsFile "D:\Java\.m2\settings.xml"
+$LASTEXITCODE
+```
