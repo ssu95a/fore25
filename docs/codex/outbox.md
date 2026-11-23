@@ -2268,3 +2268,32 @@ $LASTEXITCODE
 ```
 
 Expect `CTRL-013 PASS` and exit 0.
+
+---
+
+## Reply CTRL-014
+
+**Status:** BLOCKED by unsafe null-clearing behavior in the supported selection-to-DataSet path. No production commit or push.
+**Production:** `migration/java25-correctness` remains at `2e8c11556690e49968c575fd13d00e0b998dbacc`. Mailbox base `51cba63`.
+
+### RED and provisional candidate
+
+Windows Java 25.0.1+8-LTS-27 / JavaFX 25, shown Stage on the FX thread. Programmatic API calls only. The no-arg and items constructors with A/B, and a mapped Entry→Integer fixture, all passed the direct setSelectedValue positive control with one selected-index, item, value and bound-model notification. Original Controls.setValue(Node,…) and Controls.setValue(Object,…) threw java.lang.RuntimeException: Unsupported class control: ru.inversion.fx.form.controls.JInvChoiceBox. A retained its selection and model, 0/0/0/0. RED process exit 1.
+
+The provisional diff was a single branch in Controls.setValue(Object,Object): JInvChoiceBox delegates non-null to setSelectedValue(value), and calls native setValue(null) for null. Maven -Pbuild compile and PowerShell parsing passed. The provisional -ChoiceSetValue run exited 0 on ordinary lists: both constructors, mapped 22→Entry B, getValue returning Entry T, exactly 1/1/1/1 on changes, zero additional events for repeats and unmatched keys, null clearing to index -1, and readOnly programmatic updates. Existing direct setSelectedValue(null) remained a no-op. Generic DSControlAdapter with ArrayDataSet navigated mapped 22→11→null and a missing row, one notification per observable and change. Specialized Binder/DSChoiceBoxAdapter with only non-null items left its source cursor at row 1 on clear and still navigated afterward. These are provisional results for the tested lists, not acceptance of the complete fix.
+
+### Blocking evidence
+
+A separate JavaFX program used the real specialized Binder.bindChoiceBox/DSChoiceBoxAdapter and ArrayDataSet with contents [A, B, null]. B at index 1 was valid and selected, with the source cursor at row 1. All three routes reproduced the same transition in the actual runtime:
+
+| Route | Selected index events | Final value/index | DataSet cursor |
+| --- | --- | --- | --- |
+| Native setValue(null) | 1→-1→2 | null / 2 | 1→2 |
+| Native selectionModel.clearSelection() | 1→-1→2 | null / 2 | 1→2 |
+| Provisional Controls.setValue(choice,null) | 1→-1→2 | null / 2 | 1→2 |
+
+JavaFX ChoiceBox has a value-change listener that resolves items.indexOf(newValue) and selects the index when found. With a literal null item, clearing the value selects that item again. DSChoiceBoxAdapter reacts synchronously to selected-index changes by calling setCurrentRowNum. A second clear would be too late to prevent the cursor notification. This differs from a missing row on the **generic** binding path, where the ChoiceBox items are still [A, B].
+
+The inbox requires STOP when clearing can cause unsafe navigation. The candidate and runner changes were removed, leaving tracked code and tests at baseline. Local evidence and fixtures are under ignored `target/ctrl014`, including `ChoiceSetValueSmoke.java`, `SpecializedNullDiagnostic.java`, `red.log`, `green.log` and `specialized-null.log`. The provisional -ChoiceSetValue runner is not present in the published branch. The baseline fixture can be compiled against the existing target/classes and the Maven test-scope classpath and run as ChoiceSetValueSmoke. Previously accepted regression modes were not rerun after the blocker; no production change was published.
+
+A separate decision is needed on the contract for literal null items in a specialized ChoiceBox DataSet before publishing a fix that clears selection. No changes were made to JInvChoiceBox, Binder, adapters or readOnly logic.
