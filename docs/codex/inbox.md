@@ -1998,7 +1998,7 @@ CTRL-002 has user-confirmed `CTRL-002 PASS` on Windows. Preserve the DatePicker 
 
 ## MESSAGE CTRL-004
 
-**Status:** ASSIGNED — READ-ONLY contract investigation and GUI probe (untracked only)
+**Status:** CLOSED — read-only Windows Java 25 / JavaFX 25 investigation completed; found bound-property exceptions, potentially ineffective readOnly transitions and overlapping JInvRadioGroup/JInvRadioButton ownership. Production unchanged at c21a17e0b2ba8305a02d405449052f9aa0b5b607. User clarified: readOnly=true forbids user-originated value edits, not programmatic updates.
 **Priority:** CORRECTNESS / GUI STATE / BINDINGS and lifecycle
 **Repo:** ssu95a/fore25
 **Code branch:** migration/java25-correctness (READ ONLY)
@@ -2021,3 +2021,36 @@ CTRL-003 accepted after independent Windows JavaFX 25 `CTRL-003 PASS`, exit 0. W
 
 READ ONLY production and tests. Temporary untracked experiments under ignored target are allowed. No POM/wrapper/dependency changes, no commits to production branch, main or JInvCommon. All GitHub/Git operations APPROVED only for reading and posting the mailbox reply. Do not begin CTRL-005.
 Publish `## Reply CTRL-004` in docs/codex/outbox.md on agent/codex-mailbox, with method/caller map, reproduction matrix, state ownership alternatives, priority and ONE narrow next step with exact testing criteria. Verify mailbox SHA, working branch SHA and unchanged production.
+
+---
+
+## MESSAGE CTRL-005
+
+**Status:** ASSIGNED — READ-ONLY correctness and behavioral contract investigation; NO implementation
+**Priority:** HIGH — user-input suppression and DataSet/model value integrity
+**Repo:** ssu95a/fore25
+**Production code branch:** migration/java25-correctness (READ ONLY)
+**Expected production HEAD:** c21a17e0b2ba8305a02d405449052f9aa0b5b607
+**Reply ID:** CTRL-005
+
+### User's explicit architectural contract
+
+**`readOnly=true` suppresses USER-ORIGINATED VALUE MODIFICATION.** Programmatic writes (setValue, model binding, DataSet row navigation / refresh, programmatic radio selection) must remain available. Do NOT interpret readOnly as blanket native Node.disable: keyboard focus, selection, clipboard copy, navigation, and ability to inspect data may remain available. Do not confuse disabling a button with invalidating all programmatic actions; programmatic Button.fire is NOT proof of a physical user click.
+
+An effective `readOnly=true` must prevent interaction paths that change the value, not merely set a cosmetic pseudo-class. If two distinct, supported owners impose readOnly (e.g. radio's own property and JInvRadioGroup), release of one owner's restriction must not give the user the ability to modify a value while the other owner remains readOnly. Whether this is currently represented by the API, and minimal safe composition, require evidence. Existing enable forcing state rather than restoring historical state is documented: do NOT invent a general snapshot/restore contract.
+
+### Source + runtime investigation (no production edit)
+
+1. Trace actual production readOnly paths and public behavior in Controls.disableControl, JInvTextField/JInvTextArea, JInvCalendar/CalendarTime, JInvComboBox/JInvChoiceBox, JInvRadioButton/JInvRadioGroup, JInvCheckBox and button types. Identify actual user interaction entry points (text editing, menu/popup selection, shortcut keys, space/enter, mouse, toggle action). State call sites and any relevant bound-property ownership.
+2. In a visible JavaFX 25 Stage on FX application thread, build a focused behavior matrix with representative controls. For each, compare normal input and `readOnly=true` for mouse, keyboard, and popup selection. Use genuine user-style event routing where possible; distinguish precisely `Event.fireEvent`, `Button.fire()`, `ToggleGroup.selectToggle`, direct setters, and physical input. **Never claim a physical key/mouse was tested if only synthetic events or direct method calls were used.**
+3. Test programmatic value change after readOnly=true without disabling value/model propagation, with event/value counts. Include a real standalone in-memory DataSet/adapter when practical. Avoid requiring full BaseApp/DB; report those pathways UNKNOWN if unavailable.
+4. Reproduce the concrete CTRL-004 bound editable/focus/visible findings and their observable impact on effective input suppression. A thrown bound-property exception and effective unblocked edit are different findings. Test a binding whose source changes dynamically, record whether bindings are intact and whether input is still accepted.
+5. Prioritize overlapping `JInvRadioGroup` + `JInvRadioButton` readOnly cases: both true, release group only, release radio only, programmatic selection while locked, then full unlock. Check effective user input separately from readOnly property, focusTraversable, mouseTransparent and pseudo-class. Record whether group binding/FXEntity value changes. Inspect realistic overlapping owner call sites; do not assume reference counting is part of existing contract.
+6. Where native JavaFX skins or accessibility paths make true keyboard/mouse simulation unreliable, document the limitation and recommend an independent manual Windows physical-input matrix rather than claiming PASS. Explicitly keep focus/copy/selection behaviors distinct from value editing.
+7. Report precise CONFIRMED runtime facts, SOURCE-PROVEN paths, HYPOTHESES and UNKNOWN. Rank by likely silent user value corruption / programmatic regression first, then UX and memory overhead. Recommend ONE minimal RED/GREEN correction task with acceptance criteria and compatibility impact; if a policy decision on multiple owners is essential, state the decision explicitly before any production work.
+
+### Scope / Git / reporting
+
+- This is a READ-ONLY audit. Do NOT modify production, tracked tests, API, module flags, POM, wrappers, dependencies, main or JInvCommon. Temporary untracked probes under ignored target are allowed. Do not optimize memory or rewrite Controls, nor begin CTRL-006.
+- Reuse JDK 25.0.1 / JavaFX 25 and existing Maven settings. Do not fabricate coverage of full business forms, DB saves or physical interaction. Keep all previously accepted regression baselines unchanged.
+- All normal Git/GitHub operations are APPROVED only for reading and posting the mailbox report. Verify exact branch HEADs. Post `## Reply CTRL-005` in docs/codex/outbox.md on agent/codex-mailbox with full matrix, source/call-site evidence, risks, UNKNOWN, and one recommended narrow next action. No implementation branch push. STOP after report.
