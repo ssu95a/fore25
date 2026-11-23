@@ -34,6 +34,8 @@ param(
     [switch] $ValueChangedFlag,
     [Parameter(ParameterSetName = 'ControlsFollowup')]
     [switch] $ControlsFollowup,
+    [Parameter(ParameterSetName = 'ChoiceAdapter')]
+    [switch] $ChoiceAdapter,
     [Parameter(ParameterSetName = 'RadioReadOnly')]
     [Parameter(ParameterSetName = 'ComboReadOnly')]
     [Parameter(ParameterSetName = 'CheckBoxReadOnly')]
@@ -106,6 +108,9 @@ if ($Editors) {
 } elseif ($ControlsFollowup) {
     $probeId = 'CTRL-CONTROLS-FOLLOWUP'
     $probeClass = 'ControlsFollowupSmoke'
+} elseif ($ChoiceAdapter) {
+    $probeId = 'CTRL-015'
+    $probeClass = 'ChoiceAdapterSmoke'
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))

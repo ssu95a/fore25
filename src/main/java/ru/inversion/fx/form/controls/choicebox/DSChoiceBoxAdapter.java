@@ -42,17 +42,16 @@ public class DSChoiceBoxAdapter<T, P> extends ObservableListBase<T> implements O
         this.comboBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                boolean previous = insideInSetCurrentRow;
                 insideInSetCurrentRow = true;
-                dataSet.setCurrentRowNum(newValue.intValue());
-                insideInSetCurrentRow = false;
+                try {
+                    dataSet.setCurrentRowNum(newValue.intValue());
+                } finally {
+                    insideInSetCurrentRow = previous;
+                }
             }
         });
 
-        this.dataSet.addRowListener(this);
-        this.dataSet.addNavigationListener(this);
-
-
-        
         this.dataSet.addRowListener(this);
         this.dataSet.addNavigationListener(this);
     }
