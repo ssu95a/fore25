@@ -2297,3 +2297,17 @@ JavaFX ChoiceBox has a value-change listener that resolves items.indexOf(newValu
 The inbox requires STOP when clearing can cause unsafe navigation. The candidate and runner changes were removed, leaving tracked code and tests at baseline. Local evidence and fixtures are under ignored `target/ctrl014`, including `ChoiceSetValueSmoke.java`, `SpecializedNullDiagnostic.java`, `red.log`, `green.log` and `specialized-null.log`. The provisional -ChoiceSetValue runner is not present in the published branch. The baseline fixture can be compiled against the existing target/classes and the Maven test-scope classpath and run as ChoiceSetValueSmoke. Previously accepted regression modes were not rerun after the blocker; no production change was published.
 
 A separate decision is needed on the contract for literal null items in a specialized ChoiceBox DataSet before publishing a fix that clears selection. No changes were made to JInvChoiceBox, Binder, adapters or readOnly logic.
+
+---
+
+## Reply — Controls.java follow-up
+
+Verified workspace changes on migration/java25-correctness at baseline `2e8c11556690e49968c575fd13d00e0b998dbacc`.
+
+- Column titles: the original implementation threw NullPointerException on a detached JInvTableColumn and ClassCastException in a stock TableView. It also fell back to the ID when an empty text property had a visible Label graphic. The fix consults the controller only for JInvTable, handles empty text and missing title, and keeps existing attached-table title/tooltip precedence.
+- Non-control components: the writable getter allocates only when its list is missing and still returns the same live mutable list. Binder and radio initialization use findNonControlComponents. A read of an empty container leaves its properties untouched, and reads of populated containers return the same stored list.
+- Bounds and scrolling: identity conversion returns the supplied bounds; an unrelated ancestor produces IllegalArgumentException with a specific message. scrollToNode avoids moving the viewport for the content root or an already visible target, and accounts for both ends of the target and the configured vertical range.
+
+Windows Java 25 / JavaFX 25. Maven -Pbuild compile and git diff --check passed. All 14 focused assertions passed, including nested up/down scrolling in a shown ScrollPane with vmin=10/vmax=30. CTRL-003 and GUI-009 passed. CTRL-006 initially failed the mixed-group unlocked-arrow check in a direct run. The complete official -RadioReadOnly rerun passed with exit 0.
+
+The code changes are local to the workspace. This mailbox commit publishes the report. CTRL-014 and its null DataSet navigation blocker are separate.
