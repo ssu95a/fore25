@@ -2244,7 +2244,7 @@ READ-ONLY investigation only. No production, tracked tests, POM, Maven wrapper, 
 
 ## MESSAGE CTRL-011
 
-**Status:** ASSIGNED — READ-ONLY feasibility/correctness audit of JInvTextField readOnly with externally bound editable
+**Status:** CLOSED — read-only audit completed in Reply CTRL-011, and user explicitly accepted documented JInvTextField.readOnly limitation (2026-11-23). No production changes or broad input/skin rework authorized. No CTRL-012 assigned.
 **Priority:** CRITICAL — input integrity and unexpected model writes in common text controls
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (READ ONLY)
@@ -2272,3 +2272,11 @@ User contract: `readOnly=true` must prevent USER-originated text/value changes a
 
 READ ONLY. No modifications to production, tracked tests, POM, modules/dependencies, JavaFX controls, main or JInvCommon. Only ignored target temporary probe permitted; no commits to `migration/java25-correctness`. Scope limited to JInvTextField and its direct code paths. Do not start CTRL-012 or unrelated calendar/button fixes.
 All routine Git/GitHub actions APPROVED for reading and publishing mailbox report ONLY. Publish `## Reply CTRL-011` to `docs/codex/outbox.md` on `agent/codex-mailbox` with exact SHA/JavaFX versions, RED evidence/positive controls, user vs programmatic event/model counts, binding exception details, compatibility/per-instance-memory implications, and a SINGLE recommended next decision/task. Clearly say which input provenance and full app/DB cases remain UNKNOWN. Do not push implementation branch.
+
+### Architecture decision after CTRL-011 (user approved, 2026-11-23)
+
+**ACCEPTED LIMITATION:** `JInvTextField.readOnly` must NOT be treated as a data-integrity enforcement boundary, especially when `editableProperty` is externally bound. The agent confirmed that `readOnly=true` with `editableProperty.bind(true)` raises a bound-property exception on `Controls.disableControl` and permits user-style text mutations to reach a bidirectional model. Separate confirmed routes include already-open context-menu actions, direct accessibility SET_TEXT, and F9/LOV under editable or buttonIgnoresEditable conditions. Unsupported physical/Robot and full app/DB cases remain UNKNOWN.
+
+**NO JInvTextField READONLY REWORK** is authorized from CTRL-011. Keep existing production and compatibility API unchanged. Do not add blanket TextFormatter vetoes, input filters, state snapshots, rollback or skin changes on this task. A future independently scoped fix for bound-property exception must be evaluated separately and must not be presented as complete readOnly support.
+
+Usage guidance: do not rely solely on the control's readOnly flag to protect business-model writes. Enforce authorization and validation at model/action/persistence boundaries. For display-only interaction use a suitable view; native disable may be an option after checking retained context-menu/LOV state and programmatic model-to-control updates in the actual form. This is the same policy category as accepted JInvComboBox and JInvChoiceBox limitations. No CTRL-012 is being assigned.
