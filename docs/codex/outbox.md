@@ -2555,3 +2555,15 @@ Direct lovProperty().set bypasses listener setup, as before. The former listener
 **DONE.** Implementation HEAD verified at `2390e7cdac4a463b1be24082b6502df0e54a4aa7`, clean worktree. Changed only AbstractLovBase.createDefaultCheck, new LovDefaultValidationSmoke and runner mode. Default false returns success without assignment, true retains assignment. No per-instance state; equality shortcut, entity/custom predicates unchanged.
 
 RED exit 1: direct checkValue(false) and LovValidator.validateOnOk each emitted one LOV, text and model change for both distinct text and null. GREEN exit 0: all four emitted zero and retained all values; direct true and normal validation each emitted one of each, equal values zero. Replacement and unbind passed. Windows Java/JavaFX 25; Maven compile, PowerShell parse, staged diff check, LovListenerLifecycle, TextFields, FormCancel, DataBinding PASS. Rerun `src/test/probes/Test-LegacyGuiSmoke.ps1 -LovDefaultValidation -SettingsFile "D:\Java\.m2\settings.xml"`.
+
+---
+
+## Reply CTRL-028
+
+**DONE / ARCHITECTURE DECISION NEEDED (READ-ONLY).** HEAD unchanged at `2390e7cdac4a463b1be24082b6502df0e54a4aa7`. Temporary attached JavaFX 25 probe with real JInvLOVButton and controlled provider passed.
+
+Field-only delegates to the editor provider: cancel no write/TAB, accept updates the field and emits one synthetic TAB. Provider-only calls its own provider with a null filter. Field → provider switches the handler/getters to standalone, but the button still holds the old field in inherited metadata and disable/visible bindings still follow it. Provider → field replaces the provider and delegates through the field. Reattaching the same or a different field raised RuntimeException (bound disable value cannot be set); on distinct reattach the action pair still points to the former field while inherited metadata points to the new one.
+
+Source: JInvChoiceButton configures the icon; JInvLOVButton owns the action pair and bindings, inherited JInvButton.setTextField writes separate metadata and may set disable directly. Internal TextField/Area/CUR and help-controller wiring use field mode. Provider constructors implement standalone mode. ButtonValidationListener recognises the reporting field for validation deferral. Native modal/DB and real corporate mouse replay remain UNKNOWN.
+
+Recommend keeping two exclusive modes unless a caller establishes a combined-mode contract. A focused future task can make mode transitions consistent by releasing old bindings/metadata and testing reattachment atomically. Retention through live button metadata/bindings is confirmed; lifetime in the corporate app is unmeasured. No tracked changes.
