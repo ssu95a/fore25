@@ -3,6 +3,8 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.BiConsumer;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -64,6 +66,7 @@ public class JInvTextArea extends TextArea implements ITextFieldBase {
     private final BooleanProperty appendFromLOV = new SimpleBooleanProperty( this, "appendFromLOV", false );
     final private SimpleBooleanProperty validateFromLOV = new SimpleBooleanProperty(this, "validateFromLOV", false);
     final private SimpleObjectProperty<AbstractLovBase> lov = new SimpleObjectProperty(this, "lov");
+    private LovAttachment lovAttachment;
     private String lovClassName;
     private Font cachedFont;
 
@@ -375,7 +378,19 @@ public class JInvTextArea extends TextArea implements ITextFieldBase {
 
         this.lov.set(lovObj);
 
+        if (getLOV() != lovObj) {
+            return;
+        }
+        var values = lovObj == null ? null : lovObj.valueProperty();
+        if (lovAttachment != null && lovAttachment.values != values) {
+            lovAttachment.detachValue();
+        }
         if (lovObj == null) {
+            if (lovAttachment != null && lovAttachment.button != null) {
+                var button = lovAttachment.button;
+                lovAttachment.button = null;
+                getToolBar().getItems().remove(button);
+            }
             return;
         }
 
@@ -384,7 +399,13 @@ public class JInvTextArea extends TextArea implements ITextFieldBase {
 
 //        setValidateFromLOV(validateFromLOV);
 
-        addLovValueListener(lovObj);
+        if (getLOV() != lovObj) {
+            return;
+        }
+        if (lovAttachment == null) {
+            lovAttachment = new LovAttachment();
+        }
+        lovAttachment.attachValue(values);
 
         if ( S.isNullOrEmpty(lovObj.getTitle()) && getLabel() != null) {
 
@@ -394,10 +415,9 @@ public class JInvTextArea extends TextArea implements ITextFieldBase {
         }
 
         // Устанавливаем кнопку на тулбар
-        JInvLOVButton button = new JInvLOVButton();
-        getToolBar().getItems().add( 0, button );//.setInnerButton(button);
-        button.setTextField(this);
-        button.setToolTipText( fore.getString( "LOV_BUTTON" ) );
+        if (getLOV() == lovObj) {
+            lovAttachment.installButton();
+        }
     }
 
     /**
@@ -473,14 +493,43 @@ public class JInvTextArea extends TextArea implements ITextFieldBase {
             JInvErrorService.handleException(ViewContext.of(getScene().getWindow()), th);
         }    }
 
-    /**
-     * Для установки значения по AbstractEntityLovBase.checkValue (.., true)
-     *
-     * @param lov
-     */
-    private void addLovValueListener(AbstractLovBase lov) {
+    private final class LovAttachment implements InvalidationListener {
+        private ObjectProperty<?> values;
+        private JInvLOVButton button;
 
-        lov.valueProperty().addListener( o -> setTextValueFromLov() );
+        void attachValue(ObjectProperty<?> next) {
+            if (values != next) {
+                detachValue();
+                values = next;
+                next.addListener(this);
+            }
+        }
+
+        void detachValue() {
+            if (values != null) {
+                values.removeListener(this);
+                values = null;
+            }
+        }
+
+        void installButton() {
+            if (button == null) {
+                button = new JInvLOVButton();
+                button.setTextField(JInvTextArea.this);
+                button.setToolTipText(fore.getString("LOV_BUTTON"));
+            }
+            var items = getToolBar().getItems();
+            if (!items.contains(button)) {
+                items.add(0, button);
+            }
+        }
+
+        @Override public void invalidated(Observable observable) {
+            var current = getLOV();
+            if (observable == values && current != null && current.valueProperty() == values) {
+                setTextValueFromLov();
+            }
+        }
     }
 
     /**
