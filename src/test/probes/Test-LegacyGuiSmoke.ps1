@@ -20,6 +20,8 @@ param(
     [switch] $LovListenerLifecycle,
     [Parameter(ParameterSetName = 'LovDefaultValidation')]
     [switch] $LovDefaultValidation,
+    [Parameter(ParameterSetName = 'LovIntegration')]
+    [switch] $LovIntegration,
     [Parameter(ParameterSetName = 'TextFields')]
     [switch] $TextFields,
     [Parameter(ParameterSetName = 'ValueFields')]
@@ -92,6 +94,9 @@ if ($Editors) {
 } elseif ($LovDefaultValidation) {
     $probeId = 'CTRL-027'
     $probeClass = 'LovDefaultValidationSmoke'
+} elseif ($LovIntegration) {
+    $probeId = 'CTRL-031'
+    $probeClass = 'LovIntegrationSmoke'
 } elseif ($TextFields) {
     $probeId = 'GUI-012'
     $probeClass = 'LegacyTextFieldsSmoke'
