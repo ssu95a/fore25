@@ -2768,3 +2768,43 @@ JInvTextField skips detachment if the property is bound, then uses the original 
 CONFIRMED on real focused Stage/skin, sibling external JInvLOVButton, and controlled provider: external→setLOV left both visible (external managed, wrapper unmanaged); external fire, inner wrapper fire, and synthetic F9 each opened once and wrote once, the three model values were [choice-1, choice-2, choice-3]. Replacing external after setLOV hid wrapper and cleared inner reference and property bindings. Wrapper's unbound onAction still held the old handler. Clearing external did not rebuild the inner button; explicit setLOV did. Replacing skin left a new empty wrapper and active provider, while the retained old wrapper still had its button/bindings. Source shows raw field listeners capture former skin and dispose does not unregister those listeners. Lifetime/impact in corporate forms, native input and DB-backed help dialog UNKNOWN.
 
 Recommend an isolated tested precedence contract for external→LOV and LOV→external based on the real help form before changing behavior. Treat old skin listener teardown separately; no change to CTRL-034 or existing exclusive modes.
+
+---
+
+## Reply CTRL-047
+
+**DONE / READ-ONLY.** Stable clean implementation HEAD `4de3d8a680bb2820be733d89c8cee0dfe3c1e80f`. Windows Java 25.0.1 / JavaFX 25, fresh processes:
+
+| Mode | Exit | Mode | Exit |
+| --- | --- | --- | --- |
+| WrapButtonDeferred | 0 | BoundLovSetter | 0 |
+| LovBindingInterleaving | 0 | LovListenerLifecycle | 0 |
+| LovDefaultValidation | 0 | LovIntegration | 0 |
+| TextFields | 0 | FormCancel | 0 |
+| FormLifecycle | 0 | SingletonCloseVeto | 0 |
+| SingletonLifecycleMatrix | 0 | ValidatorScopedUnbind | 0 |
+| ValidatorMultiControl | 0 | DataBinding | 0 |
+| SceneKeyLookup | 0 | ControlsFollowup | 0 |
+| RadioReadOnly | 0 | LovButtonReattach | SKIPPED (CTRL-034 BLOCKED) |
+
+17/17 passed on first run; no flaky outcome observed in this battery. Maven -Pbuild compile, PowerShell parse and diff check passed. Wrapper had 0 stale writes, rejected bound setter and unbind each preserved a single subsequent write, integration emitted exactly [current, choice-1, recovered]. Validator matrix retained 6 blur dispatches/6 model events. Singleton veto retained one visible form and zero callbacks; matrix cleanup and reopen passed. No implementation change. Corporate DB, physical input and MDI remain UNKNOWN. CTRL-033 independent user PASS still pending; accepted CTRL-032/035/042 confirmation is recorded in inbox. Independent acceptance of new mission tests UNKNOWN.
+
+---
+
+## Mission Summary CTRL-043–047
+
+| Task | Status | Commit / proof |
+| --- | --- | --- |
+| CTRL-043 | DONE | `a62b145212b12455fe8cc3a6fa66c82f3a047be1`: RED four obsolete callback routes, GREEN none; 5/5 fresh focused passes plus official runner |
+| CTRL-044 | DONE | `31de47899b2b22e0dddbe374bfd02fd297236f3c`: active provider updates after both rejected bound mutations 0→1, same exception and button |
+| CTRL-045 | DONE / test-only | `4de3d8a680bb2820be733d89c8cee0dfe3c1e80f`: 0 writes in both detached routes, 3 expected in active/recovered sequence and 1 standalone choice |
+| CTRL-046 | DONE / read-only | Real help-form attachment order reproduced two visible buttons; three routes each opened and wrote once. Old handler and skin ownership require review. |
+| CTRL-047 | DONE / read-only | 17 smoke processes exit 0; blocked reattach mode skipped; no new commit. |
+
+Three follow-ups for architect decision:
+
+1. Define external-vs-inner LOV precedence and restoration on detach, covering the real help form and both setter orders.
+2. Audit and test former skin disposal, especially listener lifetime and cached wrapper actions across skin replacement.
+3. Resolve CTRL-034 binding ownership before enabling same-mode field reattachment; preserve bindings supplied by callers. Direct writable lovProperty lifecycle remains a separate open contract.
+
+Three commits published fast-forward, exact implementation SHA verified. main, JInvCommon, CTRL-014, CTRL-034 and CAL-TIME-001 stayed outside the change set. No successor task assigned.
