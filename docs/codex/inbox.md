@@ -2878,7 +2878,7 @@ Execute CTRL-026 → CTRL-027 → CTRL-028 → CTRL-029 → CTRL-030 → CTRL-03
 
 ## MESSAGE CTRL-033
 
-**Status:** ASSIGNED — CRITICAL / independent RED-GREEN validator unbind scope fix
+**Status:** DONE BY AGENT / USER PASS PENDING — Reply CTRL-033, production commit 562b9a917a6c708dd6f18cb10112a6aca3d7653f, validated by agent; independent Windows PASS not yet reported
 **Repo:** ssu95a/fore25
 **Branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production SHA
@@ -2893,7 +2893,7 @@ Execute CTRL-026 → CTRL-027 → CTRL-028 → CTRL-029 → CTRL-030 → CTRL-03
 
 ## MESSAGE CTRL-034
 
-**Status:** ASSIGNED — HIGH / conditional RED-GREEN JInvLOVButton same-mode reattachment
+**Status:** BLOCKED — Reply CTRL-034 reproduced same/new JInvLOVButton field reattachment with externally owned bindings. Ownership contract unresolved; no implementation authorized in CTRL-043–047
 **Repo:** ssu95a/fore25
 **Branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production SHA
@@ -2920,7 +2920,7 @@ New real FXFormLauncher SingletonLifecycleMatrixSmoke.java and -SingletonLifecyc
 
 ## MESSAGE CTRL-036
 
-**Status:** ASSIGNED — TEST-ONLY multi-control validator regression, dependent on CTRL-033 GREEN
+**Status:** DONE BY AGENT / USER PASS PENDING — Reply CTRL-036 test-only commit dce04163498221af2f86c8eaec84d77d3974dfc6
 **Repo:** ssu95a/fore25
 **Branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production SHA
@@ -2932,7 +2932,7 @@ Tracked ValidatorMultiControlSmoke.java + -ValidatorMultiControl (or extend 033 
 
 ## MESSAGE CTRL-037
 
-**Status:** ASSIGNED — READ-ONLY ValidMan focus-manager ownership on reused controls
+**Status:** CLOSED / READ-ONLY — Reply CTRL-037; reused control focus events remain with first ValidMan, supported cross-controller control reuse UNKNOWN
 **Repo:** ssu95a/fore25
 **Branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production SHA
@@ -2944,7 +2944,7 @@ CTRL-030 established first ValidMan captures focus/change listeners, CONTROL_FOC
 
 ## MESSAGE CTRL-038
 
-**Status:** ASSIGNED — READ-ONLY direct writable lovProperty contract audit
+**Status:** CLOSED / READ-ONLY — Reply CTRL-038; direct lovProperty writes and bound setter exception side effects proven; see narrow CTRL-044
 **Repo:** ssu95a/fore25
 **Branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production SHA
@@ -2956,7 +2956,7 @@ CTRL-026 confirmed JInvTextField.lovProperty().set(...) bypasses setLOV listener
 
 ## MESSAGE CTRL-039
 
-**Status:** ASSIGNED — READ-ONLY retained LOV buttons on repeated setLOV
+**Status:** CLOSED / CONFIRMED DEFECT — Reply CTRL-039; same-turn unbindLOV can reattach stale JInvWrapButton bindings; approved scoped CTRL-043
 **Repo:** ssu95a/fore25
 **Branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production SHA
@@ -2968,7 +2968,7 @@ Source JInvTextField.setLOV constructs a new JInvLOVButton each time; its toolti
 
 ## MESSAGE CTRL-040
 
-**Status:** ASSIGNED — READ-ONLY data adapter detach/rebind business integrity
+**Status:** CLOSED / NO_CHANGE — Reply CTRL-040; table DataSet replacement unsupported, late callbacks after adapter close did not affect it
 **Repo:** ssu95a/fore25
 **Branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production SHA
@@ -2980,7 +2980,7 @@ Existing GUI-009 DataBinding covers JInvTable row identity, navigation, refresh 
 
 ## MESSAGE CTRL-041
 
-**Status:** ASSIGNED — final regression battery and mission report (TEST-ONLY unless uncovered invariant)
+**Status:** DONE BY AGENT / REGRESSION BATTERY — Reply CTRL-041, 15 FX tests PASS at dce04163498221af2f86c8eaec84d77d3974dfc6; no independent acceptance implied
 **Repo:** ssu95a/fore25
 **Branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production SHA
@@ -3035,4 +3035,103 @@ In `src/test/probes/gui/SingletonCloseVetoSmoke.java`, after `next.closeNow(...)
 ### Authorized Git and STOP
 
 ONLY test-file modifications permitted to `SingletonCloseVetoSmoke.java` and optionally its existing PowerShell runner; **NO production edits** to AbstractBaseController/ProgressBinder/ProgressTaskExecutor, no main/JInvCommon changes, no new dependencies. If test-race diagnosis and GREEN demonstrated, create an isolated TEST-ONLY commit on migration/java25-correctness, fast-forward push and verify SHA. Publish `## Reply CTRL-042` to docs/codex/outbox.md on agent/codex-mailbox with exact evidence, SHA, commands. If actual production defect or unresolved cause, report BLOCKED with no production commit and STOP. No self-assigned CTRL-043. Independent user rerun required to accept CTRL-032/035 and CTRL-042.
+
+---
+
+## MISSION PROTOCOL FORE25 CTRL-043…047
+
+**Autonomous but bounded:** Execute these FIVE assigned tasks in order after local Codex is launched; no additional user prompt between successful steps. Do not self-assign CTRL-048, modify other code under pretext of cleanup or silently resolve unrelated architectural questions. Read previous Replies CTRL-026/027/031/033/034/038/039/042 first.
+
+**Git boundaries:** only `ssu95a/fore25`; production commits only on `migration/java25-correctness`, reports only to `agent/codex-mailbox/docs/codex/outbox.md`. Never touch `main`, `JInvCommon`, another repo/DB, CTRL-014 ChoiceBox null-clearing or CAL-TIME-001 seconds. No force push, destructive reset, rebase of user work, POM/dependency changes or public API breaking changes. Existing JInvLOVButton binding-ownership issue CTRL-034 stays BLOCKED. GUI interactions on FX thread; no per-instance heap allocation on unused components. Russian source comments.
+
+**For every approved fix:** verify latest remote HEAD/clean tree, exact baseline + positive control, local RED on original code with real JavaFX 25 fixture, isolated minimal production edit, GREEN with callbacks, values, model/selection/visibility and property binding counts, diff check, Maven `-Pbuild compile`, PowerShell syntax and relevant regressions, separate commit/fast-forward push, verify remote SHA, separate `## Reply CTRL-XXX`. Tests user did not run remain UNKNOWN. No monkeypatch/reflection into JavaFX internals to manufacture GREEN.
+
+**Dependencies:** CTRL-043 is high priority. CTRL-044 is independent of 043 if the stable baseline still compiles after a local BLOCKED and worktree remains clean. CTRL-045 depends on successful 043 and 044, otherwise report WAITING. CTRL-046 is READ-ONLY and may proceed independently. CTRL-047 runs only tests of implemented scopes plus accepted previous tests; it reports blocked modes as SKIPPED, never PASS. On systemic build/tree/branch blocker stop all changes. On scoped design ambiguity publish BLOCKED rather than improvising API semantics; continue only independent READ-ONLY scopes. No long background promises without an actually running Codex agent.
+
+**End:** publish Reply for each ID, then `## Mission Summary CTRL-043–047` with SHA/test matrix, independent-user acceptance unknown, unresolved CTRL-034 and future priorities. STOP.
+
+
+---
+
+## MESSAGE CTRL-043
+
+**Status:** ASSIGNED — CRITICAL / RED→GREEN JInvWrapButton deferred binding race
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness
+**Baseline:** f4f2903181be6b4c2ff0dd19d002a87fe6a99afb
+**Report ID:** Reply CTRL-043
+
+**Proven in CTRL-039:** real `JInvTextField` and `JInvTextFieldButtonSkin` with same-turn `setLOV(provider)` then `unbindLOV()`: `JInvWrapButton.setInnerButton(new LOVButton)` schedules `Platform.runLater` to bind wrapper action/text/tooltip/visible/disable to captured button. `unbindLOV` sets innerButton=null, unbinds, hides wrapper, but old scheduled callback can later rebind old button and show stale UI. Source: `JInvWrapButton.java`, lines ~23–49. This is confirmed retention and ghost UI; no claim about GC lifetime.
+
+**RED:** new tracked `WrapButtonDeferredBindingSmoke.java` and `-WrapButtonDeferred` runner. Real attached Stage, JInvTextField skin and wrapper. Test immediate set A→null before FX queue drains (stale callback must NOT reattach), A→B same turn (only B active), A→null→B and A→B→null, and stable A alone positive. Capture `getInnerButton`, property bound/unbound statuses, wrapper visibility, inherited onAction/text/tooltip/disable values, interaction with former button after drain; model writes, events and listeners. Preserve JInvLOVButton-over-JInvFEButton priority, and existing `Controls.CONTROL_PARENT` for active button. No physical Robot.
+
+**Minimal production fix ONLY `src/main/java/ru/inversion/fx/form/controls/JInvWrapButton.java`:** queued callback must verify captured button is still current before writing CONTROL_PARENT or binding any wrapper property; avoid new fields, state, listeners, extra allocations or reworking scheduling. A simple identity guard is a candidate, not an assumption: test overlapping cases first. Do not weaken existing no-inner-button behavior or alter `JInvTextField`, `JInvLOVButton`, `JInvButton`. If apparent failure persists beyond stale callback or guard changes ownership, STOP BLOCKED.
+
+**GREEN:** previously deferred callback no longer resurrects removed button, current button correctly bound once after pulse; zero stale model writes, no NPE. Run `-WrapButtonDeferred`, `-LovListenerLifecycle`, `-LovIntegration`, `-TextFields`, `-FormCancel`, `-ControlsFollowup` and Maven/diff checks. At least 5 fresh-process focused passes. Separate production+test commit, push, Reply SHA/counts/Windows command with `-SettingsFile "D:\Java\.m2\settings.xml"`.
+
+
+---
+
+## MESSAGE CTRL-044
+
+**Status:** ASSIGNED — HIGH / RED→GREEN JInvTextField bound LOV-property exception atomicity
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness
+**Baseline:** verified latest predecessor production HEAD
+**Report ID:** Reply CTRL-044
+
+**Proven in CTRL-038:** after normal `JInvTextField.setLOV(old)`, external `lovProperty().bind(source)` to current old provider, calling `setLOV(new)` attempts to detach active value listener BEFORE `this.lov.set(new)` throws for bound property. Same risk in `unbindLOV()`: detaches listener before `lov.set(null)`. If caller catches exception, old LOV remains current but stopped updating field/model. Direct `lovProperty().set` also bypasses setup by legacy design; this separate contract remains OUT OF SCOPE.
+
+**RED:** new tracked `BoundLovSetterAtomicitySmoke.java`, runner `-BoundLovSetter`. Actual attached JInvTextField and AbstractLovBase providers. Positive: unbound setter replacement/unbind works; bind lovProperty to currently active provider; attempts to `setLOV(other)` and `unbindLOV()` must fail with existing bound-property exception while preserving initial field/model value, still-active listener, old provider, button identity and validation flag. Prove baseline old listener loss after failed call by mutating active provider. Count model and provider events, no duplicate registration. Test unbind property and subsequent valid setter recovery, replacement to new provider, repeat same provider and no-LOV memory sentinel.
+
+**Scope:** ONLY `JInvTextField.java` inside `setLOV(AbstractLovBase,boolean)` and `unbindLOV`, plus a new focused smoke and runner. Arrange operations to preserve *failed setter* state without altering JavaFX's existing bound-property prohibition or its exception type. Prefer safe mutation ordering or a proven preflight; no automatic listener on writable `lovProperty`, no new per-control state, no change to public signatures, validation, append, button creation or provider ownership. Beware reentrant property observers. If preserving complete failed-call behavior requires defining externally bound property lifecycle, report BLOCKED rather than changing API.
+
+**GREEN:** bound mutation attempts throw but leave active old provider updates functional and UI intact; unbound normal path unchanged; no stale events. Re-run `-LovListenerLifecycle`, `-LovDefaultValidation`, `-LovIntegration`, `-WrapButtonDeferred` if 043 GREEN, `-DataBinding`, `-FormCancel`; Maven/diff/PowerShell. Commit/push only if proven, Reply separate SHA and counts.
+
+
+---
+
+## MESSAGE CTRL-045
+
+**Status:** ASSIGNED — TEST-ONLY / LOV binding interleaving regression matrix, depends on 043+044 GREEN
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness
+**Baseline:** verified latest predecessor production HEAD
+**Report ID:** Reply CTRL-045
+
+After confirming CTRL-043/044 DONE and their exact remote SHAs, add ONE test-only `LovBindingInterleavingSmoke.java` and `-LovBindingInterleaving` runner. Exercise real JavaFX25 Stage + JInvTextFieldButtonSkin with these supported sequences: set A→unbind before pulse, set A→B→unbind before pulse, set A→unbind→B, same provider repeated, external lovProperty bound to active A then rejected set B/unbind and recovery after property unbind, disabled/readOnly control, equal values and old provider changes. Verify wrapper inner button identity, tooltip/onAction/visible/disable binding, model once per accepted LOV value and zero after detach, repeated calls zero additional events, exceptions only for existing bound-property prohibition. Ensure no NPE and no strong path from wrapper to obsolete button via active property binding.
+
+Also preserve `JInvLOVButton` field vs provider exclusive-mode behavior. **Do NOT use field reattachment F1→F2 as a passing expectation**: CTRL-034 is BLOCKED and not patched. Do not force asynchronous tests with arbitrary sleep; observe settled FX queue or real events. Add only test source+runner, no production. Run prior two focused modes, LovIntegration, TextFields, ControlsFollowup. Fast-forward test-only commit and Reply. If 043/044 BLOCKED, Reply WAITING, no fabricated PASS.
+
+
+---
+
+## MESSAGE CTRL-046
+
+**Status:** ASSIGNED — READ-ONLY / externalButton vs internal LOV button precedence and retention
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness
+**Baseline:** verified latest predecessor production HEAD
+**Report ID:** Reply CTRL-046
+
+Investigate a NEW distinct question from blocked CTRL-034. `JInvTextField` listens to `externalButtonProperty` and removes inner button when non-null; `setLOV` can subsequently create/install a new inner JInvLOVButton even while externalButton remains assigned. `JInvTextFieldButtonSkin` owns JInvWrapButton and overflow button. In business forms both FXML-internal and external buttons may be present. **UNKNOWN** whether order of operations can display wrong button or duplicate actions.
+
+Trace real production call sites/FXML and `JInvButton.setTextField`, `JInvTextField.externalButton`, skin/wrapper behavior. Use ignored `target/ctrl046` JavaFX25 fixture with actual Stage and focus, controlled external JInvButton and minimal LOV provider. Try external→setLOV and setLOV→external, repeated attach/detach, Skin creation/replacement if possible. Observe wrapper visible/managed state, externalButton references, F9 or button action routing, field/model writes, old button binding retention. Distinguish SUPPORTED contract from questionable combinations; don't invent an external button that cannot be wired in real forms.
+
+No production or tracked changes; report CONFIRMED, SOURCE-PROVEN, HYPOTHESIS, UNKNOWN and safest proposed scope if real defect found. Do not resolve CTRL-034 binding ownership, do not change button modes. Can proceed even if 043/044 local BLOCKED if baseline clean.
+
+
+---
+
+## MESSAGE CTRL-047
+
+**Status:** ASSIGNED — Final regression/acceptance matrix and mission handoff, READ-ONLY unless needed test-only
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness
+**Baseline:** verified latest predecessor production HEAD
+**Report ID:** Reply CTRL-047
+
+Check all task Replies and remote HEAD. Run Maven `-Pbuild compile`, diff check and relevant JavaFX25 Windows smoke modes in fresh processes: `-WrapButtonDeferred` and `-BoundLovSetter` only if implemented, `-LovBindingInterleaving` if 045 DONE; plus existing `-LovListenerLifecycle`, `-LovDefaultValidation`, `-LovIntegration`, `-TextFields`, `-FormCancel`, `-FormLifecycle`, `-SingletonCloseVeto`, `-SingletonLifecycleMatrix`, `-ValidatorScopedUnbind`, `-ValidatorMultiControl`, `-DataBinding`, `-SceneKeyLookup`, `-ControlsFollowup`, and `-RadioReadOnly`. Record explicit exit codes, skipped modes, event counts and flaky outcomes. Do not weaken tests or conceal failures. If regressions fail, report BLOCKED with exact reproduction and stop production writes.
+
+Output ONLY a detailed `## Reply CTRL-047` and `## Mission Summary CTRL-043–047` on mailbox branch (no production changes); add a tracked TEST-ONLY assertion only if a proven accepted invariant lacks coverage and such a change is explicitly within the test-only scope. Summarize no-database/physical-input/MDI UNKNOWN, CTRL-034 remains BLOCKED, CTRL-033 independent user PASS still pending. Recommend three highest-value next tasks. STOP after CTRL-047, no autonomous CTRL-048.
 
