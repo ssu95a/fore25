@@ -2432,7 +2432,7 @@ Source inspection on the above production SHA: `DSChoiceBoxAdapter` constructor 
 
 ## MESSAGE CTRL-016
 
-**Status:** ASSIGNED / DEPENDENT — start ONLY after CTRL-015 completes successfully and `Reply CTRL-015` is published; never run concurrently. If CTRL-015 is BLOCKED or lacks a report, do NOT start CTRL-016; report WAITING and stop.
+**Status:** CLOSED — READ-ONLY investigation completed in Reply CTRL-016. User authorized separate narrow fixes CTRL-017 and CTRL-018 (2026-11-24). The CTRL-014 generic null-clear contract remains BLOCKED and unchanged.
 **Type:** ~1-hour bounded READ-ONLY forensic audit with local ignored-target runtime experiments; NO production or tracked-test modifications
 **Priority:** HIGH — establish ChoiceBox/FXEntity/DataSet null semantics to resolve CTRL-014 safely
 **Repo:** ssu95a/fore25
@@ -2458,3 +2458,67 @@ Source review also found `Binder.bindChoiceBox(IFXEntity, JInvChoiceBox)` with `
 
 READ ONLY: no production commits, no tracked tests, no push to migration branch, no modification of main/JInvCommon/Controls/JInvChoiceBox/Binder/DSChoiceBoxAdapter or unrelated controls, no shell background scheduler or new automation. Local ignored-target probes permitted. Report exact Java/JavaFX versions, base SHA and input provenance.
 Only permitted write is `## Reply CTRL-016` appended to docs/codex/outbox.md on agent/codex-mailbox, after verifying SHA. Limit the reply to a compact matrix, source-cause, concrete recommendations and blockers; include enough detail for the architect to decide. Do not start CTRL-017. The hourly ChatGPT monitoring is notification-only, NOT authorization to merge or approve new production code.
+
+---
+
+## MESSAGE CTRL-017
+
+**Status:** ASSIGNED — focused Binder.bindChoiceBox null-mapping integrity RED/GREEN
+**Priority:** CRITICAL — prevent NPE and stale FXEntity key when JInvChoiceBox value becomes null
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (never main)
+**Expected production HEAD:** 47c31310fac24692dc1b7b3118a127825de52a01
+**Reply ID:** CTRL-017
+
+### Confirmed failure / contract
+
+CTRL-016 used a real FXEntity + `Binder.bindChoiceBox(IFXEntity,JInvChoiceBox)` with `valueFactory=Row::key` and reproduced this sequence: choice selection/value becomes null; the listener calls `valueFactory.apply(null)`; a NullPointerException reaches the FX event handler and FXEntity retains the previous key (2). This violates model synchronization. In `Binder.java` the code is exactly `fxEntity.getProperty(fieldName).setValue(valueFactory.apply((T)((ObjectProperty) observable).get()))` with no null handling. JavaFX ChoiceBox may briefly transition index 1 → -1 → 2 if a literal null item exists. Existing `DSChoiceBoxAdapter` and FXEntity binding may coexist, but must not be silently changed.
+
+Acceptance: when control.getValue() becomes null, mapped FXEntity field must receive null with exactly one model notification for actual change, without exception. When control value is non-null, existing mapper still runs normally and exactly once for a genuine change. No new cursor navigation or model writes from the guard. `FXEntity model key -> control` existing `setSelectedValue(null)` NO-OP must remain unchanged; do not claim it now clears selection.
+
+### RED/GREEN steps
+
+1. Verify remote HEAD, branch, working tree. Create tracked real Java 25/JavaFX 25 GUI smoke with `JInvChoiceBox<Row,Integer>`, real annotated FXEntity and production Binder auto-binding path, `Row::key` STRICT on null (method reference throws), A/B items, model property observer. Establish non-null positive key A↔B, then RED with explicit programmatic `choice.setValue(null)` or `clearSelection` and assert old model key is improperly retained and NPE emitted. Run against baseline before editing, record exact value/model/index notifications and exception route. Use a fixture without literal null entries first.
+2. Implement ONLY the minimal null check in `Binder.bindChoiceBox(IFXEntity,JInvChoiceBox)` on the control→FXEntity mapper path; for null selected value set entity property null without calling mapper; for non-null preserve mapping. Do not catch/ignore real mapper exceptions for non-null rows. Avoid unnecessary per-change allocations or new state/listeners. Do not alter initialization logic or model→control null policy in this task.
+3. GREEN on A/B (no literal null): set value B→null via native calls, verify FXEntity key 2→null, one model change, no NPE; repeated null zero notifications; non-null A↔B, valueFactory mapping and direct programmatic model writes remain intact. If a model→control null write produces a pre-existing stale selection, document this as distinct and do NOT broaden fix.
+4. Additional diagnostic: specialized Binder.bindChoiceBox DataSet with [A,B,null] and combined FXEntity mapping. Verify selection/cursor transitions and key consistency when value becomes null. It is ACCEPTABLE if the existing JavaFX 1→-1→2 intermediate transition still occurs; do not change or mask that behavior here. New guard must prevent NPE and stale key, but if it creates a new data-integrity regression or unexpected extra navigation, STOP and report BLOCKED rather than commit.
+5. Test both exact and unmatched keys as appropriate. Keep the behavior of `Controls.setValue(JInvChoiceBox)`, `JInvChoiceBox.setSelectedValue(null)`, `DSChoiceBoxAdapter`, readOnly and literal-null policy unchanged. Verify existing smoke suite (at minimum ChoiceAdapter, ControlsFollowup, ValueChangedFlag, DataBinding, CheckBoxReadOnly, ComboReadOnly, RadioReadOnly, MoneyDecimal) when feasible; report unrun UNKNOWN. Maven -Pbuild compile, PowerShell syntax and git diff --check.
+
+### Changes / Git
+
+ONLY production edit allowed: `src/main/java/ru/inversion/fx/form/Binder.java` in `bindChoiceBox(IFXEntity, JInvChoiceBox)` null-mapper handling. Tracked test-only: new `src/test/probes/gui/BinderChoiceNullSmoke.java` (or equivalent) and new mode `-BinderChoiceNull` in `src/test/probes/Test-LegacyGuiSmoke.ps1`. No other production files, no POM/build changes. New comments in Russian.
+Normal Git/GitHub operations APPROVED: commit narrow verified diff, fast-forward push to migration/java25-correctness, check remote SHA, never force-push or overwrite user work. Publish `## Reply CTRL-017` in docs/codex/outbox.md (agent/codex-mailbox) with RED/GREEN counts, exact SHA, regression list, and reproducible Windows command with -SettingsFile `D:\Java\.m2\settings.xml`. If BLOCKED, no production commit and STOP; do not start CTRL-018.
+
+---
+
+## MESSAGE CTRL-018
+
+**Status:** ASSIGNED / DEPENDENT — execute automatically AFTER successful CTRL-017 DONE report and verified remote production commit; NEVER concurrent
+**Priority:** HIGH — null elements must not crash JInvChoiceBox.setSelectedValue scans
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness
+**Expected base:** exact published final SHA from successful CTRL-017, not the old 47c31310 baseline
+**Reply ID:** CTRL-018
+
+### Confirmed failure / contract
+
+CTRL-016 reproduced: with items `[A, null, B]` and `valueFactory=Row::key`, calling `setSelectedValue(2)` or unmatched key `99` throws when the loop reaches literal null (`valueFactory.apply(null)`), before reaching B. For valueFactory==null, `entry.equals(value)` also dereferences literal null. Unlike a projected null R from a non-null item, a literal null entry is a list element and must not be fed into ordinary row-key converters during a non-null key lookup.
+
+Acceptance: for NON-NULL search key, skip literal-null list entries and continue scanning; choose matching non-null entry by projected R or equals(T) exactly as before. On unmatched key retain current selection/value/model, zero events, no exception. For `setSelectedValue(null)`, preserve the existing NO-OP contract. Do NOT automatically select a literal-null entry, clear selection or change its cursor policy; CTRL-014 remains BLOCKED.
+
+### RED/GREEN steps
+
+1. PRECONDITION: read fresh mailbox and implementation branch, confirm CTRL-017 DONE and remote SHA equals reported final SHA, local clean. If CTRL-017 BLOCKED or SHA differs unexpectedly, do not edit and report WAITING/BLOCKED.
+2. New tracked JavaFX25 smoke: real JInvChoiceBox with data `[Row(A,1), null, Row(B,2)]` and strict Row::key; establish positive without-null list, then RED on key 2 and 99. Include plain `["A",null,"B"]` with no valueFactory, null-before-match and unmatched sentinel. Observe selectedIndex/item/value/model counts. Run original behavior before edit.
+3. Implement ONLY smallest null guard in `JInvChoiceBox.setSelectedValue(R)` before invoking mapper OR entry.equals. Preserve loops, equality, projection behavior for non-null entries, public signatures and null-key no-op. Avoid allocation and per-instance state.
+4. GREEN: B selected once for projected key 2; repeated key 2 no extra notifications; unmatched key 99 retains selection and emits zero notifications; mapper may return null for non-null entry and must not be treated as a matching non-null key; `setSelectedValue(null)` remains no-op; programmatic explicit select of literal-null index and existing DataSet cursor behavior are unchanged. Include both constructors and, if practical, combined FXEntity Binder after CTRL-017 to confirm its null handling remains GREEN.
+5. Run Maven -Pbuild compile, PowerShell parsing, git diff --check and both `-BinderChoiceNull` / `-ChoiceNullLookup` plus existing accepted suite as feasible. Report all unrun UNKNOWN. No Robot needed for programmatic operations.
+
+### Changes / Git
+
+ONLY production edit allowed: `src/main/java/ru/inversion/fx/form/controls/JInvChoiceBox.java` method `setSelectedValue(R)`. Tracked test-only: new `src/test/probes/gui/ChoiceNullLookupSmoke.java` and `-ChoiceNullLookup` runner mode. Do NOT touch Binder (except the already published CTRL-017 commit), Controls, DSChoiceBoxAdapter, model/popup/readOnly, build, main or JInvCommon. New comments in Russian.
+Normal Git/GitHub operations APPROVED: commit separate minimal change, fast-forward push to migration/java25-correctness and verify exact SHA, never force-push/discard work. Publish `## Reply CTRL-018` in docs/codex/outbox.md with RED/GREEN, diff/SHA, observed model/cursor effects and independent Windows command. Stop after CTRL-018: no CTRL-019 or CTRL-014 resumption without new architecture decision.
+
+### Overall workflow
+
+Both tasks are approved now, to be executed SEQUENTIALLY as two distinct production commits with two independent mailbox replies, without an additional user prompt between them. If any blocker arises in CTRL-017 or CTRL-018, STOP rather than guessing null/cursor semantics. Do NOT modify `Controls.setValue(JInvChoiceBox)` or resolve CTRL-014 by assumption.
