@@ -18,6 +18,7 @@ public class SingletonCloseVetoSmoke {
     static final CompletableFuture<Void> done = new CompletableFuture<>();
     static final List<Controller> opened = new ArrayList<>();
     static final List<ResultForm<Object>> callbacks = new ArrayList<>();
+    static boolean failNextInit;
     static class App extends BaseApp {
         static void install() { g_app = new App(); }
         @Override public void reportGuiLaunch() {}
@@ -38,11 +39,20 @@ public class SingletonCloseVetoSmoke {
     @SingletonInstance
     public static final class Controller extends JInvFXFormController<Object> {
         boolean veto = true;
+        int rejectedOkCalls;
         final AtomicInteger cleaned = new AtomicInteger();
         @Override protected void closeResources() { cleaned.incrementAndGet(); }
         @Override protected void beforeInit() {}
+        @Override protected void init() {
+            if (failNextInit) {
+                failNextInit = false;
+                veto = false;
+                throw new IllegalStateException("controlled initialization failure");
+            }
+        }
         @Override public ru.inversion.tc.TaskContext getTaskContext() { return null; }
         @Override protected boolean onCancel() { return super.onCancel() && !veto; }
+        @Override protected boolean onOK() { rejectedOkCalls++; return false; }
     }
     static void launch(Runnable check) {
         new FXFormLauncher<Object>(null,null,"singleton.fxml")
@@ -78,29 +88,76 @@ public class SingletonCloseVetoSmoke {
                     long visible = opened.stream().filter(SingletonCloseVetoSmoke::showing).count();
                     System.out.printf("after veto: launched=%d visible=%d callbacks=%d%n", opened.size(), visible, callbacks.size());
                     require(opened.equals(List.of(first)) && visible == 1 && callbacks.isEmpty(), "veto must preserve registry owner");
-                    first.veto = false;
-                    requestClose(first);
-                    verifyClosed(first, 1);
-                    launch(() -> {
-                        require(opened.size() == 2 && showing(opened.getLast()), "reopen after accepted Cancel");
-                        var next = opened.getLast();
-                        next.closeNow(AbstractBaseController.FormReturnEnum.RET_CANCEL);
-                        Platform.runLater(() -> checked(() -> {
-                            verifyClosed(next, 2);
-                            launch(() -> {
-                                require(opened.size() == 3 && showing(opened.getLast()), "reopen after closeNow");
-                                var last = opened.getLast();
-                                last.veto = false;
-                                requestClose(last);
-                                verifyClosed(last, 3);
-                                done.complete(null);
-                            });
-                        }));
-                    });
+                    Runnable closeAndReopen = () -> {
+                        first.veto = false;
+                        requestClose(first);
+                        verifyClosed(first, 1);
+                        launch(() -> {
+                            require(opened.size() == 2 && showing(opened.getLast()), "reopen after accepted Cancel");
+                            var next = opened.getLast();
+                            next.closeNow(AbstractBaseController.FormReturnEnum.RET_CANCEL);
+                            Platform.runLater(() -> checked(() -> {
+                                verifyClosed(next, 2);
+                                launch(() -> {
+                                    require(opened.size() == 3 && showing(opened.getLast()), "reopen after closeNow");
+                                    var last = opened.getLast();
+                                    last.veto = false;
+                                    requestClose(last);
+                                    verifyClosed(last, 3);
+                                    if (matrix) {
+                                        checkFailedInit();
+                                    } else {
+                                        done.complete(null);
+                                    }
+                                });
+                            }));
+                        });
+                    };
+                    if (matrix) {
+                        checkRejectedOk(first, closeAndReopen);
+                    } else {
+                        closeAndReopen.run();
+                    }
                 });
             });
         });
     }
+
+    private static void checkRejectedOk(Controller first, Runnable next) {
+        first.close(AbstractBaseController.FormReturnEnum.RET_OK);
+        Platform.runLater(() -> checked(() -> {
+            require(first.rejectedOkCalls == 1 && showing(first) && callbacks.isEmpty()
+                    && first.cleaned.get() == 0, "rejected OK must keep singleton open");
+            launch(() -> {
+                require(opened.equals(List.of(first)) && showing(first), "rejected OK preserves registry owner");
+                System.out.println("Rejected OK: one visible owner, zero callbacks or cleanup");
+                next.run();
+            });
+        }));
+    }
+
+    private static void checkFailedInit() {
+        failNextInit = true;
+        launch(() -> Platform.runLater(() -> checked(() -> {
+            var failed = opened.getLast();
+            require(opened.size() == 4 && !showing(failed) && failed.cleaned.get() == 1 && callbacks.size() == 4
+                    && callbacks.getLast().getController() == failed
+                    && callbacks.getLast().getException() instanceof IllegalStateException
+                    && "controlled initialization failure".equals(callbacks.getLast().getException().getMessage()),
+                    "failed initialization closes and reports the original error");
+            launch(() -> {
+                require(opened.size() == 5 && showing(opened.getLast()), "reopen after initialization failure");
+                var last = opened.getLast();
+                last.veto = false;
+                requestClose(last);
+                verifyClosed(last, 5);
+                System.out.println("Initialization failure: one error callback and cleanup, later reopen succeeds");
+                done.complete(null);
+            });
+        })));
+    }
+
+    private static boolean matrix;
     static void verifyClosed(Controller controller, int count) {
         require(!showing(controller) && callbacks.size() == count && controller.cleaned.get() == 1
                 && callbacks.getLast().getController() == controller
@@ -109,6 +166,7 @@ public class SingletonCloseVetoSmoke {
     }
 
     public static void main(String[] args) throws Exception {
+        matrix = args.length == 1 && "matrix".equals(args[0]);
         Path output = Path.of(SingletonCloseVetoSmoke.class.getProtectionDomain().getCodeSource().getLocation().toURI());
         Files.writeString(output.resolve("singleton.fxml"), """
                 <?import javafx.scene.layout.VBox?>
@@ -120,7 +178,7 @@ public class SingletonCloseVetoSmoke {
             Platform.runLater(() -> checked(SingletonCloseVetoSmoke::start));
         });
         int code=1;
-        try { done.get(20,TimeUnit.SECONDS); System.out.println("CTRL-032 PASS"); code=0; }
+        try { done.get(20,TimeUnit.SECONDS); System.out.println(matrix ? "CTRL-035 PASS" : "CTRL-032 PASS"); code=0; }
         catch (Exception error) { error.printStackTrace(); }
         finally { Platform.exit(); }
         System.exit(code);
