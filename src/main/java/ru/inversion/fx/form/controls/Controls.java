@@ -142,6 +142,8 @@ public class Controls {
             ( (JInvComboBox) control ).setSelectedValue( value );
         } else if ( control instanceof ComboBox ) {
             ( (ComboBox) control ).setValue( value );
+        } else if (value != null && control instanceof JInvChoiceBox choice) {
+            choice.setSelectedValue(value);
         } else {
             throw new RuntimeException( "Unsupported class control: " + control.getClass().getName() );
         }
