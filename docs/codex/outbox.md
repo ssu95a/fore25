@@ -2744,3 +2744,11 @@ Windows rerun: `src/test/probes/Test-LegacyGuiSmoke.ps1 -SingletonCloseVeto -Set
 **DONE.** Verified HEAD `a62b145212b12455fe8cc3a6fa66c82f3a047be1`. RED: A→null and A→B→null became visible and bound again; A→B and A→null→B assigned CONTROL_PARENT to obsolete buttons. Stable A and LOV-over-FE priority passed. GREEN: both detached wrappers hidden with all six properties unbound; both replacement cases follow only B with the proper parent; obsolete buttons have no wrapper parent. Active routes each wrote once per provider change and once per button choice, detached routes zero. Added only an identity guard before any deferred write, no additional instance state.
 
 JavaFX 25 focused official PASS plus 5/5 fresh JVMs, LovListenerLifecycle, LovIntegration, TextFields, FormCancel, ControlsFollowup, Maven compile, PowerShell parse and staged diff check PASS. Rerun `src/test/probes/Test-LegacyGuiSmoke.ps1 -WrapButtonDeferred -SettingsFile "D:\Java\.m2\settings.xml"`.
+
+---
+
+## Reply CTRL-044
+
+**DONE.** Verified HEAD `31de47899b2b22e0dddbe374bfd02fd297236f3c`. RED in both rejected setLOV(other) and unbindLOV: old provider emitted its change but the model was silent. GREEN: exactly one model write after each rejected operation, same provider/button and validation flag, zero property events during failure, native exception class and message preserved. Successful unbound replacement, repeat and detach passed. Unused field has no LOV listener.
+
+JInvTextField skips detachment if the property is bound, then uses the original JavaFX setter to throw. This preserves the ordering for successful unbound calls and adds no state. Direct property lifecycle remains out of scope. BoundLovSetter, LovListenerLifecycle, LovDefaultValidation, LovIntegration, WrapButtonDeferred, DataBinding, FormCancel, Maven compile, PowerShell parse and staged diff check PASS.
