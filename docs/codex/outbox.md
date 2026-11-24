@@ -2614,3 +2614,11 @@ Maven compile, PowerShell parse, staged diff check and all nine modes passed: Lo
 **DONE.** Verified implementation HEAD `cad4dfd39cda4cb1f23bb8610d7ab24c00123bb5`. Real launcher + annotated FXML controller: before veto duplicate suppressed; RED after veto 2 visible singleton stages, 0 callbacks; GREEN 1 visible, 0 callbacks. Accepted Cancel and closeNow each allow reopen, with one callback and resource cleanup per closing controller (3 total across the complete sequence).
 
 Only AbstractBaseController.java, new SingletonCloseVetoSmoke and runner changed. Registry release is by identity, after accepted SDI WINDOW_HIDDEN or inline completion, and on launcher/close error paths. Veto and validation rejection preserve the registration. No instance fields. Init failure/rejected OK runtime deferred to matrix if feasible; WAIT/DB/MDI UNKNOWN. Maven compile, PowerShell parse, staged diff check, SingletonCloseVeto, FormCancel, FormLifecycle and DataBinding PASS. Windows rerun: `src/test/probes/Test-LegacyGuiSmoke.ps1 -SingletonCloseVeto -SettingsFile "D:\Java\.m2\settings.xml"`.
+
+---
+
+## Reply CTRL-033
+
+**DONE.** Verified implementation HEAD `562b9a917a6c708dd6f18cb10112a6aca3d7653f`. RED in both A/B orders: after unbinding one control, shared validator invoked zero times on the other. GREEN: one invocation on the other, distinct validator preserved on removed control, one model event per edit; same-control duplicate positive still validates twice before removal.
+
+ValidMan.getValidators now scopes removal by control and validator. No instance state or changes to focus dispatch. Added ValidatorScopedUnbindSmoke and runner mode only. Java/FX25 Maven compile, PowerShell parse, staged diff check, ValidatorScopedUnbind, LovIntegration, LovDefaultValidation, FormCancel and DataBinding PASS.
