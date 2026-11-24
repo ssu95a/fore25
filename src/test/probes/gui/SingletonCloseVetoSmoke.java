@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.*;
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.scene.Parent;
 import javafx.stage.*;
 import ru.inversion.fx.app.BaseApp;
@@ -95,8 +96,7 @@ public class SingletonCloseVetoSmoke {
                         launch(() -> {
                             require(opened.size() == 2 && showing(opened.getLast()), "reopen after accepted Cancel");
                             var next = opened.getLast();
-                            next.closeNow(AbstractBaseController.FormReturnEnum.RET_CANCEL);
-                            Platform.runLater(() -> checked(() -> {
+                            afterProgressHidden(next, () -> {
                                 verifyClosed(next, 2);
                                 launch(() -> {
                                     require(opened.size() == 3 && showing(opened.getLast()), "reopen after closeNow");
@@ -110,7 +110,8 @@ public class SingletonCloseVetoSmoke {
                                         done.complete(null);
                                     }
                                 });
-                            }));
+                            });
+                            next.closeNow(AbstractBaseController.FormReturnEnum.RET_CANCEL);
                         });
                     };
                     if (matrix) {
@@ -138,23 +139,48 @@ public class SingletonCloseVetoSmoke {
 
     private static void checkFailedInit() {
         failNextInit = true;
-        launch(() -> Platform.runLater(() -> checked(() -> {
+        launch(() -> {
             var failed = opened.getLast();
-            require(opened.size() == 4 && !showing(failed) && failed.cleaned.get() == 1 && callbacks.size() == 4
-                    && callbacks.getLast().getController() == failed
-                    && callbacks.getLast().getException() instanceof IllegalStateException
-                    && "controlled initialization failure".equals(callbacks.getLast().getException().getMessage()),
-                    "failed initialization closes and reports the original error");
-            launch(() -> {
-                require(opened.size() == 5 && showing(opened.getLast()), "reopen after initialization failure");
-                var last = opened.getLast();
-                last.veto = false;
-                requestClose(last);
-                verifyClosed(last, 5);
-                System.out.println("Initialization failure: one error callback and cleanup, later reopen succeeds");
-                done.complete(null);
+            afterProgressHidden(failed, () -> {
+                require(opened.size() == 4 && !showing(failed) && failed.cleaned.get() == 1 && callbacks.size() == 4
+                        && callbacks.getLast().getController() == failed
+                        && callbacks.getLast().getException() instanceof IllegalStateException
+                        && "controlled initialization failure".equals(callbacks.getLast().getException().getMessage()),
+                        "failed initialization closes and reports the original error");
+                launch(() -> {
+                    require(opened.size() == 5 && showing(opened.getLast()), "reopen after initialization failure");
+                    var last = opened.getLast();
+                    last.veto = false;
+                    requestClose(last);
+                    verifyClosed(last, 5);
+                    System.out.println("Initialization failure: one error callback and cleanup, later reopen succeeds");
+                    done.complete(null);
+                });
             });
-        })));
+        });
+    }
+
+    private static void afterProgressHidden(Controller controller, Runnable continuation) {
+        Stage owner = controller.getViewContext().getStage();
+        Window.getWindows().addListener(new ListChangeListener<Window>() {
+            @Override public void onChanged(Change<? extends Window> change) {
+                while (change.next()) {
+                    for (Window window : change.getAddedSubList()) {
+                        if (window instanceof Stage progress && progress.getOwner() == owner) {
+                            Window.getWindows().removeListener(this);
+                            // WINDOW_HIDDEN приходит до выхода из вложенного цикла showAndWait().
+                            progress.addEventHandler(WindowEvent.WINDOW_HIDDEN, event ->
+                                    Platform.runLater(() -> checked(() -> {
+                                        require(!Platform.isNestedLoopRunning() && !progress.isShowing(),
+                                                "resource progress window and nested loop must be closed");
+                                        continuation.run();
+                                    })));
+                            return;
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private static boolean matrix;
