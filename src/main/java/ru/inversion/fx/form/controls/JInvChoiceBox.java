@@ -45,6 +45,9 @@ public class JInvChoiceBox<T, R> extends ChoiceBox<T> implements IJInvControl, I
         if (value != null) {
 
             for (T entry : getItems()) {
+                if (entry == null) {
+                    continue;
+                }
 
                 if (valueFactory != null) {
                     R currentEntryValue = valueFactory.apply(entry);
