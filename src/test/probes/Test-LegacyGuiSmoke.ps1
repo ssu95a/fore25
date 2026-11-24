@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'WrapButtonDeferred')]
+    [switch] $WrapButtonDeferred,
     [Parameter(ParameterSetName = 'Editors')]
     [switch] $Editors,
     [Parameter(ParameterSetName = 'TableEditing')]
@@ -71,7 +73,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($Editors) {
+if ($WrapButtonDeferred) {
+    $probeId = 'CTRL-043'
+    $probeClass = 'WrapButtonDeferredBindingSmoke'
+} elseif ($Editors) {
     $probeId = 'GUI-004'
     $probeClass = 'LegacyEditorsSmoke'
 } elseif ($TableEditing) {

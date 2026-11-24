@@ -38,6 +38,9 @@ public class JInvWrapButton extends JInvChoiceButton {
 
         if (innerButton != null) {
             Platform.runLater(() -> {
+                if (this.innerButton != innerButton) {
+                    return;
+                }
                 innerButton.setProperty( Controls.CONTROL_PARENT, this );
                 onActionProperty().bind(innerButton.onActionProperty());
                 visibleProperty().bind(innerButton.visibleProperty());
