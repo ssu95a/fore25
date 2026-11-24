@@ -2841,3 +2841,15 @@ Three commits published fast-forward, exact implementation SHA verified. main, J
 | 10 | SceneKeyManager.getActionRecursive | **CTRL-024 runtime plus source.** Candidate selected before enabled/security checks. A blocked match may reserve the key and suppress another eligible action in the same list. Confirm intended precedence before changing it. |
 
 Recommend considering 1–3 as independently scoped RED → GREEN tasks. CTRL-049 is assigned separately in inbox. CTRL-034 ownership, CTRL-014 and CAL-TIME-001 remain outside this triage.
+
+---
+
+## Reply CTRL-049
+
+**DONE.** Verified clean implementation HEAD `582a7899172c3beef845dbb2393bfc3e5d02e75f` after fast-forward. Only JInvTextFieldButtonSkin.java, new TextFieldSkinDisposalSmoke.java and its runner mode changed.
+
+**RED → GREEN (Windows Java 25 / JavaFX 25):** original Stage positive counts text/width/external/font 1/1/1/1. After public unset/replacement, original text/width/external counts 2/2/2 vs fixed 1/1/1; font 1 in both. No-LOV text counts across three replacements 2/3/4 vs 1/1/1. Original disposed wrapper reacted to focus/old button text and queued attachment could bind again; fixed retired overflow/focus stayed frozen, wrapper lost all six bindings and owned handler, pending button acquired no CONTROL_PARENT. Active wrapper received focus/blur, caller context menu and field action survived, provider identity preserved. Three choices and one ordinary LOV update each produced one model event, two text edits brought total to six, detach produced zero. No LOV callback object on unused field.
+
+**Ownership and cost:** switched five direct subscriptions to existing SkinBase lifetime management. Overflow routes share one Consumer instead of four captures; reuse existing managed handler/weak change listener with five more property-map registrations per skin, no new JInvTextField fields or helper allocation. Disposal detaches only retired skin wrapper's currently attached button; matching bound action is cleared. Wrapper already empty after ordinary detach, replacement-skin LOV restoration and button precedence remain separate. No heap-byte/GC, corporate DB or physical-input claims; independent acceptance pending.
+
+Official focused PASS plus 3/3 fresh JVMs. TextFields, ControlsFollowup, WrapButtonDeferred, BoundLovSetter, LovBindingInterleaving, LovListenerLifecycle, LovDefaultValidation, LovIntegration, FormCancel and FormLifecycle all exit 0. Maven compile, PowerShell parse and staged diff check passed. Windows rerun: `src/test/probes/Test-LegacyGuiSmoke.ps1 -TextFieldSkinDisposal -SettingsFile "D:\Java\.m2\settings.xml"`.
