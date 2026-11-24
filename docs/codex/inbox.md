@@ -2987,3 +2987,52 @@ Existing GUI-009 DataBinding covers JInvTable row identity, navigation, refresh 
 **Reply:** CTRL-041
 
 Verify predecessor task replies, current remote HEAD and clean worktree. Run fresh Windows Java/FX25 processes where appropriate: -SingletonCloseVeto, -ValidatorScopedUnbind, -LovButtonReattach IF their fixes succeeded, plus existing -FormCancel, -FormLifecycle, -DataBinding, -LovListenerLifecycle, -LovDefaultValidation, -LovIntegration, -SceneKeyLookup, -ChoiceNonNullSet, -BinderChoiceNull, -RadioReadOnly, -ControlsFollowup; Maven -Pbuild compile, diff check. Record each exit code and UNKNOWN for unavailable physical input/DB/forms. Do not add a new test unless an actually uncovered accepted invariant needs it; no production edits. Publish Reply CTRL-041 and '## Mission Summary CTRL-032–041' with SHA matrix, blockers, recommendations. Stop; no CTRL-042.
+
+---
+
+## MESSAGE CTRL-042
+
+**Status:** ASSIGNED — Independent user CTRL-032 FAILED; investigate closeNow/progress nested JavaFX loop, TEST-ONLY correction if confirmed
+**Priority:** CRITICAL — restore truthful, deterministic singleton regression signal; do NOT weaken production invariants
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Expected baseline HEAD:** dce04163498221af2f86c8eaec84d77d3974dfc6
+**Reply:** CTRL-042
+
+### Independent Windows failure (2026-11-24)
+
+User ran `-SingletonCloseVeto` with Windows Java25/FX25. Test printed:
+```text
+after veto: launched=1 visible=1 callbacks=0
+...
+java.lang.AssertionError: one callback and cleanup for matching owner 2
+  at SingletonCloseVetoSmoke.verifyClosed(...:162)
+  at SingletonCloseVetoSmoke.lambda$start$6(...:100)
+  ...
+  at javafx.stage.Stage.showAndWait(...)
+  at ru.inversion.fx.form.controls.progress.ProgressBinder.showStageProcess(...:209)
+  at ru.inversion.fx.form.AbstractBaseController.onCloseResources(...:1960)
+```
+CTRL-032 did NOT PASS independently; do not mark it accepted. The positive main invariant (veto prevented second stage) **did** pass. The failure occurs immediately after second controller `next.closeNow(RET_CANCEL)`, not directly inside singleton registration.
+
+### Source-proven timing hazard; root cause to verify
+
+In `src/test/probes/gui/SingletonCloseVetoSmoke.java`, after `next.closeNow(...)`, the test schedules `Platform.runLater(() -> verifyClosed(next,2))`. Production `AbstractBaseController.close()` itself uses `Platform.runLater` to fire WINDOW_CLOSE_REQUEST. The accepted close hides Stage and `internalActionsOnClose` first emits return callback and then calls `onCloseResources`, which uses `ProgressTaskExecutor` and `ProgressBinder.showStageProcess()->Stage.showAndWait()`. This opens a nested JavaFX event loop that may run the test's next `runLater` BEFORE `closeResources()` and singleton deregistration have completed. **HYPOTHESIS:** premature test verification, not production regression. The stack and source establish the timing path, but the actual failing subcondition among stage showing/callback count/cleaned count/return status is still UNKNOWN.
+
+`LegacyFormCancelSmoke` already implements an independent observer for a progress Stage owned by the closing form and waits for its WINDOW_HIDDEN before checking resource completion and callback count. Use it as an established regression pattern, not as a guarantee.
+
+### Required RED/diagnosis
+
+1. Verify exact HEAD, clean worktree and current mailbox. Reproduce the user failure in repeated FRESH JavaFX processes with existing `-SingletonCloseVeto` and, separately, `-SingletonLifecycleMatrix`. If not reproduced immediately, instrument the original test in ignored `target/ctrl042` copy, not production.
+2. Before `verifyClosed(next,2)` record `stage.isShowing`, callbacks count and last result, `next.cleaned.get()`, status/lifecycle, progress Stage showing/hidden, and observed singleton owner using public launcher behavior where feasible. Add observation when cleanup completes and when progress stage hides; confirm whether premature assertion precedes later successful cleanup. An actual permanent cleanup failure or incorrect result is a PRODUCTION BUG and must be reported BLOCKED, not papered over by timing changes.
+3. Distinguish test harness race from production: stage hidden, return callback published, resources completed, singleton entry released are separate observable events. Do not treat `Platform.runLater` (one tick) or Stage hidden alone as a completion guarantee when nested modal event loops exist.
+
+### Conditional TEST-ONLY fix
+
+4. If the evidence supports test-race root cause, modify ONLY `src/test/probes/gui/SingletonCloseVetoSmoke.java` (runner only if necessary). Replace the premature `runLater` check after `closeNow` with an event-driven barrier that observes the actual resource-progress Stage owned by `next` and its completion, then verifies cleanup/callback/registration. Ensure final callback executes on FX thread after the relevant completion event; account for nested event-loop unwind. No arbitrary sleeps, indefinite polling/busy loop, swallowed exceptions, disabling checks or direct registry mutation. Preserve exact stage and owner identity, callbacks==2, cleanup==1, RET_CANCEL, no duplicate windows and successful reopen. Also inspect other `verifyClosed` calls and the matrix init-failure path for the same hazard; adjust only when equivalent evidence exists.
+5. RED/GREEN under Windows Java 25.0.1 / JavaFX25 on `-SingletonCloseVeto` and `-SingletonLifecycleMatrix`. At least 10 fresh-process successful runs each (or report actual count if limited); also run `-FormCancel`, `-FormLifecycle`, `-ValidatorScopedUnbind`, `-DataBinding`, Maven `-Pbuild compile`, PowerShell syntax and `git diff --check`. Preserve all existing assertions, do not weaken the test to force PASS. Report before/after event counts and any non-determinism.
+
+### Authorized Git and STOP
+
+ONLY test-file modifications permitted to `SingletonCloseVetoSmoke.java` and optionally its existing PowerShell runner; **NO production edits** to AbstractBaseController/ProgressBinder/ProgressTaskExecutor, no main/JInvCommon changes, no new dependencies. If test-race diagnosis and GREEN demonstrated, create an isolated TEST-ONLY commit on migration/java25-correctness, fast-forward push and verify SHA. Publish `## Reply CTRL-042` to docs/codex/outbox.md on agent/codex-mailbox with exact evidence, SHA, commands. If actual production defect or unresolved cause, report BLOCKED with no production commit and STOP. No self-assigned CTRL-043. Independent user rerun required to accept CTRL-032/035 and CTRL-042.
+
