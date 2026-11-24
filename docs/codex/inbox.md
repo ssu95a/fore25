@@ -2527,7 +2527,7 @@ Both tasks are approved now, to be executed SEQUENTIALLY as two distinct product
 
 ## MESSAGE CTRL-019
 
-**Status:** ASSIGNED — narrowly support NON-NULL JInvChoiceBox values in Controls.setValue; CTRL-014 null-clear remains BLOCKED
+**Status:** CLOSED — user independently confirmed Windows `CTRL-019 PASS`, exit 0 (2026-11-24). Production commit `a4edd28f2d68e461c676e01a5a72880d8929cd54` accepted for tested non-null writes. Generic null-clear remains BLOCKED under CTRL-014.
 **Priority:** HIGH — make generic programmatic value writes work while preserving legacy null failure
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (never main)
@@ -2557,7 +2557,7 @@ Git/GitHub commit + fast-forward push APPROVED if tests GREEN, verify remote SHA
 
 ## MESSAGE CTRL-020
 
-**Status:** ASSIGNED / DEPENDENT — READ-ONLY audit of F7 expression transfer / Controls.getStringValueFromEditor; start only after successful CTRL-019 DONE and exact remote SHA verification; never concurrent
+**Status:** CLOSED — agent completed READ-ONLY F7 route investigation, Reply CTRL-020 `DONE / NO CHANGE` (2026-11-24). Current production call path not established; full application F7 runtime remains UNKNOWN; no implementation authorized.
 **Priority:** MEDIUM — avoid unsupported-control failures or wrong search expressions in filters
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (READ ONLY)
@@ -2582,7 +2582,7 @@ Hard scope: read only everywhere except appending `## Reply CTRL-020` to docs/co
 
 ## MESSAGE CTRL-021
 
-**Status:** ASSIGNED / DEPENDENT — identify and resolve RadioReadOnly smoke intermittency only when a TEST-ONLY cause is proven; start after CTRL-020 DONE and verified unchanged production HEAD, never concurrently
+**Status:** CLOSED — user independently confirmed Windows `CTRL-006 PASS`, exit 0, using fixed RadioReadOnlySmoke from CTRL-021 (2026-11-24). Test-only commit `ce32f72ccc4a03ccc09f959da9b9d2e77d00f993` accepted. No production radio control code changed.
 **Priority:** HIGH — credible GUI regression signal for JavaFX25 legacy radio groups
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness
