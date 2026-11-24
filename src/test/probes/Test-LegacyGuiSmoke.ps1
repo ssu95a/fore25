@@ -14,6 +14,8 @@ param(
     [switch] $FormLifecycle,
     [Parameter(ParameterSetName = 'FormCancel')]
     [switch] $FormCancel,
+    [Parameter(ParameterSetName = 'SceneKeyLookup')]
+    [switch] $SceneKeyLookup,
     [Parameter(ParameterSetName = 'TextFields')]
     [switch] $TextFields,
     [Parameter(ParameterSetName = 'ValueFields')]
@@ -77,6 +79,9 @@ if ($Editors) {
 } elseif ($FormCancel) {
     $probeId = 'CTRL-022'
     $probeClass = 'ru.inversion.fx.form.LegacyFormCancelSmoke'
+} elseif ($SceneKeyLookup) {
+    $probeId = 'CTRL-024'
+    $probeClass = 'SceneKeyLookupSmoke'
 } elseif ($TextFields) {
     $probeId = 'GUI-012'
     $probeClass = 'LegacyTextFieldsSmoke'

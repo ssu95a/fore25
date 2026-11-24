@@ -82,7 +82,7 @@ public class SceneKeyManager {
 
         if( action == null )
         {
-            if( node.getProperties().getOrDefault( Controls.CONTROL_PARENT, null) != null )
+            if( node.hasProperties() && node.getProperties().getOrDefault( Controls.CONTROL_PARENT, null) != null )
             {
                 return getActionRecursive( (Node) node.getProperties().get(Controls.CONTROL_PARENT), event, map );
             }
