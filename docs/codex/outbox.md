@@ -2567,3 +2567,13 @@ Field-only delegates to the editor provider: cancel no write/TAB, accept updates
 Source: JInvChoiceButton configures the icon; JInvLOVButton owns the action pair and bindings, inherited JInvButton.setTextField writes separate metadata and may set disable directly. Internal TextField/Area/CUR and help-controller wiring use field mode. Provider constructors implement standalone mode. ButtonValidationListener recognises the reporting field for validation deferral. Native modal/DB and real corporate mouse replay remain UNKNOWN.
 
 Recommend keeping two exclusive modes unless a caller establishes a combined-mode contract. A focused future task can make mode transitions consistent by releasing old bindings/metadata and testing reattachment atomically. Retention through live button metadata/bindings is confirmed; lifetime in the corporate app is unmeasured. No tracked changes.
+
+---
+
+## Reply CTRL-029
+
+**DONE / READ-ONLY.** HEAD unchanged at `2390e7cdac4a463b1be24082b6502df0e54a4aa7`. CONFIRMED via real FXFormLauncher, FXML, SDI Stage and annotated JInvFXFormController in a temporary no-DB fixture. First launch reached RUNTIME; second launch was suppressed before veto. Sending WINDOW_CLOSE_REQUEST to a controller returning false kept its Stage visible with zero callbacks. Launching again opened a second visible Stage of the same class. Accepting close on both and reopening worked; three total close callbacks after closing the last Stage.
+
+SOURCE-PROVEN: internalShow registers by class before controller initialization and brings an existing Stage forward. internalOnClose finally removes by class on normal close, consumed Cancel/WAIT, validation/onOK rejection and exceptions alike. closeNow bypasses veto; SDI finalization happens on WINDOW_HIDDEN, whereas the no-Stage branch finalizes inline and launcher MDI creation is commented out. Launcher catch also removes on initialization failure. With duplicates, removing by class can remove another controller's registration (source implication; untested). Corporate DB, WAIT/kill-session, exception and MDI runtime remain UNKNOWN.
+
+Recommend a separate fix that preserves registration on consumed veto, removes only the matching owner on accepted close, and covers init/close errors explicitly so failed launches cannot strand a registry entry. Preserve distinct SDI and no-Stage finalization paths. No tracked changes.
