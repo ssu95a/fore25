@@ -2589,3 +2589,20 @@ CONFIRMED: single registration validates once on blur. Two registrations of the 
 CONFIRMED independent defect: when a validator instance was registered on two controls, unbinding it from one removed it from both. Source: getValidators backing removal uses only validator equality, while registration keys by control and validator. Recommend one focused task to constrain removal to the requested control and preserve duplicate-add semantics.
 
 SOURCE-PROVEN: first focus/change listeners capture the manager and the node Boolean marker prevents any later manager installing replacements; list unbind does not remove the listener. Controller initialization is the usual manager owner; the scene's ButtonValidationListener also captures it. Corporate reuse/retention, DB and click replay remain UNKNOWN. No tracked changes.
+
+---
+
+## Reply CTRL-031
+
+**DONE / TEST-ONLY.** Published and verified clean implementation HEAD `3805ac5ba9096de48fc9697014d1d8063805dd29`. Added only LovIntegrationSmoke.java and runner mode. On Windows Java 25 / JavaFX 25 real Stage, JInvTextField, AbstractLovBase provider and LovValidator, accept produced one LOV/text/model event before its callback; cancel/equal produced zero; reattach caused one quoted append, former/detached writes only notified provider observers, no NPE. validateOnOk emitted zero writes and normal validation one per property. Real JInvLOVButton.fire() emitted exactly one synthetic TAB after accept and none on cancel. Physical mouse input, native DB modal and corporate validation replay remain UNKNOWN.
+
+Maven compile, PowerShell parse, staged diff check and all nine modes passed: LovIntegration, LovListenerLifecycle, LovDefaultValidation, FormCancel, FormLifecycle, TextFields, DataBinding, SceneKeyLookup, ControlsFollowup. Windows rerun: `src/test/probes/Test-LegacyGuiSmoke.ps1 -LovIntegration -SettingsFile "D:\Java\.m2\settings.xml"`.
+
+| Task | Status | Implementation change / finding |
+| --- | --- | --- |
+| CTRL-026 | DONE | `0c3af0c77f4c056314e268764184e857b4c423b8` — listener ownership |
+| CTRL-027 | DONE | `2390e7cdac4a463b1be24082b6502df0e54a4aa7` — default read-only validation |
+| CTRL-028 | DONE / architecture decision | Button mode transition can retain prior bindings and reattach can fail |
+| CTRL-029 | DONE / read-only | Real SDI launcher opened duplicate singleton after veto |
+| CTRL-030 | DONE / read-only | Validator unbind can remove another control's registration; first manager retains automatic focus routing |
+| CTRL-031 | DONE / test-only | `3805ac5ba9096de48fc9697014d1d8063805dd29` — integration smoke |
