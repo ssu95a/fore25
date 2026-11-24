@@ -2614,7 +2614,7 @@ Execute CTRL-019 → CTRL-020 → CTRL-021 SEQUENTIALLY with separate outbox rep
 
 ## MESSAGE CTRL-022
 
-**Status:** ASSIGNED — focused form Cancel/close/veto lifecycle regression, TEST-ONLY
+**Status:** CLOSED — user independently confirmed Windows `CTRL-022 PASS`, exit 0, on 2026-11-24. Agent's test-only commit `a5901c251ce76a122a31e8c832b3199f33735c24` accepted. Full corporate/MDI execution UNKNOWN.
 **Priority:** HIGH — form return status and single cleanup/callback correctness
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness; baseline remote HEAD `ce32f72ccc4a03ccc09f959da9b9d2e77d00f993`
@@ -2637,7 +2637,7 @@ Existing tracked `src/test/probes/gui/LegacyFormLifecycleSmoke.java` (GUI-010) p
 
 ## MESSAGE CTRL-023
 
-**Status:** ASSIGNED / DEPENDENT — READ-ONLY Binder.bind partial-attachment consistency audit; start ONLY after CTRL-022 DONE or NO_CHANGE report and verified SHA
+**Status:** CLOSED — completed READ-ONLY `Reply CTRL-023`: partial bindings confirmed after error; no approved rollback semantics. No production changes; follow-up only if actual caller reuse proves a defect.
 **Priority:** HIGH — avoid partially attached control/model listeners after binding failure
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (READ ONLY)
@@ -2660,7 +2660,7 @@ Existing tracked `src/test/probes/gui/LegacyFormLifecycleSmoke.java` (GUI-010) p
 
 ## MESSAGE CTRL-024
 
-**Status:** ASSIGNED / DEPENDENT — focused SceneKeyManager navigation lookup allocation RED/GREEN, start after CTRL-023 DONE/NO_CHANGE; never concurrent
+**Status:** CLOSED — user independently confirmed Windows `CTRL-024 PASS`, exit 0, on 2026-11-24. Agent production commit `7282d378cf144d15bfb61b0cf944def96cbb577b` accepted; no unrelated changes.
 **Priority:** MEDIUM/HIGH — avoid retained Node.properties allocations during hotkey dispatch while preserving action precedence
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness
@@ -2683,7 +2683,7 @@ Existing tracked `src/test/probes/gui/LegacyFormLifecycleSmoke.java` (GUI-010) p
 
 ## MESSAGE CTRL-025
 
-**Status:** ASSIGNED / DEPENDENT — bounded READ-ONLY LOV choice/cancel/value-notification audit; start only after successful CTRL-024 DONE/NO_CHANGE and verified production HEAD
+**Status:** CLOSED / FINDINGS ACCEPTED — READ-ONLY `Reply CTRL-025` proved stale and duplicate JInvTextField LOV listeners plus default check `doSetValue=false` mutation; follow-ups CTRL-026 and CTRL-027 assigned separately; original task not to rerun.
 **Priority:** HIGH — business field integrity on LOV accepted/cancelled selection
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (READ ONLY)
@@ -2705,3 +2705,142 @@ Legacy `JInvTextField.setLOV` listens to AbstractLovBase.valueProperty and calls
 ### Queue discipline for all four
 
 Execute CTRL-022 → CTRL-023 → CTRL-024 → CTRL-025 sequentially. A task may finish DONE (including test-only change), DONE/NO_CHANGE (READ-ONLY analysis), or BLOCKED. On BLOCKED stop the ENTIRE remaining queue and report. Before every task verify the prior Reply and current remote production SHA. Never assume a future commit SHA. Every task has a separate outbox Reply with exact evidence and a concise architect-facing summary. Do not touch blocked CTRL-014 generic ChoiceBox null clearing or deferred CAL-TIME-001. Remote writing requires ordinary fast-forward push only. No force-push, no main/JInvCommon writes. Independent Windows acceptance is not implied by agent PASS.
+
+---
+
+## MESSAGE CTRL-026
+
+**Status:** ASSIGNED — JInvTextField LOV listener lifecycle correctness, RED/GREEN
+**Priority:** CRITICAL — stale listeners duplicate model writes / retention / NPE
+**Repository:** ssu95a/fore25
+**Branch:** migration/java25-correctness (NEVER main)
+**Baseline:** 7282d378cf144d15bfb61b0cf944def96cbb577b
+**Reply:** CTRL-026
+
+### Reproduced in prior READ-ONLY CTRL-025
+
+Production JInvTextField.setLOV(AbstractLovBase,boolean) calls `this.lov.set(lovObj)` then `addLovValueListener(lovObj)`; listener is an inline lambda on `lov.valueProperty` that captures the field and reads current `getLOV()`. Neither replacement nor `unbindLOV()` detaches old registrations. On old LOV write after replacement active LOV value was appended again; setting same LOV twice caused two appends; after unbind, old LOV write caused NPE. These are CONFIRMED JavaFX25 and source-proven, not hypothetical.
+
+### Contract and RED/GREEN
+
+1. Verify expected SHA, branch, clean worktree. Add tracked real JavaFX25 fixture using JInvTextField, `SimpleStringProperty` bidirectional model, minimal concrete AbstractLovBase provider and stage only as necessary. RED on old LOV replaced by new: writing former LOV MUST NOT update current field/model; attaching same LOV twice MUST NOT duplicate writes; unbind LOV then external old provider write MUST NOT trigger field NPE. Establish positive single-LOV update and unchanged initial-binding behavior first.
+2. Implement smallest ownership fix confined to `src/main/java/ru/inversion/fx/form/controls/JInvTextField.java`: at most ONE active value listener owned by field and associated with current LOV; detach on replacement/unbind, attach on new instance, do not multiply on same LOV reattachment. Prefer lazily allocating callback/state only once a LOV is first used; no eager memory overhead on every JInvTextField instance. Do not use weak listeners that silently disappear without strong references, and do not allocate a fresh listener per LOV update.
+3. GREEN with selected text replacement, appendFromLOV (including comma quoting), repeated equal value, distinct replacement and unbind, repeated show/cancel callbacks where available. Preserve current `setTextValueFromLov`, validation, `onSetLov`, button creation, and properties semantics; explicitly test that detachment does not remove *other consumers'* listeners on the LOV. Avoid rewriting dialog or fixing unrelated `doSetValue` contract (CTRL-027). Do not force null text on detach.
+4. Check alternative entry path public `lovProperty().set(...)` as diagnostic: if it bypasses setter and breaks invariant, document UNKNOWN/API limitation or STOP if contract requires property binding; do not broaden silently. If concurrent ownership of same LOV across different fields creates new regressions, STOP BLOCKED.
+5. Maven `-Pbuild compile`, PowerShell parse and `git diff --check`; `-LovListenerLifecycle` RED/GREEN + existing TextFields, DataBinding, FormCancel, BinderChoiceNull and other applicable smoke. Include no extra production fields for controls with no LOV in baseline; record per-instance memory cost.
+
+**Git approval:** ONLY JInvTextField.java production, a NEW tracked src/test/probes/gui/LovListenerLifecycleSmoke.java, and `-LovListenerLifecycle` runner parameter. Russian source comments. Commit+fast-forward push ONLY with GREEN, verify remote and publish `## Reply CTRL-026` with RED/GREEN numbers, SHA, exact files, and independent Windows command. On BLOCKED no production commit, stop queue.
+
+---
+
+## MESSAGE CTRL-027
+
+**Status:** ASSIGNED / DEPENDENT — AbstractLovBase default validation read-only flag, focused RED/GREEN; start ONLY after successful CTRL-026 DONE and verified production SHA
+**Priority:** HIGH — `validateOnOk` must not mutate field/model by default check
+**Repository:** ssu95a/fore25
+**Branch:** migration/java25-correctness
+**Expected baseline:** exact final SHA published by CTRL-026
+**Reply:** CTRL-027
+
+### Confirmed evidence / intended limited contract
+
+`LovValidator.validateOnOk(value)` passes `doSetValue=false` to `AbstractLovBase.checkValue(value, false)`; the **base-class** `AbstractLovBase.createDefaultCheck()` returns `(t,u)->{setValue(t); return true;}` and ignores u. CTRL-025 reproduced that validateOnOk with default predicate mutates LOV, field text and model. Other providers (especially `AbstractEntityLovBase.createDefaultCheck()` and custom `setCheck`) can use distinct semantics and MUST NOT be changed in this task.
+
+### RED/GREEN
+
+1. Confirm remote HEAD == CTRL-026 reported SHA and clean tree; establish real direct base `checkValue(T,false)` and attached JInvTextField/LovValidator.validateOnOk smoke, plus positive `checkValue(T,true)` and `LovValidator.validate` with defaults. RED for false current LOV value, control text and model are mutated. Include equal-value no-op, true positive, and false checks for both null and non-null when non-equivalent.
+2. Change ONLY `AbstractLovBase.createDefaultCheck()` (or minimal base default predicate) so default `doSetValue=false` means validate/return true without setting LOV value; `doSetValue=true` still sets exactly once for actual change. No modifications to checkValue's equality shortcut, custom predicates, EntityLov, SQLDataSet, validators, other LOV fields.
+3. GREEN single active LOV listener, zero field/model/LOV writes on read-only validation, one on true actual change, no NPE after replacement/unbind. Run both focused `-LovDefaultValidation` and prior `-LovListenerLifecycle`, relevant `-TextFields`, `-FormCancel`, `-DataBinding` and accepted smoke. Ensure both direct AbstractLovBase and LovValidator contract. If base predicate false mutation is required by proven legacy contract, STOP/BLOCKED with evidence rather than changing semantics.
+4. Production edit ONLY `src/main/java/ru/inversion/fx/form/lov/AbstractLovBase.java`; tests new src/test/probes/gui/LovDefaultValidationSmoke.java + runner `-LovDefaultValidation`. No extra per-instance state. Maven compile, PowerShell syntax and git diff --check. Russian comments if needed.
+
+**Git:** independent commit, fast-forward push, verify exact HEAD, publish Reply CTRL-027 with before/after mutation counts + SHA. On BLOCKED stop all remaining tasks.
+
+---
+
+## MESSAGE CTRL-028
+
+**Status:** ASSIGNED / DEPENDENT — READ-ONLY JInvLOVButton field/provider pairing audit; start after CTRL-027 DONE and remote SHA verification
+**Priority:** HIGH — prevent wrong LOV or missing editor reference in dual setter usage
+**Repository:** ssu95a/fore25
+**Branch:** migration/java25-correctness (READ ONLY)
+**Expected baseline:** latest CTRL-027 SHA
+**Reply:** CTRL-028
+
+### Source evidence and UNKNOWN contract
+
+`JInvLOVButton` keeps a `Pair<TextInputControl,ILov>` in node property LOV_BUTTON_DATA. `setTextField` writes `(ed,null)`, while `setLOV` writes `(null,lov)`; both setters overwrite previous pair. In `LOVHandler`, control-present flow differs from standalone LOV button. Whether both setters are intended to coexist or mutually exclusive is UNKNOWN. Treat this as an architectural question, not permission for speculative 'fix'.
+
+### Investigation
+
+1. Inspect JInvChoiceButton and all callers, JInvTextField.setLOV (creates a button and setTextField) and direct JInvLOVButton(ILov) constructors. Separate actual supported modes: field-bound button delegates field.showLOV, standalone button uses own ILov. Trace field binding and ButtonValidationListener focus/keyboard behavior, including cancel handling.
+2. With ignored target-only JavaFX25 fixture establish positive field-only mode, provider-only mode, and sequential `setTextField→setLOV` and reverse order; capture getTextField/getLOV and button action/callback. Do not invoke real modal without controlled fake ILov, BaseApp/DB limitations -> UNKNOWN.
+3. Examine setTextField repeated attachment and Boolean disable/visible binding: check potential double binding or IllegalStateException on reuse and orphaned old field references. Record actual exceptions/retained maps; do not extrapolate an app-level leak without evidence.
+4. Recommend whether API modes should stay exclusive or require combined support, with smallest possible future correction and safety/compatibility implications. **NO production or tracked edits**, no commits on implementation branch. Only ignored target diagnostics and `## Reply CTRL-028` in outbox; record source+runtime, unknowns.
+5. If contract ambiguity is material, report DONE / ARCHITECTURE DECISION NEEDED without calling the task BLOCKED; continue to independent CTRL-029. Never change JInvLOVButton, JInvChoiceButton, Binder, JInvTextField or other production code.
+
+---
+
+## MESSAGE CTRL-029
+
+**Status:** ASSIGNED / DEPENDENT — READ-ONLY singleton form close-veto registry audit; start after CTRL-028 report and HEAD verification
+**Priority:** HIGH — lifecycle correctness: prevent opening duplicate SingletonInstance forms after veto
+**Repository:** ssu95a/fore25
+**Branch:** migration/java25-correctness (READ ONLY)
+**Expected baseline:** final verified CTRL-027 HEAD, unchanged by CTRL-028
+**Reply:** CTRL-029
+
+### Source-proven risk
+
+`AbstractBaseController.internalShow()` registers `@SingletonInstance` controllers in `g_controllerInstanceMap`; `internalOnClose()` has a `finally` block that removes the instance after try, even when a normal Cancel close is vetoed and window remains open. CTRL-022 confirmed veto keeps Stage open and returns no callback but did not inspect singleton map. Potential duplicate-controller opening is HYPOTHESIS pending genuine launcher path.
+
+### Bounded forensic task
+
+1. Verify prior report, remote SHA, clean worktree. Source-trace singleton registration, stage creation, internalOnClose return paths (veto, validation failure, exception, closeNow, SDI/MDI), map removal, and existing tests/SingletonInstance annotation.
+2. Attempt ignored target-only runtime probe using real production launcher and minimal annotated controller to register singleton, veto close, open second instance and observe whether second is suppressed/brought to front; after successful close re-open and verify acceptance. If BaseApp/DB/main frame prevents real launcher, use read-only isolated introspection to verify map state only, report end-to-end duplicate as UNKNOWN, do not fabricate a real popup.
+3. Distinguish ERROR cleanup from ordinary Cancel/veto and pending asynchronous finalization. Consider exception and return paths; no naive move of map.remove that causes a stale singleton on error.
+4. Deliver CONFIRMED vs SOURCE-PROVEN vs HYPOTHESIS vs UNKNOWN, detailed reproduction and smallest proposed fix in *separate future task* if warranted. No production/test tracked changes or implementation branch commits. Only ignored target diagnostic and Reply CTRL-029. If unresolved, DONE/NO CHANGE with recommendation, do not hold independent CTRL-030.
+
+---
+
+## MESSAGE CTRL-030
+
+**Status:** ASSIGNED / DEPENDENT — READ-ONLY ValidMan validator listener + LOV rebinding audit; start only after CTRL-029 report and verified unchanged production HEAD
+**Priority:** HIGH — correctness and allocation/retention when a control is revalidated/rebound
+**Repository:** ssu95a/fore25
+**Branch:** migration/java25-correctness (READ ONLY)
+**Expected base:** final CTRL-027 SHA, unchanged by CTRL-028/029
+**Reply:** CTRL-030
+
+### Source grounding
+
+`ValidMan.bindValidators2Control` adds validators via `getValidators(c).addAll`, `unbindValidators` removes; `initListenersOnControl` guards focus listener through Controls.CONTROL_FOCUS_LISTENER, then installs change listeners through `initChangeListener`; `JInvTextField.setLOV` installs LovValidator if missing. Existing `ButtonValidationListener` replays focus/click after validation. Whether unbind/rebind or controller recreation leaves duplicated validations and listener references is UNKNOWN.
+
+### Audit
+
+1. Trace ValidMan initialization, observer lists, getValidators(c), bind/unbind and focus/changed listeners including potential leaks when controller is destroyed or control moved to another form. Distinguish initial bind vs repeated same `ValidMan` and NEW ValidMan, and enumerate real lifecycle caller paths.
+2. Use ignored JavaFX25 probe with actual field and a counting Validator, single/duplicate add/remove, focus change, programmatic text edits. Record validation invocations and GUI notifications. Include no-LOV control as allocation/memory sentinel and a LOV-validated field after CTRL-026/027. Count whether repeated bind registers one or more focus listeners and whether stale managers still validate or retain control.
+3. Do NOT silently deduplicate validator instances or change focus semantics: repeat bindings may be intentionally supported. Identify one verified data-integrity issue if any and an isolated next step. Source evidence alone about listener existence is not enough to assert a leak. SQL/DB integration and production corporate app remain UNKNOWN unless actually run.
+4. READ-ONLY; no implementation branch edits, no tracked tests, no ValidMan/JInvTextField production code, no new dependencies. Publish Reply CTRL-030 with evidence and recommendation. If standalone fixture cannot run reliably, report UNKNOWN rather than failing adjacent tasks.
+
+---
+
+## MESSAGE CTRL-031
+
+**Status:** ASSIGNED / DEPENDENT — final JavaFX25 LOV value/model regression after CTRL-026/027, TEST-ONLY, start after CTRL-030 report and verified implementation HEAD
+**Priority:** HIGH — safeguard corrected LOV lifecycle against actual field/model regressions
+**Repository:** ssu95a/fore25
+**Branch:** migration/java25-correctness
+**Expected base:** final CTRL-027 SHA (READ-ONLY CTRL-028/029/030 must not alter production branch)
+**Reply:** CTRL-031
+
+### Integration regression goals
+
+1. Verify exact HEAD and completed predecessor replies; clean worktree. Add ONE tracked JavaFX25 smoke `LovIntegrationSmoke.java` under src/test/probes/gui, `-LovIntegration` PowerShell runner mode, reusing production JInvTextField + AbstractLovBase + LovValidator and a model `SimpleStringProperty` in a real Stage. Prefer constructing an isolated provider that implements a deterministic chosen result via ILov.showChoiceList callback, NOT a fake full DB-backed ViewEntityLovController. If BaseApp is necessary, use a minimal test subclass only to meet real control preferences.
+2. Cover accepted choose (once updates value/text/model), cancel (zero writes), repeated equal choices (zero events), old LOV writes after replacement (zero writes), same LOV reattached (one write), unbind (no NPE and zero stale writes), append delimiter quoting, and base `validateOnOk` nonmutating vs normal validation one write. Test only accepted semantics, no change to generic ChoiceBox null clearing.
+3. Test actual `JInvLOVButton` click and keyboard forwarding only if a real scene is available and paths are deterministic; report unsupported interaction UNKNOWN without fabricating pass. No Robot required. Do not modify JInvLOVButton semantics based on CTRL-028 research without separate policy approval. Test exact event counts, callback order, model values and no duplicate listeners.
+4. If a real regression appears from accepted CTRL-026/027 implementation, STOP and report BLOCKED with RED; do NOT silently change production in this test-only task. If GREEN: run new probe and existing `-LovListenerLifecycle`, `-LovDefaultValidation`, `-FormCancel`, `-FormLifecycle`, `-TextFields`, `-DataBinding`, `-SceneKeyLookup`, `-ControlsFollowup` where practical; report unrun UNKNOWN.
+5. Allowed tracked edits ONLY new LovIntegrationSmoke.java and adding `-LovIntegration` runner parameter. No production edits, POM changes, main/JInvCommon writes. Maven -Pbuild compile, PowerShell syntax, diff check. Commit/push fast-forward only after GREEN, verify SHA, publish Reply CTRL-031 with independent Windows command and an overall six-task status table. Then STOP; no self-assigned CTRL-032.
+
+### Global queue rules
+
+Execute CTRL-026 → CTRL-027 → CTRL-028 → CTRL-029 → CTRL-030 → CTRL-031 **strictly sequentially**. On any actual BLOCKED test/production defect, stop entire remainder rather than guessing; READ-ONLY audits may conclude DONE/NO_CHANGE or DONE/ARCHITECTURE DECISION NEEDED and continue where no blocking regression exists. Verify exact remote production SHA, working tree, mailbox prior reply before each task. Separate outbox replies; separate commits for 026, 027, 031 only when GREEN. No force push, no main/JInvCommon writes. Existing CTRL-014 generic ChoiceBox null-clear stays BLOCKED and CAL-TIME-001 seconds stays deferred; do NOT modify either. Comments in Russian, avoid additional per-component allocations. Independent Windows user acceptance must not be claimed before reported.
