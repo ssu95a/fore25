@@ -2652,3 +2652,13 @@ SingletonLifecycleMatrix, SingletonCloseVeto, FormCancel, FormLifecycle, Maven c
 **DONE / READ-ONLY.** HEAD unchanged at `dce04163498221af2f86c8eaec84d77d3974dfc6`. Real JInvTextField reparented across two Scenes with different controller metadata; getController resolved the new controller. M1 validated before and after move. After explicit M1 unbind, automatic blur still dispatched through M1 with no validator; M2 ran only on explicit validation. M1/M2 dispatch 3/1, all three edits produced one model notification apiece, node marker true.
 
 Source: node focus/change callbacks capture M1 and the Boolean marker suppresses M2 setup. This gives a strong path from live control to M1/controller until callbacks are removed. Normal FXFormLauncher loads a fresh FXML root and installs its owner; no supported cross-controller reuse path established in this checkout, so corporate impact and retention duration are UNKNOWN. If reuse is adopted, give manager registration explicit detach/transfer semantics with lazily stored listener handles only for validated controls; avoid eager state or changing duplicate validator semantics.
+
+---
+
+## Reply CTRL-038
+
+**DONE / READ-ONLY.** HEAD unchanged at `dce04163498221af2f86c8eaec84d77d3974dfc6`. JavaFX 25 real field, Stage and skin: direct set exposed provider through getLOV/showLOV and delivered accepted callback but installed no value listener or button, so model stayed unchanged. Direct replacement preserved old button, read new provider and wrote zero model events. Direct null preserved the button with no active provider/callback.
+
+Externally binding to the already installed provider preserved its listener while active; a bound-source replacement did not install a new one. setLOV to a different provider while bound threw the standard bound-property exception and detached the old listener before it failed. Unbind property then call the public setter restored updates and supported unbind removed the LOV button. Also observed that a previously ignored invalidation could suppress a subsequent write on reinstall until the provider value was read. Model events across the fixture: [installed, bound same provider, reattached]; one accepted callback per direct provider.
+
+Production usage found Binder, form/filter and sheet callers using setLOV; no production Java/FXML caller directly mutating/binding lovProperty found. External clients UNKNOWN. Keep setter-owned lifecycle as the documented supported route until a compatibility decision is made. If direct property ownership is approved, specify bound-setter failure atomicity before implementation and retain lazy allocation.
