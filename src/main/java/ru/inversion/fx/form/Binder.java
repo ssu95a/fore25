@@ -398,7 +398,8 @@ public class Binder {
 
                 cb.valueProperty().addListener((Observable observable) -> {
                     Function<T, R> valueFactory = cb.getValueFactory();
-                    fxEntity.getProperty(fieldName).setValue(valueFactory.apply((T) ((ObjectProperty) observable).get()));
+                    T value = cb.getValue();
+                    fxEntity.getProperty(fieldName).setValue(value == null ? null : valueFactory.apply(value));
 
                 });
 

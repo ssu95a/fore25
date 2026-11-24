@@ -36,6 +36,8 @@ param(
     [switch] $ControlsFollowup,
     [Parameter(ParameterSetName = 'ChoiceAdapter')]
     [switch] $ChoiceAdapter,
+    [Parameter(ParameterSetName = 'BinderChoiceNull')]
+    [switch] $BinderChoiceNull,
     [Parameter(ParameterSetName = 'RadioReadOnly')]
     [Parameter(ParameterSetName = 'ComboReadOnly')]
     [Parameter(ParameterSetName = 'CheckBoxReadOnly')]
@@ -111,6 +113,9 @@ if ($Editors) {
 } elseif ($ChoiceAdapter) {
     $probeId = 'CTRL-015'
     $probeClass = 'ChoiceAdapterSmoke'
+} elseif ($BinderChoiceNull) {
+    $probeId = 'CTRL-017'
+    $probeClass = 'BinderChoiceNullSmoke'
 }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
