@@ -2399,7 +2399,7 @@ User approved closing remaining Controls issues as narrow fixes with correctness
 
 ## MESSAGE CTRL-015
 
-**Status:** ASSIGNED — focused RED/GREEN DSChoiceBoxAdapter listener registration and exception-safety
+**Status:** CLOSED — user independently confirmed Windows CTRL-015 PASS (2026-11-24) after agent RED/GREEN; production commit 47c31310fac24692dc1b7b3118a127825de52a01 accepted for tested invariants. Robot, full business forms and DB persistence remain UNKNOWN.
 **Priority:** HIGH — dataset correctness, duplicate events and stuck navigation state
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (never main)
