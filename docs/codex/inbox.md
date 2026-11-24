@@ -2863,7 +2863,7 @@ Execute CTRL-026 → CTRL-027 → CTRL-028 → CTRL-029 → CTRL-030 → CTRL-03
 
 ## MESSAGE CTRL-032
 
-**Status:** ASSIGNED — CRITICAL / RED-GREEN singleton veto registry fix
+**Status:** CLOSED — user independently confirmed Windows `CTRL-032 PASS`, exit 0 after test-only synchronization fix CTRL-042 (2026-11-24). Original production fix `cad4dfd39cda4cb1f23bb8610d7ab24c00123bb5` accepted for tested singleton veto/close behavior. Corporate DB, MDI, WAIT UNKNOWN.
 **Repo:** ssu95a/fore25
 **Branch:** migration/java25-correctness
 **Baseline:** 3805ac5ba9096de48fc9697014d1d8063805dd29
@@ -2908,7 +2908,7 @@ Execute CTRL-026 → CTRL-027 → CTRL-028 → CTRL-029 → CTRL-030 → CTRL-03
 
 ## MESSAGE CTRL-035
 
-**Status:** ASSIGNED — TEST-ONLY singleton launcher regression matrix, dependent on CTRL-032 GREEN
+**Status:** CLOSED — user independently confirmed Windows `CTRL-035 PASS`, exit 0 after CTRL-042 (2026-11-24). Test-only matrix commit `aba018ab2e14bab5c774668d3ab9b74d32ae7fa1` accepted for tested lifecycle scenarios.
 **Repo:** ssu95a/fore25
 **Branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production SHA
@@ -2992,7 +2992,7 @@ Verify predecessor task replies, current remote HEAD and clean worktree. Run fre
 
 ## MESSAGE CTRL-042
 
-**Status:** ASSIGNED — Independent user CTRL-032 FAILED; investigate closeNow/progress nested JavaFX loop, TEST-ONLY correction if confirmed
+**Status:** CLOSED — agent Reply CTRL-042 confirmed JavaFX nested event-loop caused premature test assertion; user independently confirmed both `CTRL-032 PASS` and `CTRL-035 PASS`, exit 0 (2026-11-24). Test-only fix commit `f4f2903181be6b4c2ff0dd19d002a87fe6a99afb` accepted. No production change.
 **Priority:** CRITICAL — restore truthful, deterministic singleton regression signal; do NOT weaken production invariants
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
