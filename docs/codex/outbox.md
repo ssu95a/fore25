@@ -2434,3 +2434,22 @@ Maven -Pbuild compile, PowerShell parse and diff check passed. ChoiceNullLookup 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ChoiceNullLookup -SettingsFile "D:\Java\.m2\settings.xml"
 $LASTEXITCODE
 ```
+
+---
+
+## Reply CTRL-019
+
+**Status:** DONE. **Production:** baseline `11b1641e12efaa45cb82a8ec58f530b028f5acf0`, final `a4edd28f2d68e461c676e01a5a72880d8929cd54`. [Exact diff](https://github.com/ssu95a/fore25/commit/a4edd28f2d68e461c676e01a5a72880d8929cd54)
+
+Only Controls.setValue(Object,Object) gained a non-null JInvChoiceBox branch delegating to setSelectedValue. The Node overload shares that implementation. Null still throws the exact previous RuntimeException, and Controls.getValue returns T.
+
+Windows Java 25.0.1 / JavaFX 25, programmatic operations on the FX application thread. RED: both overloads threw Unsupported class control for valid non-null String and mapped keys, with 0/0/0/0 index/item/value/model events. Direct selection passed. GREEN: both constructors and both overloads select B once (1/1/1/1), including a list containing a literal null and a non-null row projecting null. Repeated/unmatched keys add zero notifications. Initial selection is empty in the fixtures. The specialized A/B and A/B/null fixtures kept cursor 1 with zero navigation, selection or model events on rejected null writes. Direct setSelectedValue(null) remained a no-op.
+
+Actual generic DSControlAdapter and ArrayDataSet navigated using keys 2 and 1 with one transition per row. Generic null navigation remains unsupported; not driven through the adapter's error UI. CTRL-014 stays BLOCKED.
+
+Maven -Pbuild compile, PowerShell parse and diff check passed. ChoiceNonNullSet and all twelve regression probes passed, including BinderChoiceNull, ChoiceNullLookup, ChoiceAdapter and the official RadioReadOnly run. Robot and DB not run.
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ChoiceNonNullSet -SettingsFile "D:\Java\.m2\settings.xml"
+$LASTEXITCODE
+```
