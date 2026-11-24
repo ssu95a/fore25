@@ -2390,3 +2390,26 @@ Additional sentinels: with [A,null,B] and Row::key, a scan for matching key 2 or
 **Architectural question:** should a future generic null write preserve the current selection and cursor, or clear selection and the model key while keeping the cursor, reserving literal-null row selection for explicit index/navigation?
 
 **HYPOTHESIS / UNKNOWN:** prevalence of literal null items and strict factories in external consuming forms, and real DB/persistence effects, remain unknown. The in-memory FXEntity result establishes property behavior, not a database write. Production and tracked tests were untouched in CTRL-016.
+
+---
+
+## Reply CTRL-017
+
+**Status:** DONE. **Production:** base `47c31310fac24692dc1b7b3118a127825de52a01`, final `4e7ee03b6a85fac0e09b4a2d73d7cfce36e88eca` on `migration/java25-correctness`. [Exact diff](https://github.com/ssu95a/fore25/commit/4e7ee03b6a85fac0e09b4a2d73d7cfce36e88eca)
+
+Only the ChoiceBox-to-FXEntity listener in Binder changed. It sends a null key without invoking the factory for a null ChoiceBox value. Existing non-null projection and model-to-control handling remain intact. No new listeners or instance state.
+
+Windows Java 25.0.1 / JavaFX 25, shown Stage, actual annotated FXEntity and production Binder, strict Row.key mapping. Direct programmatic calls; no Robot.
+
+| Operation | RED | GREEN |
+| --- | --- | --- |
+| A/B native setValue(null) and clearSelection, starting at B | Each index 1→-1, one item/value change, key stays 2, zero model events, one null mapper call and one NPE delivered to the FX thread handler | Same index/item/value; one model event 2→null, no mapper call or exception. Repeat null gives zero extra events. |
+| Specialized A/B/null DataSet navigation to row 2 | Index 1→2→-1→2, one cursor event, one item/value change, stale key 2 and one NPE | Identical index/cursor/item/value transitions; one key event, no null mapper call or exception. |
+| Non-null model/key and control mapping | Positive in both directions; real control→model writes projected once, independently of the existing reverse scan. Unmatched key on A/B retained selection. | Same, including recovery after null. Model→control key null still leaves the selection as before. |
+
+Maven -Pbuild compile, PowerShell parse and git diff --check passed. BinderChoiceNull and nine direct regression probes passed. RadioReadOnly failed the initial unlocked-arrow check and then passed with both original and fixed Binder in a paired rerun. Full business forms and DB persistence were not run. Generic Controls setter, literal-null/cursor policy and CTRL-014 remain unchanged.
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -BinderChoiceNull -SettingsFile "D:\Java\.m2\settings.xml"
+$LASTEXITCODE
+```
