@@ -2486,3 +2486,18 @@ In an ignored diagnostic, executing the existing mixed-group sequence in one FX 
 The tracked fix applies CSS immediately after attaching the mixed-group nodes and asserts both skins are installed before the gestures. It preserves targets, key events and every assertion, adds no sleeps and changes only RadioReadOnlySmoke.java. Production source unchanged. All ten fresh official fixed runs exited 0. DataBinding, ChoiceNonNullSet and ControlsFollowup also passed through their official modes. Maven compile and git diff --check passed. Physical input was not tested.
 
 Windows recheck: `-RadioReadOnly -SettingsFile "D:\Java\.m2\settings.xml"` on Test-LegacyGuiSmoke.ps1. Diagnostic sources and per-run logs remain ignored under target/ctrl021. Worktree clean after publication.
+
+---
+
+## Reply CTRL-022
+
+**DONE (test-only).** Implementation HEAD and GitHub match at `a5901c251ce76a122a31e8c832b3199f33735c24`; clean worktree. Added only LegacyFormCancelSmoke.java and the -FormCancel runner. The fixture adds standard btCancel to the real FXML, which ships only btOK.
+
+| Route | Consumed requests | Observed lifecycle | Hidden / cleanup / RET_CANCEL callback |
+| --- | --- | --- | --- |
+| Cancel | false | ON_CANCEL → ON_CLOSE | 1 / 1 / 1 |
+| Window close request | false | ON_CANCEL → ON_CLOSE | 1 / 1 / 1 |
+| Veto, then Cancel | true, false | ON_CANCEL → RUNTIME → ON_CANCEL → ON_CLOSE | 1 / 1 / 1 (all zero after veto) |
+| closeNow | false | ON_CLOSE | 1 / 1 / 1 |
+
+Windows Java 25.0.1 / JavaFX 25 PASS for FormCancel, FormLifecycle (GUI-010), DataBinding (GUI-009), ControlsFollowup and RadioReadOnly. Maven compile, PowerShell parser and staged diff check passed. Physical window-decoration input and singleton registry remain UNKNOWN. Rerun: `src/test/probes/Test-LegacyGuiSmoke.ps1 -FormCancel -SettingsFile "D:\Java\.m2\settings.xml"`.
