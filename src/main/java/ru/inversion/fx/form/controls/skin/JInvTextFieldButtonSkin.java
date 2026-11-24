@@ -71,31 +71,23 @@ public class JInvTextFieldButtonSkin extends TextFieldSkin implements ISkinPopul
         wrapButton.setVisible(false);
         wrapButton.setManaged(false);
         wrapButton.setFocusTraversable(false);
-        wrapButton.visibleProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
-            textField.requestLayout();
-        });
+        registerChangeListener(wrapButton.visibleProperty(), observable -> textField.requestLayout());
 
-        if (textField instanceof JInvTextField) {
-            ((JInvTextField) textField)
-                .externalButtonProperty()
-                .addListener((v,o,n) -> {
-                    checkOverflow();
-                });
+        Consumer<ObservableValue<?>> overflowChanged = observable -> checkOverflow();
+        if (textField instanceof JInvTextField field) {
+            registerChangeListener(field.externalButtonProperty(), overflowChanged);
         }
 
-        textField.focusedProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+        registerChangeListener(textField.focusedProperty(), observable -> {
             if (wrapButton.isVisible()) {
-                if (newValue) {
-                    wrapButton.pseudoClassStateChanged(focusedButton, true);
-                } else {
-                    wrapButton.pseudoClassStateChanged(focusedButton, false);
-                }
+                wrapButton.pseudoClassStateChanged(focusedButton, textField.isFocused());
             }
         });
 
         getChildren().addAll(overflowButton,wrapButton);
-        initOverflowListener();
-        registerChangeListener(textField.fontProperty(), observable -> checkOverflow());
+        registerChangeListener(textField.textProperty(), overflowChanged);
+        registerChangeListener(textField.widthProperty(), overflowChanged);
+        registerChangeListener(textField.fontProperty(), overflowChanged);
         textContextMenu.setOnShowing(event -> populateContextMenu(textContextMenu));
         populateContextMenu(textContextMenu);
         registerChangeListener(textField.contextMenuProperty(), observable -> installContextMenu());
@@ -131,18 +123,16 @@ public class JInvTextFieldButtonSkin extends TextFieldSkin implements ISkinPopul
         if (area.getContextMenu() == textContextMenu && !area.contextMenuProperty().isBound())
             area.setContextMenu(null);
         super.dispose();
-    }
 
-    private void initOverflowListener() {
-        textField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            checkOverflow();
-        });
-
-        textField.widthProperty().addListener( ( observableValue, oldWidth, newWidth ) -> {
-//            logger.info("textField '{}': width changed {}->{}",this.getId(),oldWidth,newWidth);
-            checkOverflow();
-        } );
-
+        var innerButton = wrapButton.getInnerButton();
+        if (innerButton != null) {
+            boolean ownsAction = wrapButton.onActionProperty().isBound()
+                    && wrapButton.getOnAction() == innerButton.getOnAction();
+            wrapButton.setInnerButton(null);
+            if (ownsAction) {
+                wrapButton.setOnAction(null);
+            }
+        }
     }
 
     private void checkOverflow() {

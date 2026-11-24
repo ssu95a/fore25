@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'TextFieldSkinDisposal')]
+    [switch] $TextFieldSkinDisposal,
     [Parameter(ParameterSetName = 'LovBindingInterleaving')]
     [switch] $LovBindingInterleaving,
     [Parameter(ParameterSetName = 'BoundLovSetter')]
@@ -77,7 +79,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($LovBindingInterleaving) {
+if ($TextFieldSkinDisposal) {
+    $probeId = 'CTRL-049'
+    $probeClass = 'TextFieldSkinDisposalSmoke'
+} elseif ($LovBindingInterleaving) {
     $probeId = 'CTRL-045'
     $probeClass = 'LovBindingInterleavingSmoke'
 } elseif ($BoundLovSetter) {
