@@ -3172,7 +3172,7 @@ GitHub writes allowed only to mailbox outbox for the reply. Do not write product
 
 ## MESSAGE CTRL-049
 
-**Status:** ASSIGNED — HIGH / RED→GREEN skin-owned listener lifecycle, timebox approximately 60 minutes
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — independent Windows `CTRL-049 PASS`, exit code `0`; production `582a7899172c3beef845dbb2393bfc3e5d02e75f`.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Baseline remote HEAD:** 4de3d8a680bb2820be733d89c8cee0dfe3c1e80f
