@@ -2453,3 +2453,22 @@ Maven -Pbuild compile, PowerShell parse and diff check passed. ChoiceNonNullSet 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ChoiceNonNullSet -SettingsFile "D:\Java\.m2\settings.xml"
 $LASTEXITCODE
 ```
+
+---
+
+## Reply CTRL-020
+
+**Status:** DONE / NO CHANGE. **Production base and final SHA:** `a4edd28f2d68e461c676e01a5a72880d8929cd54`.
+
+The unsupported ChoiceBox editor conversion is reproducible as a **direct API call**. It is not reached by the current F7 expression switch. The only source call sites are inside the legacy Boolean ExpressionChangeListener, whose installation in generatePaneByMapFilterItems is commented out. Installed bytecode creates only F7ExpressionChangeListener, which toggles visibility/focus and does not copy a value via Controls. The inline F7FilterTextField toggle changes its own value type.
+
+Bound JInvChoiceBox can pass the info-control filter, but createFilterItemFromControl copies field metadata and factoryList. Only JInvComboBox, radio and checkbox inputs get a replacement item control there. initMainControl uses a supplied item control, list wrapper, typed default or F7 text editor. An external filter modifier can supply a custom control, but still uses the active visibility-only switch. No repository F7 customization supplying JInvChoiceBox was found. JInvCheckBoxString is wrapped as a JInvComboBox using checked/unchecked strings; the inactive listener also explicitly skips a direct CheckBox.
+
+| Check | Evidence |
+| --- | --- |
+| TextField/DatePicker/ComboBox direct supported conversions | PASS, text transfer preserved draft and returned displayed date / selected String in the respective probes |
+| ChoiceBox direct conversion | Unsupported class control; no real F7 route established |
+| CheckBoxString direct conversion | Selected true returns editor string true; its distinct configured control value is Y |
+| Full stock F7 dialog switch | Runtime UNKNOWN. F7FilterTextField initialization requires BaseApp view preferences, absent in the standalone JavaFX fixture. No artificial listener was installed. |
+
+Windows Java 25.0.1 / JavaFX 25, direct API probes on FX thread, ignored target/ctrl020. No production/test changes. No full-app notification counts or DB/filter query execution measured. StringConverter.toString(T) is display text, TypeConverter.convertToString(T) is the existing generic ComboBox extraction, and projected R is its business key. No active F7 transfer establishes any of those as the right ChoiceBox representation. Recommend no change.
