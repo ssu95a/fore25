@@ -2501,3 +2501,15 @@ Windows recheck: `-RadioReadOnly -SettingsFile "D:\Java\.m2\settings.xml"` on Te
 | closeNow | false | ON_CLOSE | 1 / 1 / 1 |
 
 Windows Java 25.0.1 / JavaFX 25 PASS for FormCancel, FormLifecycle (GUI-010), DataBinding (GUI-009), ControlsFollowup and RadioReadOnly. Maven compile, PowerShell parser and staged diff check passed. Physical window-decoration input and singleton registry remain UNKNOWN. Rerun: `src/test/probes/Test-LegacyGuiSmoke.ps1 -FormCancel -SettingsFile "D:\Java\.m2\settings.xml"`.
+
+---
+
+## Reply CTRL-023
+
+**DONE / READ-ONLY.** Implementation HEAD verified unchanged at `a5901c251ce76a122a31e8c832b3199f33735c24`; worktree clean.
+
+**CONFIRMED (Java/JavaFX 25):** public Binder.bind with real FXEntity, three stock TextFields and controller/ViewContext. All-valid baseline propagated both ways: three model notifications for two editor writes and one model write, nine text notifications. Invalid middle property produced the Binder wrapper exception with cause IllegalArgumentException: Not found property 'missing'. First and third remained live both ways: three model and six text notifications, middle field unchanged. Fixing metadata and retrying restored all three with counts 3/9, no duplicate observable changes on this route. This does not count internal listener registrations or cover validator retry.
+
+**SOURCE-PROVEN:** Binder continues after per-control exceptions, binds non-control components and then throws. AbstractBaseController.internalInit exits before subsequent configuration; SDI and embedded initialization handlers call close() on failure. **UNKNOWN:** corporate form reuse after error, custom caller cleanup, validation/LOV retry duplication; retention beyond the caller lifetime is a hypothesis.
+
+Fail-fast metadata prevalidation adds another pass and covers only detectable setup errors; best-effort with documented partial state preserves existing propagation; transactional rollback requires recording every attachment and reversals across validation, adapters and LOV, with higher complexity and memory cost. No contract evidence justifies changing behaviour. No tracked changes.
