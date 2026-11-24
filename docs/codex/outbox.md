@@ -2513,3 +2513,13 @@ Windows Java 25.0.1 / JavaFX 25 PASS for FormCancel, FormLifecycle (GUI-010), Da
 **SOURCE-PROVEN:** Binder continues after per-control exceptions, binds non-control components and then throws. AbstractBaseController.internalInit exits before subsequent configuration; SDI and embedded initialization handlers call close() on failure. **UNKNOWN:** corporate form reuse after error, custom caller cleanup, validation/LOV retry duplication; retention beyond the caller lifetime is a hypothesis.
 
 Fail-fast metadata prevalidation adds another pass and covers only detectable setup errors; best-effort with documented partial state preserves existing propagation; transactional rollback requires recording every attachment and reversals across validation, adapters and LOV, with higher complexity and memory cost. No contract evidence justifies changing behaviour. No tracked changes.
+
+---
+
+## Reply CTRL-024
+
+**DONE.** Implementation HEAD and GitHub match at `7282d378cf144d15bfb61b0cf944def96cbb577b`; clean worktree. Production diff is one guard in SceneKeyManager.getActionRecursive before reading CONTROL_PARENT. Added SceneKeyLookupSmoke.java and -SceneKeyLookup.
+
+RED exit 1 on original implementation after successful action assertions: stock focused button and inner VBox changed from no properties map to allocated empty maps during F7 lookup. hasProperties remained false/false because those maps were empty; direct read of the private backing field in the test distinguishes absence from emptiness without initializing it. GREEN exit 0 in three fresh processes: both maps remained absent, metadata map identity preserved. Identical actions before/after: [nearest, logical, global, release, handler, handler]; target events [F7 release, F8 press, F7 press, F7 press]. The nearest filter consumed before reaching the target, logical override won over the physical parent, and disabled/security-blocked filter candidates left dispatch to the handler. No duplicate calls.
+
+Maven compile, PowerShell parser, staged diff check, GUI-009, GUI-010, RadioReadOnly and ControlsFollowup passed. Rerun: `src/test/probes/Test-LegacyGuiSmoke.ps1 -SceneKeyLookup -SettingsFile "D:\Java\.m2\settings.xml"`.
