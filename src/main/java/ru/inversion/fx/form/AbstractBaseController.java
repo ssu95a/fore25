@@ -626,8 +626,8 @@ public class AbstractBaseController<T> implements Initializable, IFormStateListe
             }
             catch (Throwable th ) {
 
-                if( controller != null && controller.getClass().isAnnotationPresent( SingletonInstance.class ) ) {
-                    g_controllerInstanceMap.remove( controller.getClass() );
+                if (controller != null) {
+                    unregisterSingleton(controller);
                 }
 
                 if( Platform.isFxApplicationThread() ) {
@@ -1861,10 +1861,16 @@ public class AbstractBaseController<T> implements Initializable, IFormStateListe
                             internalActionsOnClose();
                         } catch (Throwable ex) {
                             JInvErrorService.handleException(getViewContext().getStageOrPrimaryStage(), ex);
+                        } finally {
+                            unregisterSingleton(this);
                         }
                 } );
             } else {
-                internalActionsOnClose();
+                try {
+                    internalActionsOnClose();
+                } finally {
+                    unregisterSingleton(this);
+                }
                 // Когда закрываем MDI надо очистить панель окон и
                 // разблокировать родительские окна
                 if (getViewContext() != null && getViewContext().getWindow() != null) {
@@ -1873,14 +1879,24 @@ public class AbstractBaseController<T> implements Initializable, IFormStateListe
             }
 
         } catch (Throwable ex) {
-            lifeCycleStateProperty().set(LifeCycleStateEnum.RUNTIME);
-            JInvErrorService.handleException(getViewContext().getStageOrPrimaryStage(), ex);
-            onCloseResources();
-        } finally {
-            if (this.getClass().isAnnotationPresent(SingletonInstance.class)) {
-                g_controllerInstanceMap.remove(this.getClass());
+            try {
+                lifeCycleStateProperty().set(LifeCycleStateEnum.RUNTIME);
+                JInvErrorService.handleException(getViewContext().getStageOrPrimaryStage(), ex);
+                onCloseResources();
+            } finally {
+                unregisterSingleton(this);
             }
+        }
+    }
 
+    private static void unregisterSingleton(AbstractBaseController<?> controller) {
+        Class<?> type = controller.getClass();
+        if (type.isAnnotationPresent(SingletonInstance.class)) {
+            synchronized (g_controllerInstanceMap) {
+                if (g_controllerInstanceMap.get(type) == controller) {
+                    g_controllerInstanceMap.remove(type);
+                }
+            }
         }
     }
 
