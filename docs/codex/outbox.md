@@ -2808,3 +2808,15 @@ Three follow-ups for architect decision:
 3. Resolve CTRL-034 binding ownership before enabling same-mode field reattachment; preserve bindings supplied by callers. Direct writable lovProperty lifecycle remains a separate open contract.
 
 Three commits published fast-forward, exact implementation SHA verified. main, JInvCommon, CTRL-014, CTRL-034 and CAL-TIME-001 stayed outside the change set. No successor task assigned.
+
+---
+
+## Reply CTRL-048
+
+**DONE / READ-ONLY.** Verified clean production HEAD `4de3d8a680bb2820be733d89c8cee0dfe3c1e80f`. Ignored probe target/ctrl048/SkinDisposalAudit.java, Windows Java 25 / JavaFX 25, actual shown Stage and focus, real control and skin subclasses observing public behavior. One exploratory run and three fresh JVMs all reproduced the same counts.
+
+**CONFIRMED runtime:** On the original skin, text/width/font/external-button change invoked overflow calculation once each. After public setSkin(null) and replacement, former dispose ran once and getSkinnable returned null, yet text/width/external changes invoked calculation twice, and old overflow visibility and focus pseudo-class still changed. The managed font callback stayed at one. No-LOV control also showed two text callbacks after replacement, despite no LOV button. Old wrapper retained its inner button, bound handler/tooltip and tracked the old button's text; new wrapper started empty with provider intact. External and internal actions each wrote once before replacement; post-replacement synthetic F9 and ordinary provider change each wrote once, and same-turn unbind wrote zero. No duplicate model/LOV action through normal routes in this fixture. No physical input or DB used.
+
+**SOURCE-PROVEN:** Direct externalButton/text/width listeners capture the old skin through checkOverflow; focus listener accesses its wrapper. dispose clears owned context menu and calls super.dispose but does not remove these listeners. Strong path is live field property → listener → former skin → old wrapper and button. Wrapper visibility listener also requests field layout. Font uses registerChangeListener; observed teardown differentiates it from the direct registrations. No runtime GC claim. Production lookup found the constructor installing the default skin, but no routine in-repo JInvTextField skin-replacement path. Public JavaFX API replacement is reproducible.
+
+**HYPOTHESIS / UNKNOWN:** repeated replacements can accumulate obsolete UI work/objects; prevalence, retained byte count and corporate business impact unknown. Old handler retention by itself does not establish user access to the detached button. Narrow next task: test and detach skin-owned listeners and wrapper bindings at dispose, keeping handles on the skin only, verifying direct counts 2→1, old pseudo-class frozen, current skin live and model counts unchanged. Preserve button precedence, CTRL-034 and writable LOV contract.
