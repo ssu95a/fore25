@@ -2577,3 +2577,15 @@ Recommend keeping two exclusive modes unless a caller establishes a combined-mod
 SOURCE-PROVEN: internalShow registers by class before controller initialization and brings an existing Stage forward. internalOnClose finally removes by class on normal close, consumed Cancel/WAIT, validation/onOK rejection and exceptions alike. closeNow bypasses veto; SDI finalization happens on WINDOW_HIDDEN, whereas the no-Stage branch finalizes inline and launcher MDI creation is commented out. Launcher catch also removes on initialization failure. With duplicates, removing by class can remove another controller's registration (source implication; untested). Corporate DB, WAIT/kill-session, exception and MDI runtime remain UNKNOWN.
 
 Recommend a separate fix that preserves registration on consumed veto, removes only the matching owner on accepted close, and covers init/close errors explicitly so failed launches cannot strand a registry entry. Preserve distinct SDI and no-Stage finalization paths. No tracked changes.
+
+---
+
+## Reply CTRL-030
+
+**DONE / READ-ONLY.** HEAD unchanged at `2390e7cdac4a463b1be24082b6502df0e54a4aa7`. Temporary Windows JavaFX 25 Stage with real JInvTextField, counting validators, observing ValidMan subclass and a minimal view preference service.
+
+CONFIRMED: single registration validates once on blur. Two registrations of the same instance validate twice within one focus dispatch. Disabling registration through unbind removes both copies; focus dispatch still comes from the first manager. A second manager can explicitly validate but receives zero automatic focus dispatches, even after the first manager's validator is unbound. Six controlled text edits yielded six model notifications. Unbound no-LOV control retained its metadata contents and no dirty marking. LOV reattach left one LovValidator; former provider gave zero writes, current provider validated on blur and validateOnOk did not mutate.
+
+CONFIRMED independent defect: when a validator instance was registered on two controls, unbinding it from one removed it from both. Source: getValidators backing removal uses only validator equality, while registration keys by control and validator. Recommend one focused task to constrain removal to the requested control and preserve duplicate-add semantics.
+
+SOURCE-PROVEN: first focus/change listeners capture the manager and the node Boolean marker prevents any later manager installing replacements; list unbind does not remove the listener. Controller initialization is the usual manager owner; the scene's ButtonValidationListener also captures it. Corporate reuse/retention, DB and click replay remain UNKNOWN. No tracked changes.
