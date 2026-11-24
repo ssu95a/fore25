@@ -2630,3 +2630,11 @@ ValidMan.getValidators now scopes removal by control and validator. No instance 
 **BLOCKED (local API ownership).** Verified clean HEAD `562b9a917a6c708dd6f18cb10112a6aca3d7653f`; no production/test commit. JavaFX 25 real Stage field-only accept, cancel and standalone positives passed. RED exit 1: same and distinct reattach each threw bound-disable exception. On distinct call action pair held former field while inherited metadata held the new field, both Boolean properties still bound. RED probe and log preserved under ignored target/ctrl-mission.
 
 A blanket unbind before super would also remove binding owned by an external caller. In production JInvTextField.setLOV itself replaces the button's disable binding with a readOnly-aware binding. JavaFX BooleanProperty exposes bound status but no public source identity; a marker in the button cannot detect a subsequent external rebind. Superclass writes metadata and may assign disable directly. Need explicit ownership/transfer policy or permission to make superclass attachment binding-safe before changing behaviour; mixed provider mode remains out of scope. Independent singleton, validator and read-only tasks can continue under protocol.
+
+---
+
+## Reply CTRL-035
+
+**DONE / TEST-ONLY.** Verified HEAD `aba018ab2e14bab5c774668d3ab9b74d32ae7fa1`. Extended the CTRL-032 fixture and added -SingletonLifecycleMatrix. Real SDI launcher: veto and rejected onOK preserve one visible owner, no callback or cleanup. Accepted Cancel and closeNow each close the owner and permit reopening. Controlled init exception returned through the same failed controller with one callback and one cleanup, then a clean instance reopened. Five closures each had matching ownership and cleanup.
+
+SingletonLifecycleMatrix, SingletonCloseVeto, FormCancel, FormLifecycle, Maven compile, PowerShell syntax and staged diff check passed. Corporate MDI/WAIT/DB and launcher-level exception before Stage show remain UNKNOWN. No production edit.
