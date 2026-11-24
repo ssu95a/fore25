@@ -2609,3 +2609,99 @@ Git/GitHub operations APPROVED ONLY for a verified test-only fix: fast-forward c
 ### Queue and safety invariants
 
 Execute CTRL-019 → CTRL-020 → CTRL-021 SEQUENTIALLY with separate outbox replies. Stop the queue on any BLOCKED (including policy ambiguity, failing positive control, unexpected branch advance, or regression). Do not implement CTRL-014 null-clearing, rework accepted readOnly limitations, or pull deferred CAL-TIME-001 seconds into these tasks. Existing CTRL-017/018 DONE reports are not independent user acceptance; preserve their tested invariants and surface any new failures.
+
+---
+
+## MESSAGE CTRL-022
+
+**Status:** ASSIGNED — focused form Cancel/close/veto lifecycle regression, TEST-ONLY
+**Priority:** HIGH — form return status and single cleanup/callback correctness
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness; baseline remote HEAD `ce32f72ccc4a03ccc09f959da9b9d2e77d00f993`
+**Reply ID:** CTRL-022
+
+### Grounding and narrow scope
+
+Existing tracked `src/test/probes/gui/LegacyFormLifecycleSmoke.java` (GUI-010) proves the positive OK route with real production FXML/controller, stage, `ON_OK → ON_CLOSE`, one RET_OK callback and resource-progress cleanup. Production `AbstractBaseController.configStandartButtons()` wires btCancel to `internalCancel`, while `internalOnClose` calls onCancel for RET_CANCEL, may consume close requests if onCancel refuses/WAIT state, and eventually calls `internalActionsOnClose` on WINDOW_HIDDEN. `closeNow()` intentionally bypasses onOK/onCancel and should not be conflated with normal cancel. A singleton-map removal exists in `internalOnClose` finally even on cancelled close; this is source observation, not a proven runtime bug. Do not change production by speculation.
+
+### Test-only execution
+
+1. Verify branch, exact HEAD and clean worktree. Reuse real `JInvTextAreaForm.fxml` / `JInvTextAreaFormController`, ViewContext and production standard buttons with JavaFX25 Stage in a tracked *new* `LegacyFormCancelSmoke` probe; do not modify the accepted GUI-010 positive test.
+2. Positive Cancel: show and initialize form in no-DB VM_NONE or equivalent supported mode; fire btCancel, assert exactly one `WINDOW_CLOSE_REQUEST`, `WINDOW_HIDDEN`, RET_CANCEL callback, lifecycle `ON_CANCEL`/`ON_CLOSE` in the real order, no lingering Stage/progress windows, no duplicate callback. Test window X separately. Do not infer lifecycle states from code alone; observe them.
+3. Explicit veto: use a controlled test controller overriding onCancel to return false (only if achievable without rewriting production/FXML), assert close request is consumed, Stage remains open and no `onCloseResources`/return callback fires; subsequent accepted cancel closes once. Test `closeNow(RET_CANCEL)` separately only if its intended bypass can be verified safely. If singleton registry is accessible by normal form launcher, verify no premature removal on veto; otherwise mark UNKNOWN.
+4. Establish valid positive controls and end-to-end FX pulsing; no unconditional sleeps, no reflection into private JavaFX internals. If a scenario requires BaseApp, DB session or unsupported MDI environment, mark UNKNOWN, do not fabricate PASS. Record exact callback and event counts.
+5. ONLY tracked test changes: new `src/test/probes/gui/LegacyFormCancelSmoke.java` and `-FormCancel` runner mode in `src/test/probes/Test-LegacyGuiSmoke.ps1`. Production read-only. If test reveals actual lifecycle bug, STOP and report BLOCKED with reproducible RED, not a broad controller rewrite.
+6. Run Maven `-Pbuild compile`, PowerShell syntax, `git diff --check`, new probe and existing GUI-010 `-FormLifecycle`, GUI-009 `-DataBinding`, plus relevant controls regressions. If test-only GREEN, commit/push to implementation branch by fast-forward, verify remote SHA. Publish `## Reply CTRL-022` in mailbox with exact test diff/SHA, event matrix, UNKNOWN and Windows rerun command. If no useful test feasible, report NO_CHANGE with reason; no commit.
+
+---
+
+## MESSAGE CTRL-023
+
+**Status:** ASSIGNED / DEPENDENT — READ-ONLY Binder.bind partial-attachment consistency audit; start ONLY after CTRL-022 DONE or NO_CHANGE report and verified SHA
+**Priority:** HIGH — avoid partially attached control/model listeners after binding failure
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (READ ONLY)
+**Expected base:** final verified branch SHA from CTRL-022, not fixed to initial baseline
+**Reply ID:** CTRL-023
+
+### Source-confirmed risk
+
+`src/main/java/ru/inversion/fx/form/Binder.java` public `bind(IFXEntity,List<Node>,AbstractBaseController)` iterates controls, catches individual exceptions into `listException`, continues binding other controls, calls `bindNonControlComponent`, and then throws an exception if any failed. Already-successful bidirectional/listener bindings may remain installed after the exception. Correctness/rollback contract UNKNOWN: do NOT assume partial binding is always a bug. Binder has different strategies for TextInputControl, JInvValueField, CheckBox, DatePicker, ComboBox, ChoiceBox, and non-control radio groups.
+
+### READ-ONLY investigation
+
+1. Verify successful CTRL-022 handoff, clean worktree and current exact production SHA. Trace Binder.bind control order, listener ownership, lifecycle cleanup and caller behavior after exceptions; identify which bindings are reversible and which are deliberately lazy. Review actual FXEntity and controller integration. Do not propose a naive transaction over JavaFX property bindings.
+2. In ignored `target/ctrl023` local diagnostics, build minimal annotated FXEntity, real TextField/CheckBox (or another well-grounded pair), one valid field binding followed by an invalid binding that actually throws, plus a third valid control. Capture whether Binder attaches first/third, exact exception, control↔model propagation and listeners after thrown bind. Establish all-valid positive controls first. Prefer no BaseApp/DB, no native GUI input required.
+3. If possible, exercise re-running Binder.bind on same controls after fixing bad field metadata; determine whether duplicate listeners or bidirectional bindings appear and whether events are emitted more than once. For each observed case record text/model notification counts and data integrity. Confirm whether the form caller aborts/reuses partially bound controls.
+4. Report CONFIRMED runtime, SOURCE-PROVEN, HYPOTHESIS, UNKNOWN separately. Evaluate candidate policies (fail-fast before any binding, best-effort with explicit partial state, or rollback) and their compatibility/per-instance memory costs. Give ONE narrow next task only if root cause and safe contract are proven.
+5. READ-ONLY: no tracked tests, production, Binder/controller/FXEntity changes, no POM/dependencies, main/JInvCommon read-only. Only ignored target diagnostics and `## Reply CTRL-023` appended in mailbox. Report DONE/NO_CHANGE with evidence even if it reveals an open risk; STOP the queue only if tests unexpectedly prove a regression that makes continuing unsafe or if prerequisites fail. No production commit.
+
+---
+
+## MESSAGE CTRL-024
+
+**Status:** ASSIGNED / DEPENDENT — focused SceneKeyManager navigation lookup allocation RED/GREEN, start after CTRL-023 DONE/NO_CHANGE; never concurrent
+**Priority:** MEDIUM/HIGH — avoid retained Node.properties allocations during hotkey dispatch while preserving action precedence
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness
+**Expected base:** verified SHA after CTRL-023 (unchanged if READ-ONLY),
+**Reply ID:** CTRL-024
+
+### Confirmed source and contract
+
+`src/main/java/ru/inversion/fx/form/action/SceneKeyManager.java` `getActionRecursive` calls `node.getProperties().getOrDefault(Controls.CONTROL_PARENT, null)` for each visited node when no matching action. JavaFX25 `Node.getProperties()` lazily creates an observable map and backing HashMap. A normal F7/F8 or other key search can therefore leave metadata allocations in controls/parents that previously had none. This is source-proven; runtime materiality/route must be RED-tested. The method must preserve `CONTROL_PARENT` overrides, ordinary nearest-parent recursion, first matching enabled action selection and exact consumption.
+
+### RED/GREEN
+
+1. Verify current HEAD and clean working tree. Create tracked `SceneKeyLookupSmoke.java` under src/test/probes/gui and `-SceneKeyLookup` runner. Use attached JavaFX 25 Stage/Scene, stock focused Control and nested Parent nodes without preexisting property maps, plus actual `SceneKeyManager.addAction` on an ancestor and a scene/global action. Establish working action positive control (exactly one invocation/key press, expected focus/target/consumed). Capture `Node.hasProperties()` for pristine visited nodes BEFORE and AFTER key dispatch; RED must prove persisted mutation during lookup without manually causing properties allocation in probe.
+2. Verify nearest-context action beats global fallback, CONTROL_PARENT logical override takes effect, nonmatching key does not execute, disabled/security-blocked action does not execute, event type KEY_PRESSED vs KEY_RELEASED, filter/handler dispatch precedence as supported. Be careful: JavaFX event filters for `KeyEvent.ANY` plus concrete types are registered; do not assume duplicate invocation without observing it. Distinguish expected map on Scene root from unused nested Nodes.
+3. If RED and positive controls are credible, implement ONLY a minimal `node.hasProperties()` guard in `getActionRecursive` to avoid `node.getProperties()` on nodes without metadata. Must still look up an existing CONTROL_PARENT and keep recursive traversal unchanged; no new per-Node fields, listeners or collections. Do not redesign action maps, manager initialization, event scheduling, or fix other unrelated issues.
+4. GREEN checks same action counts/order/consumption, zero properties-map creation from read-only lookup on pristine nodes, existing property map object identity preserved, and `CONTROL_PARENT` behavior identical. Run new probe across several fresh JavaFX25 processes, Maven `-Pbuild compile`, PowerShell syntax, diff check and relevant GUI-009/010, RadioReadOnly and ControlsFollowup regressions. If no reliable RED or change would alter semantics, STOP/BLOCKED without production commit.
+5. ONLY production edit: SceneKeyManager.java method getActionRecursive. Tests only new focused src/test/probes/gui and runner mode. Comments newly added in Russian. No modifications to Controllers/Controls/Binder/ChoiceBox/Radio, JInvCommon, main, modules or dependencies. Commit verified minimum, fast-forward push and verify SHA. Publish `## Reply CTRL-024` with before/after property maps and action counts, exact diff/SHA, Windows rerun command `-SceneKeyLookup -SettingsFile "D:\Java\.m2\settings.xml"`.
+
+---
+
+## MESSAGE CTRL-025
+
+**Status:** ASSIGNED / DEPENDENT — bounded READ-ONLY LOV choice/cancel/value-notification audit; start only after successful CTRL-024 DONE/NO_CHANGE and verified production HEAD
+**Priority:** HIGH — business field integrity on LOV accepted/cancelled selection
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (READ ONLY)
+**Expected base:** final verified SHA from CTRL-024
+**Reply ID:** CTRL-025
+
+### Existing source path / no implied new LOV architecture
+
+Legacy `JInvTextField.setLOV` listens to AbstractLovBase.valueProperty and calls `setTextValueFromLov`, which can replace or append to editor text; `showLOV` delegates to ILov.showChoiceList and its callback intentionally avoids repeating setText because of historical double notifications. `JInvLOVButton` delegates to the field and on accepted choice may forward keyboard navigation. `JInvEntityLov.showChoiceList` launches a modal ViewEntityLovController and its choiceResult calls `setEntityValue` on RET_OK and invokes callback. This is auditing current legacy behavior, NOT implementing declarative XML lxml LOV from scratch.
+
+### Bounded READ-ONLY audit
+
+1. Verify CTRL-024 status and current HEAD; no overlapping work. Trace actual `JInvTextField.setLOV`, `addLovValueListener`, `showLOV`, `setTextValueFromLov`, `AbstractLovBase.checkValue`, `JInvLOVButton` action, `JInvEntityLov.choiceResult`, `LovValidator` and `ButtonValidationListener`. Source trace event and callback ordering for selected result vs cancel and for repeated invocation.
+2. Use ignored `target/ctrl025` temporary JavaFX25 fixture with real JInvTextField, bound SimpleStringProperty model, a minimal test AbstractLovBase/ILov subclass returning chosen value via contract and callback, and actual attached Stage if needed. Establish positive controls (programmatic initial LOV attachment and accepted single selection) and record exact text, model, LOV value, validation and callback notifications. Test CANCEL (no new value or model change), ACCEPT (one change), repeated equal value (zero redundant notification), replacement vs appendFromLOV and selected-text replacement where feasible.
+3. Test replacing LOV instance on same field, old vs new LOV value changes, and repeated show/cancel, to identify potential stale listeners or unexpectedly retained references. Verify whether a double write is actual event count or just two same-value attempts. Do not claim memory leak without a grounded strong-reference path. If actual modal ViewEntityLovController needs BaseApp/DB and is unavailable, mark real dialog integration UNKNOWN instead of substituting fake result for full E2E.
+4. Give a concise classification of CONFIRMED runtime, SOURCE-PROVEN, HYPOTHESIS, UNKNOWN. Recommend ONE smallest correctness fix if required, otherwise NO_CHANGE. Do not change selection/validation/append semantics without separate approval.
+5. READ-ONLY: no production or tracked test changes, no XML parser prototype, no changes to `JInvEntityLov`, `JInvTextField`, `LovValidator`, `ButtonValidationListener`, main/JInvCommon, POM/dependencies. Only ignored target probes and `## Reply CTRL-025` mailbox publication; no implementation branch push. Stop after CTRL-025. No CTRL-026 self-assignment.
+
+### Queue discipline for all four
+
+Execute CTRL-022 → CTRL-023 → CTRL-024 → CTRL-025 sequentially. A task may finish DONE (including test-only change), DONE/NO_CHANGE (READ-ONLY analysis), or BLOCKED. On BLOCKED stop the ENTIRE remaining queue and report. Before every task verify the prior Reply and current remote production SHA. Never assume a future commit SHA. Every task has a separate outbox Reply with exact evidence and a concise architect-facing summary. Do not touch blocked CTRL-014 generic ChoiceBox null clearing or deferred CAL-TIME-001. Remote writing requires ordinary fast-forward push only. No force-push, no main/JInvCommon writes. Independent Windows acceptance is not implied by agent PASS.
