@@ -2644,3 +2644,11 @@ SingletonLifecycleMatrix, SingletonCloseVeto, FormCancel, FormLifecycle, Maven c
 ## Reply CTRL-036
 
 **DONE / TEST-ONLY.** Verified HEAD `dce04163498221af2f86c8eaec84d77d3974dfc6`. New ValidatorMultiControlSmoke and runner only. Real focused JavaFX Stage: six blur dispatches and six model notifications for six edits; shared/distinct validator calls 4/2 across the sequence. Both unbind directions preserve the opposite field's registrations; duplicate same-control adds still validate twice. Reattached LOV produced one validator, old/detached changes did not write the model, validateOnOk was read-only. ValidatorMultiControl, ValidatorScopedUnbind, LovIntegration, Maven compile, PowerShell parse and staged diff check PASS.
+
+---
+
+## Reply CTRL-037
+
+**DONE / READ-ONLY.** HEAD unchanged at `dce04163498221af2f86c8eaec84d77d3974dfc6`. Real JInvTextField reparented across two Scenes with different controller metadata; getController resolved the new controller. M1 validated before and after move. After explicit M1 unbind, automatic blur still dispatched through M1 with no validator; M2 ran only on explicit validation. M1/M2 dispatch 3/1, all three edits produced one model notification apiece, node marker true.
+
+Source: node focus/change callbacks capture M1 and the Boolean marker suppresses M2 setup. This gives a strong path from live control to M1/controller until callbacks are removed. Normal FXFormLauncher loads a fresh FXML root and installs its owner; no supported cross-controller reuse path established in this checkout, so corporate impact and retention duration are UNKNOWN. If reuse is adopted, give manager registration explicit detach/transfer semantics with lazily stored listener handles only for validated controls; avoid eager state or changing duplicate validator semantics.
