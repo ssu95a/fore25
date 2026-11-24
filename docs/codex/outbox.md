@@ -2724,3 +2724,15 @@ Three priorities for architect decision:
 3. Specify writable lovProperty lifecycle and failure atomicity for externally bound properties before changing public behaviour. Keep lazy allocation.
 
 No mission changes to main, JInvCommon, CTRL-014 or CAL-TIME-001. No successor task assigned.
+
+---
+
+## Reply CTRL-042
+
+**DONE / TEST-ONLY.** Verified fast-forward implementation HEAD `f4f2903181be6b4c2ff0dd19d002a87fe6a99afb` on Windows Java 25.0.1 / JavaFX 25. Only SingletonCloseVetoSmoke.java changed.
+
+Unmodified baseline: SingletonCloseVeto 5/5 passed locally; SingletonLifecycleMatrix failed on run 3 (runs 1–2 passed) with the same owner-2 assertion inside ProgressBinder.showStageProcess / Stage.showAndWait seen by the independent user. An ignored diagnostic copy held the cleanup worker until the original queued check ran. At that check: owner showing=false, callbacks=2, result owner matched, RET_CANCEL, exception=null, lifecycle=ON_CLOSE, cleaned=0, owned progress showing=true, nested loop=true. After releasing the worker and observing WINDOW_HIDDEN: callbacks=2, cleaned=1, progress showing=false, nested loop=false, successful singleton reopen. In the init-failure diagnostic the same window yielded callbacks=4, cleaned=0 before hidden and callbacks=4, cleaned=1 after loop unwind, then reopen. Synchronous accepted Cancel checks run after event dispatch returns; those checks were retained.
+
+The test now listens for WINDOW_HIDDEN on the resource-progress Stage owned by the exact form, then verifies on the FX thread after nested loop exit. All original cleanup, callback, identity, return and reopen assertions retained. GREEN: 10/10 fresh JVMs per mode plus one official runner pass per mode. FormCancel, FormLifecycle, ValidatorScopedUnbind, DataBinding, Maven compile, PowerShell parse and staged diff check all passed. Independent user acceptance of CTRL-032/035/042 remains pending.
+
+Windows rerun: `src/test/probes/Test-LegacyGuiSmoke.ps1 -SingletonCloseVeto -SettingsFile "D:\Java\.m2\settings.xml"` and the same command with `-SingletonLifecycleMatrix`.
