@@ -210,7 +210,12 @@ public abstract class AbstractLovBase<T> implements ILov<T> {
 
     /** */
     protected BiPredicate<T, Boolean> createDefaultCheck( ) {
-        return (T t, Boolean u) -> { setValue(t); return true; };
+        return (candidate, doSetValue) -> {
+            if (Boolean.TRUE.equals(doSetValue)) {
+                setValue(candidate);
+            }
+            return true;
+        };
     }
 
     /** */

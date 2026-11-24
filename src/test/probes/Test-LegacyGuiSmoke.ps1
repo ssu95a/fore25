@@ -18,6 +18,8 @@ param(
     [switch] $SceneKeyLookup,
     [Parameter(ParameterSetName = 'LovListenerLifecycle')]
     [switch] $LovListenerLifecycle,
+    [Parameter(ParameterSetName = 'LovDefaultValidation')]
+    [switch] $LovDefaultValidation,
     [Parameter(ParameterSetName = 'TextFields')]
     [switch] $TextFields,
     [Parameter(ParameterSetName = 'ValueFields')]
@@ -87,6 +89,9 @@ if ($Editors) {
 } elseif ($LovListenerLifecycle) {
     $probeId = 'CTRL-026'
     $probeClass = 'LovListenerLifecycleSmoke'
+} elseif ($LovDefaultValidation) {
+    $probeId = 'CTRL-027'
+    $probeClass = 'LovDefaultValidationSmoke'
 } elseif ($TextFields) {
     $probeId = 'GUI-012'
     $probeClass = 'LegacyTextFieldsSmoke'
