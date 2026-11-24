@@ -2472,3 +2472,17 @@ Bound JInvChoiceBox can pass the info-control filter, but createFilterItemFromCo
 | Full stock F7 dialog switch | Runtime UNKNOWN. F7FilterTextField initialization requires BaseApp view preferences, absent in the standalone JavaFX fixture. No artificial listener was installed. |
 
 Windows Java 25.0.1 / JavaFX 25, direct API probes on FX thread, ignored target/ctrl020. No production/test changes. No full-app notification counts or DB/filter query execution measured. StringConverter.toString(T) is display text, TypeConverter.convertToString(T) is the existing generic ComboBox extraction, and projected R is its business key. No active F7 transfer establishes any of those as the right ChoiceBox representation. Recommend no change.
+
+---
+
+## Reply CTRL-021
+
+**Status:** DONE (test-only). **Base:** `a4edd28f2d68e461c676e01a5a72880d8929cd54`. Final branch HEAD `ce32f72ccc4a03ccc09f959da9b9d2e77d00f993`. [Exact test-only diff](https://github.com/ssu95a/fore25/commit/ce32f72ccc4a03ccc09f959da9b9d2e77d00f993)
+
+Windows Java 25.0.1 / JavaFX 25, targeted key dispatch, no Robot. Official baseline fresh processes #1–5 exited 0; #6 exited 1 at mixed group unlocked arrow, with the locked checks passing. The ten timing-instrumented natural runs exited 0; several nevertheless recorded a missing stock skin at the first locked gesture, followed by installation before the positive check. Logging may have affected timing.
+
+In an ignored diagnostic, executing the existing mixed-group sequence in one FX turn reproduced the exact unlocked assertion failure with stock skin=null. Window active, stock focus owner, both toggles enabled, both unlocked at the positive, selection stayed stock. The paired run changed only CSS initialization, installed RadioButtonSkin, and the same Right selected Legacy; both prior locked checks still retained stock. JavaFX bytecode shows RadioButtonSkin creates ToggleButtonBehavior, whose Right mapping calls ToggleGroup.selectToggle. Production's group filter still intercepts locked traversal, but a missing stock skin otherwise makes a locked negative vacuous. The deterministic boundary probe reproduced the same before/after result.
+
+The tracked fix applies CSS immediately after attaching the mixed-group nodes and asserts both skins are installed before the gestures. It preserves targets, key events and every assertion, adds no sleeps and changes only RadioReadOnlySmoke.java. Production source unchanged. All ten fresh official fixed runs exited 0. DataBinding, ChoiceNonNullSet and ControlsFollowup also passed through their official modes. Maven compile and git diff --check passed. Physical input was not tested.
+
+Windows recheck: `-RadioReadOnly -SettingsFile "D:\Java\.m2\settings.xml"` on Test-LegacyGuiSmoke.ps1. Diagnostic sources and per-run logs remain ignored under target/ctrl021. Worktree clean after publication.
