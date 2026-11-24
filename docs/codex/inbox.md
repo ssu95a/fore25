@@ -3216,3 +3216,131 @@ FORE25-TRIAGE priority 1 reproduced former provider overwriting draft with curre
 
 ### Boundaries
 Only ssu95a/fore25, production migration/java25-correctness, mailbox agent/codex-mailbox. main and JInvCommon read-only. No destructive commands, force push, dependencies/public API changes, CTRL-014/034/CAL-TIME-001, skin disposal, generic LOV redesign or unrelated cleanup. Russian Java comments. Timebox 60 minutes.
+
+---
+
+## MISSION CTRL-051…CTRL-060 — architect-authorized 8-hour sequential queue
+
+**Status:** QUEUED / conditional activation after CTRL-050 DONE (or explicit architect release if CTRL-050 BLOCKED/PARTIAL).
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Mailbox:** agent/codex-mailbox
+**Budget:** 480 minutes total, additional to CTRL-050. Ten ordered tasks, no parallel work.
+**Baseline:** actual verified clean remote production HEAD after CTRL-050; 582a7899172c3beef845dbb2393bfc3e5d02e75f is the architect's pre-050 observation, not permission to reset. Record exact baseline for every task.
+
+### Execution contract (applies to every task)
+This is an explicit architect assignment of all ten tasks, not self-assignment. CTRL-050 must complete and publish its own reply first; if running the previous standalone session, honor its STOP and start this mission in the next session. User Windows acceptance is separate; no need to wait for it after agent GREEN. Verify remote refs and clean checkout; fetch current mailbox before every reply and production HEAD before every task. Sequential only. No production writes on unexpected remote advancement, dirty tree, scope conflict or regression. Fast-forward only; no force push/destructive commands. Main and JInvCommon read-only. No CTRL-014, CTRL-034, CAL-TIME-001, dependency or public API changes. New Java comments in Russian.
+
+For FIX/AUDIT→FIX: read actual source at task baseline, recover ignored triage probes if available, add one tracked focused smoke test and runner mode where justified. Deterministic RED before production edit and GREEN on same assertions, positive controls, actual callback/model counts and exceptions, official focused mode plus 3 fresh JVMs where feasible within timebox, relevant existing regressions, Maven compile, PowerShell parse, diff check. No arbitrary sleeps or JavaFX internal reflection. Do not weaken assertions. One isolated validated commit per completed fix, fast-forward publish and verify remote SHA. If unable to finish safely, no incomplete push; report PARTIAL/BLOCKED with exact obstacle. Keep test changes isolated. No new eager per-control helper/collection/listener allocations; account for instance footprint. Only named production class allowed per task. AUDIT and VERIFY are read-only in production; temporary ignored probes allowed, evidence in outbox. No production fix for unknown semantic contract. Report exact baseline/final SHA, commands/exits, RED/GREEN evidence, scope, unknowns and Windows rerun with -SettingsFile "D:\Java\.m2\settings.xml". Publish exactly one Reply CTRL-0XX per task. No claims of user acceptance.
+
+If a task is independently BLOCKED by an unresolved contract, report and continue to next independent task after restoring/verifying clean baseline without destructive operations. If tree cannot be made clean safely, remote conflict, failed shared regression, or infrastructure prevents reliable validation, stop mission and report remaining NOT_RUN. Do not let timeboxes expand or use freed time for unscheduled work; total maximum 480 min, reserve CTRL-060 budget where possible. No new tasks after CTRL-060. 
+
+---
+
+## MESSAGE CTRL-051
+
+**Status:** QUEUED / architect assigned sequentially
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-051
+**Task:** FIX — DSFXAdapter.close / refreshCurrentRow
+
+FORE25-TRIAGE priority 2: reproduced KEY_RELEASED after close on still shown table reaching obsolete handler and NPE. Recover ignored probe if available. RED on actual shown table and adapter: demonstrate legitimate pre-close key behavior, close, late key event, late dataset events, repeated close. Count owned handler executions and refreshes, capture FX uncaught exceptions. Fix only DSFXAdapter: unregister exact owned keyboard handler(s) on close; keep caller-owned handlers, existing dataset unsubscribe and close semantics, do not rely on null guard alone. No same-table rebind contract changes. GREEN: obsolete handler never invoked, no NPE/refresh after close, legitimate pre-close and unrelated input preserved; run previous adapter close/late-event probes and new focused mode. If required handler ownership is unclear, STOP this task BLOCKED.
+
+---
+
+## MESSAGE CTRL-052
+
+**Status:** QUEUED / architect assigned sequentially
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-052
+**Task:** FIX — ValidMan multi-subchange removals
+
+FORE25-TRIAGE priority 3 reproduced removeAll(v1,v3) leaving v3 active though list contains only v2. RED real control and three distinguishable validators; assert list, exact validation calls and automatic blur if applicable; disjoint removals in one change, contiguous removal, additions/replacement, clear, duplicate instances and shared Validator across controls. Fix only ValidMan list-change processing (all change.next subchanges, preserve relevant event ordering), no redesign. GREEN list and actual registrations agree; CTRL-033 per-control unbind and established duplicate semantics preserved. If a test reveals ambiguous duplicate behavior, record baseline and do not change it.
+
+---
+
+## MESSAGE CTRL-053
+
+**Status:** QUEUED / architect assigned sequentially
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-053
+**Task:** AUDIT → FIX — JInvTextAreaSkin.dispose
+
+Current source inspected by architect at 582a7899: direct scene and editable listeners capture skin; scene listener installs EDIT_EXTERNAL action that dereferences getSkinnable. Toolbar visible/FE visible bindings also exist. Runtime defect not yet proven. After CTRL-050, test no-LOV shown control with public unset/replacement, dispose count, focus/scene reattachment/editable changes, old/new toolbar effects and keyboard routing using safe stub action; no real external editor. Include replacement before first scene and after first scene, repeated replacements, caller context menu/actions. Trace ownership of registrations/bindings. Only if deterministic RED and existing action ownership can be preserved, fix JInvTextAreaSkin alone using managed registrations or exact cleanup; no CTRL-050 LOV restoration, no changes to keyboard manager/other controls, no eager per-field objects. If shortcut ownership ambiguous, isolate proven listener cleanup only or report BLOCKED/AUDIT. GREEN normal toolbar and external-editor action path, old callbacks stop, no duplicate current actions; run CTRL-050 and relevant TextArea/menu tests.
+
+---
+
+## MESSAGE CTRL-054
+
+**Status:** QUEUED / architect assigned sequentially
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-054
+**Task:** AUDIT → FIX — JInvTabPaneSkin listener accumulation
+
+Architect inspected current source: sideProperty listener adds another tabs-list listener each transition to LEFT, plus direct prefWidth/side listeners. Prove actual repeated processing: shown Stage, TOP→LEFT→TOP→LEFT cycles at least three, then add/remove tab; count effects with observable instrumentation, compare first LEFT and non-LEFT behavior, test initially LEFT and normal rendering/selection. No claims based only on listener count inferred from source. Fix only JInvTabPaneSkin if clear RED and contract: one lifetime-managed tab-list registration or exact attach/detach, correct all subchanges; preserve existing non-LEFT behavior unless explicitly proven defect, no new tab state or public API. If time permits demonstrate disposal; avoid unrelated skin redesign. GREEN same probe and existing tab/layout tests.
+
+---
+
+## MESSAGE CTRL-055
+
+**Status:** QUEUED / architect assigned sequentially
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-055
+**Task:** AUDIT → FIX — JInvWrapButton retired onAction ownership
+
+CTRL-046 reproduced cached action after settled detach; CTRL-043 fixed deferred bind race; CTRL-049 clears matching bound action in retired TextField skin, not generic wrapper. Inspect existing setInnerButton and CONTROL_PARENT ownership. RED only if detached/replaced wrapper can route obsolete owned action or strong ownership edge is proven and safe contract established. Exercise A→null, A→B, A→B→A same-turn/settled, caller-defined unbound action, LOV-vs-FE priority, old button CONTROL_PARENT, no firing after detach; positive current button. If safe narrow fix, only JInvWrapButton; remove owned cached action/parent edge only if identity/ownership demonstrated, preserve caller-owned action and CTRL-043 behavior; do not change JInvLOVButton or CTRL-034 reattachment contract. Otherwise READ-ONLY with exact residual question. Run WrapButtonDeferred, BoundLovSetter, LovBindingInterleaving, TextFieldSkinDisposal and CTRL-050 if available.
+
+---
+
+## MESSAGE CTRL-056
+
+**Status:** QUEUED / architect assigned sequentially
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-056
+**Task:** AUDIT — ValidMan reparenting / ownership
+
+CTRL-037 runtime: moved control still dispatches blur to former manager. Read actual registration/removal and supported caller paths. Real Stage with two managers, shared/distinct validators, move control between parents, blur before/after, remove/readd, explicit unbind if supported. Separate scene-graph reparenting from supported transfer of validation ownership. Count old/new callbacks and validation outcomes, check CTRL-033/052. READ-ONLY: no production change, report callers/evidence, contract alternatives and minimal proposed scope or NO_CHANGE.
+
+---
+
+## MESSAGE CTRL-057
+
+**Status:** QUEUED / architect assigned sequentially
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-057
+**Task:** AUDIT — Binder partial bind failure
+
+CTRL-023 runtime: exception leaves successful controls bidirectionally attached. Inspect Binder.bind callers and cleanup, exception paths and retry/reuse patterns. Real fixture with successful first binding and controlled failing later binding; observe model/control writes both directions, repeated bind/close/unbind, clean success. Distinguish intentional partial binding from leak/atomicity requirement. READ-ONLY; no transaction or generic rollback changes. Report exact failure, ownership ledger, supported caller evidence, rollback alternatives and data-loss risk. No corporate DB assumption.
+
+---
+
+## MESSAGE CTRL-058
+
+**Status:** QUEUED / architect assigned sequentially
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-058
+**Task:** AUDIT — SceneKeyManager action selection
+
+CTRL-024 plus triage: candidate picked before enabled/security checks. Inspect action registration/order and security semantics, exercise two same-key actions: first disabled or denied, second eligible; reverse registration; nested parent/child scopes; no eligible action; event consumption and actual invocation counts. Use synthetic key events on real Stage and controlled security fixture; never weaken authorization or invoke denied action. READ-ONLY: distinguish intentional key reservation/precedence from starvation, propose explicit contract options with evidence. No action-dispatch change.
+
+---
+
+## MESSAGE CTRL-059
+
+**Status:** QUEUED / architect assigned sequentially
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-059
+**Task:** AUDIT — AddLinkPane external/inner LOV precedence
+
+CTRL-046 runtime and actual AddLinkPane external-first order: both buttons visible, external/inner/F9 each one write. Inspect actual AddLinkPane construction and relevant callers, reproduce external→LOV and reverse, detach permutations, validate/readOnly and F9 routes, counts and layout. Compare CTRL-045/049/050 contracts; no changes to public LOV property, priority, CTRL-034, or production. Report real caller evidence, user-visible consequences, competing precedence options and architect decision required. No corporate form/DB claims unless actually tested.
+
+---
+
+## MESSAGE CTRL-060
+
+**Status:** QUEUED / architect assigned sequentially
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-060
+**Task:** VERIFY — cross-task regression and ownership audit
+
+Read-only on final verified production HEAD. Run official focused modes for all newly pushed fixes plus existing TextFields, ControlsFollowup, WrapButtonDeferred, BoundLovSetter, LovBindingInterleaving, LovListenerLifecycle, LovDefaultValidation, LovIntegration, FormCancel, FormLifecycle, TextFieldSkinDisposal, TextAreaLovLifecycle if available, adapter/ValidMan relevant modes, Maven -Pbuild compile, PowerShell parse and diff checks within remaining time. Report actual exit codes, skipped modes/reasons (CTRL-034 unsupported scenario excluded), failures without hiding, exact SHAs and per-file scope; no production changes. Compare added instance fields, eager allocations and registration counts per control/skin from diffs; no invented retained-byte metrics. Summarize 10 tasks with DONE/NO_CHANGE/BLOCKED/PARTIAL/NOT_RUN, unresolved contracts, next triage. Stop after mission.
