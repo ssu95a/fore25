@@ -2463,7 +2463,7 @@ Only permitted write is `## Reply CTRL-016` appended to docs/codex/outbox.md on 
 
 ## MESSAGE CTRL-017
 
-**Status:** ASSIGNED — focused Binder.bindChoiceBox null-mapping integrity RED/GREEN
+**Status:** DONE / AWAITING INDEPENDENT USER PASS — agent Reply CTRL-017 reports RED/GREEN and published production 4e7ee03b6a85fac0e09b4a2d73d7cfce36e88eca. Do not rerun this task; independent Windows acceptance UNKNOWN.
 **Priority:** CRITICAL — prevent NPE and stale FXEntity key when JInvChoiceBox value becomes null
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness (never main)
@@ -2493,7 +2493,7 @@ Normal Git/GitHub operations APPROVED: commit narrow verified diff, fast-forward
 
 ## MESSAGE CTRL-018
 
-**Status:** ASSIGNED / DEPENDENT — execute automatically AFTER successful CTRL-017 DONE report and verified remote production commit; NEVER concurrent
+**Status:** DONE / AWAITING INDEPENDENT USER PASS — agent Reply CTRL-018 reports RED/GREEN and published production 11b1641e12efaa45cb82a8ec58f530b028f5acf0. Do not rerun this task; independent Windows acceptance UNKNOWN.
 **Priority:** HIGH — null elements must not crash JInvChoiceBox.setSelectedValue scans
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness
@@ -2522,3 +2522,90 @@ Normal Git/GitHub operations APPROVED: commit separate minimal change, fast-forw
 ### Overall workflow
 
 Both tasks are approved now, to be executed SEQUENTIALLY as two distinct production commits with two independent mailbox replies, without an additional user prompt between them. If any blocker arises in CTRL-017 or CTRL-018, STOP rather than guessing null/cursor semantics. Do NOT modify `Controls.setValue(JInvChoiceBox)` or resolve CTRL-014 by assumption.
+
+---
+
+## MESSAGE CTRL-019
+
+**Status:** ASSIGNED — narrowly support NON-NULL JInvChoiceBox values in Controls.setValue; CTRL-014 null-clear remains BLOCKED
+**Priority:** HIGH — make generic programmatic value writes work while preserving legacy null failure
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (never main)
+**Expected baseline remote HEAD:** 11b1641e12efaa45cb82a8ec58f530b028f5acf0
+**Reply ID:** CTRL-019
+
+### Source-evidenced issue and hard policy
+
+`Controls.getValue(Object)` recognizes JInvChoiceBox and exposes the selected item T, but `Controls.setValue(Object,Object)` currently falls through to RuntimeException("Unsupported class control: ..."). CTRL-014 reproduced RED but STOPPED because `setValue(choice,null)` could inadvertently navigate a specialized DataSet cursor from B index 1 to literal null row index 2. CTRL-016 established further null/FXEntity distinction. Subsequent CTRL-017 and CTRL-018 now guard Binder null projection and skip literal null items during non-null lookup; NEITHER approved a generic clear policy.
+
+**APPROVED ONLY:** support `Controls.setValue(choice, NON_NULL_R)` via existing `JInvChoiceBox.setSelectedValue(R)` semantics; explicitly preserve the old `Unsupported class control` exception for `Controls.setValue(choice,null)` (both overloads), without touching selection, value, model, cursor or events. Do not interpret or silently accept null. The method `JInvChoiceBox.setSelectedValue(null)` must remain its previous NO-OP. `Controls.getValue` still returns T, not R.
+
+### RED/GREEN and production limits
+
+1. Verify mailbox state, exact baseline SHA and a clean worktree. Compile a tracked Java 25/JavaFX 25 focused probe under `src/test/probes/gui` plus `-ChoiceNonNullSet` runner mode. Establish unlocked native `setSelectedValue` positive control. RED: `Controls.setValue((Node)choice,keyR)` and `(Object)` both throw unsupported; record selected-index/item/value/model counts and unchanged model/cursor.
+2. Include both ChoiceBox constructors, A/B plain Strings, structured non-null rows T with projected R (e.g. Row::key), both null-free and `[A,null,B]` where CTRL-018 now permits scanning. Test valid R, repeats, unmatched R, a non-null item projecting a null R, initial null selection and a linked bidirectional T-valued model. Do not change how T and R map.
+3. Explicit null regression: use `[A,B]` and `[A,B,null]` plus real specialized Binder.bindChoiceBox/DSChoiceBoxAdapter and monitor cursor. `Controls.setValue(choice,null)` must fail in the same unsupported manner as baseline and must not move cursor or emit selection/model notifications. If existing code cannot safely distinguish null, STOP without committing.
+4. Implement ONLY one small conditional branch in `Controls.setValue(Object,Object)` in `src/main/java/ru/inversion/fx/form/controls/Controls.java`. It may delegate for non-null to `JInvChoiceBox.setSelectedValue`, and must retain the exact previous null exception behavior rather than selecting/clearing a literal-null row. Preserve precedence for ICustomValueControl, DatePicker, JInvComboBox, standard ComboBox etc. No new state, listeners or allocations.
+5. Test generic DSControlAdapter non-null row-to-control path, initial/update values and unchanged unsupported null, plus legacy `-BinderChoiceNull`, `-ChoiceNullLookup`, `-ChoiceAdapter` and broader accepted smoke suite. Note separately that generic DSControlAdapter null navigation remains unsupported. Maven `-Pbuild compile`, PowerShell parse, `git diff --check`; no Robot needed.
+
+### Git and report
+
+Production edit ONLY Controls.java method setValue(Object,Object). Test-only edits in src/test/probes/gui and Test-LegacyGuiSmoke.ps1. Do not change JInvChoiceBox/Binder/DSChoiceBoxAdapter, FXEntity, null policy, readOnly, main/JInvCommon, POM/dependencies or other Controls methods. Russian production comments.
+Git/GitHub commit + fast-forward push APPROVED if tests GREEN, verify remote SHA. Publish `## Reply CTRL-019` in docs/codex/outbox.md with separate RED/GREEN counts, exact SHA/diff and Windows command with `-ChoiceNonNullSet -SettingsFile "D:\Java\.m2\settings.xml"`. If BLOCKED, no production commit; stop all queued tasks and report.
+
+---
+
+## MESSAGE CTRL-020
+
+**Status:** ASSIGNED / DEPENDENT — READ-ONLY audit of F7 expression transfer / Controls.getStringValueFromEditor; start only after successful CTRL-019 DONE and exact remote SHA verification; never concurrent
+**Priority:** MEDIUM — avoid unsupported-control failures or wrong search expressions in filters
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness (READ ONLY)
+**Expected base:** final verified production HEAD from CTRL-019
+**Reply ID:** CTRL-020
+
+### Scope and evidence
+
+`Controls.getStringValueFromEditor(Node)` supports Label, JInvValueField, TextInputControl, CheckBox, DatePicker and ComboBox, but not JInvChoiceBox; a direct ChoiceBox invocation reaches `Unsupported class control`. `F7FilterDialog.ExpressionChangeListener.changed` calls this method on `baseControl` / an HBox's `baseControlInner` when switching a filter to expression mode, then forwards text using `Controls.setValue`. However, `F7FilterDialog.getComboBoxFromControl` builds its own JInvComboBox wrappers for some types. **UNKNOWN** whether a real JInvChoiceBox ever reaches this exact expression path. Do not assume an Unsupported exception is a business-form bug until a real call chain is demonstrated.
+
+### Bounded READ-ONLY investigation
+
+1. Read F7FilterDialog control-construction/iteration and ExpressionChangeListener, Controls.getStringValueFromEditor and relevant ValueConverters. Trace where JInvChoiceBox is accepted, cloned, skipped or replaced by JInvComboBox. Confirm the actually reachable control type and semantics of editor string vs selected object T vs projected key R. Search concrete application call sites and filter subclasses; distinguish SOURCE-PROVEN, CONFIRMED runtime, HYPOTHESIS, UNKNOWN.
+2. With temporary ignored-target probes (no tracked changes), establish a working positive control for F7 expression switching from a supported String/ComboBox/DatePicker case, then attempt a real JInvChoiceBox path only if constructible under stock frontend. If full F7 dialog needs unavailable BaseApp/DB/context, say runtime UNKNOWN rather than inventing a fake route.
+3. Check whether supported JInvCheckBoxString is rendered as plain Boolean in getStringValueFromEditor while the actual F7 wiring bypasses that call; determine if this is intentionally existing behavior or a genuine incorrect conversion. Do not redesign filter semantics.
+4. Evaluate one minimal *future* fix only if a reachable bug is demonstrated. Compare `StringConverter.toString(selected T)`, `TypeConverter.convertToString(T)` and valueFactory projected R; do not choose representation without an observed F7 expectation. No production edits; if the issue is unreachable, recommend NO CHANGE and close.
+5. Report a concise reproduction matrix with source paths, baseline/final SHA (unchanged), user-visible failure if any, no duplicate regression notifications, and a single recommendation for user decision if needed. Stop after `## Reply CTRL-020`, without a production commit.
+
+Hard scope: read only everywhere except appending `## Reply CTRL-020` to docs/codex/outbox.md on agent/codex-mailbox, temporary untracked probes only in ignored target. Never edit Controls, F7FilterDialog, JInvChoiceBox, Binder, build, main/JInvCommon. If CTRL-019 BLOCKED or production SHA unexpected, report WAITING and do not start.
+
+---
+
+## MESSAGE CTRL-021
+
+**Status:** ASSIGNED / DEPENDENT — identify and resolve RadioReadOnly smoke intermittency only when a TEST-ONLY cause is proven; start after CTRL-020 DONE and verified unchanged production HEAD, never concurrently
+**Priority:** HIGH — credible GUI regression signal for JavaFX25 legacy radio groups
+**Repo:** ssu95a/fore25
+**Implementation branch:** migration/java25-correctness
+**Expected base:** final CTRL-019 production SHA, unchanged by read-only CTRL-020
+**Reply ID:** CTRL-021
+
+### Evidence / limits
+
+Repeated past agent reports for CTRL-015/017/018 and ControlsFollowup described intermittent failures of `-RadioReadOnly` at the 'mixed group unlocked arrow' positive control, including initial direct batch/standalone failures followed by an official paired rerun PASS. The `RadioReadOnlySmoke` invokes targeted `Event.fireEvent` keys and optional Robot; it changes focus and group membership between cases. Root cause currently UNKNOWN: do not presume a timing issue or dismiss a real regression.
+
+### Focused investigation and conditional test-only fix
+
+1. Verify CTRL-020 published DONE and production HEAD unchanged from CTRL-019; verify clean workspace. Read real `RadioReadOnlySmoke`, `JInvRadioButton` + JInvRadioGroup, JavaFX25 RadioButton/ToggleGroup behavior and test runner. Identify who owns arrow traversal and selection for mixed Legacy/stock groups.
+2. Run the official `-RadioReadOnly -SettingsFile "D:\Java\.m2\settings.xml"` probe on Windows Java25/JavaFX25 across multiple fresh processes (bounded 10 runs, stop earlier after a credible reproduced failure). Establish whether the unlocked-arrow positive fails under targeted dispatch; record each run's exit code and selected/focused toggles, whether group readOnly and native disabled are false, and event order. Do not use Robot unless exclusive input is available.
+3. Add temporary ignored-target diagnostics for focus owner, scene/window activation, selected toggle, readOnly flags, handler installation, toggles membership, event consumption, pending Platform.runLater work, and asynchronous skin CSS if relevant. Distinguish (A) test setup/timing false failure, (B) real production race/correctness bug, (C) environment/RDP interference. Check paired original/fixed input baseline if necessary.
+4. If test-only cause is proven, make the SMALLEST test-only correction in `src/test/probes/gui/RadioReadOnlySmoke.java` and optionally its existing runner; preserve genuine unlocked positive control and all locked negative assertions. Do not reduce checks, add unconditional sleeps to hide failures, or turn an expected user gesture into direct programmatic selection to manufacture PASS. Rerun bounded fresh-process loop and relevant radio/databinding regression modes.
+5. If a production bug is implicated or root cause UNKNOWN after bounded investigation, do NOT edit production or weaken tests. Report BLOCKED / needs standalone production task with reproduction and targeted recommendations. No broad Controls or RadioButton redesign.
+
+### Git and report
+
+Production source READ ONLY: JInvRadioButton, JInvRadioGroup, Controls, JInvChoiceBox, Binder and all other production classes MUST NOT change under CTRL-021. Test-only changes allowed to RadioReadOnlySmoke.java and relevant test runner if proven necessary. No new per-instance fields or listeners in production.
+Git/GitHub operations APPROVED ONLY for a verified test-only fix: fast-forward commit/push to migration/java25-correctness, verify remote SHA. If no reproducible test-only bug, no production/test commit. Publish `## Reply CTRL-021` in docs/codex/outbox.md with per-run matrix, exact failure evidence, scope of any test-only diff, PASS/BLOCKED and final SHA. Stop: do not assign CTRL-022.
+
+### Queue and safety invariants
+
+Execute CTRL-019 → CTRL-020 → CTRL-021 SEQUENTIALLY with separate outbox replies. Stop the queue on any BLOCKED (including policy ambiguity, failing positive control, unexpected branch advance, or regression). Do not implement CTRL-014 null-clearing, rework accepted readOnly limitations, or pull deferred CAL-TIME-001 seconds into these tasks. Existing CTRL-017/018 DONE reports are not independent user acceptance; preserve their tested invariants and surface any new failures.
