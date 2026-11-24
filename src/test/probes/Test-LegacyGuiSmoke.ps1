@@ -28,6 +28,8 @@ param(
     [switch] $SingletonLifecycleMatrix,
     [Parameter(ParameterSetName = 'ValidatorScopedUnbind')]
     [switch] $ValidatorScopedUnbind,
+    [Parameter(ParameterSetName = 'ValidatorMultiControl')]
+    [switch] $ValidatorMultiControl,
     [Parameter(ParameterSetName = 'TextFields')]
     [switch] $TextFields,
     [Parameter(ParameterSetName = 'ValueFields')]
@@ -113,6 +115,9 @@ if ($Editors) {
 } elseif ($ValidatorScopedUnbind) {
     $probeId = 'CTRL-033'
     $probeClass = 'ValidatorScopedUnbindSmoke'
+} elseif ($ValidatorMultiControl) {
+    $probeId = 'CTRL-036'
+    $probeClass = 'ValidatorMultiControlSmoke'
 } elseif ($TextFields) {
     $probeId = 'GUI-012'
     $probeClass = 'LegacyTextFieldsSmoke'
