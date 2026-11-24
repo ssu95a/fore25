@@ -2547,3 +2547,11 @@ One scoped follow-up: manage a lazily created JInvTextField LOV listener, detach
 RED → GREEN on Java 25 / JavaFX 25: former-provider write 1 → 0 model changes; same-provider reattach 2 → 1 append/model changes; detached-provider write 2 → 0 NPEs. Other observers remained active, including another field sharing the provider. Initial attachment left model unchanged; accepted choice updated once, cancel twice delivered two callbacks with no writes, equal replacement generated zero observable changes, selected text replacement and comma quoting passed. Field holds one nullable reference; callback object created once at first successful LOV attachment and reused. No eager object allocation on fields without a LOV.
 
 Direct lovProperty().set bypasses listener setup, as before. The former listener ignores writes while the property points elsewhere; supported setter/unbind performs detachment. Direct property ownership was kept outside scope. Native DB modal not run. Maven compile, PowerShell parse, staged diff check, TextFields, DataBinding, FormCancel and BinderChoiceNull PASS. Windows: `src/test/probes/Test-LegacyGuiSmoke.ps1 -LovListenerLifecycle -SettingsFile "D:\Java\.m2\settings.xml"`.
+
+---
+
+## Reply CTRL-027
+
+**DONE.** Implementation HEAD verified at `2390e7cdac4a463b1be24082b6502df0e54a4aa7`, clean worktree. Changed only AbstractLovBase.createDefaultCheck, new LovDefaultValidationSmoke and runner mode. Default false returns success without assignment, true retains assignment. No per-instance state; equality shortcut, entity/custom predicates unchanged.
+
+RED exit 1: direct checkValue(false) and LovValidator.validateOnOk each emitted one LOV, text and model change for both distinct text and null. GREEN exit 0: all four emitted zero and retained all values; direct true and normal validation each emitted one of each, equal values zero. Replacement and unbind passed. Windows Java/JavaFX 25; Maven compile, PowerShell parse, staged diff check, LovListenerLifecycle, TextFields, FormCancel, DataBinding PASS. Rerun `src/test/probes/Test-LegacyGuiSmoke.ps1 -LovDefaultValidation -SettingsFile "D:\Java\.m2\settings.xml"`.
