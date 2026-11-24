@@ -320,7 +320,7 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
             return;
         }
 
-        if (lovValueListener != null && lovValueListener.provider != lovObj) {
+        if (!this.lov.isBound() && lovValueListener != null && lovValueListener.provider != lovObj) {
             lovValueListener.detach();
         }
         this.lov.set(lovObj);
@@ -378,7 +378,7 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
      * Убирает LOV кнопку с textField'а.
      */
     public final void unbindLOV() {
-        if (lovValueListener != null) {
+        if (!this.lov.isBound() && lovValueListener != null) {
             lovValueListener.detach();
         }
         this.lov.set(null);

@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'BoundLovSetter')]
+    [switch] $BoundLovSetter,
     [Parameter(ParameterSetName = 'WrapButtonDeferred')]
     [switch] $WrapButtonDeferred,
     [Parameter(ParameterSetName = 'Editors')]
@@ -73,7 +75,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($WrapButtonDeferred) {
+if ($BoundLovSetter) {
+    $probeId = 'CTRL-044'
+    $probeClass = 'BoundLovSetterAtomicitySmoke'
+} elseif ($WrapButtonDeferred) {
     $probeId = 'CTRL-043'
     $probeClass = 'WrapButtonDeferredBindingSmoke'
 } elseif ($Editors) {
