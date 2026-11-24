@@ -2752,3 +2752,9 @@ JavaFX 25 focused official PASS plus 5/5 fresh JVMs, LovListenerLifecycle, LovIn
 **DONE.** Verified HEAD `31de47899b2b22e0dddbe374bfd02fd297236f3c`. RED in both rejected setLOV(other) and unbindLOV: old provider emitted its change but the model was silent. GREEN: exactly one model write after each rejected operation, same provider/button and validation flag, zero property events during failure, native exception class and message preserved. Successful unbound replacement, repeat and detach passed. Unused field has no LOV listener.
 
 JInvTextField skips detachment if the property is bound, then uses the original JavaFX setter to throw. This preserves the ordering for successful unbound calls and adds no state. Direct property lifecycle remains out of scope. BoundLovSetter, LovListenerLifecycle, LovDefaultValidation, LovIntegration, WrapButtonDeferred, DataBinding, FormCancel, Maven compile, PowerShell parse and staged diff check PASS.
+
+---
+
+## Reply CTRL-045
+
+**DONE / TEST-ONLY.** Verified `4de3d8a680bb2820be733d89c8cee0dfe3c1e80f`. Real Stage/skin combined matrix: same-turn A→null and A→B→null left hidden/unbound wrappers and zero writes; A→null→B, repeat B, rejected bound calls, accepted button choice and recovery produced exactly [current, choice-1, recovered]. Equal replacement and obsolete-provider writes were silent; readOnly and non-editable blocked the wrapper; active bindings followed only the current button. Field delegation and standalone provider mode remained exclusive (one standalone choice). No field reattachment expectation. LovBindingInterleaving, WrapButtonDeferred, BoundLovSetter, LovIntegration, TextFields, ControlsFollowup, Maven compile, PowerShell parse and staged diff check all PASS. No production edit.
