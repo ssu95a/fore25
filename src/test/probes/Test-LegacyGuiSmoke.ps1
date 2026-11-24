@@ -24,6 +24,8 @@ param(
     [switch] $LovIntegration,
     [Parameter(ParameterSetName = 'SingletonCloseVeto')]
     [switch] $SingletonCloseVeto,
+    [Parameter(ParameterSetName = 'ValidatorScopedUnbind')]
+    [switch] $ValidatorScopedUnbind,
     [Parameter(ParameterSetName = 'TextFields')]
     [switch] $TextFields,
     [Parameter(ParameterSetName = 'ValueFields')]
@@ -102,6 +104,9 @@ if ($Editors) {
 } elseif ($SingletonCloseVeto) {
     $probeId = 'CTRL-032'
     $probeClass = 'SingletonCloseVetoSmoke'
+} elseif ($ValidatorScopedUnbind) {
+    $probeId = 'CTRL-033'
+    $probeClass = 'ValidatorScopedUnbindSmoke'
 } elseif ($TextFields) {
     $probeId = 'GUI-012'
     $probeClass = 'LegacyTextFieldsSmoke'

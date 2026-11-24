@@ -153,7 +153,7 @@ public class ValidMan implements Serializable {
                 }
             } );
             change.getRemoved().forEach( validator -> {
-                cvList.removeIf( pair -> pair.getValue().equals( validator ) );
+                cvList.removeIf(pair -> Objects.equals(pair.getKey(), control) && pair.getValue().equals(validator));
             });
         } );
         return list;
