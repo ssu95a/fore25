@@ -1,6 +1,8 @@
 package ru.inversion.fx.form.controls;
 
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.*;
@@ -64,6 +66,7 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
     final private SimpleBooleanProperty validateFromLOV = new SimpleBooleanProperty(this, "validateFromLOV", true);
     private final BooleanProperty appendFromLOV = new SimpleBooleanProperty( this, "appendFromLOV", false );
     final private SimpleObjectProperty<AbstractLovBase> lov = new SimpleObjectProperty(this, "lov");
+    private LovValueListener lovValueListener;
     private final RequiredState requiredState = new RequiredState(this);
     private String lovClassName;
     final private ObjectProperty<State> stateProperty = new ReadOnlyObjectWrapper<>(this, "stateProperty", NULL);
@@ -317,6 +320,9 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
             return;
         }
 
+        if (lovValueListener != null && lovValueListener.provider != lovObj) {
+            lovValueListener.detach();
+        }
         this.lov.set(lovObj);
 
         //Иной раз в специфическом лове требуются знания о контроле к которому оный привязан
@@ -324,7 +330,10 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
 
         setValidateFromLOV(validateFromLOV);
 
-        addLovValueListener(lovObj);
+        if (lovValueListener == null) {
+            lovValueListener = new LovValueListener();
+        }
+        lovValueListener.attach(lovObj);
 
         if (S.isNullOrEmpty(lovObj.getTitle()) && getLabel() != null) {
 
@@ -369,6 +378,9 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
      * Убирает LOV кнопку с textField'а.
      */
     public final void unbindLOV() {
+        if (lovValueListener != null) {
+            lovValueListener.detach();
+        }
         this.lov.set(null);
         removeInnerButton();
     }
@@ -425,14 +437,30 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
                 getController().getLifeCycleState() == LifeCycleStateEnum.RUNTIME);
     }
 
-    /**
-     * Для установки значения по AbstractEntityLovBase.checkValue (.., true) JIRA.JAVAKERNEL-593
-     *
-     * @param lov
-     */
-    private void addLovValueListener(AbstractLovBase lov) {
+    private final class LovValueListener implements InvalidationListener {
+        private AbstractLovBase provider;
 
-        lov.valueProperty().addListener( o -> setTextValueFromLov() );
+        private void attach(AbstractLovBase current) {
+            if (provider != current && getLOV() == current) {
+                detach();
+                provider = current;
+                provider.valueProperty().addListener(this);
+            }
+        }
+
+        private void detach() {
+            if (provider != null) {
+                provider.valueProperty().removeListener(this);
+                provider = null;
+            }
+        }
+
+        @Override
+        public void invalidated(Observable observable) {
+            if (provider != null && provider == getLOV() && observable == provider.valueProperty()) {
+                setTextValueFromLov();
+            }
+        }
     }
 
     /**
@@ -567,7 +595,7 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
                              Происходит дублированный вызова setText() для TextField
                              т.к. еще висит слушатель на valueProperty()
 
-                             @see addLovValueListener(...)
+                             @see LovValueListener
 
                             */
                         }

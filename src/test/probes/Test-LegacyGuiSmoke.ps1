@@ -16,6 +16,8 @@ param(
     [switch] $FormCancel,
     [Parameter(ParameterSetName = 'SceneKeyLookup')]
     [switch] $SceneKeyLookup,
+    [Parameter(ParameterSetName = 'LovListenerLifecycle')]
+    [switch] $LovListenerLifecycle,
     [Parameter(ParameterSetName = 'TextFields')]
     [switch] $TextFields,
     [Parameter(ParameterSetName = 'ValueFields')]
@@ -82,6 +84,9 @@ if ($Editors) {
 } elseif ($SceneKeyLookup) {
     $probeId = 'CTRL-024'
     $probeClass = 'SceneKeyLookupSmoke'
+} elseif ($LovListenerLifecycle) {
+    $probeId = 'CTRL-026'
+    $probeClass = 'LovListenerLifecycleSmoke'
 } elseif ($TextFields) {
     $probeId = 'GUI-012'
     $probeClass = 'LegacyTextFieldsSmoke'
