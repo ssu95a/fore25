@@ -219,6 +219,8 @@ public final class RadioReadOnlySmoke {
             root.getChildren().addAll(stock, legacy);
             legacy.setToggleGroup(plain);
             stock.setToggleGroup(plain);
+            root.applyCss();
+            check("mixed group skins installed", stock.getSkin() != null && legacy.getSkin() != null);
             plain.selectToggle(stock);
             stock.requestFocus();
             legacy.setReadOnly(true);
