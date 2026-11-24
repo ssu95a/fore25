@@ -2606,3 +2606,11 @@ Maven compile, PowerShell parse, staged diff check and all nine modes passed: Lo
 | CTRL-029 | DONE / read-only | Real SDI launcher opened duplicate singleton after veto |
 | CTRL-030 | DONE / read-only | Validator unbind can remove another control's registration; first manager retains automatic focus routing |
 | CTRL-031 | DONE / test-only | `3805ac5ba9096de48fc9697014d1d8063805dd29` — integration smoke |
+
+---
+
+## Reply CTRL-032
+
+**DONE.** Verified implementation HEAD `cad4dfd39cda4cb1f23bb8610d7ab24c00123bb5`. Real launcher + annotated FXML controller: before veto duplicate suppressed; RED after veto 2 visible singleton stages, 0 callbacks; GREEN 1 visible, 0 callbacks. Accepted Cancel and closeNow each allow reopen, with one callback and resource cleanup per closing controller (3 total across the complete sequence).
+
+Only AbstractBaseController.java, new SingletonCloseVetoSmoke and runner changed. Registry release is by identity, after accepted SDI WINDOW_HIDDEN or inline completion, and on launcher/close error paths. Veto and validation rejection preserve the registration. No instance fields. Init failure/rejected OK runtime deferred to matrix if feasible; WAIT/DB/MDI UNKNOWN. Maven compile, PowerShell parse, staged diff check, SingletonCloseVeto, FormCancel, FormLifecycle and DataBinding PASS. Windows rerun: `src/test/probes/Test-LegacyGuiSmoke.ps1 -SingletonCloseVeto -SettingsFile "D:\Java\.m2\settings.xml"`.
