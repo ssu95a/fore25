@@ -2622,3 +2622,11 @@ Only AbstractBaseController.java, new SingletonCloseVetoSmoke and runner changed
 **DONE.** Verified implementation HEAD `562b9a917a6c708dd6f18cb10112a6aca3d7653f`. RED in both A/B orders: after unbinding one control, shared validator invoked zero times on the other. GREEN: one invocation on the other, distinct validator preserved on removed control, one model event per edit; same-control duplicate positive still validates twice before removal.
 
 ValidMan.getValidators now scopes removal by control and validator. No instance state or changes to focus dispatch. Added ValidatorScopedUnbindSmoke and runner mode only. Java/FX25 Maven compile, PowerShell parse, staged diff check, ValidatorScopedUnbind, LovIntegration, LovDefaultValidation, FormCancel and DataBinding PASS.
+
+---
+
+## Reply CTRL-034
+
+**BLOCKED (local API ownership).** Verified clean HEAD `562b9a917a6c708dd6f18cb10112a6aca3d7653f`; no production/test commit. JavaFX 25 real Stage field-only accept, cancel and standalone positives passed. RED exit 1: same and distinct reattach each threw bound-disable exception. On distinct call action pair held former field while inherited metadata held the new field, both Boolean properties still bound. RED probe and log preserved under ignored target/ctrl-mission.
+
+A blanket unbind before super would also remove binding owned by an external caller. In production JInvTextField.setLOV itself replaces the button's disable binding with a readOnly-aware binding. JavaFX BooleanProperty exposes bound status but no public source identity; a marker in the button cannot detect a subsequent external rebind. Superclass writes metadata and may assign disable directly. Need explicit ownership/transfer policy or permission to make superclass attachment binding-safe before changing behaviour; mixed provider mode remains out of scope. Independent singleton, validator and read-only tasks can continue under protocol.
