@@ -2537,3 +2537,13 @@ Maven compile, PowerShell parser, staged diff check, GUI-009, GUI-010, RadioRead
 **SOURCE-PROVEN:** JInvTextField registers an invalidation listener capturing the field and reading current getLOV(); replacement/unbind does not remove it. A strongly reachable former LOV can therefore retain the field through its property and listener; application-level retention duration is unmeasured. JInvEntityLov maps RET_OK to setEntityValue before its callback, and cancel skips the value assignment. JInvTextField forwards the callback without a second text write. JInvLOVButton forwards navigation on acceptance, restores focus on cancel. ButtonValidationListener marks a click on the focused field's own LOV button as opening a choice dialog; LovValidator forwards the doSetValue flag to the provider. **UNKNOWN:** native modal/DB flow and end-to-end button/focus replay in a corporate form.
 
 One scoped follow-up: manage a lazily created JInvTextField LOV listener, detach it from the former value property on replacement/unbind, and keep only one registration on same-LOV reattachment. Preserve selection, callback and validation semantics. No tracked changes.
+
+---
+
+## Reply CTRL-026
+
+**DONE.** Implementation HEAD and GitHub match at `0c3af0c77f4c056314e268764184e857b4c423b8`; clean tree. Changed only JInvTextField.java, new LovListenerLifecycleSmoke.java and Test-LegacyGuiSmoke.ps1.
+
+RED → GREEN on Java 25 / JavaFX 25: former-provider write 1 → 0 model changes; same-provider reattach 2 → 1 append/model changes; detached-provider write 2 → 0 NPEs. Other observers remained active, including another field sharing the provider. Initial attachment left model unchanged; accepted choice updated once, cancel twice delivered two callbacks with no writes, equal replacement generated zero observable changes, selected text replacement and comma quoting passed. Field holds one nullable reference; callback object created once at first successful LOV attachment and reused. No eager object allocation on fields without a LOV.
+
+Direct lovProperty().set bypasses listener setup, as before. The former listener ignores writes while the property points elsewhere; supported setter/unbind performs detachment. Direct property ownership was kept outside scope. Native DB modal not run. Maven compile, PowerShell parse, staged diff check, TextFields, DataBinding, FormCancel and BinderChoiceNull PASS. Windows: `src/test/probes/Test-LegacyGuiSmoke.ps1 -LovListenerLifecycle -SettingsFile "D:\Java\.m2\settings.xml"`.
