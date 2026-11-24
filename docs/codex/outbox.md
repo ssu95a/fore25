@@ -2638,3 +2638,9 @@ A blanket unbind before super would also remove binding owned by an external cal
 **DONE / TEST-ONLY.** Verified HEAD `aba018ab2e14bab5c774668d3ab9b74d32ae7fa1`. Extended the CTRL-032 fixture and added -SingletonLifecycleMatrix. Real SDI launcher: veto and rejected onOK preserve one visible owner, no callback or cleanup. Accepted Cancel and closeNow each close the owner and permit reopening. Controlled init exception returned through the same failed controller with one callback and one cleanup, then a clean instance reopened. Five closures each had matching ownership and cleanup.
 
 SingletonLifecycleMatrix, SingletonCloseVeto, FormCancel, FormLifecycle, Maven compile, PowerShell syntax and staged diff check passed. Corporate MDI/WAIT/DB and launcher-level exception before Stage show remain UNKNOWN. No production edit.
+
+---
+
+## Reply CTRL-036
+
+**DONE / TEST-ONLY.** Verified HEAD `dce04163498221af2f86c8eaec84d77d3974dfc6`. New ValidatorMultiControlSmoke and runner only. Real focused JavaFX Stage: six blur dispatches and six model notifications for six edits; shared/distinct validator calls 4/2 across the sequence. Both unbind directions preserve the opposite field's registrations; duplicate same-control adds still validate twice. Reattached LOV produced one validator, old/detached changes did not write the model, validateOnOk was read-only. ValidatorMultiControl, ValidatorScopedUnbind, LovIntegration, Maven compile, PowerShell parse and staged diff check PASS.
