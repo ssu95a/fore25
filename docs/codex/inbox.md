@@ -2710,7 +2710,7 @@ Execute CTRL-022 → CTRL-023 → CTRL-024 → CTRL-025 sequentially. A task may
 
 ## MESSAGE CTRL-026
 
-**Status:** ASSIGNED — JInvTextField LOV listener lifecycle correctness, RED/GREEN
+**Status:** DONE BY AGENT / USER PASS PENDING — Reply CTRL-026, production 0c3af0c77f4c056314e268764184e857b4c423b8; do not rerun
 **Priority:** CRITICAL — stale listeners duplicate model writes / retention / NPE
 **Repository:** ssu95a/fore25
 **Branch:** migration/java25-correctness (NEVER main)
@@ -2735,7 +2735,7 @@ Production JInvTextField.setLOV(AbstractLovBase,boolean) calls `this.lov.set(lov
 
 ## MESSAGE CTRL-027
 
-**Status:** ASSIGNED / DEPENDENT — AbstractLovBase default validation read-only flag, focused RED/GREEN; start ONLY after successful CTRL-026 DONE and verified production SHA
+**Status:** DONE BY AGENT / USER PASS PENDING — Reply CTRL-027, production 2390e7cdac4a463b1be24082b6502df0e54a4aa7; do not rerun
 **Priority:** HIGH — `validateOnOk` must not mutate field/model by default check
 **Repository:** ssu95a/fore25
 **Branch:** migration/java25-correctness
@@ -2759,7 +2759,7 @@ Production JInvTextField.setLOV(AbstractLovBase,boolean) calls `this.lov.set(lov
 
 ## MESSAGE CTRL-028
 
-**Status:** ASSIGNED / DEPENDENT — READ-ONLY JInvLOVButton field/provider pairing audit; start after CTRL-027 DONE and remote SHA verification
+**Status:** CLOSED / ARCHITECTURE FINDINGS — Reply CTRL-028; same-mode button reattachment issue, see CTRL-034
 **Priority:** HIGH — prevent wrong LOV or missing editor reference in dual setter usage
 **Repository:** ssu95a/fore25
 **Branch:** migration/java25-correctness (READ ONLY)
@@ -2782,7 +2782,7 @@ Production JInvTextField.setLOV(AbstractLovBase,boolean) calls `this.lov.set(lov
 
 ## MESSAGE CTRL-029
 
-**Status:** ASSIGNED / DEPENDENT — READ-ONLY singleton form close-veto registry audit; start after CTRL-028 report and HEAD verification
+**Status:** CLOSED / CONFIRMED BUG — Reply CTRL-029; duplicate Singleton window after veto, see CTRL-032
 **Priority:** HIGH — lifecycle correctness: prevent opening duplicate SingletonInstance forms after veto
 **Repository:** ssu95a/fore25
 **Branch:** migration/java25-correctness (READ ONLY)
@@ -2804,7 +2804,7 @@ Production JInvTextField.setLOV(AbstractLovBase,boolean) calls `this.lov.set(lov
 
 ## MESSAGE CTRL-030
 
-**Status:** ASSIGNED / DEPENDENT — READ-ONLY ValidMan validator listener + LOV rebinding audit; start only after CTRL-029 report and verified unchanged production HEAD
+**Status:** CLOSED / CONFIRMED BUG — Reply CTRL-030; cross-control validator unbind, see CTRL-033
 **Priority:** HIGH — correctness and allocation/retention when a control is revalidated/rebound
 **Repository:** ssu95a/fore25
 **Branch:** migration/java25-correctness (READ ONLY)
@@ -2826,7 +2826,7 @@ Production JInvTextField.setLOV(AbstractLovBase,boolean) calls `this.lov.set(lov
 
 ## MESSAGE CTRL-031
 
-**Status:** ASSIGNED / DEPENDENT — final JavaFX25 LOV value/model regression after CTRL-026/027, TEST-ONLY, start after CTRL-030 report and verified implementation HEAD
+**Status:** DONE BY AGENT / USER PASS PENDING — Reply CTRL-031, test-only 3805ac5ba9096de48fc9697014d1d8063805dd29; do not rerun
 **Priority:** HIGH — safeguard corrected LOV lifecycle against actual field/model regressions
 **Repository:** ssu95a/fore25
 **Branch:** migration/java25-correctness
@@ -2844,3 +2844,146 @@ Production JInvTextField.setLOV(AbstractLovBase,boolean) calls `this.lov.set(lov
 ### Global queue rules
 
 Execute CTRL-026 → CTRL-027 → CTRL-028 → CTRL-029 → CTRL-030 → CTRL-031 **strictly sequentially**. On any actual BLOCKED test/production defect, stop entire remainder rather than guessing; READ-ONLY audits may conclude DONE/NO_CHANGE or DONE/ARCHITECTURE DECISION NEEDED and continue where no blocking regression exists. Verify exact remote production SHA, working tree, mailbox prior reply before each task. Separate outbox replies; separate commits for 026, 027, 031 only when GREEN. No force push, no main/JInvCommon writes. Existing CTRL-014 generic ChoiceBox null-clear stays BLOCKED and CAL-TIME-001 seconds stays deferred; do NOT modify either. Comments in Russian, avoid additional per-component allocations. Independent Windows user acceptance must not be claimed before reported.
+
+---
+
+## AUTONOMY PROTOCOL — FORE25 CTRL-032…041
+
+**Approved autonomous queue:** CTRL-032 through CTRL-041, in order, without prompting user between successful tasks. This is a bounded permission to perform exactly these tasks, not a blank check to modify arbitrary production code or launch background execution. Run only while local Codex is actively invoked.
+
+**Git boundaries:** `ssu95a/fore25` only. Production writes to `migration/java25-correctness` only. Mailbox reports to `agent/codex-mailbox/docs/codex/outbox.md` only. Never write `main`, `JInvCommon` or any unrelated repository; no force-push, destructive reset, rebase over user commits, schema/DB writes, POM changes, new dependency or public API break. Preserve existing Java 8 business behavior under Java/JavaFX 25. Production comments in Russian. GUI concurrency is not the issue; correctness, data integrity, model events, resource lifetime and **per-control memory** are.
+
+**Each task gate:** fetch current production/mailbox HEAD and prior Reply, verify clean workspace, move by fast-forward only. For every permitted fix: positive baseline, reproducible RED against original implementation, smallest scoped code, GREEN with actual event/cursor/model counts, Maven `-Pbuild compile`, PowerShell parsing, `git diff --check`, focused and nearby regressions. Separate fast-forward commit and Reply per task, verify pushed remote SHA. For READ-ONLY use ignored `target/` probes only; no tracked or production changes. Never invent a GUI/DB result; mark UNKNOWN.
+
+**Blockers and autonomy:** A systemic build failure, branch divergence, unclean worktree, or data-integrity regression blocks **all writes**. If a task has a local architectural ambiguity, report `BLOCKED`, do not patch; **skip only its dependent tasks**, but continue explicitly independent READ-ONLY investigations and independent tests with the verified stable HEAD. CTRL-033 may continue after isolated CTRL-032 BLOCKED only if baseline is green and code scopes are disjoint. Do not use failing expected checks as a reason to weaken tests. CTRL-014 ChoiceBox-null policy and CAL-TIME-001 seconds remain out of scope. No self-assigned production fixes or CTRL-042.
+
+**Final output:** publish individual `## Reply CTRL-032`…`041` for DONE / NO_CHANGE / BLOCKED / WAITING as appropriate, then `## Mission Summary CTRL-032–041` with SHA, tested counts, decisions needed, and three best next engineering priorities. User-independent PASS is UNKNOWN unless reported by user. STOP after mission.
+
+---
+
+## MESSAGE CTRL-032
+
+**Status:** ASSIGNED — CRITICAL / RED-GREEN singleton veto registry fix
+**Repo:** ssu95a/fore25
+**Branch:** migration/java25-correctness
+**Baseline:** 3805ac5ba9096de48fc9697014d1d8063805dd29
+**Reply:** CTRL-032
+
+**PROVEN (CTRL-029):** a real FXFormLauncher+annotated SingletonInstance form stays visible after onCancel() veto; launcher then creates a second window. AbstractBaseController.internalOnClose removes g_controllerInstanceMap entry unconditionally in finally even when WINDOW_CLOSE_REQUEST is consumed. The launcher catch also removes by class. This is form uniqueness and potentially task context integrity.
+**RED:** new tracked SingletonCloseVetoSmoke.java and `-SingletonCloseVeto` runner. Run real Stage/FXML/launcher; verify duplicate suppressed before veto, veto leaves one Stage/no callback, *next* launch erroneously opens a second; assert callback count, identity, lifecycle. Positive accepted Cancel/closeNow/reopen.
+**FIX:** only AbstractBaseController.java, minimal registry lifetime change: don't remove mapping on veto or validation/onOK rejection; remove only matching owner on accepted/finalized close, including SDI WINDOW_HIDDEN and no-Stage branch; identity-safe launcher failure cleanup. Don't leave stale singleton on exception. No new per-controller fields or MDI redesign.
+**GREEN:** veto suppresses second open, accepted close eventually permits reopening, cleanup and return callback once; init/validation errors tested if safely constructible; WAIT/MDI unavailable => UNKNOWN. Run -FormCancel, -FormLifecycle, -DataBinding; Maven/diff/PowerShell. Separate verified commit and Reply; if safe error handling cannot be determined, BLOCKED with evidence.
+
+---
+
+## MESSAGE CTRL-033
+
+**Status:** ASSIGNED — CRITICAL / independent RED-GREEN validator unbind scope fix
+**Repo:** ssu95a/fore25
+**Branch:** migration/java25-correctness
+**Baseline:** verified latest predecessor production SHA
+**Reply:** CTRL-033
+
+**PROVEN (CTRL-030):** same Validator instance bound to controls A and B, unbindValidators(A,v) removes it also from B. Source ValidMan.getValidators(control) list-removal callback does cvList.removeIf comparing only validator, not control. Duplicate additions to SAME control currently validate twice: preserve that separate behavior.
+**RED:** new tracked ValidatorScopedUnbindSmoke.java with -ValidatorScopedUnbind. Real controls A/B, shared validator, unbind A then B still validates; reverse ordering; two validators; duplicate registration same control. Count validation and model events. Use public ValidMan methods.
+**FIX:** only ValidMan.java getValidators list removal, scope removal to BOTH requested control and validator (preserve existing equality and same-control duplicate semantics); no new listener/state or different focus-manager handling.
+**GREEN:** B stays registered after A removed, A remains after B removed; no cross-control collateral; no duplicate model writes introduced. Run -LovIntegration, -LovDefaultValidation, -FormCancel, -DataBinding. Separate commit + Reply. Independent of CTRL-032 if baseline clean.
+
+---
+
+## MESSAGE CTRL-034
+
+**Status:** ASSIGNED — HIGH / conditional RED-GREEN JInvLOVButton same-mode reattachment
+**Repo:** ssu95a/fore25
+**Branch:** migration/java25-correctness
+**Baseline:** verified latest predecessor production SHA
+**Reply:** CTRL-034
+
+**PROVEN (CTRL-028):** real JInvLOVButton.setTextField(F1) then reattach F1/F2 can throw bound-disable exception; after failed new-field attach, inherited metadata and action pair may refer to different fields, retaining previous field. Two existing EXCLUSIVE modes: field-delegated and provider-only. Mixed setTextField()+setLOV() contract UNKNOWN, DO NOT merge.
+**RED:** new LovButtonReattachSmoke.java + -LovButtonReattach. Test field-only F1→F1/F2, old field editable/readOnly changes, correct editor target and exactly one accepted model write/TAB, cancel zero; provider-only positive. Count disable/visible bindings, getTextField and inherited metadata. 
+**FIX only if safe:** smallest JInvLOVButton.java change, release old disable/visible bindings BEFORE superclass may setDisable, detach field metadata, install exactly one active binding and correct action pair. Avoid altering generic JInvButton shared behavior; if required, BLOCKED requesting architecture decision instead of rewriting. Do not redefine mixed-mode setter semantics or create per-button state unnecessarily.
+**GREEN:** repeat and F1→F2 work, no old-field mutation, provider-only untouched, no duplicate actions. Run -LovIntegration, -LovListenerLifecycle, -TextFields, -FormCancel. Separate commit/Reply or BLOCKED.
+
+---
+
+## MESSAGE CTRL-035
+
+**Status:** ASSIGNED — TEST-ONLY singleton launcher regression matrix, dependent on CTRL-032 GREEN
+**Repo:** ssu95a/fore25
+**Branch:** migration/java25-correctness
+**Baseline:** verified latest predecessor production SHA
+**Reply:** CTRL-035
+
+New real FXFormLauncher SingletonLifecycleMatrixSmoke.java and -SingletonLifecycleMatrix, or extend 032 probe only if it avoids duplicate fixtures. Verify single visible instance during veto and rejected OK, subsequent accepted Cancel/closeNow allows reopen, callback/cleanup exactly once, owner identity preserved; exercise initialization failure if possible. No production edits, no fake DB/MDI success. Run -SingletonCloseVeto, -FormCancel, -FormLifecycle, Maven/diff. Commit test-only if new invariant and GREEN; if CTRL-032 BLOCKED reply WAITING and skip without stopping independent work.
+
+---
+
+## MESSAGE CTRL-036
+
+**Status:** ASSIGNED — TEST-ONLY multi-control validator regression, dependent on CTRL-033 GREEN
+**Repo:** ssu95a/fore25
+**Branch:** migration/java25-correctness
+**Baseline:** verified latest predecessor production SHA
+**Reply:** CTRL-036
+
+Tracked ValidatorMultiControlSmoke.java + -ValidatorMultiControl (or extend 033 test if separate source redundant). Shared Validator on A/B with alternating bind/unbind, opposite-order removal, repeated same-control registration, different validator instances, real focus changes and no extra model notifications. Include LOV-validated field from CTRL-026/027 and unbinding without stale effects. No production edits; do not deduplicate the repeated same-control registrations. Run -ValidatorScopedUnbind and -LovIntegration. If CTRL-033 BLOCKED reply WAITING; continue independent research.
+
+---
+
+## MESSAGE CTRL-037
+
+**Status:** ASSIGNED — READ-ONLY ValidMan focus-manager ownership on reused controls
+**Repo:** ssu95a/fore25
+**Branch:** migration/java25-correctness
+**Baseline:** verified latest predecessor production SHA
+**Reply:** CTRL-037
+
+CTRL-030 established first ValidMan captures focus/change listeners, CONTROL_FOCUS_LISTENER marker prevents later manager from installing them; new manager can manually validate but receives no automatic blur events. UNKNOWN whether framework ever reuses one Control across form controller instances. Trace actual control/controller ownership and cleanup. Ignored target probe: same control M1→M2 across scene/form reattachment, record focus validation calls, retained references, marker and model changes. Avoid calling this a production bug without supported caller reuse. Assess memory/per-instance cost of repairs; only Reply with confirmed/source/unknown and a future scoped proposal.
+
+---
+
+## MESSAGE CTRL-038
+
+**Status:** ASSIGNED — READ-ONLY direct writable lovProperty contract audit
+**Repo:** ssu95a/fore25
+**Branch:** migration/java25-correctness
+**Baseline:** verified latest predecessor production SHA
+**Reply:** CTRL-038
+
+CTRL-026 confirmed JInvTextField.lovProperty().set(...) bypasses setLOV listener/button lifecycle. Trace actual callers and FXML/property use, setter vs external binding. Ignored FX25 probe direct set, swap, null, bind/unbind, then setLOV: report model/text, LOV callbacks, button state and exceptions. Do not add automatic property listener to all fields without approved contract, and do not rewrite existing getters. Only Reply with source-confirmed/observed/UNKNOWN and proposed policy.
+
+---
+
+## MESSAGE CTRL-039
+
+**Status:** ASSIGNED — READ-ONLY retained LOV buttons on repeated setLOV
+**Repo:** ssu95a/fore25
+**Branch:** migration/java25-correctness
+**Baseline:** verified latest predecessor production SHA
+**Reply:** CTRL-039
+
+Source JInvTextField.setLOV constructs a new JInvLOVButton each time; its tooltip/disable/visible bound to field; skin may retain former buttons. CTRL-026 fixed provider value listeners, NOT necessarily button retention. With real Stage+skin, perform repeated same-LOV / replacement / unbind, check inner button reference, stable event/model counts, old-button reachability through strongly held bindings. No nondeterministic GC assertions or claims of leak from allocations alone. Track extra memory in controls WITHOUT LOV. Only ignored probes and Reply; recommend next fix if proven.
+
+---
+
+## MESSAGE CTRL-040
+
+**Status:** ASSIGNED — READ-ONLY data adapter detach/rebind business integrity
+**Repo:** ssu95a/fore25
+**Branch:** migration/java25-correctness
+**Baseline:** verified latest predecessor production SHA
+**Reply:** CTRL-040
+
+Existing GUI-009 DataBinding covers JInvTable row identity, navigation, refresh and close. Inspect production DSFXAdapter + DSControlAdapter lifecycle to see if replacing dataset on same table is SUPPORTED. If yes, ignored JavaFX25 fixture A→B: late A navigation/row events must not mutate B table; count selection/cursor identity, duplicated handlers and refreshed rows. If rebind is unsupported, do not manufacture a defect: report UNKNOWN/unavailable contract. No changes to JInvCommon or production. Only Reply with actual events/source facts and one bounded recommendation.
+
+---
+
+## MESSAGE CTRL-041
+
+**Status:** ASSIGNED — final regression battery and mission report (TEST-ONLY unless uncovered invariant)
+**Repo:** ssu95a/fore25
+**Branch:** migration/java25-correctness
+**Baseline:** verified latest predecessor production SHA
+**Reply:** CTRL-041
+
+Verify predecessor task replies, current remote HEAD and clean worktree. Run fresh Windows Java/FX25 processes where appropriate: -SingletonCloseVeto, -ValidatorScopedUnbind, -LovButtonReattach IF their fixes succeeded, plus existing -FormCancel, -FormLifecycle, -DataBinding, -LovListenerLifecycle, -LovDefaultValidation, -LovIntegration, -SceneKeyLookup, -ChoiceNonNullSet, -BinderChoiceNull, -RadioReadOnly, -ControlsFollowup; Maven -Pbuild compile, diff check. Record each exit code and UNKNOWN for unavailable physical input/DB/forms. Do not add a new test unless an actually uncovered accepted invariant needs it; no production edits. Publish Reply CTRL-041 and '## Mission Summary CTRL-032–041' with SHA matrix, blockers, recommendations. Stop; no CTRL-042.
