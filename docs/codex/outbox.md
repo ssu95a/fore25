@@ -2758,3 +2758,13 @@ JInvTextField skips detachment if the property is bound, then uses the original 
 ## Reply CTRL-045
 
 **DONE / TEST-ONLY.** Verified `4de3d8a680bb2820be733d89c8cee0dfe3c1e80f`. Real Stage/skin combined matrix: same-turn A→null and A→B→null left hidden/unbound wrappers and zero writes; A→null→B, repeat B, rejected bound calls, accepted button choice and recovery produced exactly [current, choice-1, recovered]. Equal replacement and obsolete-provider writes were silent; readOnly and non-editable blocked the wrapper; active bindings followed only the current button. Field delegation and standalone provider mode remained exclusive (one standalone choice). No field reattachment expectation. LovBindingInterleaving, WrapButtonDeferred, BoundLovSetter, LovIntegration, TextFields, ControlsFollowup, Maven compile, PowerShell parse and staged diff check all PASS. No production edit.
+
+---
+
+## Reply CTRL-046
+
+**DONE / READ-ONLY.** HEAD unchanged `4de3d8a680bb2820be733d89c8cee0dfe3c1e80f`. SOURCE-PROVEN: AddLinkPane.fxml includes a sibling external JInvLOVButton; AddLinkPaneController.initLov attaches it with setTextField and then calls field.setLOV, matching the audited order. AbstractBaseController also supports external idTextField wiring through JInvButton.setTextField. Field removes inner button on a changed non-null external reference; setLOV can reinstall one while external remains assigned. Skin suppresses its overflow button with an external reference, but wrapper layout still uses wrapper visibility.
+
+CONFIRMED on real focused Stage/skin, sibling external JInvLOVButton, and controlled provider: external→setLOV left both visible (external managed, wrapper unmanaged); external fire, inner wrapper fire, and synthetic F9 each opened once and wrote once, the three model values were [choice-1, choice-2, choice-3]. Replacing external after setLOV hid wrapper and cleared inner reference and property bindings. Wrapper's unbound onAction still held the old handler. Clearing external did not rebuild the inner button; explicit setLOV did. Replacing skin left a new empty wrapper and active provider, while the retained old wrapper still had its button/bindings. Source shows raw field listeners capture former skin and dispose does not unregister those listeners. Lifetime/impact in corporate forms, native input and DB-backed help dialog UNKNOWN.
+
+Recommend an isolated tested precedence contract for external→LOV and LOV→external based on the real help form before changing behavior. Treat old skin listener teardown separately; no change to CTRL-034 or existing exclusive modes.
