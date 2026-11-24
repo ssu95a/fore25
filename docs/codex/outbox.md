@@ -2736,3 +2736,11 @@ Unmodified baseline: SingletonCloseVeto 5/5 passed locally; SingletonLifecycleMa
 The test now listens for WINDOW_HIDDEN on the resource-progress Stage owned by the exact form, then verifies on the FX thread after nested loop exit. All original cleanup, callback, identity, return and reopen assertions retained. GREEN: 10/10 fresh JVMs per mode plus one official runner pass per mode. FormCancel, FormLifecycle, ValidatorScopedUnbind, DataBinding, Maven compile, PowerShell parse and staged diff check all passed. Independent user acceptance of CTRL-032/035/042 remains pending.
 
 Windows rerun: `src/test/probes/Test-LegacyGuiSmoke.ps1 -SingletonCloseVeto -SettingsFile "D:\Java\.m2\settings.xml"` and the same command with `-SingletonLifecycleMatrix`.
+
+---
+
+## Reply CTRL-043
+
+**DONE.** Verified HEAD `a62b145212b12455fe8cc3a6fa66c82f3a047be1`. RED: A→null and A→B→null became visible and bound again; A→B and A→null→B assigned CONTROL_PARENT to obsolete buttons. Stable A and LOV-over-FE priority passed. GREEN: both detached wrappers hidden with all six properties unbound; both replacement cases follow only B with the proper parent; obsolete buttons have no wrapper parent. Active routes each wrote once per provider change and once per button choice, detached routes zero. Added only an identity guard before any deferred write, no additional instance state.
+
+JavaFX 25 focused official PASS plus 5/5 fresh JVMs, LovListenerLifecycle, LovIntegration, TextFields, FormCancel, ControlsFollowup, Maven compile, PowerShell parse and staged diff check PASS. Rerun `src/test/probes/Test-LegacyGuiSmoke.ps1 -WrapButtonDeferred -SettingsFile "D:\Java\.m2\settings.xml"`.
