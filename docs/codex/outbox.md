@@ -2820,3 +2820,24 @@ Three commits published fast-forward, exact implementation SHA verified. main, J
 **SOURCE-PROVEN:** Direct externalButton/text/width listeners capture the old skin through checkOverflow; focus listener accesses its wrapper. dispose clears owned context menu and calls super.dispose but does not remove these listeners. Strong path is live field property → listener → former skin → old wrapper and button. Wrapper visibility listener also requests field layout. Font uses registerChangeListener; observed teardown differentiates it from the direct registrations. No runtime GC claim. Production lookup found the constructor installing the default skin, but no routine in-repo JInvTextField skin-replacement path. Public JavaFX API replacement is reproducible.
 
 **HYPOTHESIS / UNKNOWN:** repeated replacements can accumulate obsolete UI work/objects; prevalence, retained byte count and corporate business impact unknown. Old handler retention by itself does not establish user access to the detached button. Narrow next task: test and detach skin-owned listeners and wrapper bindings at dispose, keeping handles on the skin only, verifying direct counts 2→1, old pseudo-class frozen, current skin live and model counts unchanged. Preserve button precedence, CTRL-034 and writable LOV contract.
+
+---
+
+## Reply FORE25-TRIAGE
+
+**Read-only follow-up to CTRL-048, 2026-11-25.** Verified implementation baseline `4de3d8a680bb2820be733d89c8cee0dfe3c1e80f`. Ten candidates ranked by evidence and potential impact. Temporary probes for the first three are under ignored `target/fore25-triage/`. This report requests triage, with no implementation changes.
+
+| Priority | Code | Evidence and next check |
+| --- | --- | --- |
+| 1 | JInvTextArea.setLOV / addLovValueListener | **Reproduced.** A former provider overwrote a draft with the current provider value. Three attachments added three toolbar buttons; after setLOV(null), one provider change raised two NPEs. Start with listener and toolbar ownership, preserving accepted-choice and model notification semantics. |
+| 2 | DSFXAdapter.close / refreshCurrentRow | **Reproduced.** KEY_RELEASED delivered to a still-shown table after adapter close reached the old handler and raised NPE at refreshCurrentRow. The established late-DataSet-event checks still passed. Test post-close input independently of the unsupported same-table rebind contract. |
+| 3 | ValidMan.getValidators | **Reproduced.** In a three-validator list, removeAll(v1,v3) left only v2 in the returned list but actual validation still invoked v2 and v3. Listener processes only one subchange. Cover disjoint removals while preserving CTRL-033 scoping and same-control duplicate semantics. |
+| 4 | Binder.bind | **CTRL-023 runtime.** Exception leaves successful controls bidirectionally attached. Determine whether supported callers reuse a partially bound form before proposing failure semantics. |
+| 5 | JInvTextField.externalButton / setLOV | **CTRL-046 runtime.** Attachment order changes inner-button visibility. External-first order exists in AddLinkPane. Decide precedence using the real form contract. |
+| 6 | JInvWrapButton.setInnerButton | **CTRL-046 runtime.** After settled detach the hidden wrapper is unbound but still holds the previous onAction value. User reachability unknown. Distinct from the fixed deferred-rebind race. |
+| 7 | ValidMan.initListenersOnControl | **CTRL-037 runtime.** A moved control still dispatches automatic blur validation through the former manager. Supported application reparenting remains unknown. |
+| 8 | JInvTextAreaSkin.dispose | **Source candidate.** Direct scene/editable listeners capture skin; registered external-editor action accesses getSkinnable. Reproduce after real skin replacement before proposing a fix. |
+| 9 | JInvTabPaneSkin.initialise | **Source candidate.** Switching back to Side.LEFT adds another tab-list listener. Count processing after repeated side toggles and check normal left-tab rendering. |
+| 10 | SceneKeyManager.getActionRecursive | **CTRL-024 runtime plus source.** Candidate selected before enabled/security checks. A blocked match may reserve the key and suppress another eligible action in the same list. Confirm intended precedence before changing it. |
+
+Recommend considering 1–3 as independently scoped RED → GREEN tasks. CTRL-049 is assigned separately in inbox. CTRL-034 ownership, CTRL-014 and CAL-TIME-001 remain outside this triage.
