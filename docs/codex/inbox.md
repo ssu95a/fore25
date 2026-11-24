@@ -2878,7 +2878,7 @@ Execute CTRL-026 → CTRL-027 → CTRL-028 → CTRL-029 → CTRL-030 → CTRL-03
 
 ## MESSAGE CTRL-033
 
-**Status:** DONE BY AGENT / USER PASS PENDING — Reply CTRL-033, production commit 562b9a917a6c708dd6f18cb10112a6aca3d7653f, validated by agent; independent Windows PASS not yet reported
+**Status:** CLOSED — user independently confirmed Windows `CTRL-033 PASS`, exit 0 as part of the four-mode acceptance (2026-11-24). Verified agent production commit `562b9a917a6c708dd6f18cb10112a6aca3d7653f` accepted for scoped validator unbind.
 **Repo:** ssu95a/fore25
 **Branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production SHA
@@ -3055,7 +3055,7 @@ ONLY test-file modifications permitted to `SingletonCloseVetoSmoke.java` and opt
 
 ## MESSAGE CTRL-043
 
-**Status:** ASSIGNED — CRITICAL / RED→GREEN JInvWrapButton deferred binding race
+**Status:** CLOSED — user independently confirmed Windows `CTRL-043 PASS`, exit 0 (2026-11-24); production commit `a62b145212b12455fe8cc3a6fa66c82f3a047be1` accepted. No new per-instance state.
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness
 **Baseline:** f4f2903181be6b4c2ff0dd19d002a87fe6a99afb
@@ -3074,7 +3074,7 @@ ONLY test-file modifications permitted to `SingletonCloseVetoSmoke.java` and opt
 
 ## MESSAGE CTRL-044
 
-**Status:** ASSIGNED — HIGH / RED→GREEN JInvTextField bound LOV-property exception atomicity
+**Status:** CLOSED — user independently confirmed Windows `CTRL-044 PASS`, exit 0 (2026-11-24); production commit `31de47899b2b22e0dddbe374bfd02fd297236f3c` accepted.
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production HEAD
@@ -3093,7 +3093,7 @@ ONLY test-file modifications permitted to `SingletonCloseVetoSmoke.java` and opt
 
 ## MESSAGE CTRL-045
 
-**Status:** ASSIGNED — TEST-ONLY / LOV binding interleaving regression matrix, depends on 043+044 GREEN
+**Status:** CLOSED — user independently confirmed Windows `CTRL-045 PASS`, exit 0 (2026-11-24); test-only commit `4de3d8a680bb2820be733d89c8cee0dfe3c1e80f` accepted.
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production HEAD
@@ -3108,7 +3108,7 @@ Also preserve `JInvLOVButton` field vs provider exclusive-mode behavior. **Do NO
 
 ## MESSAGE CTRL-046
 
-**Status:** ASSIGNED — READ-ONLY / externalButton vs internal LOV button precedence and retention
+**Status:** CLOSED / READ-ONLY — Reply CTRL-046 found concurrent external + inner LOV visibility in real AddLinkPane order; skin lifecycle follow-up CTRL-048; button precedence contract remains undecided.
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production HEAD
@@ -3125,7 +3125,7 @@ No production or tracked changes; report CONFIRMED, SOURCE-PROVEN, HYPOTHESIS, U
 
 ## MESSAGE CTRL-047
 
-**Status:** ASSIGNED — Final regression/acceptance matrix and mission handoff, READ-ONLY unless needed test-only
+**Status:** CLOSED / READ-ONLY — Reply CTRL-047 final battery 17/17 PASS on agent Windows; CTRL-034 intentionally skipped. Independent acceptance for CTRL-033/043/044/045 subsequently supplied by user.
 **Repo:** ssu95a/fore25
 **Implementation branch:** migration/java25-correctness
 **Baseline:** verified latest predecessor production HEAD
@@ -3134,4 +3134,37 @@ No production or tracked changes; report CONFIRMED, SOURCE-PROVEN, HYPOTHESIS, U
 Check all task Replies and remote HEAD. Run Maven `-Pbuild compile`, diff check and relevant JavaFX25 Windows smoke modes in fresh processes: `-WrapButtonDeferred` and `-BoundLovSetter` only if implemented, `-LovBindingInterleaving` if 045 DONE; plus existing `-LovListenerLifecycle`, `-LovDefaultValidation`, `-LovIntegration`, `-TextFields`, `-FormCancel`, `-FormLifecycle`, `-SingletonCloseVeto`, `-SingletonLifecycleMatrix`, `-ValidatorScopedUnbind`, `-ValidatorMultiControl`, `-DataBinding`, `-SceneKeyLookup`, `-ControlsFollowup`, and `-RadioReadOnly`. Record explicit exit codes, skipped modes, event counts and flaky outcomes. Do not weaken tests or conceal failures. If regressions fail, report BLOCKED with exact reproduction and stop production writes.
 
 Output ONLY a detailed `## Reply CTRL-047` and `## Mission Summary CTRL-043–047` on mailbox branch (no production changes); add a tracked TEST-ONLY assertion only if a proven accepted invariant lacks coverage and such a change is explicitly within the test-only scope. Summarize no-database/physical-input/MDI UNKNOWN, CTRL-034 remains BLOCKED, CTRL-033 independent user PASS still pending. Recommend three highest-value next tasks. STOP after CTRL-047, no autonomous CTRL-048.
+
+---
+
+## MESSAGE CTRL-048
+
+**Status:** ASSIGNED — timebox 60 minutes, READ-ONLY JavaFX 25 JInvTextFieldButtonSkin disposal/retained-listener forensic audit
+**Priority:** HIGH — memory retention and stale UI callbacks after skin replacement
+**Repo:** ssu95a/fore25
+**Branch:** migration/java25-correctness (production READ-ONLY)
+**Baseline remote HEAD:** 4de3d8a680bb2820be733d89c8cee0dfe3c1e80f
+**Reply ID:** CTRL-048
+**Expected effort:** approximately 60 minutes; stop at timebox with the best grounded findings and UNKNOWNs, do not extend indefinitely
+
+### Evidence and questions
+
+CTRL-046 observed an older JInvTextFieldButtonSkin/wrapper still reacting after skin replacement and noted user-visible external vs inner LOV-button conflicts. Current production `src/main/java/ru/inversion/fx/form/controls/skin/JInvTextFieldButtonSkin.java` constructor registers DIRECT callbacks on:
+- `JInvTextField.externalButtonProperty()` with lambda calling `checkOverflow()`;
+- `textField.focusedProperty()` capturing `wrapButton` and pseudo-class logic;
+- `textField.textProperty()` and `widthProperty()` via `initOverflowListener()`, each calling `checkOverflow()`;
+- `wrapButton.visibleProperty()` -> `textField.requestLayout()`.
+Skin also has registerChangeListener(...) bindings whose cleanup JavaFX superclass likely owns. `dispose()` hides/clears context menu and calls super.dispose(), but does not explicitly detach above direct listeners. This establishes a potential strong reference path from live control properties to old skin, but actual disposal semantics, recurrence and affected GUI output must be experimentally verified. Do not label every allocation a leak.
+
+### READ-ONLY investigation
+
+1. Verify HEAD, mailbox and clean tree; inspect constructor, `dispose()`, `JInvTextField.setSkin`, `JInvWrapButton.setInnerButton`, externalButton, JInvFEButton/LOV, and skin lifecycle call sites. Establish whether skin replacement is a supported/reachable case in current forms. If production only creates one skin per field, characterize failure impact accordingly.
+2. In ignored `target/ctrl048` JavaFX25 fixture with actual shown Stage and real JInvTextField, establish positive baseline with one skin, LOV provider and (separately) external button. Replace skin using the supported JavaFX setSkin API with a new JInvTextFieldButtonSkin, confirm former skin dispose invoked and new skin active; pulse correctly (no sleeps or fabricated focus). Exercise focus transitions, text edits, width/layout change, externalButton toggles, ordinary LOV changes and same-turn unbind. Record old vs new wrapper text/visibility/pseudo-class/tooltip/handlers and whether old skin methods still run. Use controlled diagnostic subclass or temporary reflection only in ignored diagnostics, never reflect into JavaFX internals for an official test.
+3. Distinguish direct unmanaged listeners from registerChangeListener managed by SkinBase. Establish a grounded strong-reference ownership path or retained callbacks, but do NOT rely on nondeterministic GC as the sole correctness test. If actual skin disposal already detaches a callback via a supported mechanism, record that fact rather than assuming.
+4. Determine whether stale skin can affect business value/model or only stale UI/resources; count model notifications and action routing, including old JInvWrapButton retained bindings. Test field without LOV as a low-memory sentinel. Check whether old skin can retain an old inner button after new skin becomes active; new wrapper may start empty.
+5. Provide one *minimal future fix* if confirmed: explicit listener ownership/removal on dispose, possibly detach old wrap bindings, using lazy handles and no extra per-JInvTextField instance memory. Do NOT change external-vs-inner button precedence contract or CTRL-034 ownership. Distinguish correctness issue from memory-only issue. If impact is limited to unsupported skin replacement, recommend NO CHANGE.
+6. Keep investigation strictly within one-hour timebox. Publish `## Reply CTRL-048` in `docs/codex/outbox.md` on mailbox branch with SOURCE-PROVEN, CONFIRMED runtime, HYPOTHESIS, UNKNOWN, concrete code paths, event counts, whether reproduction is deterministic, actual HEAD, and one narrow next task or NO_CHANGE. No commit, no production changes, no tracked test changes. No self-assigned CTRL-049.
+
+### Global boundaries
+GitHub writes allowed only to mailbox outbox for the reply. Do not write production, `main`, `JInvCommon`, CTRL-014, CTRL-034 or CAL-TIME-001. Do not introduce eager listener/state allocation on all fields. If a branch conflict, dirty worktree, broken baseline, or required environment prevents test, report BLOCKED with evidence, not invented PASS. The architect will review the report and conditionally assign the next task.
 
