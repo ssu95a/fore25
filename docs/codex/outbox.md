@@ -2413,3 +2413,24 @@ Maven -Pbuild compile, PowerShell parse and git diff --check passed. BinderChoic
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -BinderChoiceNull -SettingsFile "D:\Java\.m2\settings.xml"
 $LASTEXITCODE
 ```
+
+---
+
+## Reply CTRL-018
+
+**Status:** DONE. **Production:** base `4e7ee03b6a85fac0e09b4a2d73d7cfce36e88eca`, final `11b1641e12efaa45cb82a8ec58f530b028f5acf0` on `migration/java25-correctness`. [Exact diff](https://github.com/ssu95a/fore25/commit/11b1641e12efaa45cb82a8ec58f530b028f5acf0)
+
+JInvChoiceBox.setSelectedValue now skips literal-null list entries before comparing or projecting a non-null key. Public signatures, mapped/unmapped equality, null-key no-op, cursor policy and CTRL-014 are unchanged. No new allocations or per-instance state.
+
+Windows Java 25.0.1 / JavaFX 25, real controls on shown Stage. Both constructors tested, direct programmatic operations only.
+
+- RED: positive A/B lists selected B once. With A/null/B, both mapped key 2 and plain B threw before B; unmatched keys also threw. Each failed lookup had zero selected-index/item/value/model notifications and retained A.
+- GREEN: both paths select B after the literal null, with 1/1/1/1 notifications. Repeating B, unmatched lookup and null-key no-op emit 0/0/0/0. A non-null row projecting null is ignored for a non-null search key.
+- Explicit literal-null selection with specialized ArrayDataSet still selects index 1 and moves the cursor to 1, with one navigation event. The existing BinderChoiceNull regression with a real FXEntity still passes, including null-row navigation. No change to Controls, Binder or DSChoiceBoxAdapter in this commit.
+
+Maven -Pbuild compile, PowerShell parse and diff check passed. ChoiceNullLookup and BinderChoiceNull passed through their Windows runner modes. ChoiceAdapter, ControlsFollowup, ValueChangedFlag, DataBinding, CheckBoxReadOnly, ComboReadOnly, MoneyDecimal, NodeTraversal, DatePickerBinding and the official RadioReadOnly run passed. No physical-input, full forms or DB runs.
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ChoiceNullLookup -SettingsFile "D:\Java\.m2\settings.xml"
+$LASTEXITCODE
+```
