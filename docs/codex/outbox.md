@@ -2678,3 +2678,49 @@ CONFIRMED retained stale binding: setLOV then unbindLOV in the same FX turn leav
 **DONE / NO_CHANGE (READ-ONLY).** HEAD unchanged at `dce04163498221af2f86c8eaec84d77d3974dfc6`. DSFXAdapter.setDataSet explicitly rejects replacing a bound TableView Dataset; DSControlAdapter supports row/navigation listener replacement for separately bound controls. Table bind installs view handlers, selection listener, item projection and metadata; close removes Dataset/mark/row/navigation listeners and clears Dataset, but is not a table-handler unbind contract. Current launcher/binder usages do not establish close-and-reuse of the same table as supported.
 
 Fresh JavaFX 25 GUI-009-derived probe: A/B/C render and row identity, navigation 0→1→2 and refresh passed. setDataSet(null) rejected with UnsupportedOperationException, leaving adapter Dataset and selection identity unchanged. After close, independent late row/navigation/Dataset observers fired and adapter counts stayed navigation=3, rows=0, dataset=1, with stable selection. No unsupported A→B scenario fabricated. Recommendation: retain fresh table/adapter lifecycle; define teardown and ownership explicitly before any future same-table rebind support. Corporate SQL integration UNKNOWN.
+
+---
+
+## Reply CTRL-041
+
+**DONE / regression battery.** Stable clean implementation HEAD `dce04163498221af2f86c8eaec84d77d3974dfc6`. Fresh Windows Java 25.0.1 / JavaFX 25 processes, all exit 0:
+
+| Mode | Exit | Mode | Exit |
+| --- | --- | --- | --- |
+| SingletonCloseVeto | 0 | SingletonLifecycleMatrix | 0 |
+| ValidatorScopedUnbind | 0 | ValidatorMultiControl | 0 |
+| FormCancel | 0 | FormLifecycle | 0 |
+| DataBinding | 0 | LovListenerLifecycle | 0 |
+| LovDefaultValidation | 0 | LovIntegration | 0 |
+| SceneKeyLookup | 0 | ChoiceNonNullSet | 0 |
+| BinderChoiceNull | 0 | RadioReadOnly | 0 |
+| ControlsFollowup | 0 | LovButtonReattach | skipped, CTRL-034 BLOCKED |
+
+Maven -Pbuild compile, PowerShell parse and diff check passed. No implementation commit for this battery. Independent user acceptance, physical input, corporate DB/modal and MDI/WAIT remain UNKNOWN.
+
+---
+
+## Mission Summary CTRL-032–041
+
+Four implementation-branch commits, fast-forward and verified; HEAD `dce04163498221af2f86c8eaec84d77d3974dfc6`. Two production fixes, two test-only commits, four read-only audits, one local blocker and one final battery. All ten Replies are in this outbox.
+
+| Task | Status | Implementation commit or decisive result |
+| --- | --- | --- |
+| CTRL-032 | DONE | `cad4dfd39cda4cb1f23bb8610d7ab24c00123bb5` — RED 2 visible after veto; GREEN 1, 0 callbacks; accepted close/reopen once each |
+| CTRL-033 | DONE | `562b9a917a6c708dd6f18cb10112a6aca3d7653f` — opposite-control validator calls 0 → 1 in both orders; one notification per edit |
+| CTRL-034 | BLOCKED | Same/new field reattach: two bound-disable exceptions; action pair and inherited metadata diverged; binding ownership decision required |
+| CTRL-035 | DONE / test-only | `aba018ab2e14bab5c774668d3ab9b74d32ae7fa1` — rejected OK retains owner; one callback/cleanup per closure including controlled init failure |
+| CTRL-036 | DONE / test-only | `dce04163498221af2f86c8eaec84d77d3974dfc6` — six blur dispatches, six model events, shared/distinct calls 4/2 |
+| CTRL-037 | DONE / read-only | Reparented control dispatch M1/M2 3/1 including explicit M2 call; supported production reuse UNKNOWN |
+| CTRL-038 | DONE / read-only | Direct property mutations skip button/listener setup; bound setter can throw after detaching old listener; external contract UNKNOWN |
+| CTRL-039 | DONE / read-only | Same-turn unbind can leave stale action/text bindings on wrapper; one active-provider model write, zero detached writes |
+| CTRL-040 | DONE / no change | Bound-table rebind explicitly unsupported; late A events after close did not reach adapter |
+| CTRL-041 | DONE | 15 fresh smoke processes exit 0; CTRL-034 mode skipped |
+
+Three priorities for architect decision:
+
+1. Guard deferred wrapper binding against an obsolete inner button, with same-turn unbind/replacement coverage.
+2. Define JInvLOVButton binding ownership and same-mode transfer before fixing reattachment. Preserve caller-provided bindings and exclusive modes.
+3. Specify writable lovProperty lifecycle and failure atomicity for externally bound properties before changing public behaviour. Keep lazy allocation.
+
+No mission changes to main, JInvCommon, CTRL-014 or CAL-TIME-001. No successor task assigned.
