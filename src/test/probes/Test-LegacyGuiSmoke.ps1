@@ -12,6 +12,8 @@ param(
     [switch] $DataBinding,
     [Parameter(ParameterSetName = 'FormLifecycle')]
     [switch] $FormLifecycle,
+    [Parameter(ParameterSetName = 'FormCancel')]
+    [switch] $FormCancel,
     [Parameter(ParameterSetName = 'TextFields')]
     [switch] $TextFields,
     [Parameter(ParameterSetName = 'ValueFields')]
@@ -72,6 +74,9 @@ if ($Editors) {
 } elseif ($FormLifecycle) {
     $probeId = 'GUI-010'
     $probeClass = 'ru.inversion.fx.form.LegacyFormLifecycleSmoke'
+} elseif ($FormCancel) {
+    $probeId = 'CTRL-022'
+    $probeClass = 'ru.inversion.fx.form.LegacyFormCancelSmoke'
 } elseif ($TextFields) {
     $probeId = 'GUI-012'
     $probeClass = 'LegacyTextFieldsSmoke'
