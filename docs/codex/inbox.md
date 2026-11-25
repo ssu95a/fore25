@@ -3480,7 +3480,7 @@ CTRL-053 fixed managed scene/editable subscriptions, action registration and too
 
 ## BATCH CTRL-067…CTRL-074 — System correctness and performance research
 
-**Status:** ACTIVE / ASSIGNED — user approved all eight tasks for a single sequential session.
+**Status:** CLOSED / ARCHITECT REVIEWED — all eight PARTIAL / READ-ONLY replies received; remaining unknowns retained. Production unchanged. Follow-up fixes authorized separately.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox:** agent/codex-mailbox
@@ -3499,7 +3499,7 @@ Publish exactly one Reply CTRL-0XX after each task with DONE/READ-ONLY, NO_DEFEC
 
 ## MESSAGE CTRL-067
 
-**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Status:** PARTIAL / READ-ONLY / ARCHITECT REVIEWED — report received, residual scope not closed
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-067
 **Task:** AUDIT — DSFXAdapter bulk fetch/search lifecycle after close
@@ -3510,7 +3510,7 @@ CTRL-051/064/065 closed keyboard, mouse, scroll subscriptions and deferred PageD
 
 ## MESSAGE CTRL-068
 
-**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Status:** PARTIAL / READ-ONLY / ARCHITECT REVIEWED — report received, residual scope not closed
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-068
 **Task:** AUDIT — Table editing commit/cancel on row navigation
@@ -3521,7 +3521,7 @@ Read actual JInvTable, cell editor/adapter implementations and existing TableEdi
 
 ## MESSAGE CTRL-069
 
-**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Status:** PARTIAL / READ-ONLY / ARCHITECT REVIEWED — report received, residual scope not closed
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-069
 **Task:** AUDIT — Table editing refresh/sort/replacement during active editor
@@ -3532,7 +3532,7 @@ Inspect supported refresh, sort, execute, row update/removal and editor paths; u
 
 ## MESSAGE CTRL-070
 
-**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Status:** PARTIAL / READ-ONLY / ARCHITECT REVIEWED — report received, residual scope not closed
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-070
 **Task:** AUDIT — Binder successful binding lifecycle and ownership
@@ -3543,7 +3543,7 @@ Extend CTRL-057 evidence (partial bind confirmed, rollback contract unknown) by 
 
 ## MESSAGE CTRL-071
 
-**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Status:** PARTIAL / READ-ONLY / ARCHITECT REVIEWED — report received, residual scope not closed
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-071
 **Task:** AUDIT — Business form partial initialization and close lifecycle
@@ -3554,7 +3554,7 @@ Inspect AbstractBaseController launch/init/bindControls and actual lifecycle pat
 
 ## MESSAGE CTRL-072
 
-**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Status:** PARTIAL / READ-ONLY / ARCHITECT REVIEWED — report received, residual scope not closed
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-072
 **Task:** AUDIT — DataSet adapter repeated execute/refresh and cursor integrity
@@ -3565,7 +3565,7 @@ Read actual DataSet event/adapter paths in fore25 and available dependency contr
 
 ## MESSAGE CTRL-073
 
-**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Status:** PARTIAL / READ-ONLY / ARCHITECT REVIEWED — report received, residual scope not closed
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-073
 **Task:** AUDIT — LOV residual callback and attachment paths
@@ -3576,9 +3576,68 @@ Read accepted CTRL-050/061/062/063 and source. CTRL-062 diagnostic TextField for
 
 ## MESSAGE CTRL-074
 
-**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Status:** PARTIAL / READ-ONLY / ARCHITECT REVIEWED — report received, residual scope not closed
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-074
 **Task:** AUDIT — Performance and memory audit — DataSet/Binder/table hot paths
 
 Read actual code at verified HEAD; rank candidates by correctness first, then CPU/allocation/retention impact. Inspect navigation/refresh/sort/event dispatch, collection traversal complexity, duplicate data/cache, per-row/per-cell/per-control allocation, repeated binding/converter/editor construction, redundant notifications and form initialization. For top 2–3 candidates use reproducible controlled fixture and available JDK tools (JFR or allocation counters if installed and practical), warmed repeat measurements, record JDK/FX versions, heap/fixture sizes, iterations, workload, median/range, allocation units and measurement limitations; vary N to assess scaling, distinguish source-derived complexity from measured data. FX thread normal; no generic synchronization optimization. Do not confuse allocated bytes with retained heap or infer byte savings from field counts. No external dependencies, profiler install, production code or tracked test changes. If measurement unavailable, give source evidence and precise proposed benchmark, not invented numbers. Deliver ranked candidate table with location, evidence, CPU/memory tradeoff, estimated scope/risk, correctness prerequisites and next smallest experiment. Include final batch summary of all eight replies, unchanged SHA, blockers and recommended next 3–5 RED→GREEN tasks ranked by actual evidence.
+
+---
+
+## BATCH CTRL-075…CTRL-078 — data integrity and stale delivery corrections
+
+**Status:** ACTIVE / ASSIGNED — user approved all four corrections in one sequential session.
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Mailbox branch:** agent/codex-mailbox
+**Baseline remote HEAD:** 6ccb4403d9322c3d4160f6513f6498fe003f9a5e
+**Budget:** 270 minutes (90+60+60+60), ceiling.
+**Dependency:** CTRL-067…074 read-only reports at mailbox 7e3d6fe2 reviewed; CTRL-062…066 user accepted.
+
+### Latest authorization and common execution contract
+Execute only CTRL-075…078 sequentially, no intermediate confirmations needed within the explicit scopes. Highest priority CTRL-075. Before each task and reply verify clean checkout, actual production HEAD and fresh mailbox; each next task uses preceding verified HEAD. No reset to historical baseline. Recover ignored research fixtures where available, but reproduce tracked deterministic RED on unchanged production before edits; use real Java 25/FX25 shown Stage for UI, controlled in-memory Dataset and FX barriers, positive controls, exact entity identity and model/callback counts, no arbitrary sleeps, JavaFX internals reflection or test-only production hooks. Same assertions GREEN after fix; official runner mode, three fresh JVMs, relevant existing regression modes, Maven -Pbuild compile, PowerShell parse, diff check. One isolated validated fast-forward production commit per fix and one Reply per task, verify remote SHA. No assertion weakening or incomplete production push. If CTRL-075 cannot be reliably fixed, report BLOCKED/PARTIAL, do not claim wrong-row correctness, and continue independent tasks only if clean baseline and no shared regressions; stop entire batch on dirty/conflicting state, failed shared regression or unreliable infrastructure. No speculative fixes. Main and JInvCommon read-only, no force push/destructive reset, dependency/public API changes or unrelated cleanup. No new eager per-control objects; minimize instance state and account for allocations. Russian Java comments. Preserve legacy contracts, transactions, FX thread policy, CTRL-014/034 and CAL-TIME-001. No SQL rollback/cancellation guarantees, no real corporate DB writes. Report exact baseline/final SHA, RED/GREEN commands/exits, actual counts, scope, allocation changes, unknowns and Windows rerun with -SettingsFile "D:\Java\.m2\settings.xml". User acceptance remains separate. Stop after CTRL-078, no further self-assignment.
+
+---
+
+## MESSAGE CTRL-075
+
+**Status:** ASSIGNED / ACTIVE FOUR-TASK BATCH
+**Timebox:** 90 minutes
+**Reply ID:** CTRL-075
+**Task:** FIX / CRITICAL — JInvTextFieldTableCell synthetic cancel commit writes wrong row
+
+CTRL-069 reproduced wrong-entity writes on actual JInvTable, DSFXAdapter, JInvTextFieldTableCell and shared ObservableList ArrayDataSet: edit A at index 0, enter draft, arm via synthetic MOUSE_PRESSED, replace A with X/remove A/reorder descending. Synchronous cancelEdit commits to X/B/C respectively instead of A. Unarmed mutations produce zero commits. CTRL-068 normal F8 writes A once. Recover target/ctrl-table-research/EditAudit.java. Read actual renderer and adapter commit path, prior GUI-006/TableCancel/EditorReentry contracts. RED tracked probe on same actual production paths; require original row object identity, distinguish equal-valued distinct entities and duplicate sort keys, track actual model write target and event row identity, exact commit counts. Test armed replacement/removal/permutation, unarmed variants, valid same-row mouse-armed commit, ordinary F8/ENTER and Escape as supported, same-index cell reuse/reentry and conversion rejection where feasible. Test reentry after invalidated edit and subsequent legitimate edit. Do not substitute equality/index/current cursor for original entity identity. Only permitted production class JInvTextFieldTableCell. Minimal guard of synthetic cancel commit against original edit identity and valid position/column/table as applicable; capture identity at correct lifecycle boundary and clear marker/reference on cancel/commit/reentry; don't retain row on idle virtualized cells. Do not silently redirect commit to another index or write original entity after removal. If position no longer identifies original row, suppress synthetic commit; draft recovery/UI notification policy remains separate UNKNOWN, report clearly that invalidated draft may be discarded under existing cancel behavior. Preserve same-row commit and Escape, no changes to normal commit semantics, sorting, DataSet/Binder or transactions. GREEN zero wrong-row writes and zero synthetic commit for invalidated row, positive valid commit exactly once; verify replacement with equal-valued distinct object. If a different ordinary commit path is also defective, report separately rather than expanding production scope. New focused -TableEditRowIdentity mode. Regressions TableEditing, TableCancel, EditorReentry, DataBinding, TableAdapterClose, TableAdapterPagingClose and relevant conversion/validation modes. Record actual test coverage, no claim of server-side sort/SQL reproduction.
+
+---
+
+## MESSAGE CTRL-076
+
+**Status:** ASSIGNED / ACTIVE FOUR-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-076
+**Task:** FIX — DSFXAdapter bulk moveToLast/rowLoader after close
+
+CTRL-067 reproduced two NPE and one stale selection after adapter close during nested progress loop: moveToLast restores navigation listener through null getDataSet; rowLoader queues selection and cursor positioning after close. Active bulk selects C and sets cursor 2. Recover target/ctrl-067-research/BulkLifecycleAudit.java; read actual DSFXAdapter/DSControlAdapter/ProgressTaskExecutor paths. Deterministic tracked RED with controlled in-memory Dataset, real shown table, progress lifecycle and explicit ordering barriers; active normal completion and close twice before queued delivery, late Dataset observers; capture errors and exact listener ownership, selection/cursor/model changes. Where feasible exercise close between separate queued deliveries and verify active listener restoration, not just null guards. Only DSFXAdapter production. Capture originating attachment, ensure same still-live attachment before restoring navigation listener or delivering each selection/cursor action. Never re-register adapter to retired dataset; preserve active normal behavior and independent listener registrations, do not simply replace null with captured Dataset and mutate retired data. Minimize state, reuse existing lifecycle identity if appropriate and proven. No changes to worker scheduling, fetch loop, SQL transaction/cancellation semantics, ProgressTaskExecutor/Service or search callback policy; separate stale search result/exception-safe search listener candidate. No guarantee of stopping already-running SQL. GREEN closed bulk zero NPE, zero obsolete selection/cursor requests, no restored retired adapter listener; active normal selection and cursor preserved. New focused -TableAdapterBulkClose mode. Regressions TableAdapterClose, TableAdapterPagingClose, DataBinding, TableEditing, TableCancel, EditorReentry and CTRL-075 if available. Report untested blocking SQL, cancellation/error routes.
+
+---
+
+## MESSAGE CTRL-077
+
+**Status:** ASSIGNED / ACTIVE FOUR-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-077
+**Task:** FIX — DSFXAdapter queued positionRow/dataSetChanged deliveries after close
+
+CTRL-072 showed queued navigation and AFTER EXECUTE refresh issued while open survived close twice: one obsolete selection X and one extra refresh; notifications raised after close already correctly detached. Active navigation and three ordered refresh deliveries work. Recover target/ctrl-072-research/RefreshAudit.java. Read actual latest adapter after CTRL-076. RED on real shown table with genuine Dataset notifications and deterministic queue barriers; active cursor movement, active refresh burst, pending positionRow and dataSetChanged then close in same turn, each pending route isolated and combined, repeated close, late external observer notifications. Test fresh adapter on fresh table where supported, no same-table rebind contract. Only DSFXAdapter production. Guard each queued delivery against originating still-live attachment, before any table/data access; use existing identity/lifecycle state where suitable, no extra per-event wrapper object beyond existing queued callback unless justified. Preserve active event order/count and cursor/selection behavior. No coalescing, refresh optimization, sorting or general Dataset mutation changes. Do not infer SQL corruption from direct shared list changes bypassing Dataset APIs. GREEN zero stale refresh/selection/cursor/model effects, active positive counts unchanged, external observers unaffected. New focused -TableAdapterQueuedClose mode. Regressions TableAdapterClose, TableAdapterPagingClose, TableAdapterBulkClose if available, DataBinding, TableEditing, TableCancel, EditorReentry and CTRL-075. Report remaining SQL/cursor contract limitations.
+
+---
+
+## MESSAGE CTRL-078
+
+**Status:** ASSIGNED / ACTIVE FOUR-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-078
+**Task:** FIX — JInvTextField retired LOV completion and stale navigation
+
+CTRL-073 24-case diagnostic: direct/F9/external button × keep/replace/detach/ABA × accepted/cancelled. Completion alone zero model writes, draft preserved; stale accepted result nevertheless forwarded true and F9/button emitted TAB. Architect approves matching CTRL-062 policy: a completion from retired attachment is delivered as false/cancelled exactly once per provider completion with original reporting provider, never as accepted; no accepted focus/navigation side effect. Existing cancellation branch may request focus as before; do not claim zero cancellation focus. Recover target/ctrl-073-research/ResidualLovAudit.java. Read current JInvTextField.showLOV/setLOV/unbindLOV, CTRL-044/045/062 contracts. RED actual shown Stage, controllable deferred provider, A→B, A→null, A→B→A, current acceptance/cancel, repeated same-provider setter, overlapping current requests, bound setter rejection, ordinary current-provider updates, readOnly behavior, direct caller and actual F9/button callback routes. Count actual callback Boolean/provider, TAB intent, focus requests and model writes separately; retain distinct drafts. Only JInvTextField production. Use attachment lifetime/epoch, not provider identity alone; prefer existing lazy state if suitable, no eager object allocation on unused control, justify minimal primitive/reference cost if necessary. Invalidate only successful attachment transitions, preserve same-provider repeat, bound failure atomicity and existing callback semantics for current choices. Do not introduce latest-wins for overlapping current requests or provider API change. Direct writable lovProperty mutations, reattached-provider value notifications (no request identity), readOnly policy, button precedence, CTRL-034 and actual focus traversal outside scope. GREEN stale accepted converted to false, zero stale TAB/accepted focus branch and unchanged draft, current valid routes preserve counts. New focused -TextFieldLovDelayedCompletion mode. Regressions TextAreaLovDelayedCompletion, ExternalLovReadOnly, LovListenerLifecycle, LovIntegration, LovDefaultValidation, BoundLovSetter, LovBindingInterleaving, TextFieldSkinDisposal, WrapButtonOwnership, TextAreaLovLifecycle. Final reply includes batch summary of four statuses, exact final HEAD, confirmed fixes, residual UNKNOWN and stop. No performance optimization tasks authorized.
