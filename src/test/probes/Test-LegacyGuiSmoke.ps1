@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'TabPaneSkinListeners')]
+    [switch] $TabPaneSkinListeners,
     [Parameter(ParameterSetName = 'TextAreaSkinDisposal')]
     [switch] $TextAreaSkinDisposal,
     [Parameter(ParameterSetName = 'ValidatorSubchanges')]
@@ -87,7 +89,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($TextAreaSkinDisposal) {
+if ($TabPaneSkinListeners) {
+    $probeId = 'CTRL-054'
+    $probeClass = 'TabPaneSkinListenersSmoke'
+} elseif ($TextAreaSkinDisposal) {
     $probeId = 'CTRL-053'
     $probeClass = 'TextAreaSkinDisposalSmoke'
 } elseif ($ValidatorSubchanges) {

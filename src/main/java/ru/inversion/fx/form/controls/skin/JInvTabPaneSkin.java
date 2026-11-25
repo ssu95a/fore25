@@ -27,6 +27,7 @@ public class JInvTabPaneSkin extends TabPaneSkin {
 
     private final static Logger logger = getLogger( lookup().lookupClass() );
     private Number prefWidth;
+    private boolean leftLookInstalled;
 
     /**
      Creates a new TabPaneSkin instance, installing the necessary child
@@ -42,45 +43,47 @@ public class JInvTabPaneSkin extends TabPaneSkin {
     private void initialise( final JInvTabPane control ) {
         control.setTabClosingPolicy( TabPane.TabClosingPolicy.UNAVAILABLE );
 
-        control.prefWidthProperty().addListener( ( v, o, n ) -> {
-//            logger.info( "prefWidth v={}, o={}, n={}",v,o,n );
-            if ( n.doubleValue() > 0 ){
-                this.prefWidth = n;
+        registerChangeListener(control.prefWidthProperty(), observable -> {
+            if (control.getPrefWidth() > 0) {
+                this.prefWidth = control.getPrefWidth();
             }
-        } );
-//        logger.info( "JInvTabPaneSkin init: side={}", control.getSide() );
+        });
+        registerChangeListener(control.sideProperty(), observable -> updateLeftLook(control));
+        updateLeftLook(control);
+    }
 
-        control.sideProperty().addListener( inval -> {
-//            logger.info( "sideProperty inval: side={}", control.getSide() );
+    private void updateLeftLook(JInvTabPane control) {
+        if (control.getSide() != Side.LEFT) {
+            return;
+        }
+        control.pseudoClassStateChanged(left, true);
+        pseudoClassStateChanged(left, true);
+        control.getTabs().forEach(this::initLeftTabLook);
 
-            if ( control.getSide() != Side.LEFT ) {
-                return;
-            }
-            control.pseudoClassStateChanged( left, true );
-            pseudoClassStateChanged( left, true );
-
-            control.getTabs().forEach( this::initLeftTabLook );
-
-            control.getTabs().addListener( (ListChangeListener<? super Tab>) change -> {
-                while ( change.next() ) {
-                    if ( change.wasAdded() ) {
-                        change.getAddedSubList().forEach( this::initLeftTabLook );
+        if (!leftLookInstalled) {
+            leftLookInstalled = true;
+            registerListChangeListener(control.getTabs(), change -> {
+                while (change.next()) {
+                    if (change.wasAdded()) {
+                        control.getTabs().subList(change.getFrom(), change.getTo()).forEach(this::initLeftTabLook);
                     }
                 }
-            } );
-            Platform.runLater( () -> {
-                control.setRotateGraphic( true );
-            } );
-
-        } );
-
-
-
+            });
+        }
+        Platform.runLater(() -> {
+            if (getSkinnable() != null) {
+                control.setRotateGraphic(true);
+            }
+        });
     }
 
     private void initLeftTabLook( final Tab tab ) {
         //Срабатывает ПОСЛЕ JInvTabPane.addDragSupport
         Platform.runLater( () -> {
+
+        if (getSkinnable() == null) {
+            return;
+        }
 
         Boolean isInitialised = (Boolean) tab.getProperties().getOrDefault( HORIZONTAL_LEFT_TAB, false );
         if ( isInitialised ){
