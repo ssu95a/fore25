@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'TextAreaToolbarOwnership')]
+    [switch] $TextAreaToolbarOwnership,
     [Parameter(ParameterSetName = 'TableAdapterPagingClose')]
     [switch] $TableAdapterPagingClose,
     [Parameter(ParameterSetName = 'TextAreaLovDelayedCompletion')]
@@ -97,7 +99,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($TableAdapterPagingClose) {
+if ($TextAreaToolbarOwnership) {
+    $probeId = 'CTRL-066'
+    $probeClass = 'TextAreaToolbarOwnershipSmoke'
+} elseif ($TableAdapterPagingClose) {
     $probeId = 'CTRL-065'
     $probeClass = 'TableAdapterPagingCloseSmoke'
 } elseif ($TextAreaLovDelayedCompletion) {

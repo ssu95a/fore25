@@ -15,6 +15,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -32,6 +33,7 @@ import ru.inversion.fx.app.service.exteditor.ExtensionType;
 import ru.inversion.fx.app.service.exteditor.ExternalEditorManager;
 import ru.inversion.fx.form.ActionFactory;
 import ru.inversion.fx.form.action.IAction;
+import ru.inversion.fx.form.action.JInvAction;
 import ru.inversion.fx.form.action.JInvEvent.PlaceType;
 import ru.inversion.fx.form.action.JInvKeyboardManager;
 import ru.inversion.fx.form.action.JInvParallelAction;
@@ -58,6 +60,17 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
     private boolean disposed;
     private IAction externalEditorAction;
     private List<Pair<Node, IAction>> registeredActions;
+    private final EventHandler<ActionEvent> editorButtonHandler = this::editInExtEditor;
+    private JInvAction editorButtonAction;
+    private final InvalidationListener buttonWidthListener = observable -> {
+        double size = getMaxItemWidth();
+        for (Node node : toolBar.getItems()) {
+            if (node instanceof ButtonBase button) {
+                button.setPrefWidth(size);
+            }
+        }
+    };
+    private final ListChangeListener<Node> toolbarItemsListener = this::toolbarItemsChanged;
 
 
     public JInvFEButton getFeButton() {
@@ -119,6 +132,12 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
         disposed = true;
         updateExternalEditorAction(null);
         externalEditorAction = null;
+        toolBar.getItems().removeListener(toolbarItemsListener);
+        toolBar.getItems().forEach(this::stopTrackingButtonWidth);
+        if (editorButtonAction != null && editorButtonAction.getHandler() == editorButtonHandler) {
+            editorButtonAction.setHandler(null);
+        }
+        editorButtonAction = null;
         toolBar.visibleProperty().unbind();
         feButton.visibleProperty().unbind();
         TextArea area = getSkinnable();
@@ -138,14 +157,17 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
         toolBar.applyCss();
 
         //Применение стиля к добавленным кнопкам
-        toolBar.getItems().addListener((ListChangeListener<? super Node>) c -> c.getList().forEach( this::setButtonStyle ));
+        toolBar.getItems().addListener(toolbarItemsListener);
 
         feButton = new JInvFEButton(textArea);
         feButton.visibleProperty().bind( textArea.buttonFEVisibleProperty() );
 
         toolBar.getItems().add(feButton);
 
-        Button edButton = ActionFactory.createButton(ActionFactory.ActionTypeEnum.EDIT_EXTERNAL, this::editInExtEditor);
+        Button edButton = ActionFactory.createButton(ActionFactory.ActionTypeEnum.EDIT_EXTERNAL, editorButtonHandler);
+        if (edButton.getOnAction() instanceof JInvAction action) {
+            editorButtonAction = action;
+        }
         edButton.setTooltip(new Tooltip(bundle.getString("TOOLTIP_EDIT_IN_EXTERNAL_EDITOR")));
         registerChangeListener(textArea.editableProperty(), observable -> {
             if (textArea.isEditable()) {
@@ -180,19 +202,24 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
         }
     }
 
-    private void setButtonStyle(Node b) {
-        if (b instanceof Button) {
-            final InvalidationListener listener = observable -> {
-                double size = getMaxItemWidth();
-                for (Node node : toolBar.getItems()) {
-                    if( node instanceof ButtonBase ){
-                        ( (ButtonBase) node ).setPrefWidth(size);
-                    }
-                }
-            };
-            ( (ButtonBase) b ).widthProperty().addListener( listener );
-            b.pseudoClassStateChanged( PseudoClass.getPseudoClass("toolbar-vertical"), true );
-            ((Button) b).setMaxWidth(Double.MAX_VALUE);
+    private void toolbarItemsChanged(ListChangeListener.Change<? extends Node> change) {
+        while (change.next()) {
+            change.getRemoved().forEach(this::stopTrackingButtonWidth);
+            change.getAddedSubList().forEach(this::setButtonStyle);
+        }
+    }
+
+    private void stopTrackingButtonWidth(Node item) {
+        if (item instanceof Button button) {
+            button.widthProperty().removeListener(buttonWidthListener);
+        }
+    }
+
+    private void setButtonStyle(Node item) {
+        if (item instanceof Button button) {
+            button.widthProperty().addListener(buttonWidthListener);
+            button.pseudoClassStateChanged(PseudoClass.getPseudoClass("toolbar-vertical"), true);
+            button.setMaxWidth(Double.MAX_VALUE);
         }
     }
 
