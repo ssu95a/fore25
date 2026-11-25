@@ -3317,7 +3317,7 @@ CTRL-046 reproduced cached action after settled detach; CTRL-043 fixed deferred 
 
 ## BATCH CTRL-056…CTRL-060 — five-task sequential audit and verification
 
-**Status:** ACTIVE / ASSIGNED — architect releases all five tasks for one sequential batch session.
+**Status:** DONE / ARCHITECT REVIEWED — five read-only replies received, 23/23 agent regression modes exit 0, production unchanged. No independent Windows rerun claimed.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox:** agent/codex-mailbox
@@ -3332,7 +3332,7 @@ The user approved this five-task batch. This overrides older manual-only and can
 
 ## MESSAGE CTRL-056
 
-**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH — READ-ONLY
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-056
 **Task:** AUDIT — ValidMan reparenting / ownership
@@ -3343,7 +3343,7 @@ CTRL-037 runtime: moved control still dispatches blur to former manager. Read ac
 
 ## MESSAGE CTRL-057
 
-**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH — READ-ONLY
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-057
 **Task:** AUDIT — Binder partial bind failure
@@ -3354,7 +3354,7 @@ CTRL-023 runtime: exception leaves successful controls bidirectionally attached.
 
 ## MESSAGE CTRL-058
 
-**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH — READ-ONLY
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-058
 **Task:** AUDIT — SceneKeyManager action selection
@@ -3365,7 +3365,7 @@ CTRL-024 plus triage: candidate picked before enabled/security checks. Inspect a
 
 ## MESSAGE CTRL-059
 
-**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH — READ-ONLY
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-059
 **Task:** AUDIT — AddLinkPane external/inner LOV precedence
@@ -3376,9 +3376,32 @@ CTRL-046 runtime and actual AddLinkPane external-first order: both buttons visib
 
 ## MESSAGE CTRL-060
 
-**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH — READ-ONLY
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-060
 **Task:** VERIFY — cross-task regression and ownership audit
 
 Read-only on final verified production HEAD. Run official focused modes for all newly pushed fixes plus existing TextFields, ControlsFollowup, WrapButtonDeferred, BoundLovSetter, LovBindingInterleaving, LovListenerLifecycle, LovDefaultValidation, LovIntegration, FormCancel, FormLifecycle, TextFieldSkinDisposal, TextAreaLovLifecycle if available, adapter/ValidMan relevant modes, Maven -Pbuild compile, PowerShell parse and diff checks within remaining time. Report actual exit codes, skipped modes/reasons (CTRL-034 unsupported scenario excluded), failures without hiding, exact SHAs and per-file scope; no production changes. Compare added instance fields, eager allocations and registration counts per control/skin from diffs; no invented retained-byte metrics. Summarize 10 tasks with DONE/NO_CHANGE/BLOCKED/PARTIAL/NOT_RUN, unresolved contracts, next triage. Stop after mission.
+
+---
+
+## MESSAGE CTRL-061
+
+**Status:** ASSIGNED — HIGH / RED→GREEN external LOV readOnly activation; standalone 60-minute timebox
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Baseline remote HEAD:** ed5533d8d03c1ca1500b65660060d47ce336e3d3
+**Reply ID:** CTRL-061
+**Dependency:** CTRL-059 reproduced defect, CTRL-060 23/23 GREEN, CTRL-049…055 user accepted.
+
+### Evidence and scope
+CTRL-059 reproduced actual AddLinkPane external-first setup: external.setTextField(field), field.setLOV(provider,true), real shown Stage. With readOnly=true inner and F9 opened zero, external Button.fire opened once and wrote model once. Source reviewed: JInvLOVButton.LOVHandler.handle delegates to field.showLOV without readOnly check. Native physical input and corporate DB UNKNOWN. Do not change external/inner precedence, restore hidden buttons, or redefine readOnly as prohibition on programmatic provider updates.
+
+1. Verify clean checkout, current remote refs and read CTRL-059 fully. Recover ignored ExternalLovAudit if available. Read JInvLOVButton, JInvChoiceButton, JInvTextField/JInvTextArea readOnly contracts and actual AddLinkPane setup. Add tracked focused ExternalLovReadOnlySmoke.java and official -ExternalLovReadOnly runner. RED on unchanged baseline: real shown Stage, external-first arrangement, count opens/copies/model events, confirm normal editable external/inner/F9 positive controls. Test explicit readOnly=true vs editable=false, both values of buttonIgnoresEditable, readOnly toggling back, ordinary provider updates while readOnly, standalone provider-only button, and existing TextArea field-delegated button behavior. Distinguish native disabled state from handler-level guard. Include callback/navigation/focus side effects where observable; blocked activation must not queue focus or navigation or open provider. Record existing behavior separately for editable=false without readOnly; preserve it. Synthetic fire is sufficient for deterministic probe, do not claim native physical clicks.
+2. Only permitted production file src/main/java/ru/inversion/fx/form/lov/JInvLOVButton.java. Minimal early activation guard for JInvTextField/JInvTextArea field-delegated LOV when explicit readOnly=true, before requestFocus/runLater/showLOV. Confirm appropriate existing isReadOnly API. Do not change ordinary TextInputControl or standalone ILov routing, direct programmatic showLOV/provider writes, buttonIgnoresEditable semantics, disable/visible bindings or common button reattachment. If TextArea has different established contract, report and restrict fix to proven TextField defect. No new fields/listeners/bindings/helper allocation. Do not tackle delayed accepted completion from retired provider (separate high priority candidate), CTRL-034, generic LOV ownership, external/inner priority, or security semantics.
+3. GREEN same assertions: blocked external activation zero opens/model writes and no navigation/focus scheduling; allowed routes preserve original positive counts, standalone and provider-only behavior, readOnly toggle restores permitted activation, ordinary programmatic provider updates retain legacy contract. Preserve CTRL-049/050/055 ownership. Report if visual enabled appearance remains unchanged (handler guard addresses data integrity, visual policy separate).
+4. Official focused plus 3 fresh JVM runs; existing TextFields, ControlsFollowup, LovIntegration, LovDefaultValidation, LovListenerLifecycle, BoundLovSetter, LovBindingInterleaving, TextFieldSkinDisposal, TextAreaLovLifecycle, WrapButtonOwnership, and relevant readOnly modes discovered in runner. Maven -Pbuild compile, PowerShell parse, diff check. One isolated validated fast-forward commit only, verify remote SHA. If reliable GREEN not achieved, BLOCKED/PARTIAL with no incomplete production push. No assertion weakening.
+5. Publish exactly one Reply CTRL-061 in docs/codex/outbox.md on mailbox branch: exact baseline/final SHA, RED/GREEN counts and exits, scope and allocation comparison, residual questions and independent Windows command with -SettingsFile "D:\Java\.m2\settings.xml". Stop after CTRL-061; no self-assignment of CTRL-062.
+
+### Boundaries
+Only ssu95a/fore25. Production migration/java25-correctness, mailbox agent/codex-mailbox. main and JInvCommon read-only. No force push/destructive reset, dependency/public API changes or unrelated files. Russian source comments. Timebox 60 minutes.
