@@ -3221,7 +3221,7 @@ Only ssu95a/fore25, production migration/java25-correctness, mailbox agent/codex
 
 ## MISSION CTRL-051…CTRL-060 — architect-authorized 8-hour sequential queue
 
-**Status:** QUEUED / conditional activation after CTRL-050 DONE (or explicit architect release if CTRL-050 BLOCKED/PARTIAL).
+**Status:** BACKLOG / AUTONOMOUS MISSION CANCELLED. No task in CTRL-051…060 is authorized to start without a separate explicit architect assignment.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox:** agent/codex-mailbox
@@ -3229,17 +3229,17 @@ Only ssu95a/fore25, production migration/java25-correctness, mailbox agent/codex
 **Baseline:** actual verified clean remote production HEAD after CTRL-050; 582a7899172c3beef845dbb2393bfc3e5d02e75f is the architect's pre-050 observation, not permission to reset. Record exact baseline for every task.
 
 ### Execution contract (applies to every task)
-This is an explicit architect assignment of all ten tasks, not self-assignment. CTRL-050 must complete and publish its own reply first; if running the previous standalone session, honor its STOP and start this mission in the next session. User Windows acceptance is separate; no need to wait for it after agent GREEN. Verify remote refs and clean checkout; fetch current mailbox before every reply and production HEAD before every task. Sequential only. No production writes on unexpected remote advancement, dirty tree, scope conflict or regression. Fast-forward only; no force push/destructive commands. Main and JInvCommon read-only. No CTRL-014, CTRL-034, CAL-TIME-001, dependency or public API changes. New Java comments in Russian.
+The user revoked autonomous execution. These ten task descriptions are backlog only. Execute exactly one separately assigned task, publish its reply, and STOP. Await architect review and independent user acceptance before the architect assigns the next task. If an earlier instruction conflicts with this rule, this rule takes precedence. If already executing a mission task, do not start another; report current state and stop safely. Verify remote refs and clean checkout; fetch current mailbox before every reply and production HEAD before every task. Sequential only. No production writes on unexpected remote advancement, dirty tree, scope conflict or regression. Fast-forward only; no force push/destructive commands. Main and JInvCommon read-only. No CTRL-014, CTRL-034, CAL-TIME-001, dependency or public API changes. New Java comments in Russian.
 
 For FIX/AUDIT→FIX: read actual source at task baseline, recover ignored triage probes if available, add one tracked focused smoke test and runner mode where justified. Deterministic RED before production edit and GREEN on same assertions, positive controls, actual callback/model counts and exceptions, official focused mode plus 3 fresh JVMs where feasible within timebox, relevant existing regressions, Maven compile, PowerShell parse, diff check. No arbitrary sleeps or JavaFX internal reflection. Do not weaken assertions. One isolated validated commit per completed fix, fast-forward publish and verify remote SHA. If unable to finish safely, no incomplete push; report PARTIAL/BLOCKED with exact obstacle. Keep test changes isolated. No new eager per-control helper/collection/listener allocations; account for instance footprint. Only named production class allowed per task. AUDIT and VERIFY are read-only in production; temporary ignored probes allowed, evidence in outbox. No production fix for unknown semantic contract. Report exact baseline/final SHA, commands/exits, RED/GREEN evidence, scope, unknowns and Windows rerun with -SettingsFile "D:\Java\.m2\settings.xml". Publish exactly one Reply CTRL-0XX per task. No claims of user acceptance.
 
-If a task is independently BLOCKED by an unresolved contract, report and continue to next independent task after restoring/verifying clean baseline without destructive operations. If tree cannot be made clean safely, remote conflict, failed shared regression, or infrastructure prevents reliable validation, stop mission and report remaining NOT_RUN. Do not let timeboxes expand or use freed time for unscheduled work; total maximum 480 min, reserve CTRL-060 budget where possible. No new tasks after CTRL-060. 
+If a task is BLOCKED by an unresolved contract, report and STOP after restoring/verifying clean baseline without destructive operations. If tree cannot be made clean safely, remote conflict, failed shared regression, or infrastructure prevents reliable validation, stop mission and report remaining NOT_RUN. Do not let timeboxes expand or use freed time for unscheduled work; total maximum 480 min, reserve CTRL-060 budget where possible. No new tasks after CTRL-060. 
 
 ---
 
 ## MESSAGE CTRL-051
 
-**Status:** QUEUED / architect assigned sequentially
+**Status:** BACKLOG / NOT ASSIGNED
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-051
 **Task:** FIX — DSFXAdapter.close / refreshCurrentRow
@@ -3250,7 +3250,7 @@ FORE25-TRIAGE priority 2: reproduced KEY_RELEASED after close on still shown tab
 
 ## MESSAGE CTRL-052
 
-**Status:** QUEUED / architect assigned sequentially
+**Status:** BACKLOG / NOT ASSIGNED
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-052
 **Task:** FIX — ValidMan multi-subchange removals
@@ -3261,7 +3261,7 @@ FORE25-TRIAGE priority 3 reproduced removeAll(v1,v3) leaving v3 active though li
 
 ## MESSAGE CTRL-053
 
-**Status:** QUEUED / architect assigned sequentially
+**Status:** BACKLOG / NOT ASSIGNED
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-053
 **Task:** AUDIT → FIX — JInvTextAreaSkin.dispose
@@ -3272,7 +3272,7 @@ Current source inspected by architect at 582a7899: direct scene and editable lis
 
 ## MESSAGE CTRL-054
 
-**Status:** QUEUED / architect assigned sequentially
+**Status:** BACKLOG / NOT ASSIGNED
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-054
 **Task:** AUDIT → FIX — JInvTabPaneSkin listener accumulation
@@ -3283,7 +3283,7 @@ Architect inspected current source: sideProperty listener adds another tabs-list
 
 ## MESSAGE CTRL-055
 
-**Status:** QUEUED / architect assigned sequentially
+**Status:** BACKLOG / NOT ASSIGNED
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-055
 **Task:** AUDIT → FIX — JInvWrapButton retired onAction ownership
@@ -3294,7 +3294,7 @@ CTRL-046 reproduced cached action after settled detach; CTRL-043 fixed deferred 
 
 ## MESSAGE CTRL-056
 
-**Status:** QUEUED / architect assigned sequentially
+**Status:** BACKLOG / NOT ASSIGNED
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-056
 **Task:** AUDIT — ValidMan reparenting / ownership
@@ -3305,7 +3305,7 @@ CTRL-037 runtime: moved control still dispatches blur to former manager. Read ac
 
 ## MESSAGE CTRL-057
 
-**Status:** QUEUED / architect assigned sequentially
+**Status:** BACKLOG / NOT ASSIGNED
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-057
 **Task:** AUDIT — Binder partial bind failure
@@ -3316,7 +3316,7 @@ CTRL-023 runtime: exception leaves successful controls bidirectionally attached.
 
 ## MESSAGE CTRL-058
 
-**Status:** QUEUED / architect assigned sequentially
+**Status:** BACKLOG / NOT ASSIGNED
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-058
 **Task:** AUDIT — SceneKeyManager action selection
@@ -3327,7 +3327,7 @@ CTRL-024 plus triage: candidate picked before enabled/security checks. Inspect a
 
 ## MESSAGE CTRL-059
 
-**Status:** QUEUED / architect assigned sequentially
+**Status:** BACKLOG / NOT ASSIGNED
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-059
 **Task:** AUDIT — AddLinkPane external/inner LOV precedence
@@ -3338,7 +3338,7 @@ CTRL-046 runtime and actual AddLinkPane external-first order: both buttons visib
 
 ## MESSAGE CTRL-060
 
-**Status:** QUEUED / architect assigned sequentially
+**Status:** BACKLOG / NOT ASSIGNED
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-060
 **Task:** VERIFY — cross-task regression and ownership audit
