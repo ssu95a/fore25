@@ -3127,3 +3127,48 @@ Notifications separately: after explicitly attaching B, retired A notification w
 Proposed minimum follow-up: define stale-result delivery contract for TextField, use attachment lifetime in completion handling and cover A→B→A plus overlapping same-provider requests and normal F9/button forwarding. Keep notification, readOnly, direct property, and provider API semantics out of that fix. Actual focus transfer and downstream form action at the next node remain UNKNOWN.
 
 Temporary target/ctrl-073-research/ResidualLovAudit.java; javac -cp "target/classes;DEP" -d target/ctrl-073-research target/ctrl-073-research/ResidualLovAudit.java; java --enable-native-access=ALL-UNNAMED -cp "target/ctrl-073-research;target/classes;DEP" ResidualLovAudit. Both compiles and both runs exit 0. DEP from CTRL-067. No tracked changes.
+
+---
+
+## Reply CTRL-074
+
+**PARTIAL / READ-ONLY — final batch report.** Baseline 6ccb4403d9322c3d4160f6513f6498fe003f9a5e. Windows JDK 25.0.1+8-LTS-27, JavaFX 25+29, heap -Xms256m -Xmx512m. Two controlled workloads ran on the FX thread. For each N: five warm-up batches and nine measured batches, 100 calls per batch. Wall time from System.nanoTime; FX-thread allocated bytes from com.sun.management.ThreadMXBean. Values are median [min–max] per call over samples.
+
+| Workload | N | µs/call | Allocated B/call |
+| --- | ---: | ---: | ---: |
+| Controls.getControlList, flat VBox/TextField | 100 | 8.29 [7.68–15.98] | 4,632 |
+| same | 1,000 | 22.77 [22.04–23.61] | 15,024 |
+| same | 5,000 | 152.11 [137.67–315.93] | 75,240 |
+| AFTER EXECUTE dispatch and FX refresh queue drain | 100 | 45.09 [41.52–59.64] | 201.2 |
+| same | 1,000 | 48.91 [43.23–69.99] | 201.2 |
+| same | 10,000 | 48.34 [41.55–58.01] | 201.2 |
+
+Allocation range equals the reported median for each row. Traversal excludes control construction, CSS, Binder and FXML and checks result size. The flat detached tree is a control-count scaling fixture. Refresh uses an attached shown JInvTable, real adapter, preloaded rows and DataSet notification emitter, and validates 100 actual refresh calls per batch. That elapsed interval includes queue scheduling and can include unrelated FX work; it does not isolate CPU or capture end-to-end paint. Only the FX thread is counted. No retained heap, cell rebuild cost, SQL latency or production event-rate estimates. Temporary target/ctrl-074-research/HotPaths.java. javac -cp "target/classes;DEP" -d target/ctrl-074-research target/ctrl-074-research/HotPaths.java; java -Xms256m -Xmx512m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-074-research;target/classes;DEP" HotPaths. Compile and run exit 0. DEP from CTRL-067.
+
+### Ranked candidates
+
+| Rank | Location and evidence | Minimum next task, tradeoff and risk |
+| --- | --- | --- |
+| 1 | JInvTextFieldTableCell.cancelEdit, CTRL-069 reproduced three wrong-entity writes | RED→GREEN guard the saved edit position by original entity identity, preserving valid same-row commit and Escape. Small scope, data-integrity priority. Decide draft recovery separately. |
+| 2 | DSFXAdapter moveToLast/rowLoader, CTRL-067 two bulk NPEs and post-close selection | RED→GREEN bind cleanup and both queued deliveries to original live attachment. Preserve active selection; worker cancellation and SQL semantics need their own evidence. Small adapter scope, concurrency sequencing risk. |
+| 3 | DSFXAdapter positionRow/dataSetChanged, CTRL-072 stale refresh and selection | RED→GREEN check attachment for work queued before close; retain active ordered navigation. Small scope. Then test burst coalescing separately only if actual caller/event order permits; timing shows queue overhead, paint savings unmeasured. |
+| 4 | JInvTextField.showLOV, CTRL-073 stale success emits TAB on F9/button | Define completion policy and then RED→GREEN attachment lifetime guard for those paths. Preserve normal completion, readOnly and notifications. Small scope with direct caller callback compatibility risk. |
+| 5 | AbstractBaseController.bindControls / Controls.getControlList | Two scans around label initialization with different filters. Measured traversal allocation grows with matched controls. Profile both real form passes before sharing results; account for traversal exclusions, label effects and filter order. Modest code scope with contract risk; avoid retaining a cache per form without evidence. |
+| 6 | Binder and DSFXAdapter mark/edit rendering | TFSCnv already shared; converter bindings still attach per property. Radio-group converter construction is a separate route. Mark cell value factory constructs a BooleanProperty each invocation; text renderer lazily constructs an editor and attaches input filters per edit. No measured hotspot or retained heap. Count invocations in warmed representative forms/visible rows before changing lifetimes. Avoid caching row properties without identity/notification contracts. |
+
+DSFXAdapter directly reuses an ObservableList from the DataSet or wraps a non-observable list. No second full row cache identified in that path. SQL sort/full-scan and transaction behavior remain outside the measurements. For end-to-end next measurement, vary loaded N and visible row count independently, count cell factory/value callbacks and FX pulses after single and burst EXECUTE, capture FX-thread allocations and elapsed-to-layout. For form launch, instrument FXML, both traversals, Binder, first CSS/layout and cleanup in a representative local form.
+
+### Batch summary
+
+| Reply | Status | Evidence / remaining limit |
+| --- | --- | --- |
+| CTRL-067 | PARTIAL | Reproduced stale bulk selection, two NPEs and stale search callback. Blocking SQL/cancellation/error matrix open. |
+| CTRL-068 | PARTIAL | F8 writes A with or without interim model cursor movement; unarmed cancel zero writes. Rejected conversion and full navigation matrix open. |
+| CTRL-069 | PARTIAL | Wrong-row write on armed replace/remove/permutation. Server paths and draft policy open. |
+| CTRL-070 | PARTIAL | Converter route persists on retained controls after Stage hide; Object/Object unbind detaches it. Full business-form teardown open. |
+| CTRL-071 | PARTIAL | Real SDI launcher veto/reopen, error callback and cleanup verified. Failure after real model binding and MDI/WAIT open. |
+| CTRL-072 | PARTIAL | Queued pre-close refresh/navigation survive teardown; post-close notifications detached. SQL and mutation APIs open. |
+| CTRL-073 | PARTIAL | Stale accepted TextField callback emits TAB via F9/button; zero model writes on completion alone. Final focus and same-provider value attribution open. |
+| CTRL-074 | PARTIAL | Two measured local workloads; SQL, retained heap and paint need dedicated measurements. |
+
+All eight replies are individually published on agent/codex-mailbox. The production checkout and remote baseline remain 6ccb4403d9322c3d4160f6513f6498fe003f9a5e. No change to tracked production or tests. No independent user acceptance asserted. Stop after CTRL-074.
