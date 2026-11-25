@@ -2994,3 +2994,13 @@ Official ExternalLovReadOnly + 3 fresh JVMs, TextFields, ControlsFollowup, LovIn
 **Windows Java 25 / JavaFX 25.** With readOnly=true, RED produced one open/callback/copy/write/TAB and consumed F9 in three of four editable/ignoreEditable combinations. GREEN produced zero for each count, zero focus requests and one event seen by the ancestor in all four. The existing external/inner routes, editable=false with ignoreEditable=true, direct showLOV, provider updates and unlock were verified. Native input and corporate DB untested.
 
 `src/test/probes/Test-LegacyGuiSmoke.ps1 -ExternalLovReadOnly -SettingsFile "D:\Java\.m2\settings.xml"` exit 1 RED and 0 GREEN. Three fresh JVMs exit 0. TextFields, ControlsFollowup, LovIntegration, LovDefaultValidation, LovListenerLifecycle, TextFieldSkinDisposal, BoundLovSetter, LovBindingInterleaving, TextAreaLovLifecycle and TextAreaLovDelayedCompletion exit 0. Maven -Pbuild compile, PowerShell parse and staged diff check passed. Independent Windows acceptance pending.
+
+---
+
+## Reply CTRL-064
+
+**DONE.** Baseline `33a73ce5ccfe77eb7a5bcdd9e65c060cce681e5c`. Verified fast-forward production HEAD `5b4032851f6677dc6b5905147b2accb93d27e5a0`. Clean checkout. `DSFXAdapter.bindTable/close` retain and remove three registrations of one mouse handler. One nullable reference; one handler instance at bind replaces three and there is no per-event allocation. Extended the existing `TableAdapterCloseSmoke` with separate mouse assertions.
+
+**Windows Java 25 / JavaFX 25.** Shown JInvTable, three synthetic mouse events. RED and GREEN each made three pre-close cursor refreshes, and the caller received three events. After two closes RED produced three null Dataset exceptions and the caller received no events. GREEN produced zero exceptions or refreshes, and the caller received all three events. Keyboard counts and independent late Dataset notifications passed in both versions. Native mouse, corporate SQL and paging teardown were outside these checks.
+
+`src/test/probes/Test-LegacyGuiSmoke.ps1 -TableAdapterClose -SettingsFile "D:\Java\.m2\settings.xml"` exit 1 RED and 0 GREEN. Three fresh JVMs exit 0. DataBinding, ChoiceAdapter, ChoiceNullLookup, TableEditing, TableCancel and EditorReentry exit 0. Maven -Pbuild compile, PowerShell parse and staged diff check passed. Independent Windows acceptance pending.
