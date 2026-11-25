@@ -3196,3 +3196,15 @@ The in-memory Dataset on a shown JInvTable uses one controlled swap attempt; clo
 Bulk completion checks its originating DataSet attachment before restoring the listener, positioning, and each deferred delivery, including the later bulk positioning. No new instance fields or additional queued callbacks. Existing callbacks capture an attachment reference. Fetch loop and progress executor behavior preserved. Blocking SQL, cancellation/error routes and search callbacks remain outside this verified fix; no SQL rollback/cancellation guarantee.
 
 Windows Java 25.0.1 / FX 25. powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterBulkClose -SettingsFile "D:\Java\.m2\settings.xml" exits 1 RED and 0 GREEN. Two additional fresh JVMs invoke TableAdapterBulkCloseSmoke directly with the same Maven classpath (java --enable-native-access=ALL-UNNAMED -cp "<probe-output>;target/classes;<runner-dependencies>" TableAdapterBulkCloseSmoke), both exit 0. TableAdapterClose, TableAdapterPagingClose, DataBinding, TableEditing, TableCancel, EditorReentry and TableEditRowIdentity each exit 0. Maven -Pbuild compile, PowerShell parse and staged diff check passed. IDEA Maven 3.9.16, offline local cache. Independent acceptance pending.
+
+---
+
+## Reply CTRL-077
+
+**DONE.** Baseline 07a51fda7407161b9f1a1eb2bed04930bc6fc0b9; production f6bfd8bb2a0ca38cf36ea538140bff1f49744c7d, verified fast-forward. Only DSFXAdapter, TableAdapterQueuedCloseSmoke and runner mapping.
+
+On actual shown JInvTable and ArrayDataSet, notifications queued in the same FX turn as double close were tested separately and together. RED: one obsolete selection B (navigation only), one obsolete refresh (AFTER EXECUTE only), both deliveries (combined). GREEN: zero of either, original selection A preserved; only the fixture's explicit cursor requests occurred (2/1/2 respectively); zero errors and unchanged independent observer notifications including events sent after close. Active and fresh adapter/table delivered selection B, refresh, selection C, refresh, refresh in that order, with cursor 2 and two explicit requests.
+
+The existing queued callbacks check that their captured DataSet still owns the attachment at delivery. General positionRow reuses the guarded scheduling introduced for bulk, and AFTER EXECUTE retains one callback per event. No per-instance fields, extra queued wrapper, coalescing or SQL/cursor contract changes. SQL-driven execute/refresh behavior and same-table rebind remain outside scope.
+
+Windows Java 25.0.1 / FX 25: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterQueuedClose -SettingsFile "D:\Java\.m2\settings.xml" exits 1 RED, 0 GREEN. Two additional fresh JVMs invoked TableAdapterQueuedCloseSmoke directly with the same classpath and --enable-native-access=ALL-UNNAMED, both exit 0. TableAdapterClose, TableAdapterPagingClose, TableAdapterBulkClose, DataBinding, TableEditing, TableCancel, EditorReentry and TableEditRowIdentity each exit 0. Maven -Pbuild compile, PowerShell parse and staged diff check passed. Independent acceptance pending.
