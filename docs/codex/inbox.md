@@ -3475,3 +3475,110 @@ CTRL-051 report left pending paging and scroll paths outside scope. No confirmed
 **Task:** AUDIT → FIX — JInvTextAreaSkin retained toolbar button ownership
 
 CTRL-053 fixed managed scene/editable subscriptions, action registration and toolbar/FE visibility bindings; separately retained toolbar button width callbacks and owned handlers remained untested. Read current JInvTextAreaSkin.initToolBar/setButtonStyle/dispose and existing CTRL-053/050. Prove actual post-dispose effect or strong ownership edge in supported scenario: real Stage, caller-owned toolbar item retained and moved/reused if supported, old skin-owned external-editor/FE buttons separately, repeated add/remove/readd and skin replacement, width changes, callback counts, style/selection/visibility positive controls. Do not infer leak from mere cycles or externally held objects; distinguish caller-owned node retention of old skin versus intentionally retained skin-owned button. No native editor launch; stub safe action paths. Only JInvTextAreaSkin production if deterministic RED and ownership clear. Remove exact owned registrations on item removal/dispose as appropriate; prefer existing lifetime management or stateless handler where possible, no eager per-button helper maps/collections without clear necessity, preserve toolbar item identity and caller-owned actions/bindings. Do not alter CTRL-050 LOV attachment/replacement restoration or generic JInvLOVButton association, keyboard manager contract, toolbar styling semantics. If ambiguous, READ-ONLY/BLOCKED. New focused -TextAreaToolbarOwnership mode if fix; regressions TextAreaSkinDisposal, TextAreaLovLifecycle, CTRL-062 focused if available, ExternalLovReadOnly, Editors, ControlsFollowup, SceneKeyLookup. Final reply includes batch summary of all five task statuses, exact final HEAD, residual issues and stop. No further self-assignment.
+
+---
+
+## BATCH CTRL-067…CTRL-074 — System correctness and performance research
+
+**Status:** ACTIVE / ASSIGNED — user approved all eight tasks for a single sequential session.
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Mailbox:** agent/codex-mailbox
+**Baseline remote HEAD:** 6ccb4403d9322c3d4160f6513f6498fe003f9a5e
+**Budget:** 465 minutes (7 hours 45 minutes), ceiling, not target duration.
+**Dependency:** CTRL-049…055 and CTRL-061…066 architect approved and user accepted; CTRL-056…060 audit completed, previous 23/23 battery agent GREEN.
+
+### Latest authorization and execution contract
+The architect explicitly authorizes CTRL-067…074 only. Execute in exact order autonomously, no intermediate approvals. This is a strictly READ-ONLY research batch for production and tracked test code, even when a bug is proven. No production commits, no tracked test additions or changes, no dependency or public API changes. Ignored temporary diagnostic probes allowed; do not overwrite user files. All Git/GitHub operations necessary within these boundaries approved; writes only separate Reply messages in docs/codex/outbox.md on agent/codex-mailbox. Main and JInvCommon read-only, no other repo writes, no destructive Git commands or force push. Verify clean local checkout and remote production/mailbox refs at launch, before each task and before publishing each reply; production HEAD must remain 6ccb4403d9322c3d4160f6513f6498fe003f9a5e throughout. Unexpected production advancement, dirty tracked tree, conflicting mailbox write, or shared infrastructure failure: STOP safely and report remaining NOT_RUN. Do not reset or discard user work. Task-local lack of evidence/unsupported contract: report UNKNOWN/BLOCKED and continue independent tasks if baseline remains clean. Do not repeat completed tasks or expand scope. Stop after CTRL-074.
+
+For each task read actual implementation and relevant prior replies/tests; distinguish observed facts, source-derived paths, hypotheses and unknown contracts. Use actual Java 25/JavaFX 25 where available, deterministic FX fixtures with actual shown Stage when GUI behavior is under test, no arbitrary sleeps, no JavaFX internal reflection. Preserve legacy first → correctness → targeted optimization, prioritize data integrity/transactions/lifecycle over cosmetics, minimal state and memory per component. Ordinary GUI on FX thread; investigate workers only where actual asynchronous work exists. No real corporate DB writes, native external editor launch or security-policy changes. Positive controls, exact counts, actual exceptions and event order; report failed experiments honestly. Record commands/exit codes, runtime versions, baseline SHA, probe path and reproducibility, scope and limitations. Diagnostic exit 0 does not mean defect absent. A reproduced defect does not establish a supported contract; separate proposed fix from workaround. No automatic production fix. Where feasible run relevant existing smoke modes using src/test/probes/Test-LegacyGuiSmoke.ps1 and -SettingsFile "D:\Java\.m2\settings.xml"; no need to rerun full regression per read-only task. Respect CTRL-014/034, CAL-TIME-001, existing LOV precedence, ValidMan transfer, Binder rollback and keyboard reservation open contracts. New Russian comments for temporary Java probes where needed.
+
+Publish exactly one Reply CTRL-0XX after each task with DONE/READ-ONLY, NO_DEFECT, BLOCKED or PARTIAL as appropriate, ranked confirmed findings, proposed minimum next task and explicit UNKNOWN. Include exact baseline and verify no production/tracked changes. No claim of independent user acceptance. CTRL-074 final reply includes full batch summary and ranked next steps. No self-assignment after CTRL-074.
+
+---
+
+## MESSAGE CTRL-067
+
+**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-067
+**Task:** AUDIT — DSFXAdapter bulk fetch/search lifecycle after close
+
+CTRL-051/064/065 closed keyboard, mouse, scroll subscriptions and deferred PageDown selection, but bulk fetch/search workers remained untested. Inspect actual task/executor/FX callbacks, dataset ownership, close ordering and caller paths. Map worker start, cancellation, completion, error and FX delivery. Use controlled in-memory dataset or test double and explicit synchronization barriers (no sleeps), real shown table: normal completion positive control, close before completion delivery, close during work where supported, repeated close, late success/error/cancel. Measure cursor/model/selection changes, fetches, error dispatch, callbacks, pending jobs. Distinguish work already accepted by DB from stale UI completion; do not claim that closing rolls back external work. No real corporate SQL unless already authorized and available; no destructive DB operations. Record supported lifecycle and ownership, exact reproduction or UNKNOWN. Do not alter threading model or production.
+
+---
+
+## MESSAGE CTRL-068
+
+**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-068
+**Task:** AUDIT — Table editing commit/cancel on row navigation
+
+Read actual JInvTable, cell editor/adapter implementations and existing TableEditing, TableCancel, EditorReentry and DataBinding probes; locate actual production editor paths rather than guessing class names. Real Stage with identifiable rows A/B/C and bound in-memory DataSet. Exercise start edit A, modify draft, select B by keyboard/mouse synthetic events or model cursor change, commit/cancel, failed validation/conversion, repeated editor entry. Compare UI cell, editing position, DataSet cursor, original row identity, actual write target, values and write counts, validation and callback order. Establish baseline legal behavior before asserting defect; distinguish text draft vs committed value and row index vs entity identity. Confirm whether accepted edits target original row and cancellation does not commit or undo unrelated model changes. No change to navigation or transaction contracts. Report minimal reproducer and proposed scope only.
+
+---
+
+## MESSAGE CTRL-069
+
+**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-069
+**Task:** AUDIT — Table editing refresh/sort/replacement during active editor
+
+Inspect supported refresh, sort, execute, row update/removal and editor paths; use actual stable row keys, in-memory dataset where equivalent. Start edit with distinct draft, change row ordering or refresh data, then commit/cancel via supported actions. Test removed/replaced original row, unchanged index with changed identity, duplicate sort keys, legitimate re-entry, validation error. Record original entity, current cursor, editing cell, selected item, actual write destination, model write counts and selection events. Do not assume sort/refresh is legal during edit; document guards and callers. Distinguish server-side sorting from simulated local ordering and report unsupported DB paths UNKNOWN. Prioritize wrong-row writes and lost drafts over presentation. No production or tracked test edits.
+
+---
+
+## MESSAGE CTRL-070
+
+**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-070
+**Task:** AUDIT — Binder successful binding lifecycle and ownership
+
+Extend CTRL-057 evidence (partial bind confirmed, rollback contract unknown) by studying successful bindings and normal form lifecycle. Inspect Binder, actual bindControls callers, converter bidirectional routes, validators/adapters/LOV and corresponding release paths. On real Stage and supported controller/form fixture where feasible, establish positive two-way updates and exact callback counts, then supported close/dispose/unbind and reopening fresh instance; test repeated bind only if supported, compare explicit unbind overloads including Object/Object converter route. Retain distinguishable old controls/model deliberately to observe stale updates, label artificial retention; do not infer leaks from cycles or ordinary Stage.hide alone. Identify actual ownership and whether normal full form close releases it. No global rollback, new cleanup contract or production changes. Report supported paths, strong reference chain if proven, counts, narrow next task.
+
+---
+
+## MESSAGE CTRL-071
+
+**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-071
+**Task:** AUDIT — Business form partial initialization and close lifecycle
+
+Inspect AbstractBaseController launch/init/bindControls and actual lifecycle paths, accepted Singleton close veto/CTRL-032/035/042 and FormLifecycle/FormCancel tests. Reproduce via safe fixture at supported initialization failure points (before/after binding or registration), close veto then successful close, reopen, nested form or progress Stage only if supported. Count registration, visible forms, close callbacks, owned resources, listener/model effects and queued completion; verify no orphan singleton or invalid reuse. Distinguish failed initialization from ordinary cancellation, and request close from actual WINDOW_HIDDEN. No corporate DB, no real external editor, no changes to modal/MDI/WAIT contracts. Report actual launcher coverage vs simplified fixture and unresolved risks, not speculative rollback.
+
+---
+
+## MESSAGE CTRL-072
+
+**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-072
+**Task:** AUDIT — DataSet adapter repeated execute/refresh and cursor integrity
+
+Read actual DataSet event/adapter paths in fore25 and available dependency contracts (JInvCommon read-only). Real attached table and in-memory dataset with distinct stable row identities. Exercise execute/refresh repeated, empty→nonempty→empty, row insertion/removal/update around cursor, late navigation/row notifications and sort where supported. Observe exact dataset cursor vs table selected identity, selection/cursor propagation counts, list changes, model writes, recursion/re-entry, stale events after close and fresh adapter on fresh table. Preserve intentional no-selection/null semantics; do not assume same-table rebind or DB-side sort contract. Compare CTRL-051/064/065 and existing DataBinding/table probes. Report confirmed mismatch/redundant work with exact sequence and counts, otherwise NO_DEFECT/UNKNOWN. No production changes.
+
+---
+
+## MESSAGE CTRL-073
+
+**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-073
+**Task:** AUDIT — LOV residual callback and attachment paths
+
+Read accepted CTRL-050/061/062/063 and source. CTRL-062 diagnostic TextField forwarded stale accepted result but preserved draft; investigate whether actual caller navigation or other side effects follow. Matrix delayed completion A→B, A→null, A→B→A; accepted/cancel, real caller routes F9 and button and direct programmatic showLOV, distinct provider value notification vs completion; current provider update and same-provider repeat positive controls. Inspect direct writable lovProperty callers and actual supported contract, not a proposed universal redesign. Test reattached-provider notifications only with clear distinction between legitimate updates and stale choice; report if indistinguishable without new provider contract. Count model writes, accepted/cancel callbacks, focus/navigation and exceptions. No change to CTRL-034, button precedence, readOnly policy, generic provider API or production.
+
+---
+
+## MESSAGE CTRL-074
+
+**Status:** ASSIGNED / ACTIVE EIGHT-TASK BATCH — READ-ONLY
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-074
+**Task:** AUDIT — Performance and memory audit — DataSet/Binder/table hot paths
+
+Read actual code at verified HEAD; rank candidates by correctness first, then CPU/allocation/retention impact. Inspect navigation/refresh/sort/event dispatch, collection traversal complexity, duplicate data/cache, per-row/per-cell/per-control allocation, repeated binding/converter/editor construction, redundant notifications and form initialization. For top 2–3 candidates use reproducible controlled fixture and available JDK tools (JFR or allocation counters if installed and practical), warmed repeat measurements, record JDK/FX versions, heap/fixture sizes, iterations, workload, median/range, allocation units and measurement limitations; vary N to assess scaling, distinguish source-derived complexity from measured data. FX thread normal; no generic synchronization optimization. Do not confuse allocated bytes with retained heap or infer byte savings from field counts. No external dependencies, profiler install, production code or tracked test changes. If measurement unavailable, give source evidence and precise proposed benchmark, not invented numbers. Deliver ranked candidate table with location, evidence, CPU/memory tradeoff, estimated scope/risk, correctness prerequisites and next smallest experiment. Include final batch summary of all eight replies, unchanged SHA, blockers and recommended next 3–5 RED→GREEN tasks ranked by actual evidence.
