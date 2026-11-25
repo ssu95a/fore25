@@ -87,7 +87,7 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
         JInvKeyboardManager.initNaviationOnNode(this);
 
         addEventFilter(KeyEvent.KEY_RELEASED, (KeyEvent event) -> {
-            if (event.getCode() == KeyCode.F9) {
+            if (event.getCode() == KeyCode.F9 && !isReadOnly()) {
                 if ((isEditable() || getButtonIgnoresEditable()) && !this.stateProperty().get().equals(State.ERROR)) {
 
                     if (getController() != null && getController().getValidMan() != null) {

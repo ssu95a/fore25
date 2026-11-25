@@ -62,6 +62,10 @@ public final class ExternalLovReadOnlySmoke {
         var standaloneButton = new JInvLOVButton(standalone);
         var stage = new Stage();
         stage.setScene(new Scene(new VBox(field, external, area, standaloneButton), 390, 290));
+        int[] bubbledF9 = {0};
+        stage.getScene().getRoot().addEventHandler(KeyEvent.KEY_RELEASED, event -> {
+            if (event.getCode() == KeyCode.F9) bubbledF9[0]++;
+        });
         stage.show();
         external.setTextField(field);
         field.setLOV(provider, true);
@@ -92,16 +96,17 @@ public final class ExternalLovReadOnlySmoke {
             inner.fire();
             f9(field);
             require(provider.opens == 3 && provider.callbacks == 3 && field.copies == 3 && tabs[0] == 3
-                    && writes.equals(List.of("choice-1", "choice-2", "choice-3")), "three editable routes");
+                    && bubbledF9[0] == 0 && writes.equals(List.of("choice-1", "choice-2", "choice-3")), "three editable routes");
             field.setEditable(false);
             external.fire();
             f9(field);
-            require(provider.opens == 4, "editable=false still permits legacy external activation");
+            require(provider.opens == 4 && bubbledF9[0] == 1, "editable=false still permits legacy external activation");
             field.setButtonIgnoresEditable(true);
             inner.fire();
             f9(field);
             external.fire();
-            require(provider.opens == 7 && writes.size() == 7 && tabs[0] == 7, "ignoreEditable preserves all three routes");
+            require(provider.opens == 7 && writes.size() == 7 && tabs[0] == 7 && bubbledF9[0] == 1,
+                    "ignoreEditable preserves all three routes");
             standaloneButton.fire();
             areaButton.fire();
             require(standalone.opens == 1 && standalone.callbacks == 1 && areaProvider.opens == 1
@@ -114,12 +119,12 @@ public final class ExternalLovReadOnlySmoke {
             areaProvider.setValue("program area");
             require(areaModel.get().equals("program area"), "TextArea programmatic update");
             field.setEditable(true);
-            later(() -> checkLocked(field, provider, external, inner, writes, tabs, stage));
+            later(() -> checkLocked(field, provider, external, inner, writes, tabs, bubbledF9, stage));
         });
     }
 
     private void checkLocked(Field field, Provider provider, JInvLOVButton external,
-                             javafx.scene.control.Button inner, List<String> writes, int[] tabs, Stage stage) {
+                             javafx.scene.control.Button inner, List<String> writes, int[] tabs, int[] bubbledF9, Stage stage) {
         field.setReadOnly(true);
         int opens = provider.opens;
         int callbacks = provider.callbacks;
@@ -145,16 +150,43 @@ public final class ExternalLovReadOnlySmoke {
             int beforeProgrammatic = provider.opens;
             field.showLOV(null);
             require(provider.opens == beforeProgrammatic + 1, "programmatic show remains allowed");
-            int beforeF9 = provider.opens;
-            f9(field);
-            System.out.printf("locked legacy F9 with ignoreEditable=true opens=%d%n", provider.opens - beforeF9);
-            require(provider.opens == beforeF9 + 1, "legacy ignoreEditable F9 stays outside button guard");
+            later(() -> checkLockedF9(field, provider, external, writes, tabs, bubbledF9, stage));
+        });
+    }
+
+    private void checkLockedF9(Field field, Provider provider, JInvLOVButton external,
+                               List<String> writes, int[] tabs, int[] bubbledF9, Stage stage) {
+        int focus = field.focusRequests;
+        for (boolean editable : new boolean[]{false, true}) {
+            field.setEditable(editable);
+            for (boolean ignore : new boolean[]{false, true}) {
+                field.setButtonIgnoresEditable(ignore);
+                int opens = provider.opens;
+                int callbacks = provider.callbacks;
+                int copies = field.copies;
+                int changes = writes.size();
+                int navigation = tabs[0];
+                int bubbled = bubbledF9[0];
+                f9(field);
+                System.out.printf("locked F9 editable=%s ignore=%s opens=%d callbacks=%d copies=%d writes=%d TAB=%d bubbled=%d%n",
+                        editable, ignore, provider.opens - opens, provider.callbacks - callbacks, field.copies - copies,
+                        writes.size() - changes, tabs[0] - navigation, bubbledF9[0] - bubbled);
+                expect(provider.opens == opens && provider.callbacks == callbacks && field.copies == copies
+                        && writes.size() == changes && tabs[0] == navigation && bubbledF9[0] == bubbled + 1,
+                        "locked F9 editable=" + editable + " ignore=" + ignore);
+            }
+        }
+        later(() -> {
+            expect(field.focusRequests == focus, "locked F9 focus requests");
             field.setReadOnly(false);
             int before = provider.opens;
+            int navigation = tabs[0];
             external.fire();
-            require(provider.opens == before + 1 && tabs[0] > navigation, "unlock restores external action");
+            require(provider.opens == before + 1 && tabs[0] == navigation + 1, "unlock restores external action");
+            f9(field);
+            require(provider.opens == before + 2 && tabs[0] == navigation + 2, "unlock restores F9 action");
             stage.hide();
-            require(failures.isEmpty(), "external LOV readOnly: " + failures);
+            require(failures.isEmpty(), "external and keyboard LOV readOnly: " + failures);
             done.complete(null);
         });
     }
