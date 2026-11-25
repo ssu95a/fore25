@@ -3239,7 +3239,7 @@ If a task is BLOCKED by an unresolved contract, report and STOP after restoring/
 
 ## MESSAGE CTRL-051
 
-**Status:** DONE / ARCHITECT APPROVED — agent GREEN; independent user Windows acceptance pending. Production `171cb8c6347cae958907debcf0774ba6d3b85d11`. Keyboard detach scope only; mouse filters and pending paging remain outside scope.
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — independent Windows `CTRL-051 PASS` reported by user; numeric exit code not separately reported. Production `171cb8c6347cae958907debcf0774ba6d3b85d11`. Keyboard detach scope only; mouse filters and pending paging remain outside scope.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Baseline remote HEAD:** 6d36746616ce26fee2e42acefce57571131ffb6e
