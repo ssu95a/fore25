@@ -162,6 +162,8 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
 
     /** */
     private TableView<T> tableView;
+    private EventHandler<KeyEvent> keyReleaseHandler;
+    private EventHandler<KeyEvent> keyPressFilter;
 
     /** */
     private boolean enableF7FilterDialog = true;
@@ -385,7 +387,8 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
 //
         this.dataSet.setProperty( "ds.handleAutoFilter", autoFilterMaker( ViewContext.of( ViewContext.tryGetWindow(tableView)),getTaskContext()) );
 
-        this.tableView.addEventHandler( KeyEvent.KEY_RELEASED, ( KeyEvent event ) -> refreshCurrentRow() );
+        keyReleaseHandler = event -> refreshCurrentRow();
+        tableView.addEventHandler(KeyEvent.KEY_RELEASED, keyReleaseHandler);
         this.tableView.addEventFilter ( MouseEvent.MOUSE_RELEASED,( MouseEvent event ) -> refreshCurrentRow() );
         this.tableView.addEventFilter ( MouseEvent.MOUSE_PRESSED, ( MouseEvent event ) -> refreshCurrentRow() );
         this.tableView.addEventFilter ( MouseEvent.DRAG_DETECTED, ( MouseEvent event ) -> refreshCurrentRow() );
@@ -393,7 +396,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         final SwappingScrollBinding scrollBinding = new SwappingScrollBinding();
         scrollBinding.install();
 
-        tableView.addEventFilter( KeyEvent.KEY_PRESSED, event ->
+        keyPressFilter = event ->
         {
             //Подгружаем записи по PageDown, если вдруг оказались на последней записи
             ScrollBar vsb = scrollBinding.refresh();
@@ -414,7 +417,8 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
             if( event.getCode() == KeyCode.HOME || event.getCode() == KeyCode.END ) {
                 event.consume();
             }
-        });
+        };
+        tableView.addEventFilter(KeyEvent.KEY_PRESSED, keyPressFilter);
         tableView.requestFocus();
 
         // Связывание данных
@@ -474,6 +478,14 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     /** */
     @Override
     public void close() {
+        if (keyReleaseHandler != null) {
+            tableView.removeEventHandler(KeyEvent.KEY_RELEASED, keyReleaseHandler);
+            keyReleaseHandler = null;
+        }
+        if (keyPressFilter != null) {
+            tableView.removeEventFilter(KeyEvent.KEY_PRESSED, keyPressFilter);
+            keyPressFilter = null;
+        }
         if( dataSet != null ) {
             dataSet.removeDataSetListener(this);
             if( dataSet instanceof XXIDataSet )

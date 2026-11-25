@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'TableAdapterClose')]
+    [switch] $TableAdapterClose,
     [Parameter(ParameterSetName = 'TextAreaLovLifecycle')]
     [switch] $TextAreaLovLifecycle,
     [Parameter(ParameterSetName = 'TextFieldSkinDisposal')]
@@ -81,7 +83,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($TextAreaLovLifecycle) {
+if ($TableAdapterClose) {
+    $probeId = 'CTRL-051'
+    $probeClass = 'TableAdapterCloseSmoke'
+} elseif ($TextAreaLovLifecycle) {
     $probeId = 'CTRL-050'
     $probeClass = 'TextAreaLovLifecycleSmoke'
 } elseif ($TextFieldSkinDisposal) {
