@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'TableAdapterPagingClose')]
+    [switch] $TableAdapterPagingClose,
     [Parameter(ParameterSetName = 'TextAreaLovDelayedCompletion')]
     [switch] $TextAreaLovDelayedCompletion,
     [Parameter(ParameterSetName = 'ExternalLovReadOnly')]
@@ -95,7 +97,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($TextAreaLovDelayedCompletion) {
+if ($TableAdapterPagingClose) {
+    $probeId = 'CTRL-065'
+    $probeClass = 'TableAdapterPagingCloseSmoke'
+} elseif ($TextAreaLovDelayedCompletion) {
     $probeId = 'CTRL-062'
     $probeClass = 'TextAreaLovDelayedCompletionSmoke'
 } elseif ($ExternalLovReadOnly) {

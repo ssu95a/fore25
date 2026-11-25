@@ -165,6 +165,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     private EventHandler<KeyEvent> keyReleaseHandler;
     private EventHandler<KeyEvent> keyPressFilter;
     private EventHandler<MouseEvent> mouseRefreshFilter;
+    private SwappingScrollBinding swappingScrollBinding;
 
     /** */
     private boolean enableF7FilterDialog = true;
@@ -321,6 +322,15 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         private boolean activated;
         private boolean listening;
 
+        private final ChangeListener<Object> refreshListener = (observable, oldValue, newValue) -> {
+            if (observable == tableView.focusedProperty()) {
+                activated = true;
+            }
+            if (observable != tableView.needsLayoutProperty() || Boolean.FALSE.equals(newValue)) {
+                refresh();
+            }
+        };
+
         private final ChangeListener<Number> valueListener = (observable, oldValue, newValue) -> {
             ScrollBar bar = scrollBar;
             if (bar == null || bulkAppend.get())
@@ -341,17 +351,29 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         private void install() {
             activated = tableView.isFocused();
             // Все слушатели устанавливаются один раз при bind, а не при каждом layout.
-            tableView.focusedProperty().addListener((observable, oldValue, newValue) -> {
-                activated = true;
-                refresh();
-            });
-            tableView.skinProperty().addListener((observable, oldValue, newValue) -> refresh());
-            tableView.needsLayoutProperty().addListener((observable, oldValue, newValue) -> {
-                if (!newValue)
-                    refresh();
-            });
-            bulkAppend.addListener((observable, oldValue, newValue) -> refresh());
+            tableView.focusedProperty().addListener(refreshListener);
+            tableView.skinProperty().addListener(refreshListener);
+            tableView.needsLayoutProperty().addListener(refreshListener);
+            bulkAppend.addListener(refreshListener);
             refresh();
+        }
+
+        private void uninstall() {
+            tableView.focusedProperty().removeListener(refreshListener);
+            tableView.skinProperty().removeListener(refreshListener);
+            tableView.needsLayoutProperty().removeListener(refreshListener);
+            bulkAppend.removeListener(refreshListener);
+            if (listening) {
+                scrollBar.valueProperty().removeListener(valueListener);
+            }
+            listening = false;
+            scrollBar = null;
+        }
+
+        private void selectLastIfCurrent() {
+            if (swappingScrollBinding == this) {
+                tableView.getSelectionModel().selectLast();
+            }
         }
 
         private ScrollBar refresh() {
@@ -396,6 +418,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         tableView.addEventFilter(MouseEvent.DRAG_DETECTED, mouseRefreshFilter);
 
         final SwappingScrollBinding scrollBinding = new SwappingScrollBinding();
+        swappingScrollBinding = scrollBinding;
         scrollBinding.install();
 
         keyPressFilter = event ->
@@ -408,7 +431,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
                     boolean isEof = !dataSet.swappingData();
                     eof.set( isEof );
                     if ( !isEof ) {
-                        Platform.runLater( () -> tableView.getSelectionModel().selectLast() );
+                        Platform.runLater(scrollBinding::selectLastIfCurrent);
                     }
                 } catch ( DataSetException ex ) {
                     JInvErrorService.handleException( tableView.getScene().getWindow(), ex );
@@ -493,6 +516,10 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
             tableView.removeEventFilter(MouseEvent.MOUSE_PRESSED, mouseRefreshFilter);
             tableView.removeEventFilter(MouseEvent.DRAG_DETECTED, mouseRefreshFilter);
             mouseRefreshFilter = null;
+        }
+        if (swappingScrollBinding != null) {
+            swappingScrollBinding.uninstall();
+            swappingScrollBinding = null;
         }
         if( dataSet != null ) {
             dataSet.removeDataSetListener(this);
