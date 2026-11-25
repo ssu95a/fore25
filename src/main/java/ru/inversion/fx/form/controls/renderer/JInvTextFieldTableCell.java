@@ -36,6 +36,7 @@ public class JInvTextFieldTableCell<S, T> extends TableCell<S, T> {
     protected TextInputControl textField = null;
     protected Pos alignment = Pos.CENTER_LEFT;
     protected TablePosition editingCell = null;
+    private S originalEditRow;
     private ObjectProperty<StringConverter<T>> converter = new SimpleObjectProperty<StringConverter<T>>(this, "converter");
 
     public JInvTextFieldTableCell() {
@@ -142,11 +143,14 @@ public class JInvTextFieldTableCell<S, T> extends TableCell<S, T> {
         if (isEditing() || !isEditable() || !getTableView().isEditable() || !getTableColumn().isEditable()) {
             return;
         }
+        S row = getTableRow() == null ? null : getTableRow().getItem();
         super.startEdit();
 
         if (!isEditing()) {
             return;
         }
+        editingCell = null;
+        originalEditRow = row;
         if (textField == null) {
             textField = createTextField();
             if (textField instanceof TextField) {
@@ -195,15 +199,19 @@ public class JInvTextFieldTableCell<S, T> extends TableCell<S, T> {
      */
     @Override
     public void cancelEdit() {
-        if (editingCell != null) {
-            TableColumn.CellEditEvent editEvent = new TableColumn.CellEditEvent(
-                getTableView(),
-                editingCell,
-                TableColumn.editCommitEvent(),
-                converter.get().fromString(textField.getText())
-            );
-            editEvent.fireEvent(getTableColumn(), editEvent);
-            setText(textField.getText());
+        TablePosition position = editingCell;
+        S originalRow = originalEditRow;
+        editingCell = null;
+        originalEditRow = null;
+        if (isOriginalEditPosition(position, originalRow)) {
+            T value = converter.get().fromString(textField.getText());
+            if (isOriginalEditPosition(position, originalRow)) {
+                TableColumn.CellEditEvent editEvent = new TableColumn.CellEditEvent(
+                    getTableView(), position, TableColumn.editCommitEvent(), value
+                );
+                editEvent.fireEvent(getTableColumn(), editEvent);
+                setText(textField.getText());
+            }
         }
         super.cancelEdit();
         this.setGraphic(null);
@@ -212,8 +220,20 @@ public class JInvTextFieldTableCell<S, T> extends TableCell<S, T> {
 
     }
 
+    private boolean isOriginalEditPosition(TablePosition position, S originalRow) {
+        TableView<S> table = getTableView();
+        // После изменения списка сохранённый индекс может указывать на другую строку.
+        return position != null && originalRow != null && table != null
+                && position.getTableView() == table && position.getTableColumn() == getTableColumn()
+                && table.getItems() != null && position.getRow() >= 0
+                && position.getRow() < table.getItems().size()
+                && table.getItems().get(position.getRow()) == originalRow;
+    }
+
     @Override
     public void commitEdit(T newValue) {
+        editingCell = null;
+        originalEditRow = null;
         super.commitEdit(newValue);
         this.setGraphic(null);
         getTableView().removeEventFilter(MouseEvent.MOUSE_PRESSED, _tblMouseHandler);

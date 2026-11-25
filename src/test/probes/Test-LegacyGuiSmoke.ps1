@@ -2,6 +2,8 @@
 param(
     [Parameter(ParameterSetName = 'TextAreaToolbarOwnership')]
     [switch] $TextAreaToolbarOwnership,
+    [Parameter(ParameterSetName = 'TableEditRowIdentity')]
+    [switch] $TableEditRowIdentity,
     [Parameter(ParameterSetName = 'TableAdapterPagingClose')]
     [switch] $TableAdapterPagingClose,
     [Parameter(ParameterSetName = 'TextAreaLovDelayedCompletion')]
@@ -102,6 +104,9 @@ $probeArgs = @()
 if ($TextAreaToolbarOwnership) {
     $probeId = 'CTRL-066'
     $probeClass = 'TextAreaToolbarOwnershipSmoke'
+} elseif ($TableEditRowIdentity) {
+    $probeId = 'CTRL-075'
+    $probeClass = 'TableEditRowIdentitySmoke'
 } elseif ($TableAdapterPagingClose) {
     $probeId = 'CTRL-065'
     $probeClass = 'TableAdapterPagingCloseSmoke'
