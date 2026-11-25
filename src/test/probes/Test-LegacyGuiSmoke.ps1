@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'WrapButtonOwnership')]
+    [switch] $WrapButtonOwnership,
     [Parameter(ParameterSetName = 'TabPaneSkinListeners')]
     [switch] $TabPaneSkinListeners,
     [Parameter(ParameterSetName = 'TextAreaSkinDisposal')]
@@ -89,7 +91,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($TabPaneSkinListeners) {
+if ($WrapButtonOwnership) {
+    $probeId = 'CTRL-055'
+    $probeClass = 'WrapButtonOwnershipSmoke'
+} elseif ($TabPaneSkinListeners) {
     $probeId = 'CTRL-054'
     $probeClass = 'TabPaneSkinListenersSmoke'
 } elseif ($TextAreaSkinDisposal) {

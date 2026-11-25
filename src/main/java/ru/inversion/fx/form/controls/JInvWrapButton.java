@@ -26,9 +26,18 @@ public class JInvWrapButton extends JInvChoiceButton {
             return;
         }
 
+        var previous = this.innerButton;
+        boolean replacing = previous != null && previous != innerButton;
+        boolean ownsAction = replacing && onActionProperty().isBound() && getOnAction() == previous.getOnAction();
         this.innerButton = innerButton;
 
         onActionProperty().unbind();
+        if (ownsAction) {
+            setOnAction(null);
+        }
+        if (replacing && previous.hasProperties() && previous.getProperties().get(Controls.CONTROL_PARENT) == this) {
+            previous.getProperties().remove(Controls.CONTROL_PARENT);
+        }
         visibleProperty().unbind();
         graphicProperty().unbind();
         textProperty().unbind();
