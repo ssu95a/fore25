@@ -2907,3 +2907,11 @@ Only JInvTextAreaSkin, focused test and runner. Skin-owned scene/editable subscr
 Only JInvWrapButton, new WrapButtonOwnershipSmoke and runner. Clear wrapped matching action on detach/replacement only when it was bound and identical to old source's handler; remove CONTROL_PARENT only when it points to this wrapper. No new state, no empty map allocation for pending buttons. Public properties reveal bound status, not arbitrary external source identity; no simultaneous external binding with the same action was established. Existing CTRL-043 deferred guard and CTRL-049 skin cleanup pass; common LOV and button attachment semantics not expanded.
 
 Official plus 3 fresh JVMs; WrapButtonDeferred, BoundLovSetter, LovBindingInterleaving, TextFieldSkinDisposal, TextAreaLovLifecycle, Maven compile, PowerShell parse, staged diff check exit 0. Windows: `src/test/probes/Test-LegacyGuiSmoke.ps1 -WrapButtonOwnership -SettingsFile "D:\Java\.m2\settings.xml"`. Independent acceptance pending. Batch CTRL-052–055 completed, stop after this reply.
+
+---
+
+## Reply CTRL-056
+
+**DONE / READ-ONLY.** Verified HEAD `ed5533d8d03c1ca1500b65660060d47ce336e3d3`. Compiled/run ignored FocusManagerAudit.java with Java 25 and JavaFX 25 on real Stage (exit 0). Detach/readd field in a second Scene changed getController to M2. Automatic blur still invoked M1 before and after move. After explicit M1 unbind, blur dispatched to M1 with no validator; explicit M2 validation worked. Dispatch totals M1/M2=3/1 (M2 automatic=0); model=[before,moved,old removed] exactly once each. A shared validator on an unrelated control stayed registered in both managers.
+
+ValidMan binds focus/change closures once via CONTROL_FOCUS_LISTENER; unbind changes validator list and decoration, not listener ownership. CTRL-033/052 cover list scope and subchanges, not transfer. AbstractBaseController creates manager per controller and normal launcher builds fresh FXML graph; no supported move between controller lifetimes established. Confirmed behavior, contractual defect UNKNOWN. Preserve single ownership unless transfer is required; smallest follow-up would explicitly release/reattach manager-owned listeners on transfer, with no eager per-control state. No production or tracked-test changes.
