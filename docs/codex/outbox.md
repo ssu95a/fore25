@@ -3079,3 +3079,15 @@ Temporary target/ctrl-table-research/EditAudit.java. javac -cp "target/classes;D
 Renderer cancelEdit fires explicit commit using saved TablePosition. It resolves the occupant of the old index, which can change. Proposed minimum fix: scope to synthetic cancel commit in JInvTextFieldTableCell, verify identity captured at edit start or arm before delivery, and reset the per-edit marker at lifecycle boundaries. Preserve same-row mouse commit, ordinary commit and Escape. Draft recovery policy, actual SQL sorting/refresh, duplicate sort keys, failed validation and explicit reentry remain UNKNOWN. DSFXAdapter schedules refresh after EXECUTE and uses OrderByManager/SQL query paths; the fixture specifically covers local observable-list mutations.
 
 Run the CTRL-068 javac and java commands for target/ctrl-table-research/EditAudit.java with MODE replace/remove/reorder and optional second argument arm. Compile exit 0; all six JVMs exit 0. No tracked production/test changes.
+
+---
+
+## Reply CTRL-070
+
+**PARTIAL / READ-ONLY.** Baseline 6ccb4403d9322c3d4160f6513f6498fe003f9a5e; Java 25.0.1 / FX 25+29. Real Binder, FXEntity and three TextFields on a shown Stage. On each of two fresh fixtures, two text writes and one direct model write produced three model events and nine text events. Explicit repeat bind preserved these counts in this fixture (contract for general repeat bind UNKNOWN). After a Stage close request hid the window, intentionally retained controls and entity still had the same bidirectional counts. StringProperty.unbindBidirectional(Property) left the converter binding active; a text write changed model to “unbound”. Bindings.unbindBidirectional(Object,Object) removed that route: subsequent text write left model at “unbound”.
+
+AbstractBaseController.bindControls resolves labels and invokes Binder with selected controls. TextField uses textProperty().bindBidirectional(entityProperty, TFSCnv); other control routes use direct properties and some use their own specialized adapters/validators. The base close path invokes the return callback, resource hook and owned TaskContext close; the base closeResources hook is empty. The Stage fixture does not drive the controller launcher or full cleanup path. No retained-heap conclusion or claim that Stage close must detach a retained form. Actual full form close, validators/adapters/LOV release and application-owned model reuse remain UNKNOWN.
+
+Minimum follow-up: real launched form with a reused external entity, explicit ownership of one converter binding, and verified WINDOW_HIDDEN and closeResources before checking stale writes. Use the Object/Object unbind route if an explicit cleanup contract for that binding is established. No rollback or broad cleanup change proposed.
+
+Temporary probe target/ctrl-070-research/BinderSuccess.java, derived from CTRL-057; javac -cp "target/classes;DEP" -d target/ctrl-070-research target/ctrl-070-research/BinderSuccess.java and java --enable-native-access=ALL-UNNAMED -cp "target/ctrl-070-research;target/classes;DEP" BinderSuccess. DEP from CTRL-067 runner. Both exit 0. No tracked changes.
