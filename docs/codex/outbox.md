@@ -2964,3 +2964,13 @@ Windows fresh Java 25/FX25 processes, runner src/test/probes/Test-LegacyGuiSmoke
 Prior regression ownership: CTRL-049 `582a789` JInvTextFieldButtonSkin adds five lifetime-managed property registrations instead of direct listeners, uses shared overflow callback; no field-level state. CTRL-050 `6d36746` JInvTextArea adds one nullable reference, one lazy attachment/listener and one button while attached. No retained-byte estimate. Each prior commit includes only its named implementation class, focused probe and runner.
 
 Highest-priority follow-up: isolate readOnly guard on external field-delegated LOV activation, keeping standalone/provider write semantics. Separately resolve validator transfer, Binder failure/cleanup, hotkey reservation, and external-vs-inner precedence only if caller contracts require changes. No implementation changes authorized or performed. Batch stops here.
+
+---
+
+## Reply CTRL-061
+
+**DONE.** Baseline `ed5533d8d03c1ca1500b65660060d47ce336e3d3`; verified fast-forward HEAD `1db820ca0c7c0c3d2e32f1dbbfe92bc780485b1e`. Only JInvLOVButton.java, ExternalLovReadOnlySmoke.java and runner changed. Guard rejects explicit readOnly on JInvTextField/JInvTextArea before any focus scheduling or LOV dispatch. No new state, allocation, listener or binding; visual enabled appearance unchanged.
+
+Windows Java 25 / JavaFX 25 shown Stage with AddLinkPane external-first arrangement and controlled provider. RED exit 1: locked external TextField with both ignoreEditable settings produced 2 opens/callbacks/copies/model writes/TAB events and 4 focus requests; locked TextArea button opened once. GREEN exit 0: zero on all measured locked paths, including TextArea. Editable external/inner/F9 opened once each. With editable=false but readOnly=false, existing external activation worked; ignoreEditable=true preserved external/inner/F9. Standalone and editable TextArea worked, field resumed after unlock, programmatic provider writes and direct showLOV preserved. Separate residual: explicit readOnly plus ignoreEditable=true still permits legacy F9 to open once (both RED and GREEN); this keyboard route is outside the button-only assignment. Native input, corporate DB and independent acceptance UNKNOWN.
+
+Official ExternalLovReadOnly + 3 fresh JVMs, TextFields, ControlsFollowup, LovIntegration, LovDefaultValidation, LovListenerLifecycle, BoundLovSetter, LovBindingInterleaving, TextFieldSkinDisposal, TextAreaLovLifecycle, WrapButtonOwnership, RadioReadOnly, ComboReadOnly and CheckBoxReadOnly all exit 0. Maven compile, PowerShell parse and staged diff check passed. Windows: `src/test/probes/Test-LegacyGuiSmoke.ps1 -ExternalLovReadOnly -SettingsFile "D:\Java\.m2\settings.xml"`.
