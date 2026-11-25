@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'ValidatorSubchanges')]
+    [switch] $ValidatorSubchanges,
     [Parameter(ParameterSetName = 'TableAdapterClose')]
     [switch] $TableAdapterClose,
     [Parameter(ParameterSetName = 'TextAreaLovLifecycle')]
@@ -83,7 +85,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($TableAdapterClose) {
+if ($ValidatorSubchanges) {
+    $probeId = 'CTRL-052'
+    $probeClass = 'ValidatorSubchangesSmoke'
+} elseif ($TableAdapterClose) {
     $probeId = 'CTRL-051'
     $probeClass = 'TableAdapterCloseSmoke'
 } elseif ($TextAreaLovLifecycle) {

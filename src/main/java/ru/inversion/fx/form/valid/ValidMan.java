@@ -75,22 +75,23 @@ public class ValidMan implements Serializable {
     }
     private void initObservableLists() {
         cvList.addListener( (ListChangeListener<Pair<Control, Validator>>) change -> {
-            change.next();
-            change.getAddedSubList().forEach( pair -> {
-                Control control = pair.getKey();
-//                int validatorCount = getValidators( control ).size();
-//                logger.info( "{}: added new validator. total count {}", control, validatorCount );
-                initListenersOnControl( control );
-                decorator.markAndTrack( control, MarkType.VALIDATABLE );
-            } );
-            change.getRemoved().stream().map( Pair::getKey ).forEach( control -> {
-                //Снимаем окраску только если валидаторов больше не осталось
-                int validatorCount = getValidators( control ).size();
-                if ( validatorCount == 0 ) {
-                    decorator.unmarkAndUntrack( MarkType.VALIDATABLE, control );
-                }
-//                logger.info( "{}: removed validator. {} validators left", control, validatorCount );
-            } );
+            while (change.next()) {
+                change.getAddedSubList().forEach( pair -> {
+                    Control control = pair.getKey();
+    //                int validatorCount = getValidators( control ).size();
+    //                logger.info( "{}: added new validator. total count {}", control, validatorCount );
+                    initListenersOnControl( control );
+                    decorator.markAndTrack( control, MarkType.VALIDATABLE );
+                } );
+                change.getRemoved().stream().map( Pair::getKey ).forEach( control -> {
+                    //Снимаем окраску только если валидаторов больше не осталось
+                    int validatorCount = getValidators( control ).size();
+                    if ( validatorCount == 0 ) {
+                        decorator.unmarkAndUntrack( MarkType.VALIDATABLE, control );
+                    }
+    //                logger.info( "{}: removed validator. {} validators left", control, validatorCount );
+                } );
+            }
         } );
     }
 
@@ -146,15 +147,16 @@ public class ValidMan implements Serializable {
             });
         }
         list.addListener( (ListChangeListener<? super Validator>) change -> {
-            change.next();
-            change.getAddedSubList().forEach( validator -> {
-                if ( validator != null ){
-                    cvList.add( new Pair<>( control, validator ) );
-                }
-            } );
-            change.getRemoved().forEach( validator -> {
-                cvList.removeIf(pair -> Objects.equals(pair.getKey(), control) && pair.getValue().equals(validator));
-            });
+            while (change.next()) {
+                change.getAddedSubList().forEach( validator -> {
+                    if ( validator != null ){
+                        cvList.add( new Pair<>( control, validator ) );
+                    }
+                } );
+                change.getRemoved().forEach( validator -> {
+                    cvList.removeIf(pair -> Objects.equals(pair.getKey(), control) && pair.getValue().equals(validator));
+                });
+            }
         } );
         return list;
     }
