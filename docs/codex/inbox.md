@@ -3255,7 +3255,7 @@ FORE25-TRIAGE priority 2: reproduced KEY_RELEASED after close on still shown tab
 
 ## BATCH CTRL-052…CTRL-055 — four-task sequential assignment
 
-**Status:** ACTIVE / ASSIGNED — architect releases CTRL-052…055 for one sequential batch session now. CTRL-051 DONE and diff reviewed.
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — all four tasks accepted by user after independent batch verification; individual numeric exit codes not separately supplied. Final production HEAD `ed5533d8d03c1ca1500b65660060d47ce336e3d3`. Batch closed; CTRL-056…060 remain backlog.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox:** agent/codex-mailbox
@@ -3273,7 +3273,7 @@ All earlier per-task RED/GREEN, ownership, allocation, API, Git and testing cons
 
 ## MESSAGE CTRL-052
 
-**Status:** ASSIGNED / ACTIVE FOUR-TASK BATCH — execute sequentially in the released batch
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed all four independent checks OK. Production `e708fdda5d8669e52a52e628e332216ef737c6fc`.
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-052
 **Task:** FIX — ValidMan multi-subchange removals
@@ -3284,7 +3284,7 @@ FORE25-TRIAGE priority 3 reproduced removeAll(v1,v3) leaving v3 active though li
 
 ## MESSAGE CTRL-053
 
-**Status:** ASSIGNED / ACTIVE FOUR-TASK BATCH — execute sequentially in the released batch
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed all four independent checks OK. Production `2d18941e3fd7911f3df27c65ec26061062e3c6d4`.
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-053
 **Task:** AUDIT → FIX — JInvTextAreaSkin.dispose
@@ -3295,7 +3295,7 @@ Current source inspected by architect at 582a7899: direct scene and editable lis
 
 ## MESSAGE CTRL-054
 
-**Status:** ASSIGNED / ACTIVE FOUR-TASK BATCH — execute sequentially in the released batch
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed all four independent checks OK. Production `5bc3c8bd02a22cb13cd5a7d45b941b86d29061e5`.
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-054
 **Task:** AUDIT → FIX — JInvTabPaneSkin listener accumulation
@@ -3306,7 +3306,7 @@ Architect inspected current source: sideProperty listener adds another tabs-list
 
 ## MESSAGE CTRL-055
 
-**Status:** ASSIGNED / ACTIVE FOUR-TASK BATCH — execute sequentially in the released batch
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed all four independent checks OK. Production `ed5533d8d03c1ca1500b65660060d47ce336e3d3`.
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-055
 **Task:** AUDIT → FIX — JInvWrapButton retired onAction ownership
