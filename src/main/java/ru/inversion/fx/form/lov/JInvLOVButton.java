@@ -45,6 +45,10 @@ public class JInvLOVButton extends JInvChoiceButton {
                     TextInputControl ed = p.getKey();
 
                     if (ed != null) {
+                        if ((ed instanceof JInvTextField textField && textField.isReadOnly())
+                                || (ed instanceof JInvTextArea textArea && textArea.isReadOnly())) {
+                            return;
+                        }
                         Platform.runLater( () -> ed.requestFocus() );
                         if (ed instanceof JInvTextField || ed instanceof JInvTextArea) {
                             ILovValueControl field = (ILovValueControl) ed;

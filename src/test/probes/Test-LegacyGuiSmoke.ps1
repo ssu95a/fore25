@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'ExternalLovReadOnly')]
+    [switch] $ExternalLovReadOnly,
     [Parameter(ParameterSetName = 'WrapButtonOwnership')]
     [switch] $WrapButtonOwnership,
     [Parameter(ParameterSetName = 'TabPaneSkinListeners')]
@@ -91,7 +93,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($WrapButtonOwnership) {
+if ($ExternalLovReadOnly) {
+    $probeId = 'CTRL-061'
+    $probeClass = 'ExternalLovReadOnlySmoke'
+} elseif ($WrapButtonOwnership) {
     $probeId = 'CTRL-055'
     $probeClass = 'WrapButtonOwnershipSmoke'
 } elseif ($TabPaneSkinListeners) {
