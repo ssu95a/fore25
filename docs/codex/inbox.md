@@ -3387,7 +3387,7 @@ Read-only on final verified production HEAD. Run official focused modes for all 
 
 ## MESSAGE CTRL-061
 
-**Status:** ASSIGNED — HIGH / RED→GREEN external LOV readOnly activation; standalone 60-minute timebox
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — independent Windows `CTRL-061 PASS`, exit code `0`. Production `1db820ca0c7c0c3d2e32f1dbbfe92bc780485b1e`.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Baseline remote HEAD:** ed5533d8d03c1ca1500b65660060d47ce336e3d3
@@ -3405,3 +3405,73 @@ CTRL-059 reproduced actual AddLinkPane external-first setup: external.setTextFie
 
 ### Boundaries
 Only ssu95a/fore25. Production migration/java25-correctness, mailbox agent/codex-mailbox. main and JInvCommon read-only. No force push/destructive reset, dependency/public API changes or unrelated files. Russian source comments. Timebox 60 minutes.
+
+---
+
+## BATCH CTRL-062…CTRL-066 — five-task sequential correctness assignment
+
+**Status:** ACTIVE / ASSIGNED — all five tasks explicitly authorized by user for one sequential batch session.
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Mailbox branch:** agent/codex-mailbox
+**Baseline remote HEAD:** 1db820ca0c7c0c3d2e32f1dbbfe92bc780485b1e
+**Budget:** 270 minutes total (60+45+60+60+45).
+**Dependency:** CTRL-061 DONE / ARCHITECT APPROVED / USER ACCEPTED, exit 0.
+
+### Latest execution authorization
+Execute CTRL-062…066 in exact order, autonomously, no intermediate architect/user confirmations needed for explicitly scoped fixes. This overrides previous standalone/manual-only restrictions for these five tasks only. Before each task/reply verify remote refs, clean checkout, read latest mailbox and relevant prior replies. Each task starts from the actual verified clean preceding HEAD, never reset to historical baseline. For each FIX or AUDIT→FIX use real deterministic fixtures, tracked focused smoke and runner mode where justified, RED before production edit, same assertions GREEN afterward, positive controls, exact callback/model counts, official focused plus three fresh JVM runs, relevant existing regressions, Maven -Pbuild compile, PowerShell parse, diff check. One isolated validated fast-forward production commit per fix, verify remote SHA; one separate Reply per task. No assertion weakening, arbitrary sleeps or JavaFX internal reflection. No eager per-control allocations; account for new fields/objects and allocation frequency. No fix based solely on source suspicion. On unresolved task-specific contract, report READ-ONLY/BLOCKED/PARTIAL and proceed only if next task independent and baseline clean with no regression failures. Stop entire batch on dirty/conflicting state, failed shared regression or unreliable infrastructure; report remaining NOT_RUN. No incomplete production pushes or destructive cleanup. Main and JInvCommon read-only, no force push, destructive reset, dependency/public API changes, unrelated cleanup, CTRL-014/034/CAL-TIME-001 or unapproved contract changes. Russian Java comments. Report baseline/final SHA, exact RED/GREEN commands/exits, counts, scope, allocation delta, unknowns, Windows rerun with -SettingsFile "D:\Java\.m2\settings.xml". Independent user acceptance remains separate. Stop after CTRL-066. Do not self-assign further work. Total timebox is a ceiling, not permission to expand scope.
+
+---
+
+## MESSAGE CTRL-062
+
+**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-062
+**Task:** FIX — JInvTextArea retired LOV delayed completion
+
+CTRL-050 report reproduced delayed accepted callback from former A copying current B value onto draft, independently of fixed valueProperty subscription. Read current JInvTextArea.showLOV/setLOV, AbstractLovBase, ILov and JInvLOVButton callback contracts. Recover ignored diagnostic if available. RED on real shown Stage with controllable deferred provider completion (no sleep): A→B, A→null, A→B→A, current-provider accepted/cancelled completion, distinct draft/model, counts of copies/model writes and navigation/focus/caller callbacks, late cancelled completion. Distinguish stale attachment from same-provider repeated setter and overlapping choices: document actual supported semantics, don't invent latest-wins contract. For stale completion neither copy nor accepted navigation should occur; preserve legitimate caller completion protocol (if cancellation notification required, preserve exactly once without accepted navigation; if contract unclear, report rather than silently change it). Check provider value notifications separately: direct current provider programmatic updates remain legitimate; a provider publishing a value when reattached is not distinguishable solely by completion callback. Do not claim ABA value-notification suppression unless proven separately. Only production JInvTextArea.java. Prefer existing lazy LovAttachment state and minimal attachment identity/epoch captured per request, no new eager per-control objects, no generic token allocation per field or global manager, no new state unless justified. Ensure bound-property setter failure does not invalidate current valid attachment; preserve CTRL-050 onSetLov/toolbar and programmatic behavior. Direct writable lovProperty mutations out of scope unless already covered contract. Inspect analogous JInvTextField path read-only and report if reproduced; do not edit it in this task. No readOnly policy change or provider API change. New focused -TextAreaLovDelayedCompletion mode. Regressions TextAreaLovLifecycle, ExternalLovReadOnly, TextAreaSkinDisposal, LovIntegration, LovListenerLifecycle, BoundLovSetter, LovBindingInterleaving, Editors, FormLifecycle. If ABA or caller completion contract cannot be safely resolved in scope, report residual precisely or BLOCKED; do not silently weaken tests.
+
+---
+
+## MESSAGE CTRL-063
+
+**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-063
+**Task:** FIX — JInvTextField F9 explicit readOnly with buttonIgnoresEditable
+
+CTRL-061 explicitly reproduced locked TextField F9 opening once when buttonIgnoresEditable=true. Existing ExternalLovReadOnlySmoke positively asserts this old out-of-scope behavior; update only that explicitly superseded assertion as part of this task, retaining all other CTRL-061 coverage. RED verify actual keyboard handler with both ignoreEditable settings, readOnly true/false and editable false/true, normal external/inner positive controls, provider opens/copies/model writes, TAB/focus and event consumption where observable. Only production JInvTextField.java. Minimal explicit isReadOnly guard on F9 user activation before LOV/commit/navigation/focus side effects, preserve normal editable=false+ignoreEditable=true behavior, direct showLOV and provider updates. No fields/listeners/allocations, no change to external button visual policy or generic key precedence/security. Preserve normal event propagation/consumption unless existing readOnly path proves required behavior. GREEN extend existing ExternalLovReadOnly mode to prove locked F9 zero opens/writes under both settings; optional separate focused mode -LovKeyboardReadOnly if necessary. Report exactly which old assertion was deliberately superseded by this approved contract; do not weaken other assertions. Regressions ExternalLovReadOnly, TextFields, ControlsFollowup, LovIntegration, LovDefaultValidation, LovListenerLifecycle, TextFieldSkinDisposal, BoundLovSetter, LovBindingInterleaving, TextAreaLovLifecycle and new CTRL-062 mode if available.
+
+---
+
+## MESSAGE CTRL-064
+
+**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-064
+**Task:** AUDIT → FIX — DSFXAdapter mouse event ownership after close
+
+CTRL-051 removed KEY_RELEASED handler and KEY_PRESSED filter; current source at reviewed diff still registers MOUSE_RELEASED, MOUSE_PRESSED and DRAG_DETECTED filters calling refreshCurrentRow. Runtime post-close mouse failure not yet proven. Read actual current DSFXAdapter, recover TableAdapterClose fixture. Real shown table, deterministic synthetic mouse event delivery to actual installed filters; count refreshes and exceptions, caller-owned handlers, pre-close positive paths, repeated close, late Dataset events. If RED, only DSFXAdapter production: use one shared owned mouse handler if behavior equivalent, retain exact handle and remove each owned registration before teardown; no extra object per mouse event, minimize nullable references, preserve caller handlers, no blanket remove/filter null guard instead of unsubscribe. Keep CTRL-051 keyboard cleanup, no same-table rebind support, no paging changes. GREEN zero former callbacks/exceptions and correct pre-close behavior. New focused mode -TableAdapterMouseClose or extend existing TableAdapterClose with separate assertions and explicit report. Regressions TableAdapterClose, DataBinding, ChoiceAdapter, ChoiceNullLookup and relevant table modes. If source ownership or actual event dispatch cannot be verified, READ-ONLY/BLOCKED.
+
+---
+
+## MESSAGE CTRL-065
+
+**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-065
+**Task:** AUDIT → FIX — DSFXAdapter pending paging / scroll binding after close
+
+CTRL-051 report left pending paging and scroll paths outside scope. No confirmed runtime failure yet. Read current DSFXAdapter SwappingScrollBinding and actual paging/scroll scheduling, Dataset lifecycle and close ordering. Identify precise owned subscription/queued work, not generic concurrency (FX thread normal). Reproduce real table with deterministic queued callback or scroll/paging transition followed by close before execution; positive control normal paging, close repeated, late events, replaced scrollbars if applicable, counts of fetch/cursor/model effects and exceptions. Use controlled in-memory Dataset/test double where possible, no real corporate DB assumption, no arbitrary sleeps. If confirmed, only DSFXAdapter production: exact owner teardown for scroll listeners/owned pending callbacks; cancel or invalidate truly obsolete queued work with minimum existing lifecycle state, no global executor, no unnecessary per-row/per-control allocations, no changes to paging sizes, selection or same-table rebind contract. A guard can invalidate already queued work but is not substitute for removing live retained subscriptions. Keep keyboard and mouse cleanup from CTRL-051/064. If multiple independent defects, isolate smallest proven fix; report other candidates separately. New focused -TableAdapterPagingClose mode if fix. Regressions TableAdapterClose, CTRL-064 focused if available, DataBinding and relevant existing paging/table modes. If paging requires unavailable infrastructure or contractual behavior is unknown, READ-ONLY/BLOCKED, no speculative fix.
+
+---
+
+## MESSAGE CTRL-066
+
+**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-066
+**Task:** AUDIT → FIX — JInvTextAreaSkin retained toolbar button ownership
+
+CTRL-053 fixed managed scene/editable subscriptions, action registration and toolbar/FE visibility bindings; separately retained toolbar button width callbacks and owned handlers remained untested. Read current JInvTextAreaSkin.initToolBar/setButtonStyle/dispose and existing CTRL-053/050. Prove actual post-dispose effect or strong ownership edge in supported scenario: real Stage, caller-owned toolbar item retained and moved/reused if supported, old skin-owned external-editor/FE buttons separately, repeated add/remove/readd and skin replacement, width changes, callback counts, style/selection/visibility positive controls. Do not infer leak from mere cycles or externally held objects; distinguish caller-owned node retention of old skin versus intentionally retained skin-owned button. No native editor launch; stub safe action paths. Only JInvTextAreaSkin production if deterministic RED and ownership clear. Remove exact owned registrations on item removal/dispose as appropriate; prefer existing lifetime management or stateless handler where possible, no eager per-button helper maps/collections without clear necessity, preserve toolbar item identity and caller-owned actions/bindings. Do not alter CTRL-050 LOV attachment/replacement restoration or generic JInvLOVButton association, keyboard manager contract, toolbar styling semantics. If ambiguous, READ-ONLY/BLOCKED. New focused -TextAreaToolbarOwnership mode if fix; regressions TextAreaSkinDisposal, TextAreaLovLifecycle, CTRL-062 focused if available, ExternalLovReadOnly, Editors, ControlsFollowup, SceneKeyLookup. Final reply includes batch summary of all five task statuses, exact final HEAD, residual issues and stop. No further self-assignment.
