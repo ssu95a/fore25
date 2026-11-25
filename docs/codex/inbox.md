@@ -3244,7 +3244,7 @@ If a task is BLOCKED by an unresolved contract, report and STOP after restoring/
 **Production branch:** migration/java25-correctness
 **Baseline remote HEAD:** 6d36746616ce26fee2e42acefce57571131ffb6e
 **Dependency:** CTRL-050 architect approved and user PASS confirmed.
-**Execution:** Explicit architect assignment of CTRL-051 only. Follow shared per-task execution contract above; after publishing Reply CTRL-051 STOP, even if time remains. CTRL-052…060 remain BACKLOG / NOT ASSIGNED. Do not start any other task.
+**Execution:** Explicit architect assignment of CTRL-051 only. Follow shared per-task execution contract above; after publishing Reply CTRL-051 STOP, even if time remains. Do not start any other task in the CTRL-051 session. CTRL-052…055 have a separately authorized conditional batch below; CTRL-056…060 remain BACKLOG / NOT ASSIGNED.
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-051
 **Task:** FIX — DSFXAdapter.close / refreshCurrentRow
@@ -3253,9 +3253,27 @@ FORE25-TRIAGE priority 2: reproduced KEY_RELEASED after close on still shown tab
 
 ---
 
+## BATCH CTRL-052…CTRL-055 — four-task sequential assignment
+
+**Status:** ASSIGNED / conditional start after CTRL-051 DONE and explicit launch of this batch.
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Mailbox:** agent/codex-mailbox
+**Budget:** 195 minutes total (45 + 60 + 45 + 45), additional to standalone CTRL-051.
+**Baseline:** actual clean verified remote production HEAD after CTRL-051. Current pre-051 remote HEAD is 6d36746616ce26fee2e42acefce57571131ffb6e; do not reset to it.
+
+### Latest authorization — overrides earlier manual-only rule for these four tasks only
+The user explicitly requested a new batch of four tasks. CTRL-051 remains a standalone assignment; finish it, publish Reply CTRL-051, and STOP that session. Do not start this batch until CTRL-051 has published DONE and the batch is launched separately. If CTRL-051 is BLOCKED/PARTIAL or remote production state is inconsistent, await architect release.
+
+On batch launch, execute CTRL-052, CTRL-053, CTRL-054, CTRL-055 in that exact order, sequentially, with one isolated validated fast-forward commit per fix, one Reply per task and a verified clean remote baseline before each. No need for intermediate user acceptance or architect approval for fixes explicitly within the individual scopes; user acceptance remains separate and pending. This is not permission to change an ambiguous contract. On a task-specific unresolved semantic question, publish READ-ONLY/BLOCKED or PARTIAL with evidence; proceed only if the next task is independent, no regression is failing and the working baseline is clean. Stop the batch on dirty/conflicting state, failed regression or unreliable infrastructure; report remaining NOT_RUN. After CTRL-055 STOP. CTRL-056…060 remain BACKLOG / NOT ASSIGNED. No other tasks, no autonomous eight-hour mission.
+
+All earlier per-task RED/GREEN, ownership, allocation, API, Git and testing constraints remain. No eager per-control objects. For CTRL-053, preserve accepted CTRL-050 LOV attachment behavior; neither restoration of LOV toolbar on replacement skin nor retired provider delayed completion is authorized. For CTRL-055, account for CTRL-049's existing skin-specific cleanup and CTRL-050's button association; no common LOV redesign. Report these separately if relevant. If no deterministic RED, do not edit production.
+
+---
+
 ## MESSAGE CTRL-052
 
-**Status:** BACKLOG / NOT ASSIGNED
+**Status:** ASSIGNED / CONDITIONAL FOUR-TASK BATCH — execute in order after CTRL-051 DONE and separate batch launch
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-052
 **Task:** FIX — ValidMan multi-subchange removals
@@ -3266,7 +3284,7 @@ FORE25-TRIAGE priority 3 reproduced removeAll(v1,v3) leaving v3 active though li
 
 ## MESSAGE CTRL-053
 
-**Status:** BACKLOG / NOT ASSIGNED
+**Status:** ASSIGNED / CONDITIONAL FOUR-TASK BATCH — execute in order after CTRL-051 DONE and separate batch launch
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-053
 **Task:** AUDIT → FIX — JInvTextAreaSkin.dispose
@@ -3277,7 +3295,7 @@ Current source inspected by architect at 582a7899: direct scene and editable lis
 
 ## MESSAGE CTRL-054
 
-**Status:** BACKLOG / NOT ASSIGNED
+**Status:** ASSIGNED / CONDITIONAL FOUR-TASK BATCH — execute in order after CTRL-051 DONE and separate batch launch
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-054
 **Task:** AUDIT → FIX — JInvTabPaneSkin listener accumulation
@@ -3288,7 +3306,7 @@ Architect inspected current source: sideProperty listener adds another tabs-list
 
 ## MESSAGE CTRL-055
 
-**Status:** BACKLOG / NOT ASSIGNED
+**Status:** ASSIGNED / CONDITIONAL FOUR-TASK BATCH — execute in order after CTRL-051 DONE and separate batch launch
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-055
 **Task:** AUDIT → FIX — JInvWrapButton retired onAction ownership
