@@ -2865,3 +2865,15 @@ Official focused PASS plus 3/3 fresh JVMs. TextFields, ControlsFollowup, WrapBut
 The field adds one nullable attachment reference; the reusable listener holder allocates only on first LOV use and holds the observed property and owned button. The button is reused while attached and removed by identity on null. No new helper/listener/button is allocated on an unused area. setTextField(null) cannot detach a JInvLOVButton association; common button API untouched. A separately simulated delayed accepted completion from retired A still routed the legacy callback and copied current B text onto a draft; former A's value notification alone no longer writes. Delayed completion ownership remains outside this change. Actual DB prevalence, heap bytes and physical input UNKNOWN.
 
 Official TextAreaLovLifecycle exit 0 plus 3/3 fresh JVMs. TextFields, ControlsFollowup, LovListenerLifecycle, LovDefaultValidation, LovIntegration, BoundLovSetter, LovBindingInterleaving, TextFieldSkinDisposal, FormLifecycle, FormCancel and Editors all exit 0. Maven `-Pbuild compile` via runner, PowerShell parse and staged diff check passed. Independent acceptance pending. Rerun: `src/test/probes/Test-LegacyGuiSmoke.ps1 -TextAreaLovLifecycle -SettingsFile "D:\Java\.m2\settings.xml"`.
+
+---
+
+## Reply CTRL-051
+
+**DONE.** Clean baseline `6d36746616ce26fee2e42acefce57571131ffb6e`; fast-forward implementation head verified `171cb8c6347cae958907debcf0774ba6d3b85d11`. Only DSFXAdapter.java, new TableAdapterCloseSmoke.java and runner mode changed.
+
+**RED → GREEN (Windows Java 25 / JavaFX 25).** Shown table: pre-close DOWN release made one cursor refresh and HOME was consumed by the adapter, both versions. After two close calls, baseline DOWN caused one NPE in refreshCurrentRow, caller recorded only pre-close DOWN, HOME consumption [true,true]. GREEN closed DOWN caused zero refreshes/exceptions and reached the caller (two total DOWN releases); HOME consumption [true,false]. Late navigation, row and execute each reached their independent Dataset observer once, adapter stayed at [1,0,1], and table selection stayed at index 1. Repeated close passed.
+
+Adapter retains exact KEY_RELEASED handler and KEY_PRESSED filter and unregisters only those before Dataset teardown. Two nullable references, no eager helper, no additional handler object beyond the two formerly created at bind. Caller registrations and old Dataset teardown preserved. Mouse filters and pending paging remain outside the keyboard-detach scope; same-table rebind contract unchanged. Corporate SQL and independent user acceptance UNKNOWN.
+
+Official TableAdapterClose and 3/3 fresh JVMs, existing DataBinding (GUI-009 close/late-event), ChoiceAdapter and ChoiceNullLookup all exit 0. Maven compile, PowerShell parse and staged diff check passed. Windows rerun: `src/test/probes/Test-LegacyGuiSmoke.ps1 -TableAdapterClose -SettingsFile "D:\Java\.m2\settings.xml"`. Standalone session stops here as required by inbox eab0f12f; separately launched batch CTRL-052–055 may now use the verified head.
