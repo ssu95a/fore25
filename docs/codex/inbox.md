@@ -3410,7 +3410,7 @@ Only ssu95a/fore25. Production migration/java25-correctness, mailbox agent/codex
 
 ## BATCH CTRL-062…CTRL-066 — five-task sequential correctness assignment
 
-**Status:** ACTIVE / ASSIGNED — all five tasks explicitly authorized by user for one sequential batch session.
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed all five independent checks OK; individual exit codes not separately supplied. Final accepted production HEAD `6ccb4403d9322c3d4160f6513f6498fe003f9a5e`.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox branch:** agent/codex-mailbox
@@ -3425,7 +3425,7 @@ Execute CTRL-062…066 in exact order, autonomously, no intermediate architect/u
 
 ## MESSAGE CTRL-062
 
-**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed package checks OK. Production `f6a73c0d583b25012b2132fe643a89bea471b024`.
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-062
 **Task:** FIX — JInvTextArea retired LOV delayed completion
@@ -3436,7 +3436,7 @@ CTRL-050 report reproduced delayed accepted callback from former A copying curre
 
 ## MESSAGE CTRL-063
 
-**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed package checks OK. Production `33a73ce5ccfe77eb7a5bcdd9e65c060cce681e5c`.
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-063
 **Task:** FIX — JInvTextField F9 explicit readOnly with buttonIgnoresEditable
@@ -3447,7 +3447,7 @@ CTRL-061 explicitly reproduced locked TextField F9 opening once when buttonIgnor
 
 ## MESSAGE CTRL-064
 
-**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed package checks OK. Production `5b4032851f6677dc6b5905147b2accb93d27e5a0`.
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-064
 **Task:** AUDIT → FIX — DSFXAdapter mouse event ownership after close
@@ -3458,7 +3458,7 @@ CTRL-051 removed KEY_RELEASED handler and KEY_PRESSED filter; current source at 
 
 ## MESSAGE CTRL-065
 
-**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed package checks OK. Production `424dc86b9feeed9c0cc0ba1e0c383ae06384596e`.
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-065
 **Task:** AUDIT → FIX — DSFXAdapter pending paging / scroll binding after close
@@ -3469,7 +3469,7 @@ CTRL-051 report left pending paging and scroll paths outside scope. No confirmed
 
 ## MESSAGE CTRL-066
 
-**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed package checks OK. Production `6ccb4403d9322c3d4160f6513f6498fe003f9a5e`.
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-066
 **Task:** AUDIT → FIX — JInvTextAreaSkin retained toolbar button ownership
