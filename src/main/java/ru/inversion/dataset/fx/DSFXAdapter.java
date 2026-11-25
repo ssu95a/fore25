@@ -1353,8 +1353,13 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
 
     /** Позиционирование текущей записи */
     private void positionRow( int index ) {
+        positionRow(index, null);
+    }
 
+    private void positionRow(int index, IDataSet<T> bulkAttachment) {
         Platform.runLater(() -> {
+            if (bulkAttachment != null && dataSet != bulkAttachment)
+                return;
 
             //rowList.refresh();
 
@@ -1794,7 +1799,8 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
             if( progressTaskExecutor != null )
                 return;
 
-            getDataSet().removeNavigationListener(this);
+            IDataSet<T> attachment = getDataSet();
+            attachment.removeNavigationListener(this);
 
             bulkAppend.setValue(true);
 
@@ -1804,7 +1810,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
                 progressTaskExecutor
                         .allowCancel(true)
                         .stage((Stage)getTable().getScene().getWindow(), bundle.getString("LOAD_ROWS"), false)
-                        .callback(rowLoader(this))
+                        .callback(rowLoader(attachment))
                         .indicator(false)
                         .execute();
 
@@ -1815,22 +1821,29 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
             }
             finally {
                 progressTaskExecutor = null;
-                getDataSet().addNavigationListener(this);
+                if (dataSet == attachment)
+                    attachment.addNavigationListener(this);
             }
 
-        int rowCount = wasCanceled.get() ? getDataSet().getLoadedRowCount() - 51 : getDataSet().getLoadedRowCount() - 1;
+        if (dataSet != attachment)
+            return;
 
-        positionRow( rowCount );
+        int rowCount = wasCanceled.get() ? attachment.getLoadedRowCount() - 51 : attachment.getLoadedRowCount() - 1;
 
-        Platform.runLater( ()-> bulkAppend.setValue(false) );
+        positionRow(rowCount, attachment);
+
+        Platform.runLater(() -> {
+            if (dataSet == attachment)
+                bulkAppend.setValue(false);
+        });
     }
 
     /** */
-    private ProgressCallback<Void, DSFXAdapter<T>> rowLoader( DSFXAdapter<T> adapter )
+    private ProgressCallback<Void, DSFXAdapter<T>> rowLoader(IDataSet<T> attachment)
     {
         return( progress, p ) ->
         {
-            long totalRowCount = (long)adapter.getDataSet().getTotalRowCount();
+            long totalRowCount = (long)getDataSet().getTotalRowCount();
 
             if( totalRowCount <= 0 )
                 progress.before( "wait ..." );
@@ -1857,9 +1870,13 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
             wasCanceled.setValue( progress.isCancelled() );
 
             Platform.runLater( () -> {
+                // Закрытие возможно внутри вложенного цикла окна прогресса.
+                if (dataSet != attachment)
+                    return;
                 tableView.getSelectionModel().selectLast();
                 Platform.runLater( () -> {
-                    dataSet.setCurrentRow( tableView.getSelectionModel().getSelectedItem() );
+                    if (dataSet == attachment)
+                        attachment.setCurrentRow(tableView.getSelectionModel().getSelectedItem());
                 } );
             } );
 
