@@ -3038,3 +3038,24 @@ Official ExternalLovReadOnly + 3 fresh JVMs, TextFields, ControlsFollowup, LovIn
 All five focused modes reproduced RED (exit 1), then passed GREEN (exit 0). Fifteen fresh JVM runs and all 37 requested or related regression invocations exited 0. Five separate fast-forward implementation commits and five separate Replies. Final clean production HEAD `6ccb4403d9322c3d4160f6513f6498fe003f9a5e`.
 
 Remaining scope includes TextField stale completion policy, direct writable LOV-property changes, value notifications after reattachment, SQL paging/bulk workers, native input and native editor behavior. Those were excluded or unverified in this batch. No task in this package is blocked. Stop after CTRL-066.
+
+---
+
+## Reply CTRL-067
+
+**PARTIAL / READ-ONLY.** Baseline `6ccb4403d9322c3d4160f6513f6498fe003f9a5e`. Windows Java 25.0.1, JavaFX 25+29. Shown Stage, production JInvTable/DSFXAdapter and controlled ArrayDataSet A/B/C. The one swap attempt returns false without fetching SQL rows. In close cases the worker queues two calls to close on the FX thread before queuing result/selection delivery. Each case uses a fresh JVM.
+
+| Case | Swap attempts | Result callbacks | Errors | Selection changes | Final selected / cursor |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Search miss, open | 1 | 1 false | 0 | 0 | null / -1 |
+| Search miss, close | 1 | 1 false after adapter detach | 0 | 0 | null / -1 |
+| Bulk, open | 1 | 0 | 0 | 1 | C / 2 |
+| Bulk, close | 1 | 0 | 2 NPE | 1 | C / -1 |
+
+The closed bulk call throws from navigation listener restoration in `moveToLast` because `getDataSet()` returns null. Independently, rowLoader's two queued FX calls select C after both close calls, then fail at `dataSet.setCurrentRow`. The closed search result reaches the caller even after adapter detach. Its caller-specific correctness contract remains open. No database writes in this fixture.
+
+Source ownership: the table moveToLast entry point is reachable from the keyboard manager. ProgressTaskExecutor uses a window-modal progress Stage with showAndWait; the worker owns the fetch loop, and the FX nested loop can deliver close. ProgressService handles task success/failure/cancel on FX and can queue error dispatch. DSFXAdapter.close tears down input, scroll and DataSet listeners; DSControlAdapter.close clears the DataSet reference. No close coordination with the progress executor is present. Search temporarily owns a row listener and removes it on the straight-line path, so exception-safe removal after registration is a separate candidate. The no-consumer miss alert, close while the fetch is already blocking, cancellation, error-service dispatch, SQL cursor and actual business-form teardown are UNKNOWN.
+
+Next smallest RED→GREEN: scope to DSFXAdapter bulk ownership at close. Validate the original attachment before restoring navigation or positioning and at both queued selection/cursor deliveries; preserve normal selection and separate the worker's cancellation policy. Establish stale-search-result policy separately before suppressing a caller callback; probe exceptions with exact search row-listener removal. Closing the adapter provides no SQL rollback guarantee.
+
+Reproduction: `target/ctrl-067-research/BulkLifecycleAudit.java` (ignored). Prepend IDEA Maven 3.9.16 bin to Path, set MAVEN_ARGS=-o; `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterPagingClose -SettingsFile D:\Java\.m2\settings.xml` exit 0 (wrapper-only first attempt exit 1 before compile). Use the generated dependencies.txt as DEP in `javac -cp "target/classes;DEP" -d target/ctrl-067-research target/ctrl-067-research/BulkLifecycleAudit.java` (exit 0). Run `java --enable-native-access=ALL-UNNAMED -cp "target/ctrl-067-research;target/classes;DEP" BulkLifecycleAudit OP STATE` with OP search/bulk and STATE open/close; all four diagnostic processes exit 0 after reporting observations. The initial search-open launch reported the same result but remained alive after Platform.exit; the completed matrix uses explicit diagnostic process exit. Production and tracked test code unchanged.
