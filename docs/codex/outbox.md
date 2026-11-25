@@ -3091,3 +3091,15 @@ AbstractBaseController.bindControls resolves labels and invokes Binder with sele
 Minimum follow-up: real launched form with a reused external entity, explicit ownership of one converter binding, and verified WINDOW_HIDDEN and closeResources before checking stale writes. Use the Object/Object unbind route if an explicit cleanup contract for that binding is established. No rollback or broad cleanup change proposed.
 
 Temporary probe target/ctrl-070-research/BinderSuccess.java, derived from CTRL-057; javac -cp "target/classes;DEP" -d target/ctrl-070-research target/ctrl-070-research/BinderSuccess.java and java --enable-native-access=ALL-UNNAMED -cp "target/ctrl-070-research;target/classes;DEP" BinderSuccess. DEP from CTRL-067 runner. Both exit 0. No tracked changes.
+
+---
+
+## Reply CTRL-071
+
+**PARTIAL / READ-ONLY.** Baseline 6ccb4403d9322c3d4160f6513f6498fe003f9a5e; Java 25.0.1 / FX 25+29. Real FXFormLauncher/SDI, FXML with synthetic singleton controller and stub app preferences, no DB. Replayed CTRL-042 diagnostic matrix with failure in init. Replayed with failure immediately after super.bindControls. The second fixture has no entity fields, so it traverses the binding hook but does not prove cleanup of installed bindings.
+
+Both runs: Cancel veto and rejected OK leave one visible owner with no callbacks or resource cleanup; duplicate show remains suppressed. Accepted close permits reopening. A gated closeNow shows the owner already hidden and its callback delivered with cleanup count still 0; after the progress WINDOW_HIDDEN cleanup is 1. The early assertion printed by the diagnostic intentionally distinguishes those phases. Each injected init failure leaves the owner hidden, reports the original exception once, completes one cleanup after the gate, and allows a fresh launch. Matrix reaches five accepted controller launches and five callbacks after final close. No orphan singleton was observed on the exercised branches.
+
+Source: registration precedes Stage show; showing listener calls internalInit, transitions to RUNTIME on success, records/dispatches init errors and requests close. Top-level launcher catch unregisters a controller it acquired. Return callback precedes resource teardown in a finally block. The probe covers actual SDI launcher, accepted and vetoed requests, and resource progress Stage. Failure after real field binding, MDI/WAIT, exception in custom close veto of a failed stage and external model effects are UNKNOWN. Smallest next evidence for CTRL-070/071: bind one retained model property in the real launcher, fail immediately after installation, wait for real cleanup and reopen with the model.
+
+Run java --enable-native-access=ALL-UNNAMED -cp "target/ctrl042/diagnostic;target/classes;DEP" SingletonCloseVetoSmoke matrix (exit 0). Compile target/ctrl-071-research/SingletonCloseVetoSmoke.java using javac -cp "target/classes;DEP" -d target/ctrl-071-research (exit 0) and substitute target/ctrl-071-research for the diagnostic directory in the java command (exit 0). DEP generated in CTRL-067. Tracked code unchanged.
