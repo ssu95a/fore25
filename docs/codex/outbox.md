@@ -2877,3 +2877,9 @@ Official TextAreaLovLifecycle exit 0 plus 3/3 fresh JVMs. TextFields, ControlsFo
 Adapter retains exact KEY_RELEASED handler and KEY_PRESSED filter and unregisters only those before Dataset teardown. Two nullable references, no eager helper, no additional handler object beyond the two formerly created at bind. Caller registrations and old Dataset teardown preserved. Mouse filters and pending paging remain outside the keyboard-detach scope; same-table rebind contract unchanged. Corporate SQL and independent user acceptance UNKNOWN.
 
 Official TableAdapterClose and 3/3 fresh JVMs, existing DataBinding (GUI-009 close/late-event), ChoiceAdapter and ChoiceNullLookup all exit 0. Maven compile, PowerShell parse and staged diff check passed. Windows rerun: `src/test/probes/Test-LegacyGuiSmoke.ps1 -TableAdapterClose -SettingsFile "D:\Java\.m2\settings.xml"`. Standalone session stops here as required by inbox eab0f12f; separately launched batch CTRL-052–055 may now use the verified head.
+
+---
+
+## Reply CTRL-052
+
+**DONE.** Baseline `171cb8c6347cae958907debcf0774ba6d3b85d11`; verified fast-forward `e708fdda5d8669e52a52e628e332216ef737c6fc`. Original disjoint removeAll(v1,v3) returned [2] but invoked [2,3], exit 1. GREEN invoked [2], exit 0. Contiguous removal, add/replace/clear, shared validator isolation and historical duplicate add/remove semantics passed. Both ValidMan list observers now process every subchange, preserving existing order and adding no state. New ValidatorSubchangesSmoke and runner mode. Official plus 3/3 fresh JVMs, ValidatorScopedUnbind, ValidatorMultiControl (six actual blur dispatches and model events), LovIntegration, Maven compile, PowerShell parse and staged diff check passed. Independent acceptance pending. Windows: `src/test/probes/Test-LegacyGuiSmoke.ps1 -ValidatorSubchanges -SettingsFile "D:\Java\.m2\settings.xml"`.
