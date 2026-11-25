@@ -3315,9 +3315,24 @@ CTRL-046 reproduced cached action after settled detach; CTRL-043 fixed deferred 
 
 ---
 
+## BATCH CTRL-056…CTRL-060 — five-task sequential audit and verification
+
+**Status:** ACTIVE / ASSIGNED — architect releases all five tasks for one sequential batch session.
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Mailbox:** agent/codex-mailbox
+**Baseline remote HEAD:** ed5533d8d03c1ca1500b65660060d47ce336e3d3
+**Budget:** 225 minutes total, 45 minutes per task.
+**Dependency:** CTRL-052…055 DONE / ARCHITECT APPROVED / USER ACCEPTED.
+
+### Latest authorization
+The user approved this five-task batch. This overrides older manual-only and cancelled mission restrictions ONLY for CTRL-056…060. Execute in order, without waiting for intermediate architect/user confirmations. Do not repeat CTRL-051…055. All five tasks are strictly READ-ONLY for production and tracked test code. Ignored temporary probes allowed. No implementation commits, no dependency or public API changes. Publish exactly one Reply for each task in docs/codex/outbox.md on agent/codex-mailbox, with actual baseline SHA, confirmed evidence vs hypotheses/UNKNOWN, exact commands/exits, and narrow proposed follow-up where justified. Use existing tests and deterministic real JavaFX fixtures. Preserve established contracts and security; no speculative fixes. Verify clean local checkout and fresh remote refs before starting and before each task/reply. Unexpected production advancement, dirty tree or shared infrastructure failure: STOP safely and report remaining NOT_RUN. Task-specific unknown contract: report evidence and continue to next independent task. CTRL-060 is final regression and ownership audit on accepted HEAD, including all focused modes CTRL-049…055 (TextFieldSkinDisposal, TextAreaLovLifecycle, TableAdapterClose, ValidatorSubchanges, TextAreaSkinDisposal, TabPaneSkinListeners, WrapButtonOwnership), relevant earlier regressions and compile within its timebox. Include exact skipped modes and reasons. Do not claim user acceptance of new evidence or actual heap measurements without data. Keep earlier per-task boundaries. Stop after CTRL-060, no self-assignment of CTRL-061 or any other task. Production HEAD should remain unchanged throughout.
+
+---
+
 ## MESSAGE CTRL-056
 
-**Status:** BACKLOG / NOT ASSIGNED
+**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH — READ-ONLY
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-056
 **Task:** AUDIT — ValidMan reparenting / ownership
@@ -3328,7 +3343,7 @@ CTRL-037 runtime: moved control still dispatches blur to former manager. Read ac
 
 ## MESSAGE CTRL-057
 
-**Status:** BACKLOG / NOT ASSIGNED
+**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH — READ-ONLY
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-057
 **Task:** AUDIT — Binder partial bind failure
@@ -3339,7 +3354,7 @@ CTRL-023 runtime: exception leaves successful controls bidirectionally attached.
 
 ## MESSAGE CTRL-058
 
-**Status:** BACKLOG / NOT ASSIGNED
+**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH — READ-ONLY
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-058
 **Task:** AUDIT — SceneKeyManager action selection
@@ -3350,7 +3365,7 @@ CTRL-024 plus triage: candidate picked before enabled/security checks. Inspect a
 
 ## MESSAGE CTRL-059
 
-**Status:** BACKLOG / NOT ASSIGNED
+**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH — READ-ONLY
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-059
 **Task:** AUDIT — AddLinkPane external/inner LOV precedence
@@ -3361,7 +3376,7 @@ CTRL-046 runtime and actual AddLinkPane external-first order: both buttons visib
 
 ## MESSAGE CTRL-060
 
-**Status:** BACKLOG / NOT ASSIGNED
+**Status:** ASSIGNED / ACTIVE FIVE-TASK BATCH — READ-ONLY
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-060
 **Task:** VERIFY — cross-task regression and ownership audit
