@@ -3197,7 +3197,7 @@ Only repo ssu95a/fore25. Production writes only on migration/java25-correctness,
 
 ## MESSAGE CTRL-050
 
-**Status:** ASSIGNED — HIGH / RED→GREEN TextArea LOV ownership, timebox approximately 60 minutes
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — independent Windows `CTRL-050 PASS` reported by user; numeric exit code not separately reported. Production `6d36746616ce26fee2e42acefce57571131ffb6e`.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Baseline remote HEAD:** 582a7899172c3beef845dbb2393bfc3e5d02e75f
@@ -3239,7 +3239,12 @@ If a task is BLOCKED by an unresolved contract, report and STOP after restoring/
 
 ## MESSAGE CTRL-051
 
-**Status:** BACKLOG / NOT ASSIGNED
+**Status:** ASSIGNED — HIGH / RED→GREEN, one standalone task only
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Baseline remote HEAD:** 6d36746616ce26fee2e42acefce57571131ffb6e
+**Dependency:** CTRL-050 architect approved and user PASS confirmed.
+**Execution:** Explicit architect assignment of CTRL-051 only. Follow shared per-task execution contract above; after publishing Reply CTRL-051 STOP, even if time remains. CTRL-052…060 remain BACKLOG / NOT ASSIGNED. Do not start any other task.
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-051
 **Task:** FIX — DSFXAdapter.close / refreshCurrentRow
