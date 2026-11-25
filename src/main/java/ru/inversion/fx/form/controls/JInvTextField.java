@@ -320,19 +320,13 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
             return;
         }
 
-        if (!this.lov.isBound() && lovValueListener != null && lovValueListener.provider != lovObj) {
-            lovValueListener.detach();
-        }
-        this.lov.set(lovObj);
+        setLovProvider(lovObj);
 
         //Иной раз в специфическом лове требуются знания о контроле к которому оный привязан
         ((ILov) lovObj).onSetLov(this);
 
         setValidateFromLOV(validateFromLOV);
 
-        if (lovValueListener == null) {
-            lovValueListener = new LovValueListener();
-        }
         lovValueListener.attach(lovObj);
 
         if (S.isNullOrEmpty(lovObj.getTitle()) && getLabel() != null) {
@@ -378,11 +372,26 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
      * Убирает LOV кнопку с textField'а.
      */
     public final void unbindLOV() {
-        if (!this.lov.isBound() && lovValueListener != null) {
-            lovValueListener.detach();
-        }
-        this.lov.set(null);
+        setLovProvider(null);
         removeInnerButton();
+    }
+
+    private void setLovProvider(AbstractLovBase provider) {
+        if (!lov.isBound()) {
+            if (lovValueListener == null && provider != null) {
+                lovValueListener = new LovValueListener();
+            }
+            if (lovValueListener != null) {
+                if (lovValueListener.provider != provider) {
+                    lovValueListener.detach();
+                }
+                // Обновляем поколение до уведомления слушателей свойства.
+                if (lov.get() != provider) {
+                    lovValueListener.revision++;
+                }
+            }
+        }
+        lov.set(provider);
     }
 
     /**
@@ -439,6 +448,7 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
 
     private final class LovValueListener implements InvalidationListener {
         private AbstractLovBase provider;
+        private long revision;
 
         private void attach(AbstractLovBase current) {
             if (provider != current && getLOV() == current) {
@@ -575,35 +585,25 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
     public void showLOV(BiConsumer<Boolean, ILov> clb) {
 
         try {
-            if (getLOV() != null) {
+            var provider = getLOV();
+            if (provider != null) {
+                var attachment = lovValueListener;
+                long revision = attachment == null ? 0 : attachment.revision;
 
-                if (getLOV().isSmallLov()) {
+                if (provider.isSmallLov()) {
                     Bounds boundsInLocal = this.getBoundsInLocal();
                     Bounds localToScreen = this.localToScreen(boundsInLocal);
-                    getLOV().setPosition((int) localToScreen.getMinX(), (int) localToScreen.getMinY());
+                    provider.setPosition((int) localToScreen.getMinX(), (int) localToScreen.getMinY());
                 }
-                getLOV().showChoiceList( ViewContext.of(getScene().getWindow()), getTextForLov(), new BiConsumer<Boolean, ILov>() {
-                    @Override
-                    public void accept(Boolean t, ILov u) {
-
-                        if( t.booleanValue() ) {
-
-                            // setTextValueFromLov();
-
-                            /**
-                             Закоментировано 08.04.2020, Sulimoff
-                             Происходит дублированный вызова setText() для TextField
-                             т.к. еще висит слушатель на valueProperty()
-
-                             @see LovValueListener
-
-                            */
-                        }
-
-                        if( clb != null )
-                            clb.accept( t, u );
+                BiConsumer<Boolean, ILov> completion = (accepted, source) -> {
+                    if (clb != null) {
+                        // Повторное подключение того же LOV не восстанавливает прежний выбор.
+                        boolean current = getLOV() == provider && lovValueListener == attachment
+                                && (attachment == null || attachment.revision == revision);
+                        clb.accept(current ? accepted : Boolean.FALSE, source);
                     }
-                });
+                };
+                provider.showChoiceList(ViewContext.of(getScene().getWindow()), getTextForLov(), completion);
             }
         } catch (Throwable th) {
             JInvErrorService.handleException(ViewContext.of(getScene().getWindow()), th);
