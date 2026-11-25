@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'TextAreaLovDelayedCompletion')]
+    [switch] $TextAreaLovDelayedCompletion,
     [Parameter(ParameterSetName = 'ExternalLovReadOnly')]
     [switch] $ExternalLovReadOnly,
     [Parameter(ParameterSetName = 'WrapButtonOwnership')]
@@ -93,7 +95,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($ExternalLovReadOnly) {
+if ($TextAreaLovDelayedCompletion) {
+    $probeId = 'CTRL-062'
+    $probeClass = 'TextAreaLovDelayedCompletionSmoke'
+} elseif ($ExternalLovReadOnly) {
     $probeId = 'CTRL-061'
     $probeClass = 'ExternalLovReadOnlySmoke'
 } elseif ($WrapButtonOwnership) {

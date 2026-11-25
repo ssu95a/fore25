@@ -376,10 +376,14 @@ public class JInvTextArea extends TextArea implements ITextFieldBase {
     @Override
     public void setLOV(AbstractLovBase lovObj, boolean validateFromLOV) {
 
+        var previous = getLOV();
         this.lov.set(lovObj);
 
         if (getLOV() != lovObj) {
             return;
+        }
+        if (lovAttachment != null && previous != lovObj) {
+            lovAttachment.revision++;
         }
         var values = lovObj == null ? null : lovObj.valueProperty();
         if (lovAttachment != null && lovAttachment.values != values) {
@@ -469,21 +473,28 @@ public class JInvTextArea extends TextArea implements ITextFieldBase {
     @Override
     public void showLOV( final BiConsumer<Boolean, ILov> clb ) {
         try {
-            if (getLOV() != null) {
+            var provider = getLOV();
+            if (provider != null) {
+                var attachment = lovAttachment;
+                long revision = attachment == null ? 0 : attachment.revision;
 
-                if (getLOV().isSmallLov()) {
+                if (provider.isSmallLov()) {
                     Bounds boundsInLocal = this.getBoundsInLocal();
                     Bounds localToScreen = this.localToScreen(boundsInLocal);
-                    getLOV().setPosition((int) localToScreen.getMinX(), (int) localToScreen.getMinY());
+                    provider.setPosition((int) localToScreen.getMinX(), (int) localToScreen.getMinY());
                 }
-                getLOV().showChoiceList( ViewContext.of(getScene().getWindow()), getText(), new BiConsumer<Boolean, ILov>() {
+                provider.showChoiceList( ViewContext.of(getScene().getWindow()), getText(), new BiConsumer<Boolean, ILov>() {
                     @Override
                     public void accept(Boolean t, ILov u) {
-                        if (t.booleanValue()) {
+                        // Повторное подключение того же LOV не восстанавливает прежний выбор.
+                        boolean current = getLOV() == provider && lovAttachment == attachment
+                                && (attachment == null || attachment.revision == revision);
+                        boolean accepted = current && t;
+                        if (accepted) {
                             setTextValueFromLov();
                         }
                         if (clb != null) {
-                            clb.accept(t, u);
+                            clb.accept(accepted, u);
                         }
                     }
 
@@ -496,6 +507,7 @@ public class JInvTextArea extends TextArea implements ITextFieldBase {
     private final class LovAttachment implements InvalidationListener {
         private ObjectProperty<?> values;
         private JInvLOVButton button;
+        private long revision;
 
         void attachValue(ObjectProperty<?> next) {
             if (values != next) {
