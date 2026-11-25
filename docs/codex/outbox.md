@@ -3208,3 +3208,26 @@ On actual shown JInvTable and ArrayDataSet, notifications queued in the same FX 
 The existing queued callbacks check that their captured DataSet still owns the attachment at delivery. General positionRow reuses the guarded scheduling introduced for bulk, and AFTER EXECUTE retains one callback per event. No per-instance fields, extra queued wrapper, coalescing or SQL/cursor contract changes. SQL-driven execute/refresh behavior and same-table rebind remain outside scope.
 
 Windows Java 25.0.1 / FX 25: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterQueuedClose -SettingsFile "D:\Java\.m2\settings.xml" exits 1 RED, 0 GREEN. Two additional fresh JVMs invoked TableAdapterQueuedCloseSmoke directly with the same classpath and --enable-native-access=ALL-UNNAMED, both exit 0. TableAdapterClose, TableAdapterPagingClose, TableAdapterBulkClose, DataBinding, TableEditing, TableCancel, EditorReentry and TableEditRowIdentity each exit 0. Maven -Pbuild compile, PowerShell parse and staged diff check passed. Independent acceptance pending.
+
+---
+
+## Reply CTRL-078
+
+**DONE.** Baseline f6bfd8bb2a0ca38cf36ea538140bff1f49744c7d; final production 70b139ed54d00c46b4c2ae597535d82ddbe5a2ab, verified fast-forward. Only JInvTextField, TextFieldLovDelayedCompletionSmoke and runner mapping.
+
+Shown Stage, real TextField with direct, F9 and external-button routes. 24 delayed-completion cases: three routes × same-provider repeat / replace / detach / A→B→A × accepted/cancelled. RED: all three stale accepted transitions delivered true directly and emitted one TAB each via F9 and button. GREEN: each completed direct call returned one false with its reporting provider; both UI routes emitted zero stale TAB, with the existing one synchronous cancellation focus request. Valid accepted F9/button still emit one TAB, valid direct receives true once, and cancellations emit zero TAB. In all cases completion alone had zero model writes and preserved the distinct draft. Two overlapping current choices both completed accepted; bound replacement and unbind both rejected without invalidating a pending current request. Current/replacement programmatic value updates wrote once each; a retired notification wrote zero. readOnly blocked F9/button, direct programmatic open and completion remained available.
+
+Generation is stored as one long on the existing lazy LOV value listener; no eager per-field object or added callback count. Explicit setter/unbind updates generation before JavaFX property notification only for a writable changed provider; same-provider repeats and rejected bound operations preserve it. Each existing completion captures the originating provider and generation and still reports its original source. Direct writable lovProperty attachment semantics, reattached-provider value events without choice identity, actual focus traversal and the specialized TextFieldCUR override remain outside this fix.
+
+Windows Java 25.0.1 / FX 25: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextFieldLovDelayedCompletion -SettingsFile "D:\Java\.m2\settings.xml" exits 1 RED and 0 GREEN. Two fresh direct JVMs on the same classpath with --enable-native-access=ALL-UNNAMED exit 0. TextAreaLovDelayedCompletion, ExternalLovReadOnly, LovListenerLifecycle, LovIntegration, LovDefaultValidation, BoundLovSetter, LovBindingInterleaving, TextFieldSkinDisposal, WrapButtonOwnership and TextAreaLovLifecycle all exit 0. All three prior focused package probes pass again on final HEAD. Maven -Pbuild compile, PowerShell parse and staged diff check passed.
+
+### Package CTRL-075–078
+
+| Task | Status | Verified production SHA | Focused runner |
+| --- | --- | --- | --- |
+| CTRL-075 | DONE | eaf0bed0be6a888ce259a69b2899b49da8ad7f57 | TableEditRowIdentity |
+| CTRL-076 | DONE | 07a51fda7407161b9f1a1eb2bed04930bc6fc0b9 | TableAdapterBulkClose |
+| CTRL-077 | DONE | f6bfd8bb2a0ca38cf36ea538140bff1f49744c7d | TableAdapterQueuedClose |
+| CTRL-078 | DONE | 70b139ed54d00c46b4c2ae597535d82ddbe5a2ab | TextFieldLovDelayedCompletion |
+
+All four deterministic assertions failed on their unchanged production baseline (exit 1), then passed on the isolated fix (exit 0) in at least three fresh JVMs each. Four separate production commits and four mailbox Replies. The tested synthetic cancel route no longer writes to the new occupant of an invalidated index; an invalidated draft may be discarded. SQL refresh/sort, blocking/cancelled/error bulk SQL, other search completion paths, native input and focus traversal, and draft recovery remain unverified. No transaction changes or performance optimization. Independent Windows acceptance pending. Stop after CTRL-078.
