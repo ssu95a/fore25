@@ -2939,3 +2939,28 @@ SceneKeyManager appends registrations, chooses first matching key/phase at neare
 **DONE / READ-ONLY.** Verified HEAD `ed5533d8d03c1ca1500b65660060d47ce336e3d3`. Ignored ExternalLovAudit.java, Java 25/FX25, attached Stage and production controls; exit 0. AddLinkPane.fxml has sibling external JInvLOVButton and field; AddLinkPaneController.initLov calls external.setTextField then field.setLOV(lov,true). That exact order with local provider showed both buttons (laid-out widths 24/24, validateFromLOV=true), each button fire and synthetic F9 opened/wrote once. Setting a new external after LOV hid/detached the wrapper; clearing external left it empty until explicit setLOV. CTRL-055 cleared retired action/parent; CTRL-049 cleared former skin bindings; replacement skin remained empty with provider intact. CTR-045 and TextArea CTRL-050 cover separate ownership contracts.
 
 **Confirmed input-path gap:** readOnly suppressed inner fire and F9 (0 opens), but external stayed enabled; external Button.fire() reached the real handler and produced 1 open and 1 model write. Native click and actual DB-backed help form not run. Minimal separate follow-up: guard field-delegated external LOV user activation for a readOnly field, preserving programmatic provider updates, standalone button and existing binding ownership. No priority change needed for that fix. External-only vs allowing both affordances and whether external detach should restore inner are architectural decisions; current observations alone do not select a policy.
+
+---
+
+## Reply CTRL-060
+
+**DONE / READ-ONLY.** Final verified clean implementation HEAD `ed5533d8d03c1ca1500b65660060d47ce336e3d3`; no implementation writes throughout batch.
+
+Windows fresh Java 25/FX25 processes, runner src/test/probes/Test-LegacyGuiSmoke.ps1, each with -SettingsFile "D:\Java\.m2\settings.xml". Exact exit matrix: TextFieldSkinDisposal exit=0; TextAreaLovLifecycle exit=0; TableAdapterClose exit=0; ValidatorSubchanges exit=0; TextAreaSkinDisposal exit=0; TabPaneSkinListeners exit=0; WrapButtonOwnership exit=0; TextFields exit=0; ControlsFollowup exit=0; WrapButtonDeferred exit=0; BoundLovSetter exit=0; LovBindingInterleaving exit=0; LovListenerLifecycle exit=0; LovDefaultValidation exit=0; LovIntegration exit=0; FormCancel exit=0; FormLifecycle exit=0; DataBinding exit=0; ChoiceAdapter exit=0; ValidatorScopedUnbind exit=0; ValidatorMultiControl exit=0; SceneKeyLookup exit=0; Editors exit=0. All 23 exited 0 on first battery run. Runner Maven -Pbuild compile passed, PowerShell parser and git diff --check clean. CTRL-034 reattachment intentionally excluded (open contract). RadioReadOnly, ChoiceNullLookup and other out-of-matrix modes not run in this focused battery. Physical input and corporate DB unavailable; no new independent acceptance or heap measurements.
+
+| Task | Status | Scope / result |
+| --- | --- | --- |
+| CTRL-051 | Accepted prior to batch | `171cb8c6347cae958907debcf0774ba6d3b85d11` DSFXAdapter keyboard release/press teardown; two nullable references, same two bind-time handlers; late Dataset events isolated |
+| CTRL-052 | Accepted prior to batch | `e708fdda5d8669e52a52e628e332216ef737c6fc` ValidMan consumes all list subchanges; no state or registration added |
+| CTRL-053 | Accepted prior to batch | `2d18941e3fd7911f3df27c65ec26061062e3c6d4` TextArea skin owns two nullable references, one lazy action/reusable registration, two managed listener paths, unbinds toolbar/FE at disposal |
+| CTRL-054 | Accepted prior to batch | `5bc3c8bd02a22cb13cd5a7d45b941b86d29061e5` TabPane skin adds one boolean, manages side/width and one list registration after LEFT, no per-tab state |
+| CTRL-055 | Accepted prior to batch | `ed5533d8d03c1ca1500b65660060d47ce336e3d3` JInvWrapButton removes matching retired action/parent; no new state or listeners |
+| CTRL-056 | DONE, audit | Prior manager still receives automatic blur after graph move; supported cross-controller transfer UNKNOWN |
+| CTRL-057 | DONE, audit | Partial bind confirmed, retry clean on observed route; converter unbind requires Object overload in fixture |
+| CTRL-058 | DONE, audit | Disabled and denied first candidates shadow eligible actions without consumption; reservation contract open |
+| CTRL-059 | DONE, audit | Both affordances in external-first order; external field-delegated handler under readOnly opens/writes once while inner/F9 zero |
+| CTRL-060 | DONE, verify | 23/23 smoke modes; clean unchanged implementation HEAD |
+
+Prior regression ownership: CTRL-049 `582a789` JInvTextFieldButtonSkin adds five lifetime-managed property registrations instead of direct listeners, uses shared overflow callback; no field-level state. CTRL-050 `6d36746` JInvTextArea adds one nullable reference, one lazy attachment/listener and one button while attached. No retained-byte estimate. Each prior commit includes only its named implementation class, focused probe and runner.
+
+Highest-priority follow-up: isolate readOnly guard on external field-delegated LOV activation, keeping standalone/provider write semantics. Separately resolve validator transfer, Binder failure/cleanup, hotkey reservation, and external-vs-inner precedence only if caller contracts require changes. No implementation changes authorized or performed. Batch stops here.
