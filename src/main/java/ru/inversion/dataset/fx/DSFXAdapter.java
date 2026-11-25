@@ -938,11 +938,16 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
 
     @Override
     public void dataSetChanged( DataSetEvent e ) {
+        IDataSet<T> attachment = dataSet;
         if( e.isAfter() )
             updateEmptyProperty();
 
-        if( e.isAfter() && e.getEventType() == DataSetEvent.DataSetEventType.EXECUTE )
-            Platform.runLater( this::refresh );
+        if (attachment != null && e.isAfter() && e.getEventType() == DataSetEvent.DataSetEventType.EXECUTE) {
+            Platform.runLater(() -> {
+                if (dataSet == attachment)
+                    refresh();
+            });
+        }
     }
 
     /** */
@@ -1353,12 +1358,14 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
 
     /** Позиционирование текущей записи */
     private void positionRow( int index ) {
-        positionRow(index, null);
+        positionRow(index, dataSet);
     }
 
-    private void positionRow(int index, IDataSet<T> bulkAttachment) {
+    private void positionRow(int index, IDataSet<T> attachment) {
+        if (attachment == null)
+            return;
         Platform.runLater(() -> {
-            if (bulkAttachment != null && dataSet != bulkAttachment)
+            if (dataSet != attachment)
                 return;
 
             //rowList.refresh();

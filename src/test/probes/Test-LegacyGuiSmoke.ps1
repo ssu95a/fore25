@@ -6,6 +6,8 @@ param(
     [switch] $TableEditRowIdentity,
     [Parameter(ParameterSetName = 'TableAdapterBulkClose')]
     [switch] $TableAdapterBulkClose,
+    [Parameter(ParameterSetName = 'TableAdapterQueuedClose')]
+    [switch] $TableAdapterQueuedClose,
     [Parameter(ParameterSetName = 'TableAdapterPagingClose')]
     [switch] $TableAdapterPagingClose,
     [Parameter(ParameterSetName = 'TextAreaLovDelayedCompletion')]
@@ -112,6 +114,9 @@ if ($TextAreaToolbarOwnership) {
 } elseif ($TableAdapterBulkClose) {
     $probeId = 'CTRL-076'
     $probeClass = 'TableAdapterBulkCloseSmoke'
+} elseif ($TableAdapterQueuedClose) {
+    $probeId = 'CTRL-077'
+    $probeClass = 'TableAdapterQueuedCloseSmoke'
 } elseif ($TableAdapterPagingClose) {
     $probeId = 'CTRL-065'
     $probeClass = 'TableAdapterPagingCloseSmoke'
