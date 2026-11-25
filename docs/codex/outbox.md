@@ -3004,3 +3004,13 @@ Official ExternalLovReadOnly + 3 fresh JVMs, TextFields, ControlsFollowup, LovIn
 **Windows Java 25 / JavaFX 25.** Shown JInvTable, three synthetic mouse events. RED and GREEN each made three pre-close cursor refreshes, and the caller received three events. After two closes RED produced three null Dataset exceptions and the caller received no events. GREEN produced zero exceptions or refreshes, and the caller received all three events. Keyboard counts and independent late Dataset notifications passed in both versions. Native mouse, corporate SQL and paging teardown were outside these checks.
 
 `src/test/probes/Test-LegacyGuiSmoke.ps1 -TableAdapterClose -SettingsFile "D:\Java\.m2\settings.xml"` exit 1 RED and 0 GREEN. Three fresh JVMs exit 0. DataBinding, ChoiceAdapter, ChoiceNullLookup, TableEditing, TableCancel and EditorReentry exit 0. Maven -Pbuild compile, PowerShell parse and staged diff check passed. Independent Windows acceptance pending.
+
+---
+
+## Reply CTRL-065
+
+**DONE.** Baseline `5b4032851f6677dc6b5905147b2accb93d27e5a0`. Verified fast-forward production HEAD `424dc86b9feeed9c0cc0ba1e0c383ae06384596e`. Clean checkout. Production limited to DSFXAdapter. Closing the paging owner removes its focus, skin, layout, bulk-append and current-scrollbar subscriptions. Its already queued PageDown completion checks the identity of the active owner before selecting. One nullable adapter reference, three fewer listener instances at bind, same one queued runnable per accepted page. Fetch logic, page sizing, keyboard/mouse disposal and Dataset ownership preserved.
+
+**Windows Java 25 / JavaFX 25.** In-memory Dataset and visible JInvTable. Active scrollbar requested one fetch, active PageDown fetched one page and later selected row 40 in both table and Dataset. When closed twice before the next queued selection, RED selected 41 once and produced three scrollbar exceptions across original/replacement bar transitions. GREEN selection stayed at 0 with zero selection events, scrollbar exceptions, extra fetches, cursor requests or inserted rows. Independent late navigation, row and execute listeners each received one event. SQL paging and bulk fetch/search workers were untested.
+
+`src/test/probes/Test-LegacyGuiSmoke.ps1 -TableAdapterPagingClose -SettingsFile "D:\Java\.m2\settings.xml"` exit 1 RED and 0 GREEN. Three fresh JVMs exit 0. TableAdapterClose (keyboard and mouse), DataBinding, TableEditing, TableCancel and EditorReentry exit 0. Maven -Pbuild compile, PowerShell parse and staged diff check passed. Independent Windows acceptance pending.
