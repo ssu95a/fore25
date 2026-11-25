@@ -4,9 +4,12 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.event.EventType;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import ru.inversion.dataset.ArrayDataSet;
@@ -17,6 +20,9 @@ import ru.inversion.dataset.fx.DSFXAdapter;
 import ru.inversion.fx.form.controls.JInvTable;
 
 public final class TableAdapterCloseSmoke {
+    private static final List<EventType<MouseEvent>> MOUSE_TYPES =
+            List.of(MouseEvent.MOUSE_PRESSED, MouseEvent.DRAG_DETECTED, MouseEvent.MOUSE_RELEASED);
+
     private static final class Rows extends ArrayDataSet<String> {
         int cursorRequests;
 
@@ -66,6 +72,7 @@ public final class TableAdapterCloseSmoke {
         adapter.bindTable(rows, table, false);
         var homeConsumed = new ArrayList<Boolean>();
         var releases = new ArrayList<KeyCode>();
+        var callerMouseEvents = new ArrayList<EventType<?>>();
         table.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.HOME) {
                 homeConsumed.add(event.isConsumed());
@@ -73,6 +80,12 @@ public final class TableAdapterCloseSmoke {
             }
         });
         table.addEventHandler(KeyEvent.KEY_RELEASED, event -> releases.add(event.getCode()));
+        for (var type : MOUSE_TYPES) {
+            table.addEventFilter(type, event -> {
+                callerMouseEvents.add(event.getEventType());
+                event.consume();
+            });
+        }
         stage.show();
         var errors = new ArrayList<Throwable>();
         var thread = Thread.currentThread();
@@ -86,6 +99,11 @@ public final class TableAdapterCloseSmoke {
             key(table, KeyEvent.KEY_PRESSED, KeyCode.HOME, errors);
             require(errors.isEmpty() && rows.cursorRequests == before + 1 && rows.getCurrentRowNum() == 1
                     && releases.equals(List.of(KeyCode.DOWN)) && homeConsumed.equals(List.of(true)), "pre-close key paths");
+            before = rows.cursorRequests;
+            mouse(table, errors);
+            int openMouseRefreshes = rows.cursorRequests - before;
+            require(openMouseRefreshes == 3 && errors.isEmpty() && callerMouseEvents.equals(MOUSE_TYPES)
+                    && rows.getCurrentRowNum() == 1, "pre-close mouse paths");
             rows.executeNotification();
             require(adapter.executions == 1, "pre-close dataset notification");
             var adapterBefore = adapter.counts();
@@ -96,6 +114,10 @@ public final class TableAdapterCloseSmoke {
             key(table, KeyEvent.KEY_RELEASED, KeyCode.DOWN, errors);
             key(table, KeyEvent.KEY_PRESSED, KeyCode.HOME, errors);
             int postCloseRefreshes = rows.cursorRequests - before;
+            before = rows.cursorRequests;
+            var mouseErrors = new ArrayList<Throwable>();
+            mouse(table, mouseErrors);
+            int closedMouseRefreshes = rows.cursorRequests - before;
             var independent = new ArrayList<String>();
             rows.addNavigationListener(event -> independent.add("navigation"));
             rows.addRowListener(event -> independent.add("row"));
@@ -110,9 +132,26 @@ public final class TableAdapterCloseSmoke {
                     postCloseRefreshes, releases, homeConsumed, adapter.counts(), errors);
             require(postCloseRefreshes == 0 && errors.isEmpty() && releases.equals(List.of(KeyCode.DOWN, KeyCode.DOWN))
                     && homeConsumed.equals(List.of(true, false)), "closed adapter still handles key input");
+            System.out.printf("mouse pre-close refreshes=%d post-close refreshes=%d caller=%s errors=%s%n",
+                    openMouseRefreshes, closedMouseRefreshes, callerMouseEvents, mouseErrors);
+            var expectedMouseEvents = new ArrayList<>(MOUSE_TYPES);
+            expectedMouseEvents.addAll(MOUSE_TYPES);
+            require(closedMouseRefreshes == 0 && mouseErrors.isEmpty() && callerMouseEvents.equals(expectedMouseEvents),
+                    "closed adapter still intercepts mouse input");
         } finally {
             thread.setUncaughtExceptionHandler(previousHandler);
             stage.hide();
+        }
+    }
+
+    private static void mouse(JInvTable<String> table, List<Throwable> errors) {
+        for (var type : MOUSE_TYPES) {
+            try {
+                table.fireEvent(new MouseEvent(type, 1, 1, 1, 1, MouseButton.PRIMARY, 1,
+                        false, false, false, false, type != MouseEvent.MOUSE_RELEASED, false, false, false, false, true, null));
+            } catch (RuntimeException failure) {
+                errors.add(failure);
+            }
         }
     }
 

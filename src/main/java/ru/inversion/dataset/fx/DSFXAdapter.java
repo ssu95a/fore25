@@ -164,6 +164,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     private TableView<T> tableView;
     private EventHandler<KeyEvent> keyReleaseHandler;
     private EventHandler<KeyEvent> keyPressFilter;
+    private EventHandler<MouseEvent> mouseRefreshFilter;
 
     /** */
     private boolean enableF7FilterDialog = true;
@@ -389,9 +390,10 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
 
         keyReleaseHandler = event -> refreshCurrentRow();
         tableView.addEventHandler(KeyEvent.KEY_RELEASED, keyReleaseHandler);
-        this.tableView.addEventFilter ( MouseEvent.MOUSE_RELEASED,( MouseEvent event ) -> refreshCurrentRow() );
-        this.tableView.addEventFilter ( MouseEvent.MOUSE_PRESSED, ( MouseEvent event ) -> refreshCurrentRow() );
-        this.tableView.addEventFilter ( MouseEvent.DRAG_DETECTED, ( MouseEvent event ) -> refreshCurrentRow() );
+        mouseRefreshFilter = event -> refreshCurrentRow();
+        tableView.addEventFilter(MouseEvent.MOUSE_RELEASED, mouseRefreshFilter);
+        tableView.addEventFilter(MouseEvent.MOUSE_PRESSED, mouseRefreshFilter);
+        tableView.addEventFilter(MouseEvent.DRAG_DETECTED, mouseRefreshFilter);
 
         final SwappingScrollBinding scrollBinding = new SwappingScrollBinding();
         scrollBinding.install();
@@ -485,6 +487,12 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         if (keyPressFilter != null) {
             tableView.removeEventFilter(KeyEvent.KEY_PRESSED, keyPressFilter);
             keyPressFilter = null;
+        }
+        if (mouseRefreshFilter != null) {
+            tableView.removeEventFilter(MouseEvent.MOUSE_RELEASED, mouseRefreshFilter);
+            tableView.removeEventFilter(MouseEvent.MOUSE_PRESSED, mouseRefreshFilter);
+            tableView.removeEventFilter(MouseEvent.DRAG_DETECTED, mouseRefreshFilter);
+            mouseRefreshFilter = null;
         }
         if( dataSet != null ) {
             dataSet.removeDataSetListener(this);
