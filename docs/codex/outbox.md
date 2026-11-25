@@ -2883,3 +2883,11 @@ Official TableAdapterClose and 3/3 fresh JVMs, existing DataBinding (GUI-009 clo
 ## Reply CTRL-052
 
 **DONE.** Baseline `171cb8c6347cae958907debcf0774ba6d3b85d11`; verified fast-forward `e708fdda5d8669e52a52e628e332216ef737c6fc`. Original disjoint removeAll(v1,v3) returned [2] but invoked [2,3], exit 1. GREEN invoked [2], exit 0. Contiguous removal, add/replace/clear, shared validator isolation and historical duplicate add/remove semantics passed. Both ValidMan list observers now process every subchange, preserving existing order and adding no state. New ValidatorSubchangesSmoke and runner mode. Official plus 3/3 fresh JVMs, ValidatorScopedUnbind, ValidatorMultiControl (six actual blur dispatches and model events), LovIntegration, Maven compile, PowerShell parse and staged diff check passed. Independent acceptance pending. Windows: `src/test/probes/Test-LegacyGuiSmoke.ps1 -ValidatorSubchanges -SettingsFile "D:\Java\.m2\settings.xml"`.
+
+---
+
+## Reply CTRL-053
+
+**DONE.** Baseline `e708fdda5d8669e52a52e628e332216ef737c6fc`; verified fast-forward `2d18941e3fd7911f3df27c65ec26061062e3c6d4`. Original repeated public skin replacement: 3 actions on first scene, 4 leftover including caller, 2 on second; retired editable callback removed a toolbar item and visibility bindings survived. GREEN counts 1/1 (caller only)/1, one stub F4 dispatch, zero retired dispatches. Real focus and scenes; no external editor executed. Active toolbar, caller context menu and original TextArea LOV model counts survived.
+
+Only JInvTextAreaSkin, focused test and runner. Skin-owned scene/editable subscriptions managed by SkinBase; unregisters only matching action/node from prior scene/at dispose, unbinds its toolbar/FE visibility. Two nullable references on skin, action allocated upon first attachment and reused, no new field-level state. Retained externally held individual toolbar buttons/width callbacks, native external editor and independent acceptance not covered. Official TextAreaSkinDisposal plus 3 fresh processes, TextAreaLovLifecycle, Editors, FormLifecycle, FormCancel, SceneKeyLookup, Maven compile, PowerShell parse, staged diff check exit 0. Windows: `src/test/probes/Test-LegacyGuiSmoke.ps1 -TextAreaSkinDisposal -SettingsFile "D:\Java\.m2\settings.xml"`.
