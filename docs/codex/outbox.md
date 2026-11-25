@@ -3014,3 +3014,27 @@ Official ExternalLovReadOnly + 3 fresh JVMs, TextFields, ControlsFollowup, LovIn
 **Windows Java 25 / JavaFX 25.** In-memory Dataset and visible JInvTable. Active scrollbar requested one fetch, active PageDown fetched one page and later selected row 40 in both table and Dataset. When closed twice before the next queued selection, RED selected 41 once and produced three scrollbar exceptions across original/replacement bar transitions. GREEN selection stayed at 0 with zero selection events, scrollbar exceptions, extra fetches, cursor requests or inserted rows. Independent late navigation, row and execute listeners each received one event. SQL paging and bulk fetch/search workers were untested.
 
 `src/test/probes/Test-LegacyGuiSmoke.ps1 -TableAdapterPagingClose -SettingsFile "D:\Java\.m2\settings.xml"` exit 1 RED and 0 GREEN. Three fresh JVMs exit 0. TableAdapterClose (keyboard and mouse), DataBinding, TableEditing, TableCancel and EditorReentry exit 0. Maven -Pbuild compile, PowerShell parse and staged diff check passed. Independent Windows acceptance pending.
+
+---
+
+## Reply CTRL-066
+
+**DONE.** Baseline `424dc86b9feeed9c0cc0ba1e0c383ae06384596e`. Verified fast-forward production HEAD `6ccb4403d9322c3d4160f6513f6498fe003f9a5e`. Clean checkout. Only `JInvTextAreaSkin`, the focused fixture and its runner mode. One shared width listener per skin replaces listeners previously added to every button on each toolbar mutation. Exact width registrations are removed at item removal and disposal. The skin releases its own editor-button callback by identity at disposal. Caller handlers, bindings, and the public FE button's area association are preserved. No per-button helper maps, lists or listener objects. Four private references on the skin retain the two listeners, existing editor callback and its action until teardown as applicable.
+
+**Windows Java 25 / JavaFX 25.** A retained caller button removed twice, moved to another toolbar, or present at disposal caused one downstream preferred-width change in the old toolbar in each RED case and zero in GREEN. Retired FE and editor buttons each caused one change in RED and zero in GREEN. The retired editor action's callback edge was present in RED and cleared in GREEN. Active and readded buttons still produced one downstream change, caller action/binding, selection, styling and visibility passed. Two safe test editor dispatches and one dispatch per caller button. Native external editor and FE dialog execution, heap-size measurement and independent acceptance were not tested.
+
+`src/test/probes/Test-LegacyGuiSmoke.ps1 -TextAreaToolbarOwnership -SettingsFile "D:\Java\.m2\settings.xml"` exit 1 RED and 0 GREEN. Three fresh JVMs exit 0. TextAreaSkinDisposal, TextAreaLovLifecycle, TextAreaLovDelayedCompletion, ExternalLovReadOnly, Editors, ControlsFollowup and SceneKeyLookup exit 0. Maven -Pbuild compile, PowerShell parse and staged diff check passed.
+
+### Package summary CTRL-062–066
+
+| Task | Status | Verified production SHA | Focused mode |
+| --- | --- | --- | --- |
+| CTRL-062 | DONE | `f6a73c0d583b25012b2132fe643a89bea471b024` | TextAreaLovDelayedCompletion |
+| CTRL-063 | DONE | `33a73ce5ccfe77eb7a5bcdd9e65c060cce681e5c` | ExternalLovReadOnly |
+| CTRL-064 | DONE | `5b4032851f6677dc6b5905147b2accb93d27e5a0` | TableAdapterClose |
+| CTRL-065 | DONE | `424dc86b9feeed9c0cc0ba1e0c383ae06384596e` | TableAdapterPagingClose |
+| CTRL-066 | DONE | `6ccb4403d9322c3d4160f6513f6498fe003f9a5e` | TextAreaToolbarOwnership |
+
+All five focused modes reproduced RED (exit 1), then passed GREEN (exit 0). Fifteen fresh JVM runs and all 37 requested or related regression invocations exited 0. Five separate fast-forward implementation commits and five separate Replies. Final clean production HEAD `6ccb4403d9322c3d4160f6513f6498fe003f9a5e`.
+
+Remaining scope includes TextField stale completion policy, direct writable LOV-property changes, value notifications after reattachment, SQL paging/bulk workers, native input and native editor behavior. Those were excluded or unverified in this batch. No task in this package is blocked. Stop after CTRL-066.
