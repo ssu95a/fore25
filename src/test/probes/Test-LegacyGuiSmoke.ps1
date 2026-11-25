@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'TextAreaSkinDisposal')]
+    [switch] $TextAreaSkinDisposal,
     [Parameter(ParameterSetName = 'ValidatorSubchanges')]
     [switch] $ValidatorSubchanges,
     [Parameter(ParameterSetName = 'TableAdapterClose')]
@@ -85,7 +87,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($ValidatorSubchanges) {
+if ($TextAreaSkinDisposal) {
+    $probeId = 'CTRL-053'
+    $probeClass = 'TextAreaSkinDisposalSmoke'
+} elseif ($ValidatorSubchanges) {
     $probeId = 'CTRL-052'
     $probeClass = 'ValidatorSubchangesSmoke'
 } elseif ($TableAdapterClose) {

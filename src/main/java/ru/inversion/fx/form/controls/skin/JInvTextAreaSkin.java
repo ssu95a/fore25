@@ -5,12 +5,11 @@
  */
 package ru.inversion.fx.form.controls.skin;
 import javafx.scene.control.skin.TextAreaSkin;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -32,11 +31,15 @@ import ru.inversion.fx.app.es.JInvErrorService;
 import ru.inversion.fx.app.service.exteditor.ExtensionType;
 import ru.inversion.fx.app.service.exteditor.ExternalEditorManager;
 import ru.inversion.fx.form.ActionFactory;
+import ru.inversion.fx.form.action.IAction;
+import ru.inversion.fx.form.action.JInvEvent.PlaceType;
 import ru.inversion.fx.form.action.JInvKeyboardManager;
 import ru.inversion.fx.form.action.JInvParallelAction;
+import ru.inversion.fx.form.action.SceneKeyManager;
 import ru.inversion.fx.form.controls.Controls;
 import ru.inversion.fx.form.controls.JInvFEButton;
 import ru.inversion.fx.form.controls.JInvTextArea;
+import ru.inversion.utils.Pair;
 
 /**
  *
@@ -53,6 +56,8 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
     private static final ResourceBundle menuBundle = ResourceBundle.getBundle(
             "ru.inversion.fx.form.controls.skin.JInvTextAreaMenu");
     private boolean disposed;
+    private IAction externalEditorAction;
+    private List<Pair<Node, IAction>> registeredActions;
 
 
     public JInvFEButton getFeButton() {
@@ -61,28 +66,8 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
 
     public JInvTextAreaSkin(JInvTextArea textArea) {
         super(textArea);
-        textArea.sceneProperty().addListener(new ChangeListener<Scene>() {
-            //Сработали разок – и хватит
-            boolean triggeredOnce = false;
-
-            @Override
-            public void changed(ObservableValue<? extends Scene> observable, Scene oldValue, Scene newValue) {
-                if ( triggeredOnce ){
-                    return;
-                }
-
-                if (newValue != null) {
-                    JInvKeyboardManager.addAction( textArea,
-                            ActionFactory.createAction( ActionFactory.ActionTypeEnum.EDIT_EXTERNAL,
-                                e -> {
-                                    if ( JInvTextAreaSkin.this.getSkinnable().isFocused() ) {
-                                        editInExtEditor( e );
-                                    }
-                                } ) );
-                    triggeredOnce = true;
-                }
-            }
-        });
+        registerChangeListener(textArea.sceneProperty(), observable -> updateExternalEditorAction(textArea.getScene()));
+        updateExternalEditorAction(textArea.getScene());
 
         initToolBar( textArea );
         registerChangeListener(toolBar.visibleProperty(), observable -> textArea.requestLayout());
@@ -91,6 +76,24 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
         registerChangeListener(textArea.contextMenuProperty(), observable -> installContextMenu());
         registerChangeListener(textArea.onContextMenuRequestedProperty(), observable -> installContextMenu());
         installContextMenu();
+    }
+
+    private void updateExternalEditorAction(Scene scene) {
+        if (registeredActions != null) {
+            registeredActions.removeIf(pair -> pair.first == getSkinnable() && pair.second == externalEditorAction);
+            registeredActions = null;
+        }
+        if (scene != null) {
+            if (externalEditorAction == null) {
+                externalEditorAction = ActionFactory.createAction(ActionFactory.ActionTypeEnum.EDIT_EXTERNAL, event -> {
+                    if (getSkinnable().isFocused()) {
+                        editInExtEditor(event);
+                    }
+                });
+            }
+            JInvKeyboardManager.addAction(getSkinnable(), externalEditorAction);
+            registeredActions = SceneKeyManager.getActionMap(scene, PlaceType.FILTER);
+        }
     }
 
     private void installContextMenu() {
@@ -114,6 +117,10 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
         if (disposed)
             return;
         disposed = true;
+        updateExternalEditorAction(null);
+        externalEditorAction = null;
+        toolBar.visibleProperty().unbind();
+        feButton.visibleProperty().unbind();
         TextArea area = getSkinnable();
         textContextMenu.hide();
         textContextMenu.setOnShowing(null);
@@ -138,23 +145,13 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
 
         toolBar.getItems().add(feButton);
 
-        textArea.editableProperty().addListener(new ChangeListener< Boolean >() {
-
-            final private Button edButton;
-            {
-                edButton = ActionFactory.createButton (
-                                ActionFactory.ActionTypeEnum.EDIT_EXTERNAL,
-                                JInvTextAreaSkin.this::editInExtEditor
-                );
-
-                edButton.setTooltip(new Tooltip(bundle.getString("TOOLTIP_EDIT_IN_EXTERNAL_EDITOR")));
-            }
-            @Override
-            public void changed( ObservableValue< ? extends Boolean > observable, Boolean oldValue, Boolean newValue ) {
-                if( newValue )
-                    toolBar.getItems().add(edButton);
-                else
-                    toolBar.getItems().remove(edButton);
+        Button edButton = ActionFactory.createButton(ActionFactory.ActionTypeEnum.EDIT_EXTERNAL, this::editInExtEditor);
+        edButton.setTooltip(new Tooltip(bundle.getString("TOOLTIP_EDIT_IN_EXTERNAL_EDITOR")));
+        registerChangeListener(textArea.editableProperty(), observable -> {
+            if (textArea.isEditable()) {
+                toolBar.getItems().add(edButton);
+            } else {
+                toolBar.getItems().remove(edButton);
             }
         });
 
