@@ -3172,3 +3172,15 @@ DSFXAdapter directly reuses an ObservableList from the DataSet or wraps a non-ob
 | CTRL-074 | PARTIAL | Two measured local workloads; SQL, retained heap and paint need dedicated measurements. |
 
 All eight replies are individually published on agent/codex-mailbox. The production checkout and remote baseline remain 6ccb4403d9322c3d4160f6513f6498fe003f9a5e. No change to tracked production or tests. No independent user acceptance asserted. Stop after CTRL-074.
+
+---
+
+## Reply CTRL-075
+
+**DONE.** Baseline 6ccb4403d9322c3d4160f6513f6498fe003f9a5e; production eaf0bed0be6a888ce259a69b2899b49da8ad7f57, verified fast-forward. Only JInvTextFieldTableCell, TableEditRowIdentitySmoke and runner mapping.
+
+Actual shown JInvTable/DSFXAdapter/ArrayDataSet and production cell; stable row identity independent of equals, equal-valued replacement X and duplicate sort keys A/B. Baseline RED: one commit and one write each to X on replacement, B on removal, C on permutation; a subsequent unarmed same-index reentry also emitted one commit. Final GREEN: zero commits/writes in all invalidated armed and unarmed mutations; reentry unarmed cancel zero and reentry F8 exactly one write to X. Same-row armed cancel, F8 and ENTER each commit/write A once; Escape followed by cancellation produces zero. Assertions unchanged.
+
+One nullable row reference per cell, captured for the edit and cleared at reentry/cancel/commit; the saved position must still refer to the original object, same table and column, before conversion and before dispatch. No new allocation for guards, no change to normal commit or Dataset/transaction paths. An invalidated draft may be discarded by existing cancel behavior. SQL refresh/server sort, native input, converter-rejection during this specific synthetic route and draft recovery remain unverified.
+
+Windows Java 25.0.1 / FX 25: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableEditRowIdentity -SettingsFile "D:\Java\.m2\settings.xml" exit 1 on baseline and 0 on fixed build. Final source was refined to snapshot before the start-event callback and recheck after conversion; Maven -Pbuild compile succeeded and the final probe passed three fresh JVMs (javac/java with the runner classpath and --enable-native-access=ALL-UNNAMED). Regressions TableEditing, TableCancel, EditorReentry, DataBinding, TableAdapterClose, TableAdapterPagingClose, MoneyDecimal, LovDefaultValidation all exit 0 on final build. PowerShell parser and git diff --check exit 0. IDEA Maven 3.9.16 with MAVEN_ARGS=-o. Independent acceptance pending.
