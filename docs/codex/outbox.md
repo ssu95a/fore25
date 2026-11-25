@@ -2897,3 +2897,13 @@ Only JInvTextAreaSkin, focused test and runner. Skin-owned scene/editable subscr
 ## Reply CTRL-054
 
 **DONE.** Baseline `2d18941e3fd7911f3df27c65ec26061062e3c6d4`; verified fast-forward `5bc3c8bd02a22cb13cd5a7d45b941b86d29061e5`. Real Stage; deliberately bound style sentinel counted each style attempt via its expected exception, while ordinary tab style/selection/attached content passed. RED→GREEN attempts initial TOP 0→0, first LEFT 1→1, fourth LEFT 4→1, TOP after LEFT 4→1 (existing styling eligibility preserved), replacement already LEFT 5→1. Only JInvTabPaneSkin, new smoke and runner. Lifetime-managed list subscription installed once, managed side/width observers; one boolean per skin, no per-tab fields or eager helpers. Official plus 3 fresh JVMs, NodeTraversal, ControlsFollowup, Editors, Maven compile, PowerShell parse and staged diff check passed. Independent acceptance pending. Windows: `src/test/probes/Test-LegacyGuiSmoke.ps1 -TabPaneSkinListeners -SettingsFile "D:\Java\.m2\settings.xml"`.
+
+---
+
+## Reply CTRL-055
+
+**DONE.** Baseline `5bc3c8bd02a22cb13cd5a7d45b941b86d29061e5`; verified fast-forward `ed5533d8d03c1ca1500b65660060d47ce336e3d3`. RED hidden wrapper fire after settled detach routed [A,A] and retained A action/parent. GREEN routed [A], old action and parent absent; subsequent same-turn ABA and settled A→B produced [A,B,caller] with no old dispatch, preserving caller unbound action, a foreign parent and LOV-over-FE priority. Programmatic fire on real shown Stage; physical input untested.
+
+Only JInvWrapButton, new WrapButtonOwnershipSmoke and runner. Clear wrapped matching action on detach/replacement only when it was bound and identical to old source's handler; remove CONTROL_PARENT only when it points to this wrapper. No new state, no empty map allocation for pending buttons. Public properties reveal bound status, not arbitrary external source identity; no simultaneous external binding with the same action was established. Existing CTRL-043 deferred guard and CTRL-049 skin cleanup pass; common LOV and button attachment semantics not expanded.
+
+Official plus 3 fresh JVMs; WrapButtonDeferred, BoundLovSetter, LovBindingInterleaving, TextFieldSkinDisposal, TextAreaLovLifecycle, Maven compile, PowerShell parse, staged diff check exit 0. Windows: `src/test/probes/Test-LegacyGuiSmoke.ps1 -WrapButtonOwnership -SettingsFile "D:\Java\.m2\settings.xml"`. Independent acceptance pending. Batch CTRL-052–055 completed, stop after this reply.
