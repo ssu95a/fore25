@@ -5326,3 +5326,178 @@ CTRL-108 current shown DataSet fixture repro, native JVM 0: for equal-but-distin
 Ranked next controlled slices: (1) offline editor completion seam and explicitly owned FX result delivery; (2) CTRL-108 supported row identity/factory contract preserving user factories, focus/edit and refresh channels; (3) ComboBox commit/readOnly and spinner bound lifecycle independently; (4) supported CSS/measurement profiling by actual call site. PERF-009 saw 2.3–3.0 kB per check plus CSS iterator/event registration stacks; current ARCH-006 moves geometry, without claiming a cheaper measure or suggesting a per-field cache. Binder external FXEntity ownership UNKNOWN. ISkinPopulatable remains used by IContextMenuAppendable, ParamCellTextField, framework skins, and custom-skin fallback in JInvTextField; external compatibility unknown and removal needs explicit API decision. No state/allocation/production delta.
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterRowRefreshClose -SettingsFile "D:\Java\.m2\settings.xml"
+
+
+---
+
+## Reply ARCH-008
+
+**GREEN — 63/63 modes.** Assignment 98856c3c and resume decision 0b207e37a66a061aa4f8fc04ba019558dad292a5. Package baseline 0982d2112b8f8020d16f917adaab77caee29005d, final production 515d01fd20ba491bc39044f939191b85229b7a08. Exact fast-forward chain of six scoped production commits, no untracked/staged production changes. Independent acceptance remains separate.
+
+| Task | Disposition | Production commit / evidence |
+| --- | --- | --- |
+| PERF-014 | DONE | 93031bb15f03b89ace175278152b4a2a9d3d3c56. Archived tested TextField menu, signed-off residual risk and new 0/0 scoped verification. |
+| PERF-015 | DONE | ecad2198c3ab9badfd097fa490999a14d884db22. TextArea uses shared lazy control-owned menu. |
+| PERF-016 | GREEN | Read-only intermediate gate, 59/59 actual native/runner 0/0 at ecad219. |
+| ARCH-001 | DONE | ab771153acc644fbb5586842437b0f0696459906. Shared direct FE dialog, configured fire preserved. |
+| ARCH-002 | DONE | ce6b0540216e40b9e0f85617b5e5d837ec194c6f. Target-only association and legacy configuration paths. |
+| ARCH-003 | DONE | b56c650b0772562b8bf8d9645bcfe6f23a46e767. Control selection and functional instance survive skin replacement. |
+| ARCH-004 | NO_CHANGE | Audit demonstrated incompatible direct placement/lookup/focus and logical parent. Existing thin delegation retained. |
+| ARCH-005 | BLOCKED | External editor success path has no approved offline result seam; no toolbar/worker migration. |
+| ARCH-006 | DONE | 515d01fd20ba491bc39044f939191b85229b7a08. Final overflow decoration only, target-only, geometry in skin; same immediate exact-class node. |
+| ARCH-007 | DONE / READ-ONLY | Ten skins classified, TableRow equality demonstrated with public identity experiment, no table edits. |
+| ARCH-008 | GREEN | Final regression and matched measurements below. |
+
+### Final architecture
+
+    JInvTextField ── owns ── TextControlMenu (lazy), functional innerButton, LOV > FE selection
+      │                      FE action and overflow target association
+      └── installed skin ── clips and lays out text, owns overflow affordance and wrapper bindings
+                                 └── delegates FE to the original target control
+    JInvTextArea ── owns ── TextControlMenu (lazy), menu extensions and existing LOV
+      └── installed skin ── layout + legacy toolbar composition, FE/external worker and Scene action
+                                 └── toolbar/editor ownership migration remains blocked
+
+Framework menu property may be null before first request; callers can issue the standard ContextMenuEvent on a shown control or supply their own menu. Legacy ISkinPopulatable and wrapper access remain. Framework skin for stock TextField preserves its prior menu path. TextField adds two menu references and one nullable selected-button reference; wrapper keeps only its prior displayed reference for deferred binding/cleanup. TextArea adds two control references; skin removes three menu references and adds one delegate owner reference. The helper allocates only on feature use. No eager Action/manager or app-global mutable cache was added; ordinary FE fallback no longer constructs a temporary button. Existing exact overflow class/identity and tooltip behavior preserved in tested paths, with legacy external overrides and application consumers UNKNOWN.
+
+### Matched aggregate measurements
+
+Oracle Java 25.0.1, FX25+29, G1 256m–1024m, 5 warmup / 9 measured repetitions, same CSS/font/text and actual shown lifecycle. Baseline from verified frozen original production class tree. Final from production build. Stock includes explicit skin install. Columns are exact FX-thread allocated bytes and shown time in microseconds, as median (min..max). Time through post-layout pulse excludes paint. All individual logs and phase ranges in target/arch-008. Initial ignored toolbar fixture exited 1 because it assumed two default toolbar items. Source registers the second item only on an editable transition, so the corrected fixture asserts one initial FE item and exact item identity across showing. Prior logs preserved. No production deviation.
+
+| Workload | N | Baseline FX bytes | Final FX bytes | Baseline µs | Final µs |
+| --- | ---: | --- | --- | --- | --- |
+| stock | 20 | 2812408(2811888..2896824) | 2812616(2811952..2889096) | 26994(20954..38246) | 28302(23424..33977) |
+| stock | 100 | 13802304(13776752..13843688) | 13802304(13776368..13844200) | 34417(31471..48867) | 36103(32495..56095) |
+| stock | 400 | 54529984(54357920..55043920) | 54451808(54322624..55003160) | 116038(71439..146693) | 134805(74148..233336) |
+| field | 20 | 8031488(8031488..8042296) | 6464600(6432608..6469224) | 52274(44627..86409) | 331613(114511..938946) |
+| field | 100 | 39757960(39750240..39902192) | 31725360(31683192..31760736) | 103779(84206..165962) | 287452(160875..504988) |
+| field | 400 | 157452544(157393160..157627808) | 126093848(125994880..126228312) | 252840(235708..358629) | 215591(190433..415888) |
+| area | 20 | 13468224(13450864..13513224) | 12507776(12483472..12553944) | 144583(85363..216095) | 82478(75136..132049) |
+| area | 100 | 65902672(65803336..65955328) | 61098720(61028296..61197424) | 176132(151663..215944) | 173057(130657..227388) |
+| area | 400 | 262301640(262263432..262624824) | 243271992(243188264..243461352) | 528370(448852..758508) | 518995(374229..686225) |
+
+Measured phase and activation excerpts (absolute FX bytes and time):
+
+- baseline field-total: warm N=400 phase=constructor us=155521(88786..202633) FXbytes=92595464(92569992..92743696)
+- baseline field-total: warm N=400 phase=applyCss us=64116(60876..115722) FXbytes=46745600(46737856..46750656)
+- baseline field-total: warm N=400 phase=layout us=9905(8132..52117) FXbytes=5123592(5097992..5133336)
+- baseline area-total: warm N=400 phase=constructor us=200179(155955..365402) FXbytes=104003016(103971208..104198640)
+- baseline area-total: warm N=400 phase=applyCss us=260741(224235..332708) FXbytes=133499864(133499864..133557464)
+- baseline area-total: warm N=400 phase=layout us=27253(22066..51141) FXbytes=7234056(7208456..7257520)
+- baseline field-nested: n=400 constructor B=92323256(92307200..92380584) skin-creation B=75558456(75548800..75615328) constructor us=218183(168634..880817) skin-creation us=170684(140587..756935)
+- baseline field-menu: N=20 first FXbytes=27715520(27690240..27776856) us=322421(263147..672172)
+- baseline field-menu: N=20 repeat FXbytes=17829768(17812288..17870928) us=322299(236272..531268)
+- baseline area-menu: N=20 first FXbytes=27743648(27715248..27808712) us=280896(265011..347173)
+- baseline area-menu: N=20 repeat FXbytes=17818464(17799200..17862232) us=261465(236375..275963)
+- baseline overflow: fresh first activation FX B=67120(67120..67192) us=30411(20500..31115)
+- baseline toolbar: toolbar activation B=31448(31448..31448) us=30915(21470..31237)
+- final field-total: warm N=400 phase=constructor us=100237(65541..121994) FXbytes=62349032(62275208..62473896)
+- final field-total: warm N=400 phase=applyCss us=74426(61512..147270) FXbytes=46382656(46382656..46382656)
+- final field-total: warm N=400 phase=layout us=9013(7532..126329) FXbytes=5094792(5069192..5104392)
+- final area-total: warm N=400 phase=constructor us=145981(93314..217181) FXbytes=85933232(85891472..86086408)
+- final area-total: warm N=400 phase=applyCss us=278302(174317..518171) FXbytes=133087064(133087064..133106264)
+- final area-total: warm N=400 phase=layout us=28486(21936..85106) FXbytes=7234056(7186056..7256456)
+- final field-nested: n=400 constructor B=62351432(62297600..62515264) skin-creation B=49053008(49030400..49212864) constructor us=87479(64545..106097) skin-creation us=65534(46264..82816)
+- final field-menu: N=20 first FXbytes=20727680(20708296..20776176) us=270127(255929..435602)
+- final field-menu: N=20 repeat FXbytes=19347448(19325536..19448992) us=267253(242687..323263)
+- final area-menu: N=20 first FXbytes=20685168(20663696..20733680) us=265172(248401..278167)
+- final area-menu: N=20 repeat FXbytes=19319584(19257936..19382752) us=255196(246377..274107)
+- final overflow: fresh first activation FX B=67120(67056..67192) us=30920(2103..31373)
+- final toolbar: toolbar activation B=31448(31448..31496) us=30366(30017..31841)
+
+N=400 shown live shallow deltas after diagnostic GC (one isolated process per variant, global heap delta from corresponding warm base):
+
+- field baseline: 76,385,016 shown B; ContextMenu 800 shown and 800 after one menu/LOV feature activation.
+- field candidate: 63,374,872 shown B; ContextMenu 400 shown and 401 after one menu/LOV feature activation.
+- area baseline: 135,304,976 shown B; ContextMenu 1200 shown and 1200 after one menu/LOV feature activation.
+- area candidate: 122,971,032 shown B; ContextMenu 800 shown and 801 after one menu/LOV feature activation.
+
+Counts are global shallow samples. No retained/dominator, general retention or native paint inference. ARCH-001 measured 35,784 fewer FX bytes per median warmed dialog cancel, including real dialog overhead. ARCH-006 direct measurements saved ~12.19–12.75 MB/400 in three overflow mixes with no median first-activation allocation change. Aggregate gains above are measured independently and individual figures are not summed.
+
+Remaining risks in order: add an approved offline external-editor completion boundary and decide result admission; characterize supported TableRow factories before revisiting CTRL-108; audit ComboBox and spinner editing lifecycles; pursue measured CSS/overflow text costs only with visual equivalence. Production SQL/transactions, corporate TaskContext/Binder, real currency, external-process delivery, native input/focus/touch, MDI/WAIT, retained heap and paint are outside this verification. Original PERF-014 incident UNKNOWN / NOT_REPRODUCED; approved gate applies only to it. CTRL-079 remains UNKNOWN / NOT_REPRODUCED and was not rerun.
+
+### Independent Windows reruns
+
+From repo root, with IDEA Maven on PATH and MAVEN_ARGS=-o, use the tracked runner with the following switches and settings file.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextFieldContextMenuLifecycle -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextAreaContextMenuLifecycle -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -FEActionDelegation -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ButtonTargetAssociation -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextFieldInnerButtonOwnership -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -FEButtonConstruction -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterBulkMarkErrorDelivery -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterBulkMarkClose -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterRowRefreshClose -SettingsFile "D:\Java\.m2\settings.xml"
+
+### Regression matrix
+
+Faithful ignored recorder with immediate native child exit, outer process exit and timestamps/PIDs/streams in target/arch-008/matrix.csv. Compile, AST parse, diff check and remote scope verification captured separately. No opt-in Robot or unresolved CTRL-014/034/CAL-TIME-001.
+
+| Mode | JVM | Runner | Timeout | Assertion |
+| --- | ---: | ---: | --- | --- |
+| FEButtonConstruction | 0 | 0 | False | ARCH-006 PASS (construction, dialog, overflow and skin lifecycle) |
+| TextFieldInnerButtonOwnership | 0 | 0 | False | ARCH-003 PASS (control selection and wrapper lifecycle) |
+| ButtonTargetAssociation | 0 | 0 | False | ARCH-002 PASS (target association and legacy configuration) |
+| FEActionDelegation | 0 | 0 | False | ARCH-001 PASS (real dialog, FE routing and legacy configured button) |
+| TextFieldContextMenuLifecycle | 0 | 0 | False | PERF-014 PASS (control-owned context menu lifecycle) |
+| TextAreaContextMenuLifecycle | 0 | 0 | False | PERF-015 PASS (control-owned context menu lifecycle) |
+| TableAdapterBulkMarkErrorDelivery | 0 | 0 | False | CTRL-104 PASS |
+| TableAdapterBulkMarkClose | 0 | 0 | False | CTRL-105 PASS |
+| TableAdapterRowRefreshClose | 0 | 0 | False | CTRL-106 PASS |
+| TableAdapterQueuedClose | 0 | 0 | False | CTRL-077 PASS |
+| TableEditRowIdentity | 0 | 0 | False | CTRL-075 PASS |
+| TableEditing | 0 | 0 | False | GUI-005 PASS |
+| TableCancel | 0 | 0 | False | GUI-006 PASS |
+| DataBinding | 0 | 0 | False | GUI-009 PASS |
+| TextFieldSkinDisposal | 0 | 0 | False | CTRL-049 PASS |
+| TextFields | 0 | 0 | False | GUI-012 PASS (tested matrix) |
+| ValueFields | 0 | 0 | False | VF-001 PASS |
+| LovIntegration | 0 | 0 | False | CTRL-031 PASS |
+| BoundLovSetter | 0 | 0 | False | CTRL-044 PASS |
+| LovBindingInterleaving | 0 | 0 | False | CTRL-045 PASS |
+| ExternalLovReadOnly | 0 | 0 | False | CTRL-061 PASS |
+| WrapButtonOwnership | 0 | 0 | False | CTRL-055 PASS |
+| CurrencyLovDelayedCompletion | 0 | 0 | False | CTRL-091 PASS |
+| MoneyDecimal | 0 | 0 | False | NUM-001 PASS (tested invariants) |
+| FormLifecycle | 0 | 0 | False | GUI-010 PASS (standalone production FXML/controller and SDI close) |
+| Default | 0 | 0 | False | GUI-001 PASS |
+| TableAdapterSearchMissDelivery | 0 | 0 | False | CTRL-098 PASS |
+| TableAdapterSearchWorkerClose | 0 | 0 | False | CTRL-093 PASS |
+| TableAdapterBulkWorkerClose | 0 | 0 | False | CTRL-092 PASS |
+| TableAdapterSearchListener | 0 | 0 | False | CTRL-081 PASS |
+| TextAreaToolbarOwnership | 0 | 0 | False | CTRL-066 PASS |
+| TableAdapterBulkClose | 0 | 0 | False | CTRL-076 PASS |
+| TextFieldLovDelayedCompletion | 0 | 0 | False | CTRL-078 PASS |
+| TableAdapterPagingClose | 0 | 0 | False | CTRL-065 PASS |
+| TextAreaLovDelayedCompletion | 0 | 0 | False | CTRL-062 PASS |
+| TabPaneSkinListeners | 0 | 0 | False | CTRL-054 PASS |
+| TextAreaSkinDisposal | 0 | 0 | False | CTRL-053 PASS |
+| ValidatorSubchanges | 0 | 0 | False | CTRL-052 PASS |
+| TableAdapterClose | 0 | 0 | False | CTRL-051 PASS |
+| TextAreaLovLifecycle | 0 | 0 | False | CTRL-050 PASS |
+| WrapButtonDeferred | 0 | 0 | False | CTRL-043 PASS |
+| Editors | 0 | 0 | False | GUI-004 PASS |
+| EditorReentry | 0 | 0 | False | GUI-007 PASS |
+| FormCancel | 0 | 0 | False | CTRL-022 PASS |
+| SceneKeyLookup | 0 | 0 | False | CTRL-024 PASS |
+| LovListenerLifecycle | 0 | 0 | False | CTRL-026 PASS |
+| LovDefaultValidation | 0 | 0 | False | CTRL-027 PASS |
+| SingletonCloseVeto | 0 | 0 | False | CTRL-032 PASS |
+| SingletonLifecycleMatrix | 0 | 0 | False | CTRL-035 PASS |
+| ValidatorScopedUnbind | 0 | 0 | False | CTRL-033 PASS |
+| ValidatorMultiControl | 0 | 0 | False | CTRL-036 PASS |
+| ValueLifecycle | 0 | 0 | False | VF-002 PASS (custom listener ownership) |
+| DatePickerBinding | 0 | 0 | False | CTRL-002 PASS |
+| NodeTraversal | 0 | 0 | False | CTRL-003 PASS |
+| RadioReadOnly | 0 | 0 | False | CTRL-006 PASS |
+| ComboReadOnly | 0 | 0 | False | CTRL-007 PASS |
+| CheckBoxReadOnly | 0 | 0 | False | CTRL-009 PASS |
+| ValueChangedFlag | 0 | 0 | False | CTRL-013 PASS |
+| ControlsFollowup | 0 | 0 | False | CTRL-CONTROLS-FOLLOWUP PASS |
+| ChoiceAdapter | 0 | 0 | False | CTRL-015 PASS |
+| BinderChoiceNull | 0 | 0 | False | CTRL-017 PASS |
+| ChoiceNullLookup | 0 | 0 | False | CTRL-018 PASS |
+| ChoiceNonNullSet | 0 | 0 | False | CTRL-019 PASS |
+
+STOP after this reply.
