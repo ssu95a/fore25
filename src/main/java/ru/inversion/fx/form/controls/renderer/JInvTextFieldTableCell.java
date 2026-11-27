@@ -203,21 +203,23 @@ public class JInvTextFieldTableCell<S, T> extends TableCell<S, T> {
         S originalRow = originalEditRow;
         editingCell = null;
         originalEditRow = null;
-        if (isOriginalEditPosition(position, originalRow)) {
-            T value = converter.get().fromString(textField.getText());
+        try {
             if (isOriginalEditPosition(position, originalRow)) {
-                TableColumn.CellEditEvent editEvent = new TableColumn.CellEditEvent(
-                    getTableView(), position, TableColumn.editCommitEvent(), value
-                );
-                editEvent.fireEvent(getTableColumn(), editEvent);
-                setText(textField.getText());
+                T value = converter.get().fromString(textField.getText());
+                if (isOriginalEditPosition(position, originalRow)) {
+                    TableColumn.CellEditEvent editEvent = new TableColumn.CellEditEvent(
+                        getTableView(), position, TableColumn.editCommitEvent(), value
+                    );
+                    editEvent.fireEvent(getTableColumn(), editEvent);
+                    setText(textField.getText());
+                }
             }
+        } finally {
+            super.cancelEdit();
+            this.setGraphic(null);
+            getTableView().removeEventFilter(MouseEvent.MOUSE_PRESSED, _tblMouseHandler);
+            getTableView().removeEventFilter(KeyEvent.KEY_PRESSED, _tableFieldKeyHandler);
         }
-        super.cancelEdit();
-        this.setGraphic(null);
-        getTableView().removeEventFilter(MouseEvent.MOUSE_PRESSED, _tblMouseHandler);
-        getTableView().removeEventFilter(KeyEvent.KEY_PRESSED, _tableFieldKeyHandler);
-
     }
 
     private boolean isOriginalEditPosition(TablePosition position, S originalRow) {

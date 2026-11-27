@@ -16,6 +16,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.util.converter.DefaultStringConverter;
 import ru.inversion.dataset.ArrayDataSet;
 import ru.inversion.dataset.fx.DSFXAdapter;
 import ru.inversion.fx.form.controls.JInvTable;
@@ -41,7 +42,7 @@ public final class TableEditRowIdentitySmoke {
         @Override public String toString() { return id; }
     }
 
-    private enum Action { REPLACE, REMOVE, PERMUTE, CANCEL, ESCAPE, F8, ENTER }
+    private enum Action { REPLACE, REMOVE, PERMUTE, CANCEL, ESCAPE, F8, ENTER, REJECT }
     private final List<String> failures = new ArrayList<>();
 
     private void exercise(Action action, boolean arm) throws Exception {
@@ -54,7 +55,13 @@ public final class TableEditRowIdentitySmoke {
         var rows = new ArrayDataSet<>(Row.class, items, false);
         var table = new JInvTable<Row>();
         var column = new JInvTableColumn<Row, String>("Value");
-        column.setCellFactory(JInvTextFieldTableCell.forTableColumn());
+        var rejected = new IllegalArgumentException("rejected draft");
+        column.setCellFactory(JInvTextFieldTableCell.forTableColumn(new DefaultStringConverter() {
+            @Override public String fromString(String text) {
+                if ("reject".equals(text)) throw rejected;
+                return super.fromString(text);
+            }
+        }));
         column.setCellValueFactory(cell -> cell.getValue().value);
         var commits = new ArrayList<Row>();
         var writes = new ArrayList<Row>();
@@ -74,8 +81,9 @@ public final class TableEditRowIdentitySmoke {
             table.applyCss();
             table.layout();
             table.getSelectionModel().select(0);
-            edit(table, column, "draft");
+            edit(table, column, action == Action.REJECT ? "reject" : "draft");
             var editor = (TextField) table.lookup(".text-field");
+            var editCell = (JInvTextFieldTableCell<?, ?>) editor.getParent();
             if (arm) {
                 Event.fireEvent(table, new MouseEvent(MouseEvent.MOUSE_PRESSED, 1, 1, 1, 1,
                         MouseButton.PRIMARY, 1, false, false, false, false, true, false,
@@ -90,6 +98,28 @@ public final class TableEditRowIdentitySmoke {
                     key(editor, KeyEvent.KEY_PRESSED, KeyCode.ESCAPE);
                     table.edit(-1, null);
                 }
+                case REJECT -> {
+                    var cell = editCell;
+                    var errors = new ArrayList<Throwable>();
+                    var thread = Thread.currentThread();
+                    var previous = thread.getUncaughtExceptionHandler();
+                    thread.setUncaughtExceptionHandler((t, error) -> errors.add(error));
+                    try {
+                        try {
+                            table.edit(-1, null);
+                        } catch (IllegalArgumentException error) {
+                            errors.add(error);
+                        }
+                    } finally {
+                        thread.setUncaughtExceptionHandler(previous);
+                    }
+                    boolean retired = !cell.isEditing() && cell.getGraphic() == null;
+                    System.out.printf("rejected error count=%d retired=%s cursor=%d%n",
+                            errors.size(), retired, rows.getCurrentRowNum());
+                    check(errors.size() == 1 && errors.getFirst() == rejected
+                            && retired && table.getEditingCell() == null && rows.getCurrentRowNum() == 0,
+                            "rejected synthetic commit teardown", commits, writes);
+                }
                 case F8 -> key(editor, KeyEvent.KEY_RELEASED, KeyCode.F8);
                 case ENTER -> key(editor, KeyEvent.KEY_RELEASED, KeyCode.ENTER);
             }
@@ -97,6 +127,12 @@ public final class TableEditRowIdentitySmoke {
             check((accept ? singleTarget(commits, a) && singleTarget(writes, a)
                     : commits.isEmpty() && writes.isEmpty()), action + "/" + arm, commits, writes);
             System.out.printf("%s armed=%s commits=%s writes=%s cursor=%d%n", action, arm, commits, writes, rows.getCurrentRowNum());
+
+            if (action == Action.REJECT && !editCell.isEditing()) {
+                edit(table, column, "recovered");
+                key((TextField) table.lookup(".text-field"), KeyEvent.KEY_RELEASED, KeyCode.F8);
+                check(singleTarget(commits, a) && singleTarget(writes, a), "rejected edit reentry", commits, writes);
+            }
 
             if (action == Action.REPLACE && arm) {
                 commits.clear();
@@ -142,6 +178,7 @@ public final class TableEditRowIdentitySmoke {
                 smoke.exercise(action, true);
             }
             smoke.exercise(Action.CANCEL, true);
+            smoke.exercise(Action.REJECT, true);
             smoke.exercise(Action.ESCAPE, true);
             smoke.exercise(Action.F8, false);
             smoke.exercise(Action.ENTER, false);
