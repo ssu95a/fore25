@@ -5282,3 +5282,21 @@ ExternalEditorManager has a private constructor and static singleton. The actual
 Current SHA characteristic regression, all JVM/runner 0/0, no timeout: TextAreaSkinDisposal, TextAreaToolbarOwnership, TextAreaLovLifecycle, TextAreaLovDelayedCompletion, TextAreaContextMenuLifecycle. Commands and outputs at target/arch-005/matrix.csv, from target/perf-014/regression.ps1. No production/API/state/allocation delta. ARCH-006 only depends on the target separation and TextField ownership and remains independent.
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextAreaToolbarOwnership -SettingsFile "D:\Java\.m2\settings.xml"
+
+
+---
+
+## Reply ARCH-006
+
+DONE. Baseline b56c650b0772562b8bf8d9645bcfe6f23a46e767, final 515d01fd20ba491bc39044f939191b85229b7a08. Approved JInvFEButton(Node, Tooltip) overload preserves both legacy constructor sequences and explicit null. Skin keeps the same exact eagerly observable JInvFEButton and visual configuration, using the final SMALL colored graphic and null tooltip. JInvTextField attaches its target without the discarded tooltip or external configuration. FE handler delegates to the target control's full-editor action, preserving the converter and custom action/target behavior. Skin now owns clipping geometry and measurement; public overridable checkExcessTextLength remains the entry point with identical width/font/15px rule and tooltip call path. No per-control fields, cache, extra eager object, FXML change or lazy node. Stock TextField association remains on the original public route. No in-repo production getButtonToolTipText overrides; unknown external overrides no longer receive the discarded overflow-tooltip read.
+
+Matched baseline and candidate real shown FE dialogs and behavior passed (accept/cancel, readOnly, converter, correct field, separate inner FE handler, external/LOV, short/long/short, font/width, specialized currency, explicit custom/null constructor, FXML/legacy, immediate lookup/order/class and skin replacement). Baseline initial fixture was stale after the authorized PERF-014 lazy menu change and exited 1; archived, corrected to request the existing menu on both variants. Three fresh focused plus extra instrumented official 0/0; unchanged official focused runner 0; 15 scoped modes 0/0, no timeout. Maven compile, parse, diff checks passed. Raw target/arch-006/matrix.csv and characterize.ps1.
+
+Whole shown FX B medians, baseline → candidate, N=20/100/400:
+- Short: 7,086,688 → 6,467,576; 35,007,728 → 31,887,704; 138,852,944 (138,762,544..138,961,000) → 126,103,520 (126,036,344..126,439,776).
+- Mixed quarter overflow: 7,652,384 → 7,031,544; 37,830,520 → 34,809,120; 150,167,904 (150,082,112..150,342,160) → 137,982,056 (137,845,312..138,287,832).
+- All overflow: 8,796,800 → 8,175,064; 43,554,856 → 40,433,680; 172,953,440 (172,895,232..173,036,936) → 160,488,832 (160,373,632..160,572,680).
+
+G1 256m–1024m, separate JVM per phase/workload, 5 warmups/9 samples. N=400 12.19–12.75 MB saved; wall-time ranges overlap. Nested skin 61,264,280 → 49,047,920 B per 400. Fresh first activation median 67,120 → 67,120 B, same node; short-to-long warmed layout median 52,560 → 52,560 B; no shifted creation cost observed. One N=400 jcmd run per variant shows global shallow delta 63,940,232 → 63,367,320 B, 400 JInvFEButton and 400 JInvTooltipValue in each. Retained heap and native input/paint UNKNOWN. All final measurement JVMs, jcmd and wrappers exit 0. Exact time/byte ranges in target/arch-006/benchmark.ps1 and measure-activation.ps1 outputs.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -FEButtonConstruction -SettingsFile "D:\Java\.m2\settings.xml"
