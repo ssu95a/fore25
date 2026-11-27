@@ -3925,3 +3925,16 @@ Final runner matrix. Columns are mode, probe marker, elapsed seconds, native JVM
     ChoiceNullLookup | CTRL-018 PASS | 8.384 | 0 | 0 | False
     ChoiceNonNullSet | CTRL-019 PASS | 8.363 | 0 | 0 | False
     Default | GUI-001 PASS | 9.37 | 0 | 0 | False
+
+
+---
+
+## Reply CTRL-098
+
+**DONE.** Baseline 60685aad5e7f564dffdf32e3327754ff333b5fc9. Verified production df95a931230b57e87e7bef4bfba6267c3e9a395d. DSFXAdapter only in production, plus new focused smoke and runner mode.
+
+A real shown JInvTable and the actual search worker returned an admitted final miss at a deterministic barrier. RED recorded one stale old-owner alert after adapter retirement, one FX NPE after scene detachment, and one dialog each for a scene without a window, a reparented table, and a hidden launch window. GREEN gave zero alerts and zero FX errors across the five. Active miss still gave one alert with its original owner. Active hit gave true, active cancellation and the independent retired-owner consumer each received false once. Genuine active and retired search and bulk failures each retained original Throwable identity and exactly one error dialog. Fresh independent selection/cursor stayed unchanged. Incomplete retired search is covered by TableAdapterSearchWorkerClose.
+
+The FX miss-only branch checks the existing attachment/revision after cancellation-state publication, then requires a scene belonging to the original shown window. No extra persistent fields or callback objects, only the launch-owner reference captured by existing closures. No change to genuine error routing, external consumers, progress service, SQL or transaction semantics. A separate cancellation-state reentry injection was not used; the code placement is after the observable publication.
+
+Windows rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterSearchMissDelivery -SettingsFile "D:\Java\.m2\settings.xml". Java 25.0.1/FX25. RED JVM/runner 1/1, three fresh GREEN 0/0 plus unchanged official runner exit 0. SearchWorkerClose, SearchListener, BulkWorkerClose, QueuedClose, DataBinding and TableAdapterClose all 0/0. Maven -Pbuild compile, parse and diff check passed. The first implementation attempt passed the owner reference without guarding delivery and repeated the intended RED; preserved alongside all actual streams/exits under target/ctrl-098.
