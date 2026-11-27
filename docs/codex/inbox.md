@@ -3674,7 +3674,7 @@ READ-ONLY. Enumerate actual ParameterSetName switches and mappings from current 
 
 ## MESSAGE CTRL-080
 
-**Status:** DONE / ARCHITECT APPROVED / USER RERUN PENDING — 85a4b1f8aeef5558e32430da1f6e2c7061f42cb8
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — 85a4b1f8aeef5558e32430da1f6e2c7061f42cb8
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-080
 **Task:** AUDIT → FIX — TableCell converter rejection / edit lifecycle
@@ -3685,7 +3685,7 @@ CTRL-075 guarded synthetic cancel commit against original row identity before an
 
 ## MESSAGE CTRL-081
 
-**Status:** DONE / ARCHITECT APPROVED / USER RERUN PENDING — 3976625111c448f00f07837ca987da7da9a0a1d7
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — 3976625111c448f00f07837ca987da7da9a0a1d7
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-081
 **Task:** AUDIT → FIX — DSFXAdapter search temporary row listener
@@ -3838,13 +3838,13 @@ Resume CTRL-080 through CTRL-090 in exact order in one new session. Do not repea
 
 ## BATCH CTRL-091…CTRL-097 — currency integrity, worker ownership and table performance
 
-**Status:** ACTIVE / ASSIGNED — user approved seven-task sequential package.
+**Status:** CLOSED / ARCHITECT REVIEWED / USER ACCEPTED FIXES — all seven replies received, final agent regression 53/53 JVM and runner exits 0; user reported ALL FIVE TESTS PASSED on independent acceptance battery covering CTRL-080/081/091/092/093.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox branch:** agent/codex-mailbox
 **Baseline remote HEAD:** 3976625111c448f00f07837ca987da7da9a0a1d7
 **Budget:** 495 minutes (90+75+60+60+60+90+60), ceiling.
-**Dependency:** CTRL-090 final 50/50 actual JVM/runner exits 0; CTRL-080/081 architect approved, independent user rerun not explicitly confirmed. User authorized continuing this package without waiting for that rerun.
+**Dependency:** CTRL-090 final 50/50 actual JVM/runner exits 0; CTRL-080/081 architect approved; subsequently user accepted with five-mode battery.
 
 ### Latest authorization
 Execute only CTRL-091…097 in exact order, autonomously. First correct proven currency data corruption, then actual asynchronous worker lifetime; performance tasks are research only. Each task starts from preceding verified clean HEAD. Verify fresh mailbox and production refs before task/reply. All Git/GitHub operations within explicit scopes approved. Main and JInvCommon read-only, no other repo writes, force push/destructive reset, dependency/public API changes or unrelated refactoring. Only CTRL-091 expressly authorizes minimal non-public base-class helper contract; no broad API expansion. No CTRL-014/034/CAL-TIME-001, speculative Binder rollback, keyboard reservation or external/inner LOV precedence changes. Ordinary GUI FX thread; actual worker paths require explicit visibility/admission reasoning. No locks across blocking SQL or nested FX loops, no corporate DB writes, no claim of SQL cancellation or rollback.
@@ -3857,7 +3857,7 @@ Task-local unresolved contract: report BLOCKED/PARTIAL/NO_CHANGE and proceed onl
 
 ## MESSAGE CTRL-091
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — de95eefc66700425f46720f43119c74298adf0d4
 **Timebox:** 90 minutes
 **Reply ID:** CTRL-091
 **Task:** FIX / CRITICAL — Currency LOV completion ownership
@@ -3868,7 +3868,7 @@ CTRL-083 reproduced nine wrong currency writes on JInvTextFieldCUR, inherited by
 
 ## MESSAGE CTRL-092
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — 8914be08e3399bed7fabbb55e016412a03da9e72
 **Timebox:** 75 minutes
 **Reply ID:** CTRL-092
 **Task:** FIX — bulk worker attachment lifetime
@@ -3879,7 +3879,7 @@ CTRL-082 reproduced three obsolete NPE error dialogs: close before first swap (p
 
 ## MESSAGE CTRL-093
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — 60685aad5e7f564dffdf32e3327754ff333b5fc9
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-093
 **Task:** AUDIT → FIX — search worker attachment lifetime
@@ -3890,7 +3890,7 @@ CTRL-067 observed post-close result callback; CTRL-081 fixed exact temporary lis
 
 ## MESSAGE CTRL-094
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — stale table-owned miss alert and detached-scene NPE reproduced; follow-up pending
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-094
 **Task:** AUDIT — stale progress/error/result delivery ownership
@@ -3901,7 +3901,7 @@ Strict READ-ONLY initially. Inspect actual ProgressTaskExecutor/ProgressService 
 
 ## MESSAGE CTRL-095
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — marker property allocation low priority; no optimization authorized
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-095
 **Task:** PERF AUDIT — isolate mark value factory allocation
@@ -3912,7 +3912,7 @@ READ-ONLY. CTRL-088 measured 1.296 vs 3.148 MB FX allocations at 2000 rows/19 vi
 
 ## MESSAGE CTRL-096
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** NO_CHANGE / ARCHITECT REVIEWED — full refresh alternatives fail equivalence
 **Timebox:** 90 minutes
 **Reply ID:** CTRL-096
 **Task:** PERF AUDIT — avoid refresh-induced cell reconstruction without changing semantics
@@ -3923,7 +3923,7 @@ READ-ONLY. CTRL-089 measured one layout pulse/reconstruction for same-turn burst
 
 ## MESSAGE CTRL-097
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — agent final 53/53 GREEN; independent five-mode acceptance passed
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-097
 **Task:** VERIFY — final regression and release readiness triage
