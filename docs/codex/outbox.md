@@ -5219,3 +5219,16 @@ Remaining slices in authorized order: direct FE action, target/configuration sep
 | BinderChoiceNull | 0 | 0 | CTRL-017 PASS |
 | ChoiceNullLookup | 0 | 0 | CTRL-018 PASS |
 | ChoiceNonNullSet | 0 | 0 | CTRL-019 PASS |
+
+
+---
+
+## Reply ARCH-001
+
+DONE. Baseline ecad2198c3ab9badfd097fa490999a14d884db22, final ab771153acc644fbb5586842437b0f0696459906. One shared JInvFEDialog.edit(target, converter) operation. The ordinary JInvTextField fallback uses it directly and no longer constructs a temporary JInvFEButton. A configured inner FE still receives fire(), retaining disabled, custom action and converter behavior. JInvFEButton's existing constructors, target check and handler share the same dialog implementation. No new fields or per-control objects. TextArea and overflow still use their separate visual paths in this slice. F7 subclass override unchanged.
+
+The same real shown dialog fixture passed on baseline and candidate. It verified direct, menu, synthetic CTRL+E through actual Scene keyboard registration, configured action/converter/disabled, programmatic dismissal, read-only, exact model writes and sentinel isolation, skin replacement. The temporary-button target-tooltip hook ran once on baseline and zero times in candidate fallback. Matched G1, 5/9, direct dialog cancel including normal dialog overhead: exact FX median 1,066,448 (1,065,736..1,084,168) → 1,030,664 (1,029,784..1,048,184) B. This is execution-path allocation, not live heap. Baseline characterization first encountered two explained fixture setup errors (missing window at keyboard init and default application preferences requiring app id); archived and corrected with an attached Stage plus in-memory application settings. No native input or editor process launch.
+
+Three fresh focused JVMs and extra instrumented equivalent exited 0/0; original official focused runner 0. Ten scoped modes all 0/0: both menu modes, TextFieldSkinDisposal, TextFields, LovIntegration, ExternalLovReadOnly, CurrencyLovDelayedCompletion, MoneyDecimal, FormLifecycle and TextAreaSkinDisposal. Maven compile, parse and diff check passed. Exact outputs in target/arch-001/matrix.csv and characterize.ps1. Preexisting external subclass compatibility remains UNKNOWN.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -FEActionDelegation -SettingsFile "D:\Java\.m2\settings.xml"
