@@ -4377,3 +4377,27 @@ Separate actual FieldCostAudit framework JVM with local JFR profile, same heap s
     43814568 [java.lang.invoke.DirectMethodHandle.allocateInstance, java.lang.invoke.DirectMethodHandle$Holder.newInvokeSpecial, java.lang.invoke.Invokers$Holder.linkToTargetMethod, javafx.scene.layout.Region.<init>]
 
 Reproduce with javac -cp "target/perf-001;target/classes;<deps>" -d target/perf-002 target/perf-002/ConstructorAttribution.java. With the PERF-001 JVM flags and classpath adding target/perf-002, run ConstructorAttribution for exact nesting, then run FieldCostAudit framework 400 with -XX:StartFlightRecording=filename=target/perf-002/framework.jfr,settings=profile,dumponexit=true and decode with ConstructorAttribution target/perf-002/framework.jfr. Compilation, profiling and decoder native exits 0. Earlier decoder thread naming returned zero and was corrected from actual JFR metadata; logs preserved. Raw profile stays local. No production allocation delta or heap inference.
+
+
+---
+
+## Reply PERF-003
+
+**DONE / READ-ONLY.** Baseline and verified final production 0982d2112b8f8020d16f917adaab77caee29005d. No tracked edits.
+
+Real skin exposes wrapper and a populated ContextMenu before scene, eight default items and two framework-added entries in the population list. Both actual popup opens rebuilt defaults and called the custom callback after insertion of the custom item. Existing item object replacement is observed. Custom action and application context event each fired once; application/bound menu stayed through dispose and replacement while owned items were cleared. FXML load, later text binding, overflow on long text, external button hiding overflow/detaching wrapper child, queued wrapper action, and F9 active/readOnly control passed. Synthetic menu/action/key dispatch, not native input. A clear-before-open prototype demonstrates deferred initial items change immediate getItems behavior (8 versus 0); it is a compatibility falsifier, not an allocation candidate.
+
+Warmed isolated components (5/9 batches ×100) on the same FX/JVM settings as PERF-001, exact bytes and ns per operation below. ContextMenu and overflow button construction are the larger isolated operations. These component experiments omit composing the entire skin, so their numbers do not add up to the full constructor. Constructor, applyCss and layout matched phase totals are in PERF-001; one repeated N=100 phase sample is included here. First-use from PERF-001 is separate.
+
+    pre-scene defaults=8 custom-list=2, opens callbacks=2 external+custom=2 overflow=true F9=1
+    defer-default-items counterexample baseline=8 prototype=0
+    default-menu-repopulate n=100 ns/op=48821,0(42633,0..58161,0) B/op=11192,0(10968,6..11192,7)
+    menu-container n=100 ns/op=107896,0(95294,0..130892,0) B/op=22376,0(22376,0..22458,1)
+    wrapper-constructor n=100 ns/op=17908,0(11527,0..43468,0) B/op=7480,0(7480,0..7487,1)
+    overflow-button-constructor n=100 ns/op=184516,0(111909,0..287031,0) B/op=34824,0(34760,0..34829,7)
+    overflow-icon n=100 ns/op=8158,0(3231,0..10088,0) B/op=4128,0(4128,0..4128,0)
+    matched single sample N=100 constructor=23914208 css=12287968 layout=1345760
+
+Ranking for further work: overflow button and graphic, menu container, then population. Immediate node/menu availability, custom overrides and property listeners constrain deferral. Highest JFR weights were CSS/registration stacks, so don't attribute the entire skin delta to items alone. Wrapper/public getButton and subclass LOV contracts remain immediate. No compatible lazy implementation established.
+
+Ignored target/perf-003/SkinPartAudit.java. javac -cp "target/perf-001;target/classes;<deps>" -d target/perf-003 then run SkinPartAudit with target/perf-003 added and PERF-001 flags. Final compile and JVM 0, no runner. Earlier fixture used nonexistent Event.setEventHandler helper and then missed JInvWrapButton's deferred bind; changed to public MenuItem handler and an FX pulse barrier. Earlier failure retained. No state/allocation changes in production.
