@@ -3646,7 +3646,7 @@ CTRL-073 24-case diagnostic: direct/F9/external button × keep/replace/detach/AB
 
 ## BATCH CTRL-079…CTRL-090 — regression, residual integrity and measured performance
 
-**Status:** ACTIVE / ASSIGNED — architect and user release CTRL-080…090 after CTRL-079A diagnostics. Regression gate accepted with residual original exit cause UNKNOWN / NOT_REPRODUCED.
+**Status:** CLOSED / ARCHITECT REVIEWED — all eleven resumed replies received; final agent regression 50/50 child and runner exit 0. CTRL-080/081 architecture approved, independent user rerun not explicitly reported. CTRL-083 remains BLOCKED; follow-up separately assigned. Original CTRL-079 incident UNKNOWN / NOT_REPRODUCED.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox branch:** agent/codex-mailbox
@@ -3674,7 +3674,7 @@ READ-ONLY. Enumerate actual ParameterSetName switches and mappings from current 
 
 ## MESSAGE CTRL-080
 
-**Status:** ASSIGNED / ACTIVE RESUMED BATCH — execute sequentially
+**Status:** DONE / ARCHITECT APPROVED / USER RERUN PENDING — 85a4b1f8aeef5558e32430da1f6e2c7061f42cb8
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-080
 **Task:** AUDIT → FIX — TableCell converter rejection / edit lifecycle
@@ -3685,7 +3685,7 @@ CTRL-075 guarded synthetic cancel commit against original row identity before an
 
 ## MESSAGE CTRL-081
 
-**Status:** ASSIGNED / ACTIVE RESUMED BATCH — execute sequentially
+**Status:** DONE / ARCHITECT APPROVED / USER RERUN PENDING — 3976625111c448f00f07837ca987da7da9a0a1d7
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-081
 **Task:** AUDIT → FIX — DSFXAdapter search temporary row listener
@@ -3696,7 +3696,7 @@ CTRL-067 source candidate: search registers temporary row listener and removes i
 
 ## MESSAGE CTRL-082
 
-**Status:** ASSIGNED / ACTIVE RESUMED BATCH — execute sequentially
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — worker NPE reproduced
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-082
 **Task:** AUDIT — bulk worker close during blocking fetch
@@ -3707,7 +3707,7 @@ READ-ONLY. CTRL-076 guarded UI delivery and listener restoration but current row
 
 ## MESSAGE CTRL-083
 
-**Status:** ASSIGNED / ACTIVE RESUMED BATCH — execute sequentially
+**Status:** BLOCKED / READ-ONLY / ARCHITECT REVIEWED — currency stale writes reproduced; superseded by expanded CTRL-091 scope
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-083
 **Task:** AUDIT → FIX — specialized TextFieldCUR delayed LOV completion
@@ -3718,7 +3718,7 @@ CTRL-078 excluded specialized TextFieldCUR override. Locate actual class and cal
 
 ## MESSAGE CTRL-084
 
-**Status:** ASSIGNED / ACTIVE RESUMED BATCH — execute sequentially
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — ownership contract UNKNOWN
 **Timebox:** 75 minutes
 **Reply ID:** CTRL-084
 **Task:** AUDIT — full launched form Binder ownership on normal close
@@ -3729,7 +3729,7 @@ READ-ONLY. Resolve CTRL-070 limitation: prior Stage.hide fixture was not actual 
 
 ## MESSAGE CTRL-085
 
-**Status:** ASSIGNED / ACTIVE RESUMED BATCH — execute sequentially
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — ownership contract UNKNOWN
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-085
 **Task:** AUDIT — initialization failure after real model bind
@@ -3740,7 +3740,7 @@ READ-ONLY. Extend CTRL-071 real launcher test which had no actual entity fields.
 
 ## MESSAGE CTRL-086
 
-**Status:** ASSIGNED / ACTIVE RESUMED BATCH — execute sequentially
+**Status:** NO_CHANGE / ARCHITECT REVIEWED — equivalence failed
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-086
 **Task:** PERF — reduce redundant form control traversal if equivalent
@@ -3751,7 +3751,7 @@ CTRL-074 measured Controls.getControlList flat traversal; architect verified Abs
 
 ## MESSAGE CTRL-087
 
-**Status:** ASSIGNED / ACTIVE RESUMED BATCH — execute sequentially
+**Status:** NO_CHANGE / ARCHITECT REVIEWED — equivalence failed
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-087
 **Task:** PERF — label matching complexity in initLabels
@@ -3762,7 +3762,7 @@ Architect source confirmed each eligible control searches listLabel via stream.f
 
 ## MESSAGE CTRL-088
 
-**Status:** ASSIGNED / ACTIVE RESUMED BATCH — execute sequentially
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-088
 **Task:** PERF AUDIT — table cell/editor allocation and reuse
@@ -3773,7 +3773,7 @@ READ-ONLY. CTRL-074 identified lazy editor construction, per-edit filters and ma
 
 ## MESSAGE CTRL-089
 
-**Status:** ASSIGNED / ACTIVE RESUMED BATCH — execute sequentially
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-089
 **Task:** PERF AUDIT — end-to-end DataSet refresh and FX layout
@@ -3784,7 +3784,7 @@ READ-ONLY. CTRL-074 measured AFTER EXECUTE dispatch/queue drain ~45–49 µs, 20
 
 ## MESSAGE CTRL-090
 
-**Status:** ASSIGNED / ACTIVE RESUMED BATCH — execute sequentially
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — 50/50 agent GREEN
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-090
 **Task:** VERIFY — final regression, performance evidence and readiness triage
@@ -3821,7 +3821,7 @@ READ-ONLY for production and tracked tests/runner. Ignored diagnostic scripts/lo
 
 ## RELEASE CTRL-080…CTRL-090 — resume remaining eleven tasks
 
-**Status:** ACTIVE / ASSIGNED — explicit user and architect authorization.
+**Status:** CLOSED / ARCHITECT REVIEWED — resumed session ended after CTRL-090.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox branch:** agent/codex-mailbox
@@ -3833,3 +3833,99 @@ READ-ONLY for production and tracked tests/runner. Ignored diagnostic scripts/lo
 Architect accepts the baseline regression gate on the evidence of all 49 modes passing with actual child JVM and outer runner exits 0 in the instrumented repeat, plus 30 completed focused PASS results (28 recorded JVM exits and seven recorded outer runner exits all 0). The first incident remains UNKNOWN / NOT_REPRODUCED, not fixed or classified as a production defect. Preserve original failure, missing exit records and interrupted recorder attempt as documented. No changes to SceneKeyManager, shutdown semantics, assertions, or tracked runner are authorized by this release alone.
 
 Resume CTRL-080 through CTRL-090 in exact order in one new session. Do not repeat CTRL-079 or CTRL-079A. All individual original scopes, regression requirements, measurement/equivalence gates, memory constraints and timeboxes remain in force. No intermediate confirmations needed for explicitly permitted changes. Before each task and reply verify clean tracked checkout, fresh remote refs, actual preceding verified HEAD. For each production fix deterministic RED then GREEN, isolated fast-forward commit; for PERF prove equivalence and measured benefit, otherwise NO_CHANGE. Read-only tasks remain read-only. Preserve all exits, not just PASS markers. Use existing ignored diagnostic recorder from CTRL-079A or equivalent faithful instrumentation where appropriate to retain immediate child exit, runner exit, separate output and timestamps; do not claim instrumented runner is unchanged official runner. No masking failures, retry-until-green or forced successful shutdown. If a similar nonzero exit or timeout recurs, collect precise diagnostics and stop under the existing gate rule; no automatic waiver of a new failure. Shared unexplained regressions, dirty/conflicting state or unreliable infrastructure also stop the batch. Task-local unknown contracts may be reported and independent work continued on a clean baseline as previously authorized. Main and JInvCommon read-only; no dependency/public API changes, destructive Git commands, force push or unscheduled tasks. All Git/GitHub operations within original approved scopes authorized. Publish one Reply per remaining task; final CTRL-090 summary includes original residual gate risk, final actual exit matrix, exact production SHAs and measured performance evidence. Stop after CTRL-090.
+
+---
+
+## BATCH CTRL-091…CTRL-097 — currency integrity, worker ownership and table performance
+
+**Status:** ACTIVE / ASSIGNED — user approved seven-task sequential package.
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Mailbox branch:** agent/codex-mailbox
+**Baseline remote HEAD:** 3976625111c448f00f07837ca987da7da9a0a1d7
+**Budget:** 495 minutes (90+75+60+60+60+90+60), ceiling.
+**Dependency:** CTRL-090 final 50/50 actual JVM/runner exits 0; CTRL-080/081 architect approved, independent user rerun not explicitly confirmed. User authorized continuing this package without waiting for that rerun.
+
+### Latest authorization
+Execute only CTRL-091…097 in exact order, autonomously. First correct proven currency data corruption, then actual asynchronous worker lifetime; performance tasks are research only. Each task starts from preceding verified clean HEAD. Verify fresh mailbox and production refs before task/reply. All Git/GitHub operations within explicit scopes approved. Main and JInvCommon read-only, no other repo writes, force push/destructive reset, dependency/public API changes or unrelated refactoring. Only CTRL-091 expressly authorizes minimal non-public base-class helper contract; no broad API expansion. No CTRL-014/034/CAL-TIME-001, speculative Binder rollback, keyboard reservation or external/inner LOV precedence changes. Ordinary GUI FX thread; actual worker paths require explicit visibility/admission reasoning. No locks across blocking SQL or nested FX loops, no corporate DB writes, no claim of SQL cancellation or rollback.
+
+FIX/AUDIT→FIX: deterministic tracked RED on unchanged production, GREEN same assertions, real shown Stage and controlled in-memory dataset/provider, positive controls, exact model/callback/row identity/error counts. Official focused plus three fresh JVMs, relevant regressions, Maven -Pbuild compile, PowerShell parse, diff check; actual child JVM and outer runner exits recorded, not just PASS. No arbitrary sleeps, JavaFX internal reflection, test-only production hooks, weakening assertions or forced success shutdown. One isolated validated fast-forward commit per implemented task and verified remote SHA. No incomplete pushes. No eager per-control objects, minimize persistent state and allocations; actual async lifecycle state may be added only if needed and justified. Russian Java comments. READ-ONLY/PERF AUDIT tasks allow ignored temporary probes only, no tracked production/test changes. Measure with warmed repeat identical fixtures, document units/ranges and limitations, no retained heap estimates from allocation counters.
+
+Task-local unresolved contract: report BLOCKED/PARTIAL/NO_CHANGE and proceed only to independent task with clean baseline and no regression failure. Shared unexplained exit/timeout, regression, remote conflict, dirty state or unreliable infrastructure: STOP safely and report remaining NOT_RUN. Preserve evidence; original CTRL-079 incident UNKNOWN / NOT_REPRODUCED, not blanket waiver for new failures. Exactly one Reply per task in docs/codex/outbox.md on agent/codex-mailbox. Include baseline/final SHA, commands/exits, confirmed vs UNKNOWN, scope, memory/state delta, Windows rerun with -SettingsFile "D:\Java\.m2\settings.xml". User acceptance separate. Timeboxes ceilings, no scope expansion. Stop after CTRL-097, no self-assignment.
+
+---
+
+## MESSAGE CTRL-091
+
+**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Timebox:** 90 minutes
+**Reply ID:** CTRL-091
+**Task:** FIX / CRITICAL — Currency LOV completion ownership
+
+CTRL-083 reproduced nine wrong currency writes on JInvTextFieldCUR, inherited by JInvCURTextField, direct/F9/button × A→B/null/ABA. Architect inspected actual override: reads getLOV().getValue() on callback, getLOV falls back to lazy internal JInvEntityLov when base property null. Base JInvTextField CTRL-078 has private lazy listener revision; final unbindLOV. Explicitly expanded scope: ONLY JInvTextField.java and JInvTextFieldCUR.java production, one isolated commit. Permit minimal non-public final reusable base helper(s) for snapshot/check of existing attachment lifetime (package-private preferred for same-package subclass if sufficient; protected only if necessary and justified). No public API change, no duplicated generation, no extra field on ordinary controls, no eager internal provider creation or callback wrapper beyond existing request allocation if avoidable. Preserve base behavior and fallback provider semantics: capture actual effective provider and base attachment epoch at request, verify epoch and provider before accepting/copying; handle default internal provider→explicit→default ABA and inherited unbind without evaluating unnecessary SQL-backed fallback on stale path. Preserve skipFilter, getText filtering, current accepted currency conversion/updateProperty order, original source, cancellation callback once, overlapping current requests and same-provider setter. Stale accepted completion becomes false without text/curValue writes or accepted navigation. RED on unchanged baseline using recovered CurrencyLovAudit or tracked equivalent, all nine stale cases, positive current/cancel routes, bound setter failures, fallback identity without actual SQL, programmatic updates, readOnly; test default internal provider path only with safe fixture, disclose genuine SQL LOV untested. Do not replace override with super.showLOV if popup/filter/error semantics differ. New focused -CurrencyLovDelayedCompletion; regressions TextFieldLovDelayedCompletion, TextAreaLovDelayedCompletion, ExternalLovReadOnly, LovBindingInterleaving, BoundLovSetter, LovIntegration, numeric/currency existing modes. No provider value event attribution redesign or direct writable property contract changes.
+
+---
+
+## MESSAGE CTRL-092
+
+**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Timebox:** 75 minutes
+**Reply ID:** CTRL-092
+**Task:** FIX — bulk worker attachment lifetime
+
+CTRL-082 reproduced three obsolete NPE error dialogs: close before first swap (paused initial count), during first or second swap returning true. CTRL-076/077 UI delivery guards already work. Actual rowLoader still dereferences mutable dataSet/getDataSet across worker/FX close. Only DSFXAdapter production unless separate authorization; establish source visibility and supported FX close/worker ownership. Reuse existing captured origin for worker operations and a minimal explicit safely published retirement state for actual async operation/attachment if necessary (volatile/atomic or equivalent with defined happens-before; no unsynchronized equality polling as correctness proof). Define precise boundary: a fetch already admitted before retirement may return; no subsequent obsolete work admitted after retirement is observed, no post-retirement reads of cleared/replaced adapter field, no stale progress/state/selection updates. Do not hold locks across blocking fetch or FX nested loop, do not promise cancellation of in-flight SQL/rollback. Deterministic latch fixtures for close before worker entry, paused initial count, during swap(s), active success/cancel/error, repeat close, late independent listeners; record exact admission/fetch counts, errors, state/cursor/selection and cleanup. Preserve genuine active failure and cancellation semantics, do not swallow unrelated exception merely because closed; stale error delivery separately CTRL-094. Minimize per-adapter/per-operation state, justify worker visibility and race boundary; preserve current paging and no same-table rebind support. New focused -TableAdapterBulkWorkerClose if fix; regressions TableAdapterBulkClose, TableAdapterPagingClose, TableAdapterQueuedClose, TableAdapterClose, TableAdapterSearchListener, DataBinding, TableEditing. No ProgressTaskExecutor/Service edit here; if impossible in scope report BLOCKED.
+
+---
+
+## MESSAGE CTRL-093
+
+**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-093
+**Task:** AUDIT → FIX — search worker attachment lifetime
+
+CTRL-067 observed post-close result callback; CTRL-081 fixed exact temporary listener removal on exceptions, current rowFinder still uses this.dataSet for swap/count and captures adapter at worker entry. Reuse CTRL-092 proven worker ownership mechanism if suitable; no parallel redundant infrastructure. Establish actual source and deterministic RED with shown table, controlled search hit/miss, close before entry/registration/during swap/after registration, active exception/cancel, external observer. Only DSFXAdapter production if confirmed. Capture origin at launch, safely stop admitting obsolete work on retirement as defined by CTRL-092, exact removal from original Dataset in finally preserving primary failure/suppressed cleanup; no additional search predicate calls after observed retirement where owned listener can guard safely. Preserve legitimate active result/cancel/error behavior. Do NOT silently suppress public Consumer<Boolean> after close or convert success into false unless supported caller contract established; report stale result and no-consumer alert separately for CTRL-094. No blocking locks across fetch, no SQL cancellation/rollback guarantees, no rebind contract changes. New focused -TableAdapterSearchWorkerClose if implemented, existing TableAdapterSearchListener, TableAdapterBulkWorkerClose if available, TableAdapterBulkClose, TableAdapterQueuedClose, DataBinding, TableAdapterClose. If no safe isolated contract, READ-ONLY/BLOCKED.
+
+---
+
+## MESSAGE CTRL-094
+
+**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-094
+**Task:** AUDIT — stale progress/error/result delivery ownership
+
+Strict READ-ONLY initially. Inspect actual ProgressTaskExecutor/ProgressService and DSFXAdapter call sites at current HEAD; distinguish progress window teardown from business callback and error notification. Reuse CTRL-082/092/093 controlled fixtures. Matrix active success/failure/cancel, close before FX error/result dispatch, closed owner but external caller still active, no-consumer search miss alert, real exceptions occurring before versus after close, old vs fresh form. Record actual callback order, error identity, progress WINDOW_HIDDEN, task terminal states, navigation/model effects, ownership and caller evidence. Do not suppress genuine SQL failures, alter cancellation/rollback, change public Consumer contract or generic progress manager. If remaining defect is deterministic, propose precise separately scoped fix with caller contract and evidence; no production/ tracked test edit in this task. Report whether CTRL-092/093 already eliminated obsolete NPE paths; avoid counting those twice.
+
+---
+
+## MESSAGE CTRL-095
+
+**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-095
+**Task:** PERF AUDIT — isolate mark value factory allocation
+
+READ-ONLY. CTRL-088 measured 1.296 vs 3.148 MB FX allocations at 2000 rows/19 visible with mark disabled/enabled, includes whole cell/checkbox/CSS/layout. Current DSFXAdapter markColumn returns new SimpleBooleanProperty per IMarkable read. Isolate value-factory-only cost from full table construction, with warmed identical workloads, count allocations and independent observable identity/notifications across rows, retained references to A/B returned properties, sorting/selection/mark/unmark/mark-all where in-memory supported, actual JInvTableCellMark rendering and row pseudoclass. Compare candidate stateless/snapshot alternatives ONLY in ignored probes, no shared mutable proxy unless independent observers proven equivalent, no persistent per-row cache or changes to model. Quantify absolute contribution to full refresh allocation; report median/ranges, FX thread only, no retained heap claim. Rank whether worth implementing, exact scope and contract tests. No production edits.
+
+---
+
+## MESSAGE CTRL-096
+
+**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Timebox:** 90 minutes
+**Reply ID:** CTRL-096
+**Task:** PERF AUDIT — avoid refresh-induced cell reconstruction without changing semantics
+
+READ-ONLY. CTRL-089 measured one layout pulse/reconstruction for same-turn burst despite N observable refresh deliveries; 9/19 recreated cells, ~0.6/1.27 MB FX allocations. Read current JInvTable/DSFXAdapter refresh/refreshRow and public JavaFX 25 API implementation available locally, no private VirtualFlow/Skin internals or unsupported access. Distinguish explicit full refresh, row updates, mark changes, AFTER EXECUTE and new data, preserve observable order of active navigation/refresh and editing/cancel. Compare minimal public targeted invalidation/update mechanisms in ignored fixtures (no production patch) with exact cell/value factory counts, row identity, model write/validation counts, marks, selection/cursor, active draft/commit/cancel/invalid conversion and same-index replacements. Vary loaded N, visible rows, columns and marked mode; warmed repeat and elapsed-to-layout, allocation median/ranges, not paint/retained heap. Do not coalesce events or cache row values in production, avoid relying on mutable per-column proxy without equivalence. If no equivalent public mechanism, NO_CHANGE and explain why. Produce recommended next experiment or narrow implementation proposal only with demonstrated compatibility and measured benefit.
+
+---
+
+## MESSAGE CTRL-097
+
+**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-097
+**Task:** VERIFY — final regression and release readiness triage
+
+READ-ONLY. Enumerate actual supported runner modes at final HEAD (previous 50 plus new modes). Full battery within timebox, prioritize all new fixes and accepted CTRL-075…081, existing table/LOV/readOnly/numeric/form/data binding tests. Capture actual JVM and outer exit codes separately using faithful ignored diagnostic recorder from CTRL-079A/090, separate output/timestamps, preserve any failed/timeout attempt. No opt-in Robot or unresolved CTRL-014/034/CAL-TIME-001. Maven -Pbuild compile, PowerShell parse, diff check, verify remote chain and per-task scope. Any unexplained nonzero stops, not retry-until-green. Final summary all seven statuses, exact SHAs, RED/GREEN evidence, allocation/state deltas, measured performance audit limits, independent Windows reruns for implemented fixes, residual unknown contracts and original CTRL-079 incident. No claim of production readiness from local tests alone; corporate SQL/transaction behavior, native input, real forms/MDI/WAIT remain separately unverified. Rank next tasks by confirmed data integrity then measured benefit. STOP after CTRL-097.
