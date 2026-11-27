@@ -3231,3 +3231,75 @@ Windows Java 25.0.1 / FX 25: powershell.exe -NoProfile -ExecutionPolicy Bypass -
 | CTRL-078 | DONE | 70b139ed54d00c46b4c2ae597535d82ddbe5a2ab | TextFieldLovDelayedCompletion |
 
 All four deterministic assertions failed on their unchanged production baseline (exit 1), then passed on the isolated fix (exit 0) in at least three fresh JVMs each. Four separate production commits and four mailbox Replies. The tested synthetic cancel route no longer writes to the new occupant of an invalidated index; an invalidated draft may be discarded. SQL refresh/sort, blocking/cancelled/error bulk SQL, other search completion paths, native input and focus traversal, and draft recovery remain unverified. No transaction changes or performance optimization. Independent Windows acceptance pending. Stop after CTRL-078.
+
+
+---
+
+## Reply CTRL-079
+
+**BLOCKED / READ-ONLY.** Baseline and final production: 70b139ed54d00c46b4c2ae597535d82ddbe5a2ab. Inbox assignment: ad7ef12bbc59443c0c2cbd9194c91332463ff192. Local production and mailbox checkouts were clean before the reply. Java 25.0.1, JavaFX 25, IDEA Maven 3.9.16 offline with corporate settings. No production or tracked test edits.
+
+Maven compile exit 0, PowerShell runner parse clean and git diff --check exit 0. Commands from the project root (IDEA Maven bin on PATH and MAVEN_ARGS=-o):
+
+    mvn -s "D:\Java\.m2\settings.xml" -Pbuild "-Dmaven.buildNumber.skip=true" compile
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -<Mode> -SettingsFile "D:\Java\.m2\settings.xml"
+
+Default omits the mode switch. Enumerated 48 unique named parameter sets plus default. No opt-in Robot flag or unresolved CTRL-014/034 scenario enabled. SceneKeyLookup is an existing tracked smoke and uses its existing Node.properties reflection assertion. No new reflective fixture was introduced.
+
+All 49 modes printed PASS. Initial runner exits were 48 × 0 and one × 1. SceneKeyLookup printed CTRL-024 PASS and expected action/target counts, then the runner threw at the post-Java exit check. The runner does not log the numeric exit of that child. No Java assertion failure or hs_err file was observed. An immediate fresh official runner repeat and a direct JVM repeat with the original generated java.args both printed PASS and exited 0. The initial nonzero remains unexplained. The assertion results do not establish a production defect, and the repeats do not establish why the process failed. Treat the mandatory gate as blocked by that unexplained exit.
+
+Initial matrix. Columns are mode, runner exit, elapsed wall seconds including compilation and startup, probe result.
+
+    TextAreaToolbarOwnership 0 10.4089954 CTRL-066 PASS
+    TableEditRowIdentity 0 11.0049056 CTRL-075 PASS
+    TableAdapterBulkClose 0 10.59915 CTRL-076 PASS
+    TableAdapterQueuedClose 0 10.709053 CTRL-077 PASS
+    TextFieldLovDelayedCompletion 0 9.7863609 CTRL-078 PASS
+    TableAdapterPagingClose 0 9.4995048 CTRL-065 PASS
+    TextAreaLovDelayedCompletion 0 9.0577284 CTRL-062 PASS
+    ExternalLovReadOnly 0 9.5448912 CTRL-061 PASS
+    WrapButtonOwnership 0 9.2693942 CTRL-055 PASS
+    TabPaneSkinListeners 0 9.1558919 CTRL-054 PASS
+    TextAreaSkinDisposal 0 9.34208 CTRL-053 PASS
+    ValidatorSubchanges 0 8.8566039 CTRL-052 PASS
+    TableAdapterClose 0 8.9983458 CTRL-051 PASS
+    TextAreaLovLifecycle 0 9.4631667 CTRL-050 PASS
+    TextFieldSkinDisposal 0 9.5095522 CTRL-049 PASS
+    LovBindingInterleaving 0 9.3403777 CTRL-045 PASS
+    BoundLovSetter 0 9.3627488 CTRL-044 PASS
+    WrapButtonDeferred 0 9.3409054 CTRL-043 PASS
+    Editors 0 9.6508764 GUI-004 PASS
+    TableEditing 0 9.4594509 GUI-005 PASS
+    TableCancel 0 9.6852539 GUI-006 PASS
+    EditorReentry 0 10.3120722 GUI-007 PASS
+    DataBinding 0 9.8233548 GUI-009 PASS
+    FormLifecycle 0 9.7826632 GUI-010 PASS (standalone production FXML/controller and SDI close)
+    FormCancel 0 10.3968492 CTRL-022 PASS
+    SceneKeyLookup 1 12.8452448 CTRL-024 PASS
+    LovListenerLifecycle 0 9.0651156 CTRL-026 PASS
+    LovDefaultValidation 0 9.0485392 CTRL-027 PASS
+    LovIntegration 0 9.0781832 CTRL-031 PASS
+    SingletonCloseVeto 0 9.6085215 CTRL-032 PASS
+    SingletonLifecycleMatrix 0 9.6578388 CTRL-035 PASS
+    ValidatorScopedUnbind 0 8.7063644 CTRL-033 PASS
+    ValidatorMultiControl 0 9.2296071 CTRL-036 PASS
+    TextFields 0 9.8368622 GUI-012 PASS (tested matrix)
+    ValueFields 0 9.8517322 VF-001 PASS
+    ValueLifecycle 0 9.1175634 VF-002 PASS (custom listener ownership)
+    MoneyDecimal 0 10.0795171 NUM-001 PASS (tested invariants)
+    DatePickerBinding 0 9.2161519 CTRL-002 PASS
+    NodeTraversal 0 8.997436 CTRL-003 PASS
+    RadioReadOnly 0 9.1981786 CTRL-006 PASS
+    ComboReadOnly 0 15.1194118 CTRL-007 PASS
+    CheckBoxReadOnly 0 14.9760734 CTRL-009 PASS
+    ValueChangedFlag 0 7.5886353 CTRL-013 PASS
+    ControlsFollowup 0 8.8960561 CTRL-CONTROLS-FOLLOWUP PASS
+    ChoiceAdapter 0 8.8613259 CTRL-015 PASS
+    BinderChoiceNull 0 8.9969189 CTRL-017 PASS
+    ChoiceNullLookup 0 8.7426431 CTRL-018 PASS
+    ChoiceNonNullSet 0 8.4822942 CTRL-019 PASS
+    Default 0 9.6485379 GUI-001 PASS
+
+### Batch disposition
+
+CTRL-080, CTRL-081, CTRL-082, CTRL-083, CTRL-084, CTRL-085, CTRL-086, CTRL-087, CTRL-088, CTRL-089 and CTRL-090 are NOT_RUN under the gate stop rule. No task measurements or production changes. Before resuming, reproduce SceneKeyLookup with the original tracked assertions and collect the child JVM exit and Windows process/crash diagnostics separately from the PowerShell runner exit. Re-run the baseline gate after explaining the failure.
