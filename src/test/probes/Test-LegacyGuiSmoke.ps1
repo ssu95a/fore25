@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'TableAdapterSearchMissDelivery')]
+    [switch] $TableAdapterSearchMissDelivery,
     [Parameter(ParameterSetName = 'TableAdapterSearchWorkerClose')]
     [switch] $TableAdapterSearchWorkerClose,
     [Parameter(ParameterSetName = 'TableAdapterBulkWorkerClose')]
@@ -121,6 +123,9 @@ if ($TextAreaToolbarOwnership) {
 } elseif ($TableEditRowIdentity) {
     $probeId = 'CTRL-075'
     $probeClass = 'TableEditRowIdentitySmoke'
+} elseif ($TableAdapterSearchMissDelivery) {
+    $probeId = 'CTRL-098'
+    $probeClass = 'TableAdapterSearchMissDeliverySmoke'
 } elseif ($TableAdapterSearchWorkerClose) {
     $probeId = 'CTRL-093'
     $probeClass = 'TableAdapterSearchWorkerCloseSmoke'

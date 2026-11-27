@@ -1785,11 +1785,12 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
 
         try {
 
+            var owner = (Stage)getTable().getScene().getWindow();
             progressTaskExecutor = new ProgressTaskExecutor<>();
             progressTaskExecutor
                 .allowCancel(true)
-                .stage((Stage)getTable().getScene().getWindow(), bundle.getString("FIND_ROWS"), false)
-                .callback( rowFinder(attachment, revision, predicate, onSearchResult, startRowIndex) )
+                .stage(owner, bundle.getString("FIND_ROWS"), false)
+                .callback( rowFinder(attachment, revision, owner, predicate, onSearchResult, startRowIndex) )
                 .indicator(false)
             .execute();
 
@@ -1899,7 +1900,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     }
 
     /** */
-    private ProgressCallback<Void, DSFXAdapter<T>> rowFinder(IDataSet<T> attachment, long revision,
+    private ProgressCallback<Void, DSFXAdapter<T>> rowFinder(IDataSet<T> attachment, long revision, Stage owner,
             Predicate<T> predicate, Consumer<Boolean> onSearchResult, int startRowIndex) {
         return (progress, p) -> {
             if (workerAttachmentRevision != revision) return null;
@@ -1969,8 +1970,12 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
                     wasCanceled.setValue(cancelled);
                 if (onSearchResult != null) {
                     onSearchResult.accept(found.get());
-                } else if (!found.get()) {
-                    Alerts.info(tableView.getScene().getWindow(), bundle.getString("RECORD_NOT_FOUND"));
+                } else if (!found.get() && workerAttachmentRevision == revision && dataSet == attachment) {
+                    // Уведомление принадлежит окну, из которого запустили поиск.
+                    var scene = tableView.getScene();
+                    if (scene != null && scene.getWindow() == owner && owner.isShowing()) {
+                        Alerts.info(owner, bundle.getString("RECORD_NOT_FOUND"));
+                    }
                 }
             });
 
