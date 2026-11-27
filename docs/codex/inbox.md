@@ -3890,7 +3890,7 @@ CTRL-067 observed post-close result callback; CTRL-081 fixed exact temporary lis
 
 ## MESSAGE CTRL-094
 
-**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — stale table-owned miss alert and detached-scene NPE reproduced; follow-up pending
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — stale table-owned miss alert and detached-scene NPE reproduced; fixed in CTRL-098, user accepted
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-094
 **Task:** AUDIT — stale progress/error/result delivery ownership
@@ -3934,7 +3934,7 @@ READ-ONLY. Enumerate actual supported runner modes at final HEAD (previous 50 pl
 
 ## BATCH CTRL-098…CTRL-103 — final search delivery correction and targeted performance
 
-**Status:** ACTIVE / ASSIGNED — user approved next six-task sequential package.
+**Status:** CLOSED / ARCHITECT REVIEWED / USER ACCEPTED FIX — all six replies received; CTRL-098 independently verified by user: CTRL-098 PASS, exit 0; final agent regression 54/54 child and runner exits 0.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox branch:** agent/codex-mailbox
@@ -3953,7 +3953,7 @@ Record actual child and runner exits, preserve failed attempts and diagnostic ev
 
 ## MESSAGE CTRL-098
 
-**Status:** ASSIGNED / ACTIVE SIX-TASK BATCH
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — df95a931230b57e87e7bef4bfba6267c3e9a395d; user CTRL-098 PASS, exit 0
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-098
 **Task:** FIX — retired table-owned search miss alert
@@ -3964,7 +3964,7 @@ CTRL-094 confirmed old-owner RECORD_NOT_FOUND information dialog and detached-ta
 
 ## MESSAGE CTRL-099
 
-**Status:** ASSIGNED / ACTIVE SIX-TASK BATCH
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — deferred refreshRow stale list event reproduced; index vs identity contract unresolved
 **Timebox:** 75 minutes
 **Reply ID:** CTRL-099
 **Task:** AUDIT — precise row-only update and deferred identity contract
@@ -3975,7 +3975,7 @@ READ-ONLY. CTRL-096 found same-index refreshRow can preserve cell objects but ch
 
 ## MESSAGE CTRL-100
 
-**Status:** ASSIGNED / ACTIVE SIX-TASK BATCH
+**Status:** NO_CHANGE / ARCHITECT REVIEWED — no qualifying row-only full refresh caller, alternatives fail equivalence
 **Timebox:** 90 minutes
 **Reply ID:** CTRL-100
 **Task:** PERF — narrow row-only refresh optimization, conditional
@@ -3986,7 +3986,7 @@ Use CTRL-099 evidence, not automatic replacement of TableView.refresh. Authorize
 
 ## MESSAGE CTRL-101
 
-**Status:** ASSIGNED / ACTIVE SIX-TASK BATCH
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — retired bulk refresh and detached error delivery NPE reproduced
 **Timebox:** 90 minutes
 **Reply ID:** CTRL-101
 **Task:** PERF AUDIT — marker-only and bulk mark/unmark lifecycle
@@ -3997,7 +3997,7 @@ READ-ONLY. CTRL-095 isolated property snapshot cost 40 B/read (~760 B at 19 rows
 
 ## MESSAGE CTRL-102
 
-**Status:** ASSIGNED / ACTIVE SIX-TASK BATCH
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — synthetic form startup phase measurements; no retained heap claim
 **Timebox:** 90 minutes
 **Reply ID:** CTRL-102
 **Task:** PERF AUDIT — representative form startup and retained state
@@ -4008,7 +4008,7 @@ READ-ONLY. Use actual FXFormLauncher/AbstractBaseController, shown SDI FXML fixt
 
 ## MESSAGE CTRL-103
 
-**Status:** ASSIGNED / ACTIVE SIX-TASK BATCH
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — 54/54 agent GREEN
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-103
 **Task:** VERIFY — production baseline regression and readiness
