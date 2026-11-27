@@ -2,6 +2,7 @@ package ru.inversion.fx.form.controls;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -19,6 +20,7 @@ import javafx.scene.AccessibleAttribute;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Font;
@@ -38,15 +40,12 @@ import static ru.inversion.fx.form.controls.Controls.F7FILTER_ORDER_IN_GROUP;
 import static ru.inversion.fx.form.controls.JInvTableColumn.COLUMN_SHOW_IN_FILTER;
 import static ru.inversion.fx.form.controls.JInvTextField.CONTROL_CASE_SENSITIVE_MODE;
 
-import ru.inversion.fx.form.controls.skin.ISkinPopulatable;
 import ru.inversion.fx.form.controls.skin.JInvTextAreaSkin;
 import ru.inversion.fx.form.controls.textfield.impl.CaseSensitiveFormatter;
 import ru.inversion.fx.form.controls.textfield.impl.CaseSensitiveOperator;
 import ru.inversion.fx.form.lov.AbstractLovBase;
 import ru.inversion.fx.form.lov.ILov;
 import ru.inversion.fx.form.lov.JInvLOVButton;
-import ru.inversion.icons.IconDescriptor;
-import ru.inversion.icons.enums.FontAwesome;
 import ru.inversion.utils.S;
 import ru.inversion.utils.converter.TypeConverter;
 
@@ -69,6 +68,8 @@ public class JInvTextArea extends TextArea implements ITextFieldBase {
     private LovAttachment lovAttachment;
     private String lovClassName;
     private Font cachedFont;
+    private TextControlMenu contextMenuSupport;
+    private EventHandler<ActionEvent> menuEditAction;
 
     public JInvTextArea() {
         this("");
@@ -77,12 +78,14 @@ public class JInvTextArea extends TextArea implements ITextFieldBase {
     public JInvTextArea(String text) {
         super(text);
         readOnlyProperty().addListener( (obs, oldV, newV) -> Controls.disableControl( this, obs.getValue() ) );
+        // Обработчик запроса регистрируется до обработчиков поведения skin.
+        addEventHandler(ContextMenuEvent.CONTEXT_MENU_REQUESTED, JInvTextArea::requestControlMenu);
         setSkin(new JInvTextAreaSkin(this));
         setWrapText( true );
         initKeyBoard();
         initTrimmer();
         initFontPerExtension();
-        initContextMenu();
+        menuEditAction = getEditDialogAction().orElse(null);
         // Устанавлием форматтер для контроля режима ввода на каждый контрол. Увы нельзя поставить один на все, вылетает исключение
         setTextFormatter(new CaseSensitiveFormatter(new CaseSensitiveOperator()));
     }
@@ -142,17 +145,37 @@ public class JInvTextArea extends TextArea implements ITextFieldBase {
         } );
     }
 
-    private void initContextMenu() {
-        ObservableList<MenuItem> itemList =
-                getSkin() instanceof ISkinPopulatable ? ((ISkinPopulatable) getSkin()).getListItemsToPopulateContextMenu() : null;
-        Optional<EventHandler<ActionEvent>> editDialogAction = getEditDialogAction();
+    private static void requestControlMenu(ContextMenuEvent event) {
+        if (event.getSource() instanceof JInvTextArea area && area.getSkin() instanceof JInvTextAreaSkin
+                && TextControlMenu.isRequestEligible(area, event)) {
+            area.controlMenu().show(event);
+        }
+    }
 
-        if (itemList != null && editDialogAction.isPresent()){
-            MenuItem feMenuItem = new MenuItem(fore.getString( "OTKRYT_V_DIALOGOVOM_OKNE" ));
-            feMenuItem.setGraphic(IconDescriptor.of(FontAwesome.fa_ellipsis_h).getLabel());
-            feMenuItem.setOnAction(editDialogAction.get());
-            itemList.add(new SeparatorMenuItem());
-            itemList.add(feMenuItem);
+    private TextControlMenu controlMenu() {
+        if (contextMenuSupport == null) {
+            contextMenuSupport = new TextControlMenu(this, "ru.inversion.fx.form.controls.skin.JInvTextAreaMenu",
+                    menuEditAction);
+        }
+        return contextMenuSupport;
+    }
+
+    /** Возвращает расширения; само меню создаётся по первому запросу показа. */
+    public ObservableList<MenuItem> getListItemsToPopulateContextMenu() {
+        return controlMenu().extensions();
+    }
+
+    /** Заполняет переданное меню текущими командами и расширениями поля. */
+    public void populateContextMenu(ContextMenu menu) {
+        controlMenu().populate(menu);
+    }
+
+    @Override
+    public void onPopulateContextMenu(Consumer<ContextMenu> action) {
+        if (getSkin() instanceof JInvTextAreaSkin || contextMenuSupport != null) {
+            controlMenu().onPopulate = action;
+        } else {
+            ITextFieldBase.super.onPopulateContextMenu(action);
         }
     }
 

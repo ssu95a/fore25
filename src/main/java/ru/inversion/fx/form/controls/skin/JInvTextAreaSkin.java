@@ -10,7 +10,6 @@ import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -23,9 +22,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.TextArea;
-import javafx.scene.input.Clipboard;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import ru.inversion.fx.app.es.JInvErrorService;
@@ -49,14 +45,10 @@ import ru.inversion.utils.Pair;
  */
 public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
 
+    private final JInvTextArea textArea;
     private ToolBar toolBar = new ToolBar();
     private static ResourceBundle bundle = ResourceBundle.getBundle("fore");
-    private final ObservableList<MenuItem> listPopulateContextMenu = FXCollections.observableArrayList();
-    private Consumer<ContextMenu> onPopulateContextMenu;
     private JInvFEButton feButton;
-    private final ContextMenu textContextMenu = new ContextMenu();
-    private static final ResourceBundle menuBundle = ResourceBundle.getBundle(
-            "ru.inversion.fx.form.controls.skin.JInvTextAreaMenu");
     private boolean disposed;
     private IAction externalEditorAction;
     private List<Pair<Node, IAction>> registeredActions;
@@ -79,16 +71,12 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
 
     public JInvTextAreaSkin(JInvTextArea textArea) {
         super(textArea);
+        this.textArea = textArea;
         registerChangeListener(textArea.sceneProperty(), observable -> updateExternalEditorAction(textArea.getScene()));
         updateExternalEditorAction(textArea.getScene());
 
         initToolBar( textArea );
         registerChangeListener(toolBar.visibleProperty(), observable -> textArea.requestLayout());
-        textContextMenu.setOnShowing(event -> populateContextMenu(textContextMenu));
-        populateContextMenu(textContextMenu);
-        registerChangeListener(textArea.contextMenuProperty(), observable -> installContextMenu());
-        registerChangeListener(textArea.onContextMenuRequestedProperty(), observable -> installContextMenu());
-        installContextMenu();
     }
 
     private void updateExternalEditorAction(Scene scene) {
@@ -109,22 +97,6 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
         }
     }
 
-    private void installContextMenu() {
-        TextArea area = getSkinnable();
-        if (disposed || area == null || area.contextMenuProperty().isBound())
-            return;
-
-        // Обработчик приложения имеет приоритет; снимаем только собственное меню.
-        if (area.getOnContextMenuRequested() != null) {
-            if (area.getContextMenu() == textContextMenu)
-                area.setContextMenu(null);
-            return;
-        }
-
-        if (area.getContextMenu() == null)
-            area.setContextMenu(textContextMenu);
-    }
-
     @Override
     public void dispose() {
         if (disposed)
@@ -140,12 +112,6 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
         editorButtonAction = null;
         toolBar.visibleProperty().unbind();
         feButton.visibleProperty().unbind();
-        TextArea area = getSkinnable();
-        textContextMenu.hide();
-        textContextMenu.setOnShowing(null);
-        textContextMenu.getItems().clear();
-        if (area.getContextMenu() == textContextMenu && !area.contextMenuProperty().isBound())
-            area.setContextMenu(null);
         super.dispose();
     }
 
@@ -261,46 +227,18 @@ public class JInvTextAreaSkin extends TextAreaSkin implements ISkinPopulatable {
             }, null).handle(event);
         }
     }
-    public void populateContextMenu(ContextMenu contextMenu) {
-        TextArea area = getSkinnable();
-        boolean selected = area.getSelection().getLength() > 0;
-        contextMenu.getItems().clear();
-        if (area.isEditable()) {
-            contextMenu.getItems().addAll(
-                    menuItem("Undo", area::undo, !area.isUndoable()),
-                    menuItem("Redo", area::redo, !area.isRedoable()),
-                    menuItem("Cut", area::cut, !selected),
-                    menuItem("Copy", area::copy, !selected),
-                    menuItem("Paste", area::paste, !Clipboard.getSystemClipboard().hasString()),
-                    menuItem("DeleteSelection", area::deleteNextChar, !selected),
-                    new SeparatorMenuItem(),
-                    menuItem("SelectAll", area::selectAll, false));
-        } else {
-            contextMenu.getItems().addAll(menuItem("Copy", area::copy, !selected),
-                    new SeparatorMenuItem(), menuItem("SelectAll", area::selectAll, false));
-        }
-        if (!(listPopulateContextMenu.isEmpty())) {
-            listPopulateContextMenu.forEach((MenuItem items) -> contextMenu.getItems().add(0, items));
-        }
-        if ( onPopulateContextMenu != null ){
-            onPopulateContextMenu.accept( contextMenu );
-        }
-    }
 
-    private MenuItem menuItem(String key, Runnable action, boolean disabled) {
-        MenuItem item = new MenuItem(menuBundle.getString(key));
-        item.setDisable(disabled);
-        item.setOnAction(event -> action.run());
-        return item;
+    public void populateContextMenu(ContextMenu contextMenu) {
+        textArea.populateContextMenu(contextMenu);
     }
 
     @Override
     public ObservableList<MenuItem> getListItemsToPopulateContextMenu() {
-        return listPopulateContextMenu;
+        return textArea.getListItemsToPopulateContextMenu();
     }
 
     @Override
-    public void onPopulateContextMenu( Consumer<ContextMenu> action ) {
-        onPopulateContextMenu = action;
+    public void onPopulateContextMenu(Consumer<ContextMenu> action) {
+        textArea.onPopulateContextMenu(action);
     }
 }

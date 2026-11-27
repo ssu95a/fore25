@@ -94,8 +94,15 @@ public final class LegacyEditorsSmoke {
         area.replaceSelection("edited");
         require("first\nedited".equals(area.getText()), "TextArea: text replacement failed");
 
+        require(area.getContextMenu() == null, "TextArea menu: no framework menu before request");
+        var anchor = area.localToScreen(5, 5);
+        area.fireEvent(new javafx.scene.input.ContextMenuEvent(
+                javafx.scene.input.ContextMenuEvent.CONTEXT_MENU_REQUESTED,
+                5, 5, anchor.getX(), anchor.getY(), false, null));
         ContextMenu skinMenu = area.getContextMenu();
-        require(skinMenu != null && !skinMenu.getItems().isEmpty(), "TextArea menu: skin menu unavailable");
+        require(skinMenu != null && skinMenu.isShowing() && !skinMenu.getItems().isEmpty(),
+                "TextArea menu: control menu unavailable");
+        skinMenu.hide();
         area.setOnContextMenuRequested(event -> event.consume());
         require(area.getContextMenu() == null, "TextArea menu: skin menu did not yield to request handler");
         var customMenu = new ContextMenu(new MenuItem("Custom"));

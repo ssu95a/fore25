@@ -44,6 +44,8 @@ param(
     [switch] $TableAdapterClose,
     [Parameter(ParameterSetName = 'TextAreaLovLifecycle')]
     [switch] $TextAreaLovLifecycle,
+    [Parameter(ParameterSetName = 'TextAreaContextMenuLifecycle')]
+    [switch] $TextAreaContextMenuLifecycle,
     [Parameter(ParameterSetName = 'TextFieldContextMenuLifecycle')]
     [switch] $TextFieldContextMenuLifecycle,
     [Parameter(ParameterSetName = 'TextFieldSkinDisposal')]
@@ -192,6 +194,9 @@ if ($TextAreaToolbarOwnership) {
 } elseif ($TextAreaLovLifecycle) {
     $probeId = 'CTRL-050'
     $probeClass = 'TextAreaLovLifecycleSmoke'
+} elseif ($TextAreaContextMenuLifecycle) {
+    $probeId = 'PERF-015'
+    $probeClass = 'TextAreaContextMenuLifecycleSmoke'
 } elseif ($TextFieldContextMenuLifecycle) {
     $probeId = 'PERF-014'
     $probeClass = 'TextFieldContextMenuLifecycleSmoke'
