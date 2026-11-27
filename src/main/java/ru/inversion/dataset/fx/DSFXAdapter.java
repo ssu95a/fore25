@@ -16,6 +16,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -605,6 +606,9 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
      *
      */
     private void markAll(boolean doMark) {
+        var attachment = dataSet;
+        long revision = workerAttachmentRevision;
+        Window owner = ViewContext.tryGetWindow(tableView);
 
         try {
 
@@ -641,7 +645,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
 
                                     } catch (Throwable ex) {
                                         Platform.runLater(() -> {
-                                            JInvErrorService.handleException(getTable().getScene().getWindow(), ex);
+                                            deliverBulkMarkError(attachment, revision, event.getSource() instanceof Window window ? window : null, ex);
                                         });
                                     }
                                 }
@@ -649,7 +653,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
                         }
                     }//end if null
 
-                    markAllAction.handle();
+                    markAllAction.handle(new ActionEvent(owner, null));
                 } else {
 
                     if (unMarkAllAction == null) {
@@ -674,7 +678,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
 
                                     } catch (Throwable ex) {
                                         Platform.runLater(() -> {
-                                            JInvErrorService.handleException(getTable().getScene().getWindow(), ex);
+                                            deliverBulkMarkError(attachment, revision, event.getSource() instanceof Window window ? window : null, ex);
                                         });
                                     }
                                 }
@@ -682,13 +686,20 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
                         }
                     }//end if null
 
-                    unMarkAllAction.handle();
+                    unMarkAllAction.handle(new ActionEvent(owner, null));
 
                 }
             }
         } catch (Throwable th) {
-            JInvErrorService.handleException( getTable().getScene().getWindow(), th);
+            deliverBulkMarkError(attachment, revision, owner, th);
         }
+    }
+
+    private void deliverBulkMarkError(IDataSet<T> attachment, long revision, Window owner, Throwable error) {
+        // Ошибка операции сохраняется, даже если её окно или привязка уже сняты.
+        boolean current = attachment != null && dataSet == attachment && workerAttachmentRevision == revision
+                && owner != null && owner.isShowing() && ViewContext.tryGetWindow(tableView) == owner;
+        JInvErrorService.handleException(current ? owner : null, error);
     }
 
     /** */
