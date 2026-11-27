@@ -4251,3 +4251,101 @@ Shown in-memory table: independent observer received one event with source Datas
 Suggested smallest follow-up: separate entity-owned single-marker delivery from public index-based refreshRow, verify source and row identity at the original index, and define behavior when reorder moved the row before considering any lookup or broader visual fallback. Prove supported sort/filter/update routes already render moved rows before suppressing such a delivery. Bulk remains index -1. No scan/cache by assumption.
 
 Ignored target/ctrl-107/MarkIdentityAudit.java, mark-bytecode.txt and raw streams. javac -cp "target/ctrl-088;target/classes;<deps>" -d target/ctrl-107 then java --enable-native-access=ALL-UNNAMED -cp "target/ctrl-107;target/ctrl-088;target/classes;<deps>" MarkIdentityAudit. Deps from target/ctrl-079a/original-dependencies.txt. Native compile/JVM 0, no probe runner; no tracked edits or state/allocation changes.
+
+
+---
+
+## Reply PERF-001
+
+**DONE / READ-ONLY.** Baseline and verified final production 0982d2112b8f8020d16f917adaab77caee29005d. No tracked edits.
+
+Matched shown VBox/Scene and stylesheet, same text/font/width, explicit stock TextFieldSkin installation through public API before attachment. JInvTextField includes eager skin in its constructor. Stock bare constructor is a diagnostic phase only; comparable totals run through the same attachment, CSS, layout and first observable post-layout. Stock and framework differ functionally; this is not a feature-equivalence claim. Early framework skin, editing, subsequent in-memory LOV notification and readOnly passed. Immediate wrapper/menu semantics are further checked in PERF-003.
+
+Fresh separate Java 25.0.1 / FX25+29 JVMs, both -Xms256m -Xmx1024m -XX:+UseG1GC, FX ThreadMXBean deltas, one first-use sample and five warmups/nine samples per N. Timings include public post-layout barrier; the explicitly timed CSS/layout phases also run before the pulse, no paint claim. Raw absolute values below by batch (µs and FX bytes, median/range). Control graphs released between samples; one Stage reused per process.
+
+    kind=stock jdk=25.0.1+8-LTS-27 fx=25+29 heap=1073741824
+    cold N=1 phase=constructor us=99337(99337..99337) FXbytes=3513064(3513064..3513064)
+    cold N=1 phase=stock-explicit-skin us=251160(251160..251160) FXbytes=7689640(7689640..7689640)
+    cold N=1 phase=setup us=12554(12554..12554) FXbytes=404184(404184..404184)
+    cold N=1 phase=attach us=4839(4839..4839) FXbytes=139984(139984..139984)
+    cold N=1 phase=applyCss us=15120(15120..15120) FXbytes=372792(372792..372792)
+    cold N=1 phase=layout us=3730(3730..3730) FXbytes=35224(35224..35224)
+    cold N=1 phase=post-layout us=17485(17485..17485) FXbytes=519080(519080..519080)
+    cold N=1 phase=total us=404299(404299..404299) FXbytes=12674352(12674352..12674352)
+    warm N=1 phase=constructor us=118(88..150) FXbytes=4008(4008..4008)
+    warm N=1 phase=stock-explicit-skin us=1778(1508..2360) FXbytes=114952(114952..115096)
+    warm N=1 phase=setup us=299(267..384) FXbytes=6832(6832..6832)
+    warm N=1 phase=attach us=183(145..278) FXbytes=2664(2664..2664)
+    warm N=1 phase=applyCss us=514(463..670) FXbytes=12112(12112..12112)
+    warm N=1 phase=layout us=172(136..259) FXbytes=2104(2104..2808)
+    warm N=1 phase=post-layout us=5079(4117..6097) FXbytes=11840(11840..11904)
+    warm N=1 phase=total us=8326(6908..9375) FXbytes=154896(154896..155600)
+    warm N=20 phase=constructor us=505(280..640) FXbytes=79552(79552..79552)
+    warm N=20 phase=stock-explicit-skin us=22643(14377..25394) FXbytes=2173664(2173216..2175672)
+    warm N=20 phase=setup us=1382(1075..2820) FXbytes=136032(128352..136992)
+    warm N=20 phase=attach us=659(530..779) FXbytes=47160(47160..47160)
+    warm N=20 phase=applyCss us=2835(2293..3687) FXbytes=236080(233200..236808)
+    warm N=20 phase=layout us=831(504..1462) FXbytes=40136(38696..43600)
+    warm N=20 phase=post-layout us=2577(1465..3773) FXbytes=98936(97856..99072)
+    warm N=20 phase=total us=31783(21142..36139) FXbytes=2812560(2798416..2816312)
+    warm N=100 phase=constructor us=648(327..1530) FXbytes=397632(397632..397632)
+    warm N=100 phase=stock-explicit-skin us=36181(25251..66143) FXbytes=10748008(10745608..10752808)
+    warm N=100 phase=setup us=3199(1593..5850) FXbytes=617632(617632..641632)
+    warm N=100 phase=attach us=1743(830..2648) FXbytes=234160(234160..243472)
+    warm N=100 phase=applyCss us=8759(5482..12015) FXbytes=1129840(1129488..1164720)
+    warm N=100 phase=layout us=2242(1327..4530) FXbytes=191032(191032..193432)
+    warm N=100 phase=post-layout us=5706(4693..18931) FXbytes=460736(460480..460864)
+    warm N=100 phase=total us=66469(43280..95415) FXbytes=13779328(13776416..13845504)
+    warm N=400 phase=constructor us=1131(599..21461) FXbytes=1590432(1590432..1604240)
+    warm N=400 phase=stock-explicit-skin us=87955(51358..149787) FXbytes=42672656(42576008..42880008)
+    warm N=400 phase=setup us=5339(3262..6855) FXbytes=2393632(2393632..2393696)
+    warm N=400 phase=attach us=2737(2333..4667) FXbytes=934192(934192..934192)
+    warm N=400 phase=applyCss us=13173(10763..15164) FXbytes=4440256(4427456..4478656)
+    warm N=400 phase=layout us=4019(3150..5437) FXbytes=742792(707592..752536)
+    warm N=400 phase=post-layout us=9298(7542..12355) FXbytes=1676960(1667328..1821056)
+    warm N=400 phase=total us=125233(83829..190998) FXbytes=54438864(54297024..54850752)
+    kind=framework jdk=25.0.1+8-LTS-27 fx=25+29 heap=1073741824
+    cold N=1 phase=constructor us=562897(562897..562897) FXbytes=16391128(16391128..16391128)
+    cold N=1 phase=stock-explicit-skin us=1(1..1) FXbytes=32(32..32)
+    cold N=1 phase=setup us=15874(15874..15874) FXbytes=474936(474936..474936)
+    cold N=1 phase=attach us=11035(11035..11035) FXbytes=349104(349104..349104)
+    cold N=1 phase=applyCss us=97893(97893..97893) FXbytes=3284328(3284328..3284328)
+    cold N=1 phase=layout us=17339(17339..17339) FXbytes=1368064(1368064..1368064)
+    cold N=1 phase=post-layout us=22170(22170..22170) FXbytes=584536(584536..584536)
+    cold N=1 phase=total us=727268(727268..727268) FXbytes=22452512(22452512..22452512)
+    warm N=1 phase=constructor us=7510(5875..10068) FXbytes=239400(239400..239928)
+    warm N=1 phase=stock-explicit-skin us=1(0..2) FXbytes=32(32..32)
+    warm N=1 phase=setup us=740(600..1379) FXbytes=11624(11624..11624)
+    warm N=1 phase=attach us=396(271..1083) FXbytes=11832(11832..12624)
+    warm N=1 phase=applyCss us=4310(3996..7034) FXbytes=123520(123520..124896)
+    warm N=1 phase=layout us=1544(702..1724) FXbytes=13520(13520..13832)
+    warm N=1 phase=post-layout us=3483(2702..5395) FXbytes=31392(31392..31824)
+    warm N=1 phase=total us=18644(14850..26414) FXbytes=432016(431704..433080)
+    warm N=20 phase=constructor us=45602(34387..83875) FXbytes=4696808(4694176..4707080)
+    warm N=20 phase=stock-explicit-skin us=0(0..0) FXbytes=32(32..32)
+    warm N=20 phase=setup us=2176(901..4981) FXbytes=231872(227712..231872)
+    warm N=20 phase=attach us=1091(580..1742) FXbytes=230520(230520..230520)
+    warm N=20 phase=applyCss us=26642(14128..59362) FXbytes=2351552(2348096..2353536)
+    warm N=20 phase=layout us=4526(3589..5884) FXbytes=268456(266536..269168)
+    warm N=20 phase=post-layout us=24446(19145..34441) FXbytes=245664(245184..536072)
+    warm N=20 phase=total us=111577(75544..158976) FXbytes=8025288(8013368..8317632)
+    warm N=100 phase=constructor us=79874(55660..168952) FXbytes=23247112(23220008..23355536)
+    warm N=100 phase=stock-explicit-skin us=0(0..0) FXbytes=32(32..32)
+    warm N=100 phase=setup us=2855(1579..5854) FXbytes=1060032(1060032..1060192)
+    warm N=100 phase=attach us=3088(1638..4032) FXbytes=1150960(1150928..1159136)
+    warm N=100 phase=applyCss us=49504(33228..86701) FXbytes=11673728(11660656..11692656)
+    warm N=100 phase=layout us=5462(3926..19511) FXbytes=1295832(1286232..1310232)
+    warm N=100 phase=post-layout us=8608(6401..35736) FXbytes=1098992(1032592..1137360)
+    warm N=100 phase=total us=142343(118422..273656) FXbytes=39514008(39411256..39707192)
+    warm N=400 phase=constructor us=270393(117713..543728) FXbytes=92400392(92400008..92467912)
+    warm N=400 phase=stock-explicit-skin us=0(0..0) FXbytes=32(32..32)
+    warm N=400 phase=setup us=8229(4444..14838) FXbytes=4224032(4224032..4240032)
+    warm N=400 phase=attach us=10177(5818..40020) FXbytes=4588560(4588560..4604960)
+    warm N=400 phase=applyCss us=119893(68588..152559) FXbytes=46641856(46641856..46641856)
+    warm N=400 phase=layout us=14184(9016..27940) FXbytes=5094792(5094792..5094792)
+    warm N=400 phase=post-layout us=21748(14467..31203) FXbytes=4001360(4001360..4001816)
+    warm N=400 phase=total us=441552(220071..762329) FXbytes=156951480(156951024..157034960)
+
+At N=400 comparable totals were 54.439 MB / 125.233 ms stock and 156.951 MB / 441.552 ms framework. The ~102.5 MB difference here includes framework features and layout, not just the constructor. Class-level and retained sizes remain distinct. This is the selected fixture for subsequent tasks.
+
+Compile javac -cp "target/classes;<deps>" -d target/perf-001 target/perf-001/FieldCostAudit.java. Run java -Xms256m -Xmx1024m -XX:+UseG1GC --enable-native-access=ALL-UNNAMED -cp "target/perf-001;target/classes;<deps>" FieldCostAudit stock, then repeat with framework. Deps from target/ctrl-079a/original-dependencies.txt. Initial fixture compile lacked AbstractLovBase.showChoiceList override; corrected in ignored fixture. Final compile and both native exits 0, no probe runner. No production state/allocation delta.
