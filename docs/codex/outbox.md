@@ -3761,3 +3761,24 @@ Progress WINDOW_HIDDEN marks teardown. Terminal SUCCEEDED/FAILED/CANCELLED route
 In-repo no-consumer caller includes ChoiceFilterController filter-selection search. No evidence that the external Consumer<Boolean> must share the lifetime of the table. Suggested isolated next contract: gate only the table-owned no-consumer miss alert by captured attachment and scene/window validity on FX delivery, keep the independent consumer and genuine errors, and explicitly test old/fresh windows. Changes to generic progress error routing require a separate contract.
 
 Reproduce with ignored target/ctrl-094/ProgressDeliveryAudit.java. javac -cp "target/classes;<deps>" -d target/ctrl-094 target/ctrl-094/ProgressDeliveryAudit.java, then java --enable-native-access=ALL-UNNAMED -cp "target/ctrl-094;target/classes;<deps>" ProgressDeliveryAudit, deps from target/ctrl-079a/original-dependencies.txt. Java 25.0.1/FX25. Compile and actual JVM 0, no probe runner. Captured FX errors above are observations, distinct from native process exit. No production state/allocation delta.
+
+
+---
+
+## Reply CTRL-095
+
+**DONE / READ-ONLY.** Baseline and verified final production 60685aad5e7f564dffdf32e3327754ff333b5fc9. No tracked edits.
+
+Isolated actual DSFXAdapter mark value factory on a shown JInvTable with 2000 preloaded in-memory IMarkable rows and 19 visible. Warmed workload prebuilt 1024 alternating mark inputs and stored each returned observable in an escaping sink. Java 25.0.1 / FX 25, 1 GiB heap, FX thread timing and ThreadMXBean bytes. Five warmup and nine measured batches of 131072 reads, median (range) per read.
+
+| Factory | ns/read | B/read |
+| --- | --- | --- |
+| Production SimpleBooleanProperty snapshot | 15.655 (15.427–19.355) | 40 (40–40) |
+| Per-read immutable snapshot | 12.315 (12.244–15.411) | 24 (24–24) |
+| Two shared immutable constants | 10.810 (10.776–11.702) | 0 (0–0) |
+
+Retained A/B properties were distinct, and a repeat read of A returned another property. Mutating A's detached property fired its independent observer once and neither changed B nor the row. Marking B in the in-memory Dataset changed new reads but neither its retained snapshot nor its observer. The actual renderer marked/unmarked A exactly once each and set the row pseudoclass on mark. In-memory descending permutation preserved row identity; B was selected and unmarked by its new index. Four individual mark/unmark writes. Bulk mark-all action and corporate mark SQL were not exercised. Both candidates match value snapshots; constants share identity and the immutable candidate drops writable property behavior, so neither demonstrates full compatibility. No shared mutable proxy.
+
+At 19 factory values per observed refresh, isolated properties contribute about 760 B versus the earlier mark-enabled total 3.148 MB (about 0.024 percent) and about 0.041 percent of the 1.853 MB mark-enabled increase. Saving 16 B per read would remove about 304 B at that viewport. This extrapolates isolated allocations to the observed count; it does not measure retained heap or paint. Rank low. Prioritize renderer/layout reconstruction. Any narrow snapshot follow-up needs evidence about public writable/identity consumers, listener independence and mark/sort/selection parity.
+
+Ignored target/ctrl-095/MarkerFactoryAudit.java and audit streams. Compile with javac -cp "target/ctrl-088;target/classes;<deps>" -d target/ctrl-095 target/ctrl-095/MarkerFactoryAudit.java then java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-095;target/ctrl-088;target/classes;<deps>" MarkerFactoryAudit. Deps from target/ctrl-079a/original-dependencies.txt. javac and JVM exit 0, no runner. No production state/allocation delta.
