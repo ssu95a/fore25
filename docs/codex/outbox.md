@@ -4223,3 +4223,16 @@ Mark and unmark through JInvParallelAction and real shown table. RED gave one st
 Reuses launch owner, original Dataset and worker epoch at FX delivery, resets cached actions on close to release stale captured Dataset/owner controller references. An action already submitted is admitted even if its thread has not started; fixture kept that original behavior, without a new cancellation policy. No extra fields, action allocation, per-row state or queued callback compared with CTRL-104. No corporate SQL, rollback or same-table rebind claim.
 
 Windows rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterBulkMarkClose -SettingsFile "D:\Java\.m2\settings.xml". RED JVM/runner 1/1, three fresh GREEN 0/0 plus unchanged official runner 0. BulkMarkErrorDelivery, BulkWorkerClose, QueuedClose, TableAdapterClose and DataBinding all 0/0. Compile, PowerShell parse and diff check passed. Logs target/ctrl-105.
+
+
+---
+
+## Reply CTRL-106
+
+**DONE.** Baseline 72f92bab82063aa873af9d9086d03022dfe2a7d8. Verified production 0982d2112b8f8020d16f917adaab77caee29005d. Only DSFXAdapter plus focused smoke and runner.
+
+Shown real JInvTable/adapter and in-memory Dataset. RED observed one obsolete REPLACE for an explicitly queued refresh and one for mark-driven refresh after double close. A listener that closed during a legitimate REPLACE and advanced focus to 1 was overwritten back to 0. GREEN: zero late replacements, two independent marker notifications still observed, focus 1 preserved when listener closed, and the already admitted list event occurred once. Invalid index produced zero events; detached-but-live and offscreen were preserved. Equal-distinct replacement, removal and permutation still refreshed the delivery index X/B/R199. Same/other-row refresh canceled active drafts as before; F8/ENTER committed original A once, Escape and controlled rejection wrote zero, rejection delivered one error. No full refresh or foreign-row writes.
+
+Epoch and origin guard existing FX callback before list access and after the synchronous replacement before focus. No scene requirement for active detached table, no persistent fields, no new queued callback or per-row state. Public index ownership, mark event semantics and transactions unchanged.
+
+Windows rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterRowRefreshClose -SettingsFile "D:\Java\.m2\settings.xml". RED JVM/runner 1/1, three fresh GREEN 0/0 and unchanged official exit 0. QueuedClose, TableAdapterClose, PagingClose, EditRowIdentity, TableEditing, TableCancel, DataBinding and BulkMarkClose all 0/0. Maven compile, parse and diff passed. Logs target/ctrl-106. Corporate Dataset/SQL behavior remains untested.
