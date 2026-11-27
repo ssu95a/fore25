@@ -3497,3 +3497,24 @@ Reused CTRL-084 real shown SDI FXFormLauncher and FXML, held external real FXEnt
 The retained old control and model still propagated two ordered writes after cleanup. After reopening with the same model, old-control edit, fresh-control edit and model edit each reached all three observers in order, exactly three events each. This confirms retained binding after a real post-bind initialization failure for the intentionally shared FXEntity. Controller extension seams allow the fixture setup; actual corporate use of external shared wrappers and ownership of automatic unlink remain UNKNOWN. The fixture had no database TaskContext. No veto injected on the failing form, because that would change the failure recovery contract under study. MDI/WAIT, SQL and rollback untested. Small follow-up if caller ownership is established: exact teardown of only the launcher/controller-owned converter bindings after close and post-bind failure, with a separate policy for externally owned bindings.
 
 Ignored target/ctrl-085/FailingLaunchedBinderAudit.java and launched-binder.fxml. javac -cp "target/classes;<target/ctrl-079a/original-dependencies.txt contents>" -d target/ctrl-085 target/ctrl-085/FailingLaunchedBinderAudit.java; java --enable-native-access=ALL-UNNAMED -cp "target/ctrl-085;target/classes;<deps>" FailingLaunchedBinderAudit. Java 25.0.1/FX25, javac 0, actual JVM 0, no outer probe runner or timeout. Raw streams and exit.txt preserved. No production state/allocation delta.
+
+
+---
+
+## Reply CTRL-086
+
+**NO_CHANGE / READ-ONLY.** Baseline and verified final production 3976625111c448f00f07837ca987da7da9a0a1d7. No tracked edits.
+
+Exercised actual super.bindControls in a shown controller graph. A legal initLabels override moved a stock TextField out and inserted a label plus another stock TextField. The later filter observed the fresh DFS graph in exact identity order (3 calls), ignored the removed field and bound the newly inserted one to the entity value. A pre-label snapshot omitted both inserted nodes. No-entity control observed zero getBindingFilter calls. Reusing an earlier list for binding loses this behavior. Moving the default label scan ahead of the override similarly misses graph mutations before super.initLabels. Controls retains the existing traversal exclusions, including composite control boundaries and ButtonBar handling.
+
+Shown nested VBox/HBox graph, 24/120/480 groups each with JInvLabel, JInvTextField and stock TextField. Five warmup and nine measured batches of 100 calls, FX-thread ThreadMXBean allocated bytes, Oracle Java 25.0.1 / JavaFX 25+29, 1 GiB max heap. On immutable fixtures the isolated candidate produced identical control and label lists in DFS order. Median (range) per call, time in microseconds and allocation in bytes.
+
+| Groups | Two traversals µs | Shared traversal buffer µs | Two traversals B | Shared traversal buffer B |
+| ---: | --- | --- | --- | --- |
+| 24 | 9.910 (9.779–10.296) | 7.020 (6.908–7.929) | 856 (856–856) | 1520 (1520–1522.7) |
+| 120 | 87.039 (86.589–89.131) | 46.888 (46.250–52.632) | 4168 (4168–4168) | 7232 (7232–7232) |
+| 480 | 386.160 (380.508–1089.788) | 204.061 (200.104–211.742) | 13544 (13544–13544) | 28568 (28568–28568) |
+
+These are traversal-only measurements and include candidate result buffers. Full form initialization and retained heap were not measured. Faster traversal on an immutable graph does not establish equivalence at the controller hooks. This version also increases allocated bytes. No production optimization or persistent state.
+
+Ignored source and raw data target/ctrl-086/TraversalAudit.java and audit.stdout. Compile with javac -cp "target/ctrl-084;target/classes;<deps>" -d target/ctrl-086 target/ctrl-086/TraversalAudit.java, then java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-086;target/ctrl-084;target/classes;<deps>" TraversalAudit. Deps are the contents of target/ctrl-079a/original-dependencies.txt. Final javac and native JVM exits 0, no probe runner. First fixture compile exposed an invalid helper call, corrected to the existing protected formMode seam.
