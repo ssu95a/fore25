@@ -3970,3 +3970,43 @@ Real shown table, real adapter, in-memory Dataset, plain marker state and produc
 Suggested separately authorized correctness work: guard table-owned deferred refresh against retired attachment, then agree whether mark notification invalidates only its original identity or may refresh its former slot. Preserve the explicitly index-based API unless its caller contract changes. Deterministic assertions should count late list events and use equal-valued distinct objects before/after permutation. These observations do not establish a wrong database write. Further production optimization has no qualifying caller here.
 
 Compile ignored target/ctrl-099/RowRefreshAudit.java with javac -cp "target/ctrl-088;target/classes;<deps>" -d target/ctrl-099, then java --enable-native-access=ALL-UNNAMED -cp "target/ctrl-099;target/ctrl-088;target/classes;<deps>" RowRefreshAudit (deps from target/ctrl-079a/original-dependencies.txt). Java 25.0.1/FX25, compile and native JVM 0, no runner. Local audit streams and dataset-bytecode.txt preserved. No production state/allocation changes.
+
+
+---
+
+## Reply CTRL-100
+
+**NO_CHANGE.** Baseline and verified final production df95a931230b57e87e7bef4bfba6267c3e9a395d. CTRL-099 found no eligible row-only caller doing a full refresh. Actual mark publication already uses refreshRow and ordinary row UPDATE already replaces the list entry and queues navigation. Full/AFTER EXECUTE and bulk marker operations can touch multiple rows. No production edit or tracked probe.
+
+Repeated the same shown JavaFX25 comparison as CTRL-096 on this SHA. Five warmups and nine single-update samples per configuration, FX ThreadMXBean bytes and elapsed to public post-layout callback. Identical rows, columns, viewport and marker inputs. At 2000 rows, height 480, four text plus marker columns, full refresh was 5,423,176 B median (5,413,832–5,446,136), 28,621 µs (22,008–36,987), 95 cells/95 values. Same-item replacement was 358,600 B (358,504–358,912), 15,128 µs (13,350–16,957), 0 cells/190 values. Both rendered the target text/mark 9/9. Replacement sent REPLACE, lost the AFTER EXECUTE refresh delivery and canceled the active editor without restarting it. Full refresh canceled/restarted from model text. Extractor and requestLayout did not render plain snapshot text. Thus the measured savings do not justify substituting for full refresh. Existing row-only retirement/identity observations are separate correctness candidates.
+
+    N=200 height=240 C=1 mark=false mode=FULL postlayout-us=14885(12351..15877) FX-bytes=612016(610288..614752) cells=9(9..9) values=9(9..9) pulses=1(1..1) notice=9 text=9/9 marks=9/9
+    N=200 height=240 C=1 mark=false mode=ROW_REPLACE postlayout-us=15356(11513..16191) FX-bytes=57072(57072..57384) cells=0(0..0) values=18(18..18) pulses=1(1..1) notice=0 text=9/9 marks=9/9
+    N=200 height=240 C=1 mark=false mode=EXTRACTOR postlayout-us=15744(15465..16491) FX-bytes=7464(7464..7464) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=200 height=240 C=1 mark=false mode=LAYOUT_ONLY postlayout-us=15541(14701..16771) FX-bytes=968(968..968) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=240 C=1 mark=false mode=FULL postlayout-us=16127(12717..17942) FX-bytes=610104(608376..612192) cells=9(9..9) values=9(9..9) pulses=1(1..1) notice=9 text=9/9 marks=9/9
+    N=2000 height=240 C=1 mark=false mode=ROW_REPLACE postlayout-us=15450(14778..16300) FX-bytes=54896(54896..56168) cells=0(0..0) values=18(18..18) pulses=1(1..1) notice=0 text=9/9 marks=9/9
+    N=2000 height=240 C=1 mark=false mode=EXTRACTOR postlayout-us=15443(14843..16343) FX-bytes=7464(7464..7464) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=240 C=1 mark=false mode=LAYOUT_ONLY postlayout-us=15658(14664..16556) FX-bytes=968(968..968) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=480 C=1 mark=false mode=FULL postlayout-us=14807(11294..16915) FX-bytes=1284160(1282720..1291344) cells=19(19..19) values=19(19..19) pulses=1(1..1) notice=9 text=9/9 marks=9/9
+    N=2000 height=480 C=1 mark=false mode=ROW_REPLACE postlayout-us=15055(13951..17029) FX-bytes=92016(91560..92728) cells=0(0..0) values=38(38..38) pulses=1(1..1) notice=0 text=9/9 marks=9/9
+    N=2000 height=480 C=1 mark=false mode=EXTRACTOR postlayout-us=15914(14880..16332) FX-bytes=8424(8424..8424) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=480 C=1 mark=false mode=LAYOUT_ONLY postlayout-us=15455(12938..16917) FX-bytes=968(968..968) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=480 C=4 mark=false mode=FULL postlayout-us=17236(13479..30584) FX-bytes=3563176(3561160..3601720) cells=76(76..76) values=76(76..76) pulses=1(1..2) notice=9 text=9/9 marks=9/9
+    N=2000 height=480 C=4 mark=false mode=ROW_REPLACE postlayout-us=15190(14227..16427) FX-bytes=273320(273320..273968) cells=0(0..0) values=152(152..152) pulses=1(1..1) notice=0 text=9/9 marks=9/9
+    N=2000 height=480 C=4 mark=false mode=EXTRACTOR postlayout-us=15724(14827..16303) FX-bytes=8424(8424..8424) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=480 C=4 mark=false mode=LAYOUT_ONLY postlayout-us=15656(14642..16410) FX-bytes=968(968..968) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=480 C=4 mark=true mode=FULL postlayout-us=28621(22008..36987) FX-bytes=5423176(5413832..5446136) cells=95(95..95) values=95(95..95) pulses=1(1..2) notice=9 text=9/9 marks=9/9
+    N=2000 height=480 C=4 mark=true mode=ROW_REPLACE postlayout-us=15128(13350..16957) FX-bytes=358600(358504..358912) cells=0(0..0) values=190(190..190) pulses=1(1..1) notice=0 text=9/9 marks=9/9
+    N=2000 height=480 C=4 mark=true mode=EXTRACTOR postlayout-us=15743(14902..16181) FX-bytes=8424(7512..8424) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=5/9
+    N=2000 height=480 C=4 mark=true mode=LAYOUT_ONLY postlayout-us=15565(14248..16214) FX-bytes=968(968..968) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=5/9
+    editor validation FULL preexistingCommits=0 rejectedCommitDelta=0 errors=[java.lang.IllegalArgumentException: invalid draft]
+    editor FULL draft=row-0 starts=2 cancels=1 validation=3 rejection=1 commits=1 staleWrite=false listSignals=[REPLACE]
+    editor validation ROW_REPLACE preexistingCommits=0 rejectedCommitDelta=0 errors=[java.lang.IllegalArgumentException: invalid draft]
+    editor ROW_REPLACE draft=no-editor starts=1 cancels=1 validation=2 rejection=1 commits=1 staleWrite=false listSignals=[REPLACE, REPLACE, REPLACE]
+    editor validation EXTRACTOR preexistingCommits=0 rejectedCommitDelta=0 errors=[java.lang.IllegalArgumentException: invalid draft]
+    editor EXTRACTOR draft=no-editor starts=1 cancels=1 validation=2 rejection=1 commits=1 staleWrite=false listSignals=[UPDATE, REPLACE, UPDATE]
+    editor validation LAYOUT_ONLY preexistingCommits=0 rejectedCommitDelta=0 errors=[java.lang.IllegalArgumentException: invalid draft]
+    editor LAYOUT_ONLY draft=draft starts=1 cancels=0 validation=2 rejection=1 commits=1 staleWrite=false listSignals=[REPLACE]
+
+Reproduce by compiling target/ctrl-096/RefreshTargetAudit.java with javac -cp "target/ctrl-088;target/classes;<deps>" -d target/ctrl-100, then java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-100;target/ctrl-088;target/classes;<deps>" RefreshTargetAudit. Deps from target/ctrl-079a/original-dependencies.txt. Native compile/JVM 0; no outer probe runner. No production state/allocations changed; no paint or retained heap claim.
