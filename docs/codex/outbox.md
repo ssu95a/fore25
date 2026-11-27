@@ -4401,3 +4401,23 @@ Warmed isolated components (5/9 batches ×100) on the same FX/JVM settings as PE
 Ranking for further work: overflow button and graphic, menu container, then population. Immediate node/menu availability, custom overrides and property listeners constrain deferral. Highest JFR weights were CSS/registration stacks, so don't attribute the entire skin delta to items alone. Wrapper/public getButton and subclass LOV contracts remain immediate. No compatible lazy implementation established.
 
 Ignored target/perf-003/SkinPartAudit.java. javac -cp "target/perf-001;target/classes;<deps>" -d target/perf-003 then run SkinPartAudit with target/perf-003 added and PERF-001 flags. Final compile and JVM 0, no runner. Earlier fixture used nonexistent Event.setEventHandler helper and then missed JInvWrapButton's deferred bind; changed to public MenuItem handler and an FX pulse barrier. Earlier failure retained. No state/allocation changes in production.
+
+
+---
+
+## Reply PERF-004
+
+**NO_CHANGE.** Baseline and verified final production 0982d2112b8f8020d16f917adaab77caee29005d. No production optimization or tracked edits.
+
+Deferred initial menu population fails immediate getContextMenu/getItems contract (eight vs zero), wrapper/skin deferral conflicts with immediate public/FXML/subclass access, and ordinary popup rebuild changes observable item identity. No equivalent large candidate from PERF-001…003. The source also creates a temporary OR binding to obtain the initial editableOrLovEditable value, then binds a second OR expression. An isolated ignored operands experiment compared that initializer to a direct boolean read while preserving the actual final OR binding. Exact tracked control behavior for JInvTextField and JInvTextFieldCUR default/false/override changes, external null/live and immediate skin/menu passed; this is not a production candidate patch or complete compatibility proof.
+
+Same Java/heap settings, five warmups/nine measurements, N=20/100/400, exact FX bytes and ns per batch. Operands and sink arrays allocated outside timing, feature activation measured separately. At 400, both paths implement default true, edit false, and ignores-editable true; initializer saves 86,400 B total, 216 B/control in this fixture, about 0.094 percent of comparable framework constructor bytes and 0.055 percent of full shown bytes. Extra first-use/component attribution remains PERF-001/003. The isolated binding win is too small to qualify for production given phase costs and remaining compatibility proof. No retained byte estimate.
+
+    n=20 candidate=false setup ns=43900(40200..237500) B=9280(9280..9280) activate ns=75200(61500..187200) B=0(0..0)
+    n=20 candidate=true setup ns=27900(20600..38800) B=4960(4960..4960) activate ns=5200(4800..16500) B=0(0..0)
+    n=100 candidate=false setup ns=50400(43000..191000) B=46400(46400..46400) activate ns=29700(28300..45000) B=0(0..0)
+    n=100 candidate=true setup ns=27800(22800..39100) B=24800(24800..25576) activate ns=24200(23300..32800) B=0(0..0)
+    n=400 candidate=false setup ns=260800(232600..290800) B=185600(185600..185600) activate ns=179900(150700..203000) B=0(0..0)
+    n=400 candidate=true setup ns=141100(124400..157900) B=99200(99200..99200) activate ns=118500(98800..138300) B=0(0..0)
+
+Compile target/perf-004/BindingInitAudit.java with javac -cp "target/perf-001;target/classes;<deps>" -d target/perf-004 and run BindingInitAudit with the PERF-001 flags and target/perf-004 on the classpath. Native compile/JVM 0, no runner. Keep CSS-heavy skin construction and ownership as higher-priority investigation. No state or allocation delta in production.
