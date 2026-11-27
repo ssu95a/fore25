@@ -1780,13 +1780,16 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         if( progressTaskExecutor != null )
             return;
 
+        IDataSet<T> attachment = getDataSet();
+        long revision = workerAttachmentRevision;
+
         try {
 
             progressTaskExecutor = new ProgressTaskExecutor<>();
             progressTaskExecutor
                 .allowCancel(true)
                 .stage((Stage)getTable().getScene().getWindow(), bundle.getString("FIND_ROWS"), false)
-                .callback( rowFinder(this, predicate, onSearchResult, startRowIndex) )
+                .callback( rowFinder(attachment, revision, predicate, onSearchResult, startRowIndex) )
                 .indicator(false)
             .execute();
 
@@ -1896,72 +1899,80 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     }
 
     /** */
-    private ProgressCallback<Void, DSFXAdapter<T>> rowFinder( DSFXAdapter<T> adapter, final Predicate<T> predicate,
-            final Consumer<Boolean> onSearchResult, final int startRowIndex )  {
+    private ProgressCallback<Void, DSFXAdapter<T>> rowFinder(IDataSet<T> attachment, long revision,
+            Predicate<T> predicate, Consumer<Boolean> onSearchResult, int startRowIndex) {
+        return (progress, p) -> {
+            if (workerAttachmentRevision != revision) return null;
+            long totalRowCount = attachment.getTotalRowCount();
+            if (workerAttachmentRevision != revision) return null;
 
-        return( progress, p ) ->
-        {
-            IDataSet<T> dataSet = adapter.getDataSet();
-            long totalRowCount = (long) dataSet.getTotalRowCount();
-
-            if( totalRowCount <= 0 )
-                progress.before( "wait ..." );
+            if (totalRowCount <= 0)
+                progress.before("wait ...");
             else
-                progress.begin( 0L, totalRowCount, "wait ... " );
+                progress.begin(0L, totalRowCount, "wait ... ");
 
+            if (workerAttachmentRevision != revision) return null;
+            final AtomicBoolean found = new AtomicBoolean(attachment.findRow(startRowIndex, predicate));
 
-            boolean foundInExisting = dataSet.findRow( startRowIndex, predicate );
-
-            final AtomicBoolean found = new AtomicBoolean( foundInExisting );
-
-            IDataSetRowListener<T> rowListener = event -> {
-                if ( event.getRowOperation() == INSERT && !found.get() ) {
-                    int startIndex = event.getRowIndex()+1; //?, было + 2
-
-                    boolean isFound = dataSet.findRow( startIndex, predicate );
-                    if ( isFound ){
-                        found.set( true );
+            if (workerAttachmentRevision == revision) {
+                IDataSetRowListener<T> rowListener = event -> {
+                    if (event.getRowOperation() == INSERT && !found.get() && workerAttachmentRevision == revision
+                            && attachment.findRow(event.getRowIndex() + 1, predicate)) {
+                        found.set(true);
                     }
-                }
-            };
-            dataSet.addRowListener(rowListener);
-            Throwable searchFailure = null;
-            try {
-                while( !found.get() && !progress.isCancelled() && this.dataSet.swappingData() ) {
-                    if( totalRowCount < 0L )
-                    {
-                        progress.updateMessage( this.dataSet.getLoadedRowCount() + " ..." );
-                    }
-                    else
-                    {
-                        progress.process( this.dataSet.getLoadedRowCount(), totalRowCount, this.dataSet.getLoadedRowCount() + " из " + totalRowCount );
-                    }
-                }
-                progress.end( "end" );
-            } catch (Throwable failure) {
-                searchFailure = failure;
-                throw failure;
-            } finally {
+                };
+                attachment.addRowListener(rowListener);
+                Throwable searchFailure = null;
                 try {
-                    dataSet.removeRowListener(rowListener);
-                } catch (RuntimeException | Error cleanupFailure) {
-                    if (searchFailure == null) throw cleanupFailure;
-                    if (searchFailure != cleanupFailure) searchFailure.addSuppressed(cleanupFailure);
+                    boolean exhausted = false;
+                    while (!found.get() && !progress.isCancelled() && workerAttachmentRevision == revision) {
+                        if (!attachment.swappingData()) {
+                            exhausted = true;
+                            break;
+                        }
+                        if (workerAttachmentRevision != revision) break;
+                        int loaded = attachment.getLoadedRowCount();
+                        if (workerAttachmentRevision != revision) break;
+                        if (totalRowCount < 0L) {
+                            progress.updateMessage(loaded + " ...");
+                        } else {
+                            int displayedCount = attachment.getLoadedRowCount();
+                            if (workerAttachmentRevision != revision) break;
+                            progress.process(loaded, totalRowCount, displayedCount + " из " + totalRowCount);
+                        }
+                    }
+
+                    if (workerAttachmentRevision == revision) {
+                        progress.end("end");
+                    } else if (!exhausted && !found.get()) {
+                        // Прерванный поиск без результата не равнозначен отсутствию записи.
+                        return null;
+                    }
+                } catch (Throwable failure) {
+                    searchFailure = failure;
+                    throw failure;
+                } finally {
+                    try {
+                        attachment.removeRowListener(rowListener);
+                    } catch (RuntimeException | Error cleanupFailure) {
+                        if (searchFailure == null) throw cleanupFailure;
+                        if (searchFailure != cleanupFailure) searchFailure.addSuppressed(cleanupFailure);
+                    }
                 }
+            } else if (!found.get()) {
+                return null;
             }
 
-            wasCanceled.setValue( progress.isCancelled() );
-
-            if ( onSearchResult == null ){
-                if ( !found.get() ){
-                    Platform.runLater( () ->
-                        Alerts.info( tableView.getScene().getWindow(), bundle.getString( "RECORD_NOT_FOUND" ) ) );
+            boolean cancelled = progress.isCancelled();
+            Platform.runLater(() -> {
+                if (workerAttachmentRevision == revision && dataSet == attachment)
+                    wasCanceled.setValue(cancelled);
+                if (onSearchResult != null) {
+                    onSearchResult.accept(found.get());
+                } else if (!found.get()) {
+                    Alerts.info(tableView.getScene().getWindow(), bundle.getString("RECORD_NOT_FOUND"));
                 }
-            } else {
-                Platform.runLater( () -> {
-                    onSearchResult.accept( found.get() );
-                } );
-            }
+            });
 
             return null;
         };
