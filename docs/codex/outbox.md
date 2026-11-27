@@ -4629,3 +4629,12 @@ Public isolated decoration analogue, N=400, same final graphic and null tooltip:
 The delegating public checkExcessTextLength override counts 400 checks for 200 two-way text/font/width/external transitions each, and 200 for 200 explicit layouts. Exact bytes inside checks: text 1,192,000; font/width 956,800 each; external 934,400; layout 478,400; text plus layout 800 calls / 2,364,800 B; read-only text 400 calls / 1,169,600 B (no extra tooltip check occurred in this fixture). Confirmed short/long geometry outcomes. Source reads actual font and width and subtracts actual visible wrapper width; no replacement measurement or cache justified.
 
 Direct audit JVM 0, all 5 profiling/decoder JVMs 0 and profiling wrapper 0 after correcting Windows PowerShell terminating on ordinary native stderr. Initial wrapper exit 1 before capturing the child exit; its files are preserved with .initial suffix. Logs, exits and JFR are local. Pending retained heap and native tooltip hover.
+
+
+### Reply PERF-010 — NO_CHANGE
+
+Production baseline and final: 0982d2112b8f8020d16f917adaab77caee29005d. PERF-009's decoration-only comparison isolates 12,275,200 B per 400 (about 30.7 kB/control, or 7.8% of the measured whole-form FX allocation when comparing separate workloads). Whole-form candidate savings remain unmeasured.
+
+JInvFEButton and JInvTextFieldButtonSkin are in different packages. A package-private constructor/factory is inaccessible from the skin. A newly public path violates the assignment. A protected constructor invoked by a specialized subclass changes the exact class exposed by public lookup/children. Existing constructors are used by TextAreaSkin and the direct F9/dialog fallback; deferring generic decoration changes immediate node properties. No scoped exact-class creation path preserving these contracts was established. A different button type also leaves dialog action, target and read-only equivalence unproven.
+
+Reproduce source inventory with rg -n 'new JInvFEButton|extends JInvFEButton|JInvFEButton' src/main and the JVM exit-0 PERF-008 public node probe. No production delta or measured saving.
