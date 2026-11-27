@@ -3423,3 +3423,16 @@ On a shown JInvTable with real ArrayDataSet and DSFXAdapter, synthetic mouse-arm
 Only JInvTextFieldTableCell and the existing TableEditRowIdentitySmoke changed. The existing cancellation teardown runs in finally, preserving both original-row guards and propagation of converter failures. No added instance state or allocations on the production path. Dedicated rejection assertions extend the existing runner mode.
 
 Windows rerun (Java 25.0.1, JavaFX 25, IDEA Maven 3.9.16 offline): powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableEditRowIdentity -SettingsFile "D:\Java\.m2\settings.xml". Diagnostic runner copy records native JVM and outer exits separately in target/ctrl-080/matrix.csv. RED 1/1 on unchanged production, GREEN 0/0 in three fresh JVMs. TableEditing, TableCancel, EditorReentry, DataBinding, MoneyDecimal and LovDefaultValidation all 0/0. Maven -Pbuild compile, PowerShell parse and staged diff checks passed.
+
+
+---
+
+## Reply CTRL-081
+
+**DONE.** Baseline 85a4b1f8aeef5558e32430da1f6e2c7061f42cb8. Verified production 3976625111c448f00f07837ca987da7da9a0a1d7.
+
+Real shown JInvTable, DSFXAdapter.findRow and ProgressTaskExecutor with in-memory ArrayDataSet. Existing-row hit, miss, controlled swap exception after registration, and repeat hit delivered [true, false, true], two total swap attempts, one error dialog showing the original exception, and no success callback for the failed attempt. RED: four temporary adds, three matching removals, and two obsolete predicate calls from one later INSERT notification. GREEN: four adds, four removals with exact listener identities and zero obsolete predicate calls. Independent observer was notified once in both. Progress cancellation and actual SQL were not exercised.
+
+Production only DSFXAdapter. The originating DataSet owns registration and removal; removal runs in finally, preserving the primary failure even if removal also fails. Progress work, existing search callback and SQL paths unchanged. No added instance state or successful-path object allocation.
+
+Windows rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterSearchListener -SettingsFile "D:\Java\.m2\settings.xml". Java 25.0.1 / FX25, IDEA Maven 3.9.16 offline. Recorded instrumented JVM/runner exits: RED 1/1, GREEN 0/0 in three fresh JVMs; DataBinding, TableAdapterBulkClose, TableAdapterQueuedClose, TableAdapterClose all 0/0. Maven -Pbuild compile, PowerShell parse and diff check passed. Initial RED assertions also exposed the leak, then standalone fixture timed out because foreground fore-Th-Pool workers remained parked after Platform.exit (thread dump saved). Fixture now shuts down its own pool through ThreadPoolManager.shutdown without forcing JVM success. All first-attempt evidence and completed exits are retained under target/ctrl-081.
