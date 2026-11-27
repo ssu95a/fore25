@@ -5258,3 +5258,14 @@ Baseline and candidate characterization passed, with explicit expected differenc
 Maven compile, runner parse, diff check passed. Three fresh focused & extra instrumented official 0/0, unchanged official focused runner 0. Thirteen scoped modes 0/0: TextFieldSkinDisposal, FEActionDelegation, ButtonTargetAssociation, WrapButtonOwnership, WrapButtonDeferred, TextFieldLovDelayedCompletion, CurrencyLovDelayedCompletion, BoundLovSetter, LovBindingInterleaving, ExternalLovReadOnly, MoneyDecimal, FormLifecycle, TextFieldContextMenuLifecycle. Exact logs in target/arch-003.
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextFieldInnerButtonOwnership -SettingsFile "D:\Java\.m2\settings.xml"
+
+
+---
+
+## Reply ARCH-004
+
+**NO_CHANGE / audit complete.** Baseline and final b56c650b0772562b8bf8d9645bcfe6f23a46e767. ARCH-003 already makes the migrated wrapper a visual binding adapter and delegates legacy active wrapper selection to the owning control; standalone wrapper preserves prior LOV-over-FE for external callers. No further compatible simplification demonstrated. Public getButton and getInnerButton remain used by validation; SceneKeyManager follows CONTROL_PARENT, and the CSS selector is in general.css.
+
+Ignored shown prototype target/arch-004/WrapperPlacementAudit.java, javac/JVM 0. At field width 260 the existing wrapper and direct button both measured width 71 in this sample, and both fired the caller handler. However the actual node found by .button_in_textfield changed from JInvWrapButton to JInvButton, the graphic parent changed, the functional button became a direct child, the legacy getButton returned a detached wrapper, the logical CONTROL_PARENT disappeared, and focusTraversable changed false → true. Thus direct placement cannot be adopted under the existing API and CSS contract. Legacy validation/keyboard/native routing beyond observed flags remains unproven in the prototype. No production, persistent state, or allocation delta; no savings credited. PERF-011 measured the actual existing 400 wrappers at 275,200 shallow class bytes, excluding their dependencies. ARCH-003's verified WrapButtonDeferred/Ownership and related regressions remain applicable at this unchanged SHA.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -WrapButtonOwnership -SettingsFile "D:\Java\.m2\settings.xml"
