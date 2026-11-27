@@ -4903,3 +4903,47 @@ Diagnostics: `target/perf-014/final/matrix.csv`, `run-06.stdout`, `run-06.stderr
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -WrapButtonOwnership -SettingsFile "D:\Java\.m2\settings.xml"
 
 **Remaining NOT_RUN:** PERF-015, PERF-016 and ARCH-001…ARCH-008. Mandatory PERF-016 gate was not reached. Stop rule applied.
+
+
+---
+
+## Reply PERF-014A
+
+**NOT_REPRODUCED — 20/20 completed 0/0.** Assignment 7787651e94c0bc728fa41d712e80ddd1dd722d1e. Production baseline and final 0982d2112b8f8020d16f917adaab77caee29005d. Combined package remains STOPPED, PERF-014 remains BLOCKED and no gate is granted. PERF-015/016 and ARCH-001…008 remain NOT_RUN.
+
+A was the clean restored production class tree and matched the archived baseline at every file. B was a separate copy of the exact archived final PERF-014 candidate classes, with no recompilation or candidate source applied to production. A/B differ in five files: JInvTextField and its two nested classes, JInvTextFieldButtonSkin, and new TextControlMenu. The saved patch applied only to ignored source copies and all four normalized post-images matched its Git blob prefixes. SHA-256 of candidate.patch is 2fa7e590c16b3178cfedda393f78265ffd069be234d1749c6fcf0a0a20cd9b93; A/B complete class-manifest SHA-256 values are a63c199e296be6972ebd523f41966b4f3081f1aa50f85c5bb536acb1493a35b9 and 010b980d40a014e55692c539ca7f24a75e6087ddd40576a6b026a7207798fe61. Before/after hashes confirmed original incident evidence and class trees unchanged.
+
+Fresh JVMs only, serial A1/B1 onward. Oracle Java 25.0.1, JavaFX 25+29, Windows PowerShell 5.1, IDEA Maven offline, original D:\Java\.m2\settings.xml. The diagnostic runner preserves original Maven compile/classpath and javac commands and WrapButtonOwnership assertions, redirects outputs to isolated probe directories, and substitutes only the frozen A/B application-class directory. It launches the same native java.exe with the original @argfile flags via ProcessStartInfo to capture child PID and signed exit immediately. The actual outer PowerShell exit is captured independently. Original dependency file and compiled probe bytecode hashes checked per invocation. Normalized Java argfiles compared against the failed original argfile, allowing only output/class-directory substitutions. No forced success or shutdown changes.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\target\perf-014a\run.ps1
+
+Baseline official command reference:
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -WrapButtonOwnership -SettingsFile "D:\Java\.m2\settings.xml"
+
+Original incident evidence remains at target/perf-014/final, target/perf-014/candidate-classes, candidate-sources and candidate.patch. Original args/class/dependencies at target/ctrl-055-daf5f0277e3f4f7e95eea0944e967517. The archive Report.wer was readable and independently confirmed BEX64, java.exe 25.0.1, ucrtbase.dll 10.0.26100.9711 offset 0xA527E, c0000409 and exception data 7. Matching original Application Error PID 15248 and integrator ID 34e53bcc-5329-4b3e-8071-81fe33a32f33 are in saved incident evidence. JavaFX native modules appear in the loaded-module list; module presence does not establish causal attribution.
+
+New evidence in target/perf-014a/results.csv, original-artifacts.json, class manifests and per-run probe directories with raw output, timestamps, PIDs, arguments and diagnostic records. A zero in the Windows-events column represents no matched event available in the sampled process window. Cause of the original failure remains UNKNOWN; the CTRL-055 marker alone cannot substitute for a zero native exit. If the full differential is 0/0, the proposed next step is a separately authorized replay of the original regression sequence and full gate. If a failure recurs, investigate the matching WER before a new gate decision.
+
+| Invocation | JVM PID | Runner PID | JVM signed / hex | Runner | PASS marker | Timeout | Windows events |
+| --- | ---: | ---: | --- | ---: | --- | --- | ---: |
+| A1 | 7556 | 17996 | 0 / 0x00000000 | 0 | True | False | 0 |
+| B1 | 21080 | 6064 | 0 / 0x00000000 | 0 | True | False | 0 |
+| A2 | 1084 | 3392 | 0 / 0x00000000 | 0 | True | False | 0 |
+| B2 | 16048 | 8416 | 0 / 0x00000000 | 0 | True | False | 0 |
+| A3 | 19500 | 20880 | 0 / 0x00000000 | 0 | True | False | 0 |
+| B3 | 7884 | 9240 | 0 / 0x00000000 | 0 | True | False | 0 |
+| A4 | 10428 | 8648 | 0 / 0x00000000 | 0 | True | False | 0 |
+| B4 | 15516 | 20968 | 0 / 0x00000000 | 0 | True | False | 0 |
+| A5 | 21308 | 16276 | 0 / 0x00000000 | 0 | True | False | 0 |
+| B5 | 19884 | 11996 | 0 / 0x00000000 | 0 | True | False | 0 |
+| A6 | 5656 | 7468 | 0 / 0x00000000 | 0 | True | False | 0 |
+| B6 | 20472 | 6968 | 0 / 0x00000000 | 0 | True | False | 0 |
+| A7 | 15720 | 20616 | 0 / 0x00000000 | 0 | True | False | 0 |
+| B7 | 21408 | 21276 | 0 / 0x00000000 | 0 | True | False | 0 |
+| A8 | 8920 | 19852 | 0 / 0x00000000 | 0 | True | False | 0 |
+| B8 | 19140 | 15760 | 0 / 0x00000000 | 0 | True | False | 0 |
+| A9 | 21316 | 15896 | 0 / 0x00000000 | 0 | True | False | 0 |
+| B9 | 8788 | 11008 | 0 / 0x00000000 | 0 | True | False | 0 |
+| A10 | 3240 | 15380 | 0 / 0x00000000 | 0 | True | False | 0 |
+| B10 | 2820 | 21248 | 0 / 0x00000000 | 0 | True | False | 0 |
