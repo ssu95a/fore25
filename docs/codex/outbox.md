@@ -4477,3 +4477,111 @@ Follow-ups in order: document root/scene ownership across real close; attribute 
 Ignored target/perf-005/FieldHeapAudit.java, run.ps1, root-run.ps1, summarize.ps1 and local histograms. Compile javac -cp "target/perf-001;target/classes;<deps>" -d target/perf-005. Run the two scripts on Windows with installed JDK 25 and matching Maven-generated deps from target/ctrl-079a/original-dependencies.txt. All 15 synthetic JVM exits and each jcmd exit 0, no external probe runner. No raw dumps uploaded, no production delta.
 
 Per-phase increment below is median of two independent runs with min/max in bytes.
+
+
+---
+
+## Reply PERF-006
+
+**DONE / READ-ONLY.** All 57 supported modes (56 named plus Default) recorded native JVM and outer PowerShell exit 0/0 and PASS. No timeout. Maven -Pbuild compile 0, PowerShell parse clean, git diff --check 0.
+
+Assignment ff9e2062810b87b93079a42b43ff4779c13e43e2. Package baseline df95a931230b57e87e7bef4bfba6267c3e9a395d, final verified production 0982d2112b8f8020d16f917adaab77caee29005d. Three isolated verified fast-forward fixes, all production changes limited to DSFXAdapter plus focused tracked smoke and runner changes. CTRL-107 and all PERF tasks left production and tracked tests unchanged. Prior packages retained. Independent acceptance of this package remains separate.
+
+| Task | Disposition | Evidence |
+| --- | --- | --- |
+| CTRL-104 | DONE | 17cabb0b11b7b414fab811bcd59650f02a483561. Mark/unmark both preserve original Throwable and exactly one dialog on detached owner without secondary FX NPE. Existing neutral service context for retired/hidden/reparented; active success unchanged. |
+| CTRL-105 | DONE | 72f92bab82063aa873af9d9086d03022dfe2a7d8. Zero stale full refreshes in 12 routes; admitted model work still completes, active refresh and true/false flags preserved. |
+| CTRL-106 | DONE | 0982d2112b8f8020d16f917adaab77caee29005d. Explicit/mark late REPLACE suppressed after close; no focus restore after listener closes; live index behavior retained. |
+| CTRL-107 | DONE / READ-ONLY | Single mark event carries original row identity, but queued visual refresh uses old index. Equal rows and permutation confirmed wrong-slot notification with zero foreign writes; A's moved mark rendered in tested permutation. |
+| PERF-001 | DONE / READ-ONLY | Same shown text/font/width/CSS/layout lifecycle, distinct cold and warmed phases, eager stock skin installation counted and not compared as bare framework equivalent. |
+| PERF-002 | DONE / READ-ONLY | Exact constructor and nested skin-creation counters plus local JFR stack attribution; CSS selector/iterator and handler registration dominate sampled constructor stacks. |
+| PERF-003 | DONE / READ-ONLY | Isolated menu/wrapper/overflow/icon costs measured. Public immediate menu items, wrapper, custom callback, FXML/LOV/readOnly and replacement constraints verified. |
+| PERF-004 | NO_CHANGE | Deferred menu incompatible; isolated boolean initializer variation saved 216 B/control, less than 0.1 percent of framework constructor. No qualifying change. |
+| PERF-005 | DONE / READ-ONLY | jcmd live shallow histograms and bounded reference checks after root release. True retained heap UNKNOWN. |
+| PERF-006 | Final verification | See status and full exit matrix. No optimization before/after claim. |
+
+For each fix, same tracked assertions on unchanged baseline failed 1/1 JVM/runner; three fresh instrumented GREEN JVMs exited 0/0, unchanged official runner exited 0, scoped regressions 0/0. CTRL-104 initial probe expected a native dialog owner, corrected before final RED (DialogError leaves owner unset). Evidence remains saved. CTRL-104 adds no persistent state, allocates one ActionEvent per bulk invocation to capture launch owner. CTRL-105 reuses it, clears cached actions on close and adds no callback/fields. CTRL-106 captures origin/epoch in the existing callback with no new object count or per-row state. Admitted work can finish; nothing promises SQL cancellation, rollback or corporate transaction behavior.
+
+Matched warm baseline at N=400, median per batch (full spreads in PERF-001):
+- Stock bare constructor 1.590 MB of FX allocation. Explicit stock skin creation plus install 42.673 MB. Framework constructor including eager skin 92.400 MB; no direct bare comparison.
+- Same shown lifecycle through post-layout: stock 54.439 MB / 125.233 ms (83.829–190.998); framework 156.951 MB / 441.552 ms (220.071–762.329). Framework explicit applyCss 46.642 MB, layout 5.095 MB. Wall time includes pulse overhead, not paint.
+- PERF-002 nested skin creation measured 75.450 MB of 92.228 MB measured constructor (instrumented protected seam, includes creation only). JFR 1532 constructor samples, 1256.20 MB estimated weights for whole run and 862.72 MB nested skin weight. Sampling is not exact allocation or live heap; highest class weight CSS iterator 198.75 MB estimate.
+- PERF-003 isolated median B per operation: overflow constructor 34,824, ContextMenu container 22,376, menu population 11,192, wrapper 7,480, icon 4,128. Do not sum these into full lifecycle.
+- PERF-005 global incremental live shallow bytes at N=400 shown: 31,192,616 stock (31,186,336–31,198,896), 76,392,164 framework (76,389,752–76,394,576). Framework showed 800 ContextMenus, 400 wrappers, 400 overflow buttons and 400 RequiredState. Not dominator-retained sizes. N=100 extra synthetic root-drop case saw both groups' 100 weak refs clear after diagnostic GC, not proof of general absence of retention.
+
+Recommended next work in order:
+
+1. Formalize entity-owned marker delivery distinct from public refreshRow(index). Verify original reference in the old slot, supported permutation/filter/update rendering and exact focus/edit effects before changing the path.
+2. Isolate the largest CSS-heavy skin construction stacks in a matched fixture with actual framework properties. Keep public eager skin/wrapper/menu access and behavior. Test CSS changes only under a separate exact visual and lifecycle contract.
+3. Investigate second ContextMenu and overflow button live ownership using matched primary/subclass, LOV and custom-menu cases. Require immediate access, listener and geometry parity and quantified live delta before any candidate.
+4. Check corporate Binder/TaskContext root ownership and close semantics separately. The synthetic histogram phase and deliberate hold do not certify real forms or app lifetimes.
+5. Leave sub-0.1-percent temporary binding savings out of production unless a future larger change establishes compatibility and benefit.
+
+Independent Windows reruns from repo root, IDEA Maven on PATH; local settings path D:\Java\.m2\settings.xml and MAVEN_ARGS=-o.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterBulkMarkErrorDelivery -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterBulkMarkClose -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterRowRefreshClose -SettingsFile "D:\Java\.m2\settings.xml"
+    mvn -s "D:\Java\.m2\settings.xml" -Pbuild "-Dmaven.buildNumber.skip=true" compile
+
+Final regression is a faithful diagnostic copy of tracked runner with path adjustments and immediate child exit capture before the original exit check. Original Java invocation and assertions unchanged. Separate output, PID, timestamps and both process exits in target/perf-006. Oracle Java25.0.1 / FX25+29, Windows PowerShell 5.1, Maven 3.9.16. No opt-in Robot or CTRL-014/034/CAL-TIME-001. Default has no switch. Original CTRL-079 failure remains UNKNOWN / NOT_REPRODUCED. No certification of actual corporate SQL, TaskContext, MDI/WAIT, native input, display paint or retained heap. Stop after PERF-006.
+
+Final matrix. Mode, probe result, wall seconds, native JVM exit, outer PowerShell exit, timeout.
+
+    TableAdapterBulkMarkErrorDelivery | CTRL-104 PASS | 15.098 | 0 | 0 | False
+    TableAdapterBulkMarkClose | CTRL-105 PASS | 14.094 | 0 | 0 | False
+    TableAdapterRowRefreshClose | CTRL-106 PASS | 17.07 | 0 | 0 | False
+    TableAdapterSearchMissDelivery | CTRL-098 PASS | 16.579 | 0 | 0 | False
+    CurrencyLovDelayedCompletion | CTRL-091 PASS | 12.63 | 0 | 0 | False
+    TableAdapterBulkWorkerClose | CTRL-092 PASS | 14.839 | 0 | 0 | False
+    TableAdapterSearchWorkerClose | CTRL-093 PASS | 14.069 | 0 | 0 | False
+    TableAdapterSearchListener | CTRL-081 PASS | 12.807 | 0 | 0 | False
+    TableEditRowIdentity | CTRL-075 PASS | 13.862 | 0 | 0 | False
+    TableAdapterBulkClose | CTRL-076 PASS | 11.386 | 0 | 0 | False
+    TableAdapterQueuedClose | CTRL-077 PASS | 10.792 | 0 | 0 | False
+    TextFieldLovDelayedCompletion | CTRL-078 PASS | 10.362 | 0 | 0 | False
+    TableEditing | GUI-005 PASS | 11.031 | 0 | 0 | False
+    TableCancel | GUI-006 PASS | 14.117 | 0 | 0 | False
+    EditorReentry | GUI-007 PASS | 12.351 | 0 | 0 | False
+    DataBinding | GUI-009 PASS | 12.636 | 0 | 0 | False
+    TableAdapterClose | CTRL-051 PASS | 12.214 | 0 | 0 | False
+    TableAdapterPagingClose | CTRL-065 PASS | 12.722 | 0 | 0 | False
+    TextFieldSkinDisposal | CTRL-049 PASS | 13.472 | 0 | 0 | False
+    TextFields | GUI-012 PASS (tested matrix) | 13.691 | 0 | 0 | False
+    TextAreaLovDelayedCompletion | CTRL-062 PASS | 14.462 | 0 | 0 | False
+    ExternalLovReadOnly | CTRL-061 PASS | 11.553 | 0 | 0 | False
+    LovIntegration | CTRL-031 PASS | 13.449 | 0 | 0 | False
+    BoundLovSetter | CTRL-044 PASS | 11.734 | 0 | 0 | False
+    LovBindingInterleaving | CTRL-045 PASS | 11.473 | 0 | 0 | False
+    WrapButtonOwnership | CTRL-055 PASS | 10.624 | 0 | 0 | False
+    MoneyDecimal | NUM-001 PASS (tested invariants) | 11.842 | 0 | 0 | False
+    FormLifecycle | GUI-010 PASS (standalone production FXML/controller and SDI close) | 12.185 | 0 | 0 | False
+    FormCancel | CTRL-022 PASS | 12.041 | 0 | 0 | False
+    SingletonLifecycleMatrix | CTRL-035 PASS | 11.448 | 0 | 0 | False
+    TextAreaToolbarOwnership | CTRL-066 PASS | 11.203 | 0 | 0 | False
+    TabPaneSkinListeners | CTRL-054 PASS | 10.879 | 0 | 0 | False
+    TextAreaSkinDisposal | CTRL-053 PASS | 11.139 | 0 | 0 | False
+    ValidatorSubchanges | CTRL-052 PASS | 10.037 | 0 | 0 | False
+    TextAreaLovLifecycle | CTRL-050 PASS | 11.601 | 0 | 0 | False
+    WrapButtonDeferred | CTRL-043 PASS | 10.778 | 0 | 0 | False
+    Editors | GUI-004 PASS | 10.716 | 0 | 0 | False
+    SceneKeyLookup | CTRL-024 PASS | 10.313 | 0 | 0 | False
+    LovListenerLifecycle | CTRL-026 PASS | 11.607 | 0 | 0 | False
+    LovDefaultValidation | CTRL-027 PASS | 10.849 | 0 | 0 | False
+    SingletonCloseVeto | CTRL-032 PASS | 11.608 | 0 | 0 | False
+    ValidatorScopedUnbind | CTRL-033 PASS | 10.154 | 0 | 0 | False
+    ValidatorMultiControl | CTRL-036 PASS | 10.748 | 0 | 0 | False
+    ValueFields | VF-001 PASS | 10.496 | 0 | 0 | False
+    ValueLifecycle | VF-002 PASS (custom listener ownership) | 10.001 | 0 | 0 | False
+    DatePickerBinding | CTRL-002 PASS | 11.121 | 0 | 0 | False
+    NodeTraversal | CTRL-003 PASS | 10.822 | 0 | 0 | False
+    RadioReadOnly | CTRL-006 PASS | 10.602 | 0 | 0 | False
+    ComboReadOnly | CTRL-007 PASS | 17.197 | 0 | 0 | False
+    CheckBoxReadOnly | CTRL-009 PASS | 16.278 | 0 | 0 | False
+    ValueChangedFlag | CTRL-013 PASS | 9.233 | 0 | 0 | False
+    ControlsFollowup | CTRL-CONTROLS-FOLLOWUP PASS | 12.304 | 0 | 0 | False
+    ChoiceAdapter | CTRL-015 PASS | 12.862 | 0 | 0 | False
+    BinderChoiceNull | CTRL-017 PASS | 10.833 | 0 | 0 | False
+    ChoiceNullLookup | CTRL-018 PASS | 9.755 | 0 | 0 | False
+    ChoiceNonNullSet | CTRL-019 PASS | 14.02 | 0 | 0 | False
+    Default | GUI-001 PASS | 16.34 | 0 | 0 | False
