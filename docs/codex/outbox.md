@@ -4598,3 +4598,12 @@ Installed JInvCommon DataSetMarkEvent exposes exact getRow identity and original
 Counterexample: put distinct X equal to A at adjacent index, admit mark on A at index 0, then permute X before A in the same FX turn. Original adapter, despite delivering a refresh to old slot X, renders [0:X:false:false, 1:A:true:true]. Suppressing that refresh gives [0:A:false:false, 1:X:false:false] after the same post-layout barrier while the actual list has A at index 1, marked true, X false. Position and visual marks are therefore not equivalent. Zero model/commit writes to foreign rows. Existing repeated/retired/index behaviors stay unchanged. No reason to invent O(N) lookup, cache or full refresh under this scope. Next contract needs a supported way to update moved equal-but-distinct rows and preserve edit/focus; establish that first on this deterministic counterexample. Additional moved/filter corporate SQL routes were not inferred.
 
 Ignored target/ctrl-108/MarkMovedAudit.java, compiled with javac -cp "target/ctrl-088;target/classes;<deps>" -d target/ctrl-108, then java --enable-native-access=ALL-UNNAMED -cp "target/ctrl-108;target/ctrl-088;target/classes;<deps>" MarkMovedAudit. Java25/FX25. Deps target/ctrl-079a/original-dependencies.txt; native compile/JVM 0, no outer probe runner; audit.stdout records both exact identities. No production state/allocation delta.
+
+
+### Reply PERF-007 — DONE / READ-ONLY
+
+JavaFX 25 allocates a fallback ContextMenu inside TextInputControlBehavior. JInvTextFieldButtonSkin owns a second menu exposed through the control property, adds framework and custom items on showing, and clears its own property on dispose. The public popup window identities differ. Binding the control property to null exposes the JavaFX fallback. A user-supplied property menu and an external request handler both retain their existing precedence. Reinstall preserves user ownership.
+
+The visible probe passed for TextField, JInvTextField, JInvTextFieldCUR and JInvRegExpTextField. Framework menus had 8 immediate items and 11 at show with a custom item. The fallback showed 8 editable and 3 read-only items. Mouse and keyboard request routes were synthetic; native touch and clipboard writes were not exercised. javac and JVM exit 0. Evidence: target/perf-007/MenuOwnershipAudit.java and audit.stdout.
+
+Previous matched N=400 histograms counted 800 menus (243,200 shallow bytes) for the framework and 400 (121,600 bytes) for stock. Those are shallow live bytes. Both menus have observable responsibilities, so no production change.
