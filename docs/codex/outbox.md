@@ -4349,3 +4349,31 @@ Fresh separate Java 25.0.1 / FX25+29 JVMs, both -Xms256m -Xmx1024m -XX:+UseG1GC,
 At N=400 comparable totals were 54.439 MB / 125.233 ms stock and 156.951 MB / 441.552 ms framework. The ~102.5 MB difference here includes framework features and layout, not just the constructor. Class-level and retained sizes remain distinct. This is the selected fixture for subsequent tasks.
 
 Compile javac -cp "target/classes;<deps>" -d target/perf-001 target/perf-001/FieldCostAudit.java. Run java -Xms256m -Xmx1024m -XX:+UseG1GC --enable-native-access=ALL-UNNAMED -cp "target/perf-001;target/classes;<deps>" FieldCostAudit stock, then repeat with framework. Deps from target/ctrl-079a/original-dependencies.txt. Initial fixture compile lacked AbstractLovBase.showChoiceList override; corrected in ignored fixture. Final compile and both native exits 0, no probe runner. No production state/allocation delta.
+
+
+---
+
+## Reply PERF-002
+
+**DONE / READ-ONLY.** Baseline and verified final production 0982d2112b8f8020d16f917adaab77caee29005d. No tracked edits.
+
+Exact FX ThreadMXBean attribution uses an observed subclass overriding only protected createDefaultSkin, delegating to the real unchanged factory and timing its nested call. The enclosing constructor still installs the skin and does all ordinary setup. The nested measure is creation, not subsequent setSkin install; the residual includes superclass, framework properties/RequiredState, bindings, keyboard, edit/popup configuration and installation. At N=400 nested creation was 75.45 MB of 92.23 MB exact constructor allocation (about 82 percent), consistent with the ordinary constructor's 92.40 MB baseline in PERF-001. Timing instrumentation is only attribution data. No subclass without skin is presented as equivalent.
+
+Separate actual FieldCostAudit framework JVM with local JFR profile, same heap settings, N=400, includes first-use and warmed iterations. JDK reports the FX event thread as WindowsNativeRunloopThread. Filter 1532 jdk.ObjectAllocationSample events on that thread with JInvTextField constructor in stack. Estimated weights by allocated class and top four frames below. 862.72 MB nested skin-stack weight of 1256.20 MB total sampled constructor weight is an estimate for the whole run, not an exact attribution or retained amount. CSS selector/iterator and handler registration dominate these sampled stacks; CSS work is already triggered by construction even before explicit applyCss. Exact nesting and JFR estimates answer different questions. First-use kept separate for exact bench but included in sampled weights.
+
+    n=20 constructor B=4696800(4686632..4707288) skin-creation B=3844480(3837192..3854968) constructor us=42640(34862..61603) skin-creation us=34163(28077..51461)
+    n=100 constructor B=23199136(23174360..23251808) skin-creation B=18986064(18967736..19024376) constructor us=57052(47916..86763) skin-creation us=46688(39419..74921)
+    n=400 constructor B=92227808(92169600..92324864) skin-creation B=75450104(75392000..75537664) constructor us=134572(119056..202325) skin-creation us=109062(98144..165665)
+    constructor samples=1532 estimated weights sum=1256203240 nested skin constructor weight=862721736
+    198751312 com.sun.javafx.css.FixedCapacitySet$Single$1
+    133862576 [Ljava.lang.Object;
+    77562128 java.util.HashMap$Node
+    68073200 java.util.ArrayList
+    53999680 java.util.AbstractList$ListItr
+    198751312 [com.sun.javafx.css.FixedCapacitySet$Single.iterator, java.util.AbstractCollection.containsAll, com.sun.javafx.css.SelectorPartitioning.match, com.sun.javafx.css.StyleManager.findMatchingStyles]
+    70150792 [java.util.HashMap.newNode, java.util.HashMap.putVal, java.util.HashMap.put, com.sun.javafx.event.EventHandlerManager.createGetCompositeEventHandler]
+    53999680 [java.util.AbstractList.listIterator, java.util.AbstractList$SubList$1.<init>, java.util.AbstractList$SubList.listIterator, java.util.AbstractList.listIterator]
+    53752352 [java.util.ArrayList.grow, java.util.ArrayList.addAll, com.sun.javafx.css.StyleManager.findMatchingStyles, javafx.scene.CssStyleHelper.createStyleHelper]
+    43814568 [java.lang.invoke.DirectMethodHandle.allocateInstance, java.lang.invoke.DirectMethodHandle$Holder.newInvokeSpecial, java.lang.invoke.Invokers$Holder.linkToTargetMethod, javafx.scene.layout.Region.<init>]
+
+Reproduce with javac -cp "target/perf-001;target/classes;<deps>" -d target/perf-002 target/perf-002/ConstructorAttribution.java. With the PERF-001 JVM flags and classpath adding target/perf-002, run ConstructorAttribution for exact nesting, then run FieldCostAudit framework 400 with -XX:StartFlightRecording=filename=target/perf-002/framework.jfr,settings=profile,dumponexit=true and decode with ConstructorAttribution target/perf-002/framework.jfr. Compilation, profiling and decoder native exits 0. Earlier decoder thread naming returned zero and was corrected from actual JFR metadata; logs preserved. Raw profile stays local. No production allocation delta or heap inference.
