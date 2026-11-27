@@ -4585,3 +4585,16 @@ Final matrix. Mode, probe result, wall seconds, native JVM exit, outer PowerShel
     ChoiceNullLookup | CTRL-018 PASS | 9.755 | 0 | 0 | False
     ChoiceNonNullSet | CTRL-019 PASS | 14.02 | 0 | 0 | False
     Default | GUI-001 PASS | 16.34 | 0 | 0 | False
+
+
+---
+
+## Reply CTRL-108
+
+**BLOCKED / READ-ONLY.** Baseline and verified final production 0982d2112b8f8020d16f917adaab77caee29005d. No tracked edits.
+
+Installed JInvCommon DataSetMarkEvent exposes exact getRow identity and original slot. Source MARK_ROW/UNMARK_ROW both use it; bulk carries index -1. Public refreshRow remains index-at-delivery. Repeated CTRL-107's shown table and tested a no-delivery variant through an ignored adapter subclass that skips the old public refreshRow call. The ordinary unequal permutation renders the moved marked A at index 1 with checkbox and mark pseudoclass with or without the old-slot update.
+
+Counterexample: put distinct X equal to A at adjacent index, admit mark on A at index 0, then permute X before A in the same FX turn. Original adapter, despite delivering a refresh to old slot X, renders [0:X:false:false, 1:A:true:true]. Suppressing that refresh gives [0:A:false:false, 1:X:false:false] after the same post-layout barrier while the actual list has A at index 1, marked true, X false. Position and visual marks are therefore not equivalent. Zero model/commit writes to foreign rows. Existing repeated/retired/index behaviors stay unchanged. No reason to invent O(N) lookup, cache or full refresh under this scope. Next contract needs a supported way to update moved equal-but-distinct rows and preserve edit/focus; establish that first on this deterministic counterexample. Additional moved/filter corporate SQL routes were not inferred.
+
+Ignored target/ctrl-108/MarkMovedAudit.java, compiled with javac -cp "target/ctrl-088;target/classes;<deps>" -d target/ctrl-108, then java --enable-native-access=ALL-UNNAMED -cp "target/ctrl-108;target/ctrl-088;target/classes;<deps>" MarkMovedAudit. Java25/FX25. Deps target/ctrl-079a/original-dependencies.txt; native compile/JVM 0, no outer probe runner; audit.stdout records both exact identities. No production state/allocation delta.
