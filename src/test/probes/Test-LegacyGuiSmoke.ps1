@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'TableAdapterSearchListener')]
+    [switch] $TableAdapterSearchListener,
     [Parameter(ParameterSetName = 'TextAreaToolbarOwnership')]
     [switch] $TextAreaToolbarOwnership,
     [Parameter(ParameterSetName = 'TableEditRowIdentity')]
@@ -113,6 +115,9 @@ if ($TextAreaToolbarOwnership) {
 } elseif ($TableEditRowIdentity) {
     $probeId = 'CTRL-075'
     $probeClass = 'TableEditRowIdentitySmoke'
+} elseif ($TableAdapterSearchListener) {
+    $probeId = 'CTRL-081'
+    $probeClass = 'TableAdapterSearchListenerSmoke'
 } elseif ($TableAdapterBulkClose) {
     $probeId = 'CTRL-076'
     $probeClass = 'TableAdapterBulkCloseSmoke'

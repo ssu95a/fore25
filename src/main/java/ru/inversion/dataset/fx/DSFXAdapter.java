@@ -1921,23 +1921,31 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
                     }
                 }
             };
-            this.dataSet.addRowListener( rowListener );
-
-            while( !found.get() && !progress.isCancelled() && this.dataSet.swappingData() ) {
-
-                if( totalRowCount < 0L )
-                {
-                    progress.updateMessage( this.dataSet.getLoadedRowCount() + " ..." );
+            dataSet.addRowListener(rowListener);
+            Throwable searchFailure = null;
+            try {
+                while( !found.get() && !progress.isCancelled() && this.dataSet.swappingData() ) {
+                    if( totalRowCount < 0L )
+                    {
+                        progress.updateMessage( this.dataSet.getLoadedRowCount() + " ..." );
+                    }
+                    else
+                    {
+                        progress.process( this.dataSet.getLoadedRowCount(), totalRowCount, this.dataSet.getLoadedRowCount() + " из " + totalRowCount );
+                    }
                 }
-                else
-                {
-                    progress.process( this.dataSet.getLoadedRowCount(), totalRowCount, this.dataSet.getLoadedRowCount() + " из " + totalRowCount );
+                progress.end( "end" );
+            } catch (Throwable failure) {
+                searchFailure = failure;
+                throw failure;
+            } finally {
+                try {
+                    dataSet.removeRowListener(rowListener);
+                } catch (RuntimeException | Error cleanupFailure) {
+                    if (searchFailure == null) throw cleanupFailure;
+                    if (searchFailure != cleanupFailure) searchFailure.addSuppressed(cleanupFailure);
                 }
             }
-
-            progress.end( "end" );
-
-            this.dataSet.removeRowListener( rowListener );
 
             wasCanceled.setValue( progress.isCancelled() );
 
