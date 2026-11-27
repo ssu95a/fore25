@@ -149,6 +149,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     private final BooleanProperty enableMarkProperty = new SimpleBooleanProperty( this, "enableMark", false );
 
     /** Свойство конца данных, при подкачке. */
+    private volatile long workerAttachmentRevision;
     private final BooleanProperty eof = new SimpleBooleanProperty(false);
 
     /** Декоратор для фильтра. */
@@ -503,6 +504,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     /** */
     @Override
     public void close() {
+        if (dataSet != null) workerAttachmentRevision++;
         if (keyReleaseHandler != null) {
             tableView.removeEventHandler(KeyEvent.KEY_RELEASED, keyReleaseHandler);
             keyReleaseHandler = null;
@@ -1807,6 +1809,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
                 return;
 
             IDataSet<T> attachment = getDataSet();
+            long revision = workerAttachmentRevision;
             attachment.removeNavigationListener(this);
 
             bulkAppend.setValue(true);
@@ -1817,7 +1820,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
                 progressTaskExecutor
                         .allowCancel(true)
                         .stage((Stage)getTable().getScene().getWindow(), bundle.getString("LOAD_ROWS"), false)
-                        .callback(rowLoader(attachment))
+                        .callback(rowLoader(attachment, revision))
                         .indicator(false)
                         .execute();
 
@@ -1828,11 +1831,11 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
             }
             finally {
                 progressTaskExecutor = null;
-                if (dataSet == attachment)
+                if (workerAttachmentRevision == revision && dataSet == attachment)
                     attachment.addNavigationListener(this);
             }
 
-        if (dataSet != attachment)
+        if (workerAttachmentRevision != revision || dataSet != attachment)
             return;
 
         int rowCount = wasCanceled.get() ? attachment.getLoadedRowCount() - 51 : attachment.getLoadedRowCount() - 1;
@@ -1840,57 +1843,57 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         positionRow(rowCount, attachment);
 
         Platform.runLater(() -> {
-            if (dataSet == attachment)
+            if (workerAttachmentRevision == revision && dataSet == attachment)
                 bulkAppend.setValue(false);
         });
     }
 
     /** */
-    private ProgressCallback<Void, DSFXAdapter<T>> rowLoader(IDataSet<T> attachment)
-    {
-        return( progress, p ) ->
-        {
-            long totalRowCount = (long)getDataSet().getTotalRowCount();
+    private ProgressCallback<Void, DSFXAdapter<T>> rowLoader(IDataSet<T> attachment, long revision) {
+        return (progress, p) -> {
+            // Чтение поколения допускает вызов, но закрытие не прерывает уже начатую загрузку.
+            if (workerAttachmentRevision != revision) return null;
+            long totalRowCount = attachment.getTotalRowCount();
+            if (workerAttachmentRevision != revision) return null;
 
-            if( totalRowCount <= 0 )
-                progress.before( "wait ..." );
+            if (totalRowCount <= 0)
+                progress.before("wait ...");
             else
-                progress.begin( 0L, totalRowCount, "wait ... " );
+                progress.begin(0L, totalRowCount, "wait ... ");
 
-            while( !progress.isCancelled() &&  dataSet.swappingData() ) {
-
-                if( totalRowCount < 0L )
-                {
-                    progress.updateMessage( dataSet.getLoadedRowCount() + " ..." );
-                }
-                else
-                {
-                    progress.process( dataSet.getLoadedRowCount(), totalRowCount, dataSet.getLoadedRowCount() + " из " + totalRowCount );
+            while (!progress.isCancelled() && workerAttachmentRevision == revision && attachment.swappingData()) {
+                if (workerAttachmentRevision != revision) return null;
+                int loaded = attachment.getLoadedRowCount();
+                if (workerAttachmentRevision != revision) return null;
+                if (totalRowCount < 0L) {
+                    progress.updateMessage(loaded + " ...");
+                } else {
+                    int displayedCount = attachment.getLoadedRowCount();
+                    if (workerAttachmentRevision != revision) return null;
+                    progress.process(loaded, totalRowCount, displayedCount + " из " + totalRowCount);
                 }
             }
 
-            if( !progress.isCancelled() )
-                 eof.set( true );
+            if (workerAttachmentRevision != revision) return null;
+            boolean completed = !progress.isCancelled();
+            progress.end("end");
+            boolean cancelled = progress.isCancelled();
 
-            progress.end( "end" );
-
-            wasCanceled.setValue( progress.isCancelled() );
-
-            Platform.runLater( () -> {
-                // Закрытие возможно внутри вложенного цикла окна прогресса.
-                if (dataSet != attachment)
-                    return;
+            Platform.runLater(() -> {
+                if (workerAttachmentRevision != revision || dataSet != attachment) return;
+                if (completed) eof.set(true);
+                if (workerAttachmentRevision != revision || dataSet != attachment) return;
+                wasCanceled.setValue(cancelled);
                 tableView.getSelectionModel().selectLast();
-                Platform.runLater( () -> {
-                    if (dataSet == attachment)
+                Platform.runLater(() -> {
+                    if (workerAttachmentRevision == revision && dataSet == attachment)
                         attachment.setCurrentRow(tableView.getSelectionModel().getSelectedItem());
-                } );
-            } );
+                });
+            });
 
             return null;
         };
     }
-
 
     /** */
     private ProgressCallback<Void, DSFXAdapter<T>> rowFinder( DSFXAdapter<T> adapter, final Predicate<T> predicate,

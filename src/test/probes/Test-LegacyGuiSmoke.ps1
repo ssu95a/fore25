@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'TableAdapterBulkWorkerClose')]
+    [switch] $TableAdapterBulkWorkerClose,
     [Parameter(ParameterSetName = 'CurrencyLovDelayedCompletion')]
     [switch] $CurrencyLovDelayedCompletion,
     [Parameter(ParameterSetName = 'TableAdapterSearchListener')]
@@ -120,6 +122,9 @@ if ($TextAreaToolbarOwnership) {
 } elseif ($TableAdapterSearchListener) {
     $probeId = 'CTRL-081'
     $probeClass = 'TableAdapterSearchListenerSmoke'
+} elseif ($TableAdapterBulkWorkerClose) {
+    $probeId = 'CTRL-092'
+    $probeClass = 'TableAdapterBulkWorkerCloseSmoke'
 } elseif ($TableAdapterBulkClose) {
     $probeId = 'CTRL-076'
     $probeClass = 'TableAdapterBulkCloseSmoke'
