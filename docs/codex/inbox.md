@@ -3646,7 +3646,7 @@ CTRL-073 24-case diagnostic: direct/F9/external button × keep/replace/detach/AB
 
 ## BATCH CTRL-079…CTRL-090 — regression, residual integrity and measured performance
 
-**Status:** ACTIVE / ASSIGNED — user requested a large next batch; all twelve tasks authorized in one sequential session.
+**Status:** PAUSED / REGRESSION GATE BLOCKED — CTRL-079 reported 49 PASS markers, 48/49 initial runner exits 0, one unexplained nonzero SceneKeyLookup exit. CTRL-080…090 NOT_RUN, not authorized to resume until explicit architect release. CTRL-079A diagnostic assignment below.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox branch:** agent/codex-mailbox
@@ -3663,7 +3663,7 @@ Verify clean local checkout and fresh production/mailbox refs before each task a
 
 ## MESSAGE CTRL-079
 
-**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Status:** BLOCKED / READ-ONLY — unexplained SceneKeyLookup process failure; see Reply CTRL-079.
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-079
 **Task:** VERIFY — full supported baseline regression
@@ -3674,7 +3674,7 @@ READ-ONLY. Enumerate actual ParameterSetName switches and mappings from current 
 
 ## MESSAGE CTRL-080
 
-**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Status:** NOT_RUN / PAUSED — await architect release after regression gate diagnostics
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-080
 **Task:** AUDIT → FIX — TableCell converter rejection / edit lifecycle
@@ -3685,7 +3685,7 @@ CTRL-075 guarded synthetic cancel commit against original row identity before an
 
 ## MESSAGE CTRL-081
 
-**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Status:** NOT_RUN / PAUSED — await architect release after regression gate diagnostics
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-081
 **Task:** AUDIT → FIX — DSFXAdapter search temporary row listener
@@ -3696,7 +3696,7 @@ CTRL-067 source candidate: search registers temporary row listener and removes i
 
 ## MESSAGE CTRL-082
 
-**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Status:** NOT_RUN / PAUSED — await architect release after regression gate diagnostics
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-082
 **Task:** AUDIT — bulk worker close during blocking fetch
@@ -3707,7 +3707,7 @@ READ-ONLY. CTRL-076 guarded UI delivery and listener restoration but current row
 
 ## MESSAGE CTRL-083
 
-**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Status:** NOT_RUN / PAUSED — await architect release after regression gate diagnostics
 **Timebox:** 45 minutes
 **Reply ID:** CTRL-083
 **Task:** AUDIT → FIX — specialized TextFieldCUR delayed LOV completion
@@ -3718,7 +3718,7 @@ CTRL-078 excluded specialized TextFieldCUR override. Locate actual class and cal
 
 ## MESSAGE CTRL-084
 
-**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Status:** NOT_RUN / PAUSED — await architect release after regression gate diagnostics
 **Timebox:** 75 minutes
 **Reply ID:** CTRL-084
 **Task:** AUDIT — full launched form Binder ownership on normal close
@@ -3729,7 +3729,7 @@ READ-ONLY. Resolve CTRL-070 limitation: prior Stage.hide fixture was not actual 
 
 ## MESSAGE CTRL-085
 
-**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Status:** NOT_RUN / PAUSED — await architect release after regression gate diagnostics
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-085
 **Task:** AUDIT — initialization failure after real model bind
@@ -3740,7 +3740,7 @@ READ-ONLY. Extend CTRL-071 real launcher test which had no actual entity fields.
 
 ## MESSAGE CTRL-086
 
-**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Status:** NOT_RUN / PAUSED — await architect release after regression gate diagnostics
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-086
 **Task:** PERF — reduce redundant form control traversal if equivalent
@@ -3751,7 +3751,7 @@ CTRL-074 measured Controls.getControlList flat traversal; architect verified Abs
 
 ## MESSAGE CTRL-087
 
-**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Status:** NOT_RUN / PAUSED — await architect release after regression gate diagnostics
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-087
 **Task:** PERF — label matching complexity in initLabels
@@ -3762,7 +3762,7 @@ Architect source confirmed each eligible control searches listLabel via stream.f
 
 ## MESSAGE CTRL-088
 
-**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Status:** NOT_RUN / PAUSED — await architect release after regression gate diagnostics
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-088
 **Task:** PERF AUDIT — table cell/editor allocation and reuse
@@ -3773,7 +3773,7 @@ READ-ONLY. CTRL-074 identified lazy editor construction, per-edit filters and ma
 
 ## MESSAGE CTRL-089
 
-**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Status:** NOT_RUN / PAUSED — await architect release after regression gate diagnostics
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-089
 **Task:** PERF AUDIT — end-to-end DataSet refresh and FX layout
@@ -3784,9 +3784,35 @@ READ-ONLY. CTRL-074 measured AFTER EXECUTE dispatch/queue drain ~45–49 µs, 20
 
 ## MESSAGE CTRL-090
 
-**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Status:** NOT_RUN / PAUSED — await architect release after regression gate diagnostics
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-090
 **Task:** VERIFY — final regression, performance evidence and readiness triage
 
 READ-ONLY on final verified HEAD. Run supported modes affected by any batch fixes plus all CTRL-075…078 and core DataBinding/TableEditing/TableCancel/EditorReentry/TableAdapterClose/TableAdapterPagingClose, LOV/readOnly/lifecycle, NodeTraversal/Forms and new tracked modes; prioritize full CTRL-079 battery if time permits. Exact exit matrix, Maven compile, PowerShell parse, diff check. Verify commit chain/scope and clean remote, no hidden modifications. Summarize all 12 tasks DONE/NO_CHANGE/READ-ONLY/BLOCKED/PARTIAL/NOT_RUN with evidence, production SHA and independent Windows rerun commands for fixes, performance before/after measured where available, memory/state delta, no invented savings. Rank next 3–5 tasks by confirmed data risk then measured cost. Separate production readiness from local smoke success; list actual corporate SQL/forms/native input/MDI/WAIT and open contracts needing user environment. Stop after CTRL-090, no self-assignment.
+
+---
+
+## MESSAGE CTRL-079A
+
+**Status:** ASSIGNED — standalone READ-ONLY regression gate diagnostics
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Mailbox branch:** agent/codex-mailbox
+**Baseline remote HEAD:** 70b139ed54d00c46b4c2ae597535d82ddbe5a2ab
+**Reply ID:** CTRL-079A
+**Timebox:** 45 minutes, ceiling.
+**Dependency:** Reply CTRL-079 at f669409b06028d734d61790c17e9bc099a997224.
+
+### Evidence and goal
+CTRL-079 ran all 48 named supported runner modes plus default: all 49 printed PASS; initial SceneKeyLookup runner exit 1 after CTRL-024 PASS, 48 other exits 0. Subsequent fresh official runner and direct JVM reruns both PASS/exit 0. Original child exit code not captured, no observed assertion failure or hs_err. Cause UNKNOWN. Architect reviewed SceneKeyLookupSmoke: PASS printed before Platform.exit() in finally. Runner invokes java and throws generic message on LASTEXITCODE != 0. These facts do not prove shutdown error, native crash or runner error. Goal is characterize reproducibility and separate assertion result, actual child-process exit, and runner exit; do not conceal an unexplained failure.
+
+### Execution
+1. Verify clean tracked checkout and fresh production/mailbox refs; recover original CTRL-079 output, java.args, dependencies and timestamps if still available. Inspect exact tracked SceneKeyLookupSmoke and runner at baseline. Record OS build, PowerShell version, actual java/javac path and versions, FX version, Maven/settings/offline environment, relevant JAVA_TOOL_OPTIONS/JDK_JAVA_OPTIONS without exposing secrets. No dependency upgrades or environment-wide setting changes.
+2. Use ignored diagnostic directory under target/ctrl-079a. Run 20–30 fresh JVMs total, targeting 30 if time permits, with unchanged original tracked assertions and original runner classpath/arguments. Include both official runner invocation and direct JVM invocation with generated java.args (e.g. 10 official and 20 direct). Sequential, no concurrent GUI launches. Capture run ID, PID when available, start/end timestamps, stdout and stderr separately, PASS marker, immediate native child exit code (signed decimal and unsigned hex when relevant), outer PowerShell exit, timeout/termination and elapsed time. A diagnostic copy of runner in ignored storage or equivalent temporary wrapper may log immediate child exit before throwing; preserve actual invocation semantics, root resolution, argument files and assertions. Do not mislabel instrumented runner as unchanged official runner. Use per-run JVM error-file location if appropriate, disclose diagnostic flags. On timeout collect thread/process evidence where possible, terminate only owned diagnostic process if needed, report as timeout not PASS. Preserve every failure, no retry-until-green.
+3. Inspect Windows Application event log around original/reproduced failure timestamps (Application Error/WER when available), JVM hs_err/error output and relevant process diagnostics. Correlate PID/time, report access-denied/missing evidence as UNKNOWN; no system configuration or dump-policy changes. Avoid reporting sensitive unrelated event log data. If failure recurs, capture exact native exit, phase and stack/crash evidence, compare runner/direct and identify smallest next discriminating experiment. If no failure, explicitly report NOT_REPRODUCED, not root cause fixed. Do not infer cause from PASS marker or lack of hs_err.
+4. Re-run full supported baseline gate: all 48 named modes plus default, same exclusions as CTRL-079, exact matrix and original assertions, record actual runner exits and child exit evidence for failures. Maven -Pbuild compile, PowerShell parse, git diff --check, verify clean unchanged production HEAD. Reserve time for full battery; report incomplete coverage explicitly if ceiling reached. A PASS marker alone is insufficient. If any nonzero/timeout, preserve evidence and mark gate BLOCKED; if all 49 exit 0 and focused repetitions clean, recommend architect decision whether to accept residual one-off UNKNOWN risk. Do not declare original cause resolved merely from successful repetitions.
+5. Publish exactly one Reply CTRL-079A in docs/codex/outbox.md on agent/codex-mailbox: actual repetition matrix (counts and per-run exit details or concise table), original/reproduced failure evidence, full gate exit matrix, commands, diagnostics paths, confirmed vs hypothesis/UNKNOWN, recommendation and unchanged SHA. STOP. CTRL-080…090 remain NOT_RUN/PAUSED even if all tests green; explicit architect release required.
+
+### Boundaries
+READ-ONLY for production and tracked tests/runner. Ignored diagnostic scripts/logs only. No System.exit(0) workaround, no assertion suppression, no changing shutdown semantics, no retry masking, no speculative SceneKeyManager or JavaFX fixes. No new reflective access beyond original tracked test. Main and JInvCommon read-only, no force push/destructive commands. Only mailbox reply write authorized. Timebox 45 minutes. All necessary Git/GitHub operations within scope approved.
