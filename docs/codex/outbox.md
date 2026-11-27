@@ -4638,3 +4638,17 @@ Production baseline and final: 0982d2112b8f8020d16f917adaab77caee29005d. PERF-00
 JInvFEButton and JInvTextFieldButtonSkin are in different packages. A package-private constructor/factory is inaccessible from the skin. A newly public path violates the assignment. A protected constructor invoked by a specialized subclass changes the exact class exposed by public lookup/children. Existing constructors are used by TextAreaSkin and the direct F9/dialog fallback; deferring generic decoration changes immediate node properties. No scoped exact-class creation path preserving these contracts was established. A different button type also leaves dialog action, target and read-only equivalence unproven.
 
 Reproduce source inventory with rg -n 'new JInvFEButton|extends JInvFEButton|JInvFEButton' src/main and the JVM exit-0 PERF-008 public node probe. No production delta or measured saving.
+
+
+### Reply PERF-011 — DONE / READ-ONLY
+
+Production baseline and final: 0982d2112b8f8020d16f917adaab77caee29005d. These are two sets of measurements on identical production, with no optimization saving attributed. Reproduce with target/perf-011/FieldHeapAudit.java, run.ps1, root-run.ps1 and summarize.ps1 on the real classpath, Java 25/G1 256m–1024m. Matched structure/style and warm baseline per process. Two independent processes per size/variant, plus 3 mixed, 1 menu/LOV and 2 root-release processes (18 JVMs). Every JVM, diagnostic jcmd and both wrappers exited 0.
+
+Shown global shallow delta from each process baseline, B, midpoint of two (min..max), stock vs framework:
+- N=20: 1,554,756 (1,550,936..1,558,576) vs 3,783,484 (3,782,056..3,784,912).
+- N=100: 7,774,188 (7,767,528..7,780,848) vs 19,079,236 (19,069,216..19,089,256).
+- N=400: 31,217,276 (31,216,576..31,217,976) vs 76,377,568 (76,368,224..76,386,912). Normalized global deltas ~78,043 and ~190,944 B/field. Prior PERF-005 same production medians 31,192,616 and 76,392,164 B.
+
+N=400 midpoint over constructed / skin / shown / detached-held / disposed-held / released: stock 1,478,748 / 28,296,644 / 31,217,276 / 31,072,508 / 6,382,164 / 6,382,460 B; framework 53,686,048 / 53,686,496 / 76,377,568 / 75,846,024 / 15,570,812 / 15,568,236 B. Framework eager skin is already included in constructed. Shown N=400 counts: 800 ContextMenu (243,200 B), 400 JInvWrapButton and 400 JInvFEButton (275,200 B each), 400 JInvTooltipValue (144,000 B), 3,200 javafx MenuItem and 3,200 behavior ContextMenuItem (256,000 B each). These are exact class shallow bytes only.
+
+Mixed activation on 5/25/100 nodes at N=20/100/400 added 77,312 / 229,848 / 805,664 global live shallow bytes compared to the short phase within each process, containing changed text and CSS/layout effects. N=20 one overflow + menu show/hide + late LOV added 597,112 B. Each group had eager overflow nodes even on short text. The two N=100 root-release checks each observed 100 weak refs before the marker's diagnostic GC and zero afterward with the fixture root dropped. This is bounded evidence only. True retained sizes, general absence of leaks and actual activation allocation/time remain unestablished. Separate FX allocated totals are in PERF-009.
