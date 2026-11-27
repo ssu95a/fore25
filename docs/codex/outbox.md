@@ -4051,3 +4051,52 @@ Oracle Java 25.0.1/FX25, 1 GiB, FX allocation and elapsed to post-layout, five w
 Closing twice while the bulk worker was paused or after its successful result was queued still gave one retired full refresh and 200 already admitted writes, with unchanged selection/cursor. The detached error route produced one FX NPE from getScene().getWindow(), losing the original error delivery; active error logged the original Throwable identity and displayed once. Proposed first follow-up: explicitly scope table-owned bulk refresh lifetime and ensure genuine error dispatch with a neutral owner when its original table is detached, after agreement on the error contract. No claim of canceling admitted work or handling SQL rollback. Preserve existing snapshot semantics and notification order. Existing extractor/layout-only alternatives failed marker equivalence in CTRL-096/100, so no optimization proposed here.
 
 Ignored target/ctrl-101/MarkLifecycleAudit.java, compile javac -cp "target/ctrl-088;target/classes;<deps>" -d target/ctrl-101 and run java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-101;target/ctrl-088;target/classes;<deps>" MarkLifecycleAudit. Deps from target/ctrl-079a/original-dependencies.txt. Native compile/JVM 0; no outer runner. Logs record captured FX failure independently of process exit. No state/allocation changes, retained heap or paint inference.
+
+
+---
+
+## Reply CTRL-102
+
+**DONE / READ-ONLY.** Baseline and verified final production df95a931230b57e87e7bef4bfba6267c3e9a395d. No tracked edits.
+
+Reviewed repository ManageHelp.fxml and export/form layouts. Used a clearly synthetic shown nested SDI FXML fixture with 20/100/400 JInvTextFields and JInvLabels in nested groups and ScrollPane, one real JInvTable with a stock column and 40 preloaded rows, actual FXFormLauncher/AbstractBaseController/Binder/FXEntity. Repeated canonical property name is intentional and stresses duplicate matches and shared model, not a claim about typical corporate forms. Fresh model per launch; both directions asserted on actual bound field. Each size tested close veto once and every launch closed with one callback and worker cleanup before a fresh singleton launch. Fixture overrides license/offline initialization and preference persistence; real TaskContext, corporate forms, MDI/WAIT untested.
+
+Java 25.0.1/FX25, five warmup and nine measured launches per size. FX-thread ThreadMXBean exact allocated bytes and wall times in µs, median(range). First stamp is a queued FX marker immediately before internalShow and FXML runs through the Initializable callback. Stage assembly ends at controller-init entry. init-entry-to-shown includes synchronous setup, showing-triggered controller hooks and initial CSS/layout work; bind/labels/config are nested observations, not additional totals. shown-to-layout is the public first post-layout pulse; no paint claim. Close includes normal close request and worker completion. Measurement stamps/map writes and incidental same-thread work in nested FX loops contribute some overhead. Fresh 400 process used 2 GiB; 20/100 process used 1 GiB, so avoid treating their timings as a controlled scaling ratio.
+
+    N=20 phase=shown-to-layout us=90160(35319..121299) FXbytes=1888040(1879056..1932944)
+    N=20 phase=close-to-cleanup-return us=130966(73256..215952) FXbytes=1014720(1006048..1046904)
+    N=20 phase=labels us=805(241..3381) FXbytes=9848(9848..11952)
+    N=20 phase=config-including-offline-table us=5578(2363..10659) FXbytes=88888(88864..100920)
+    N=20 phase=bind-excluding-labels us=4314(2580..9241) FXbytes=131512(129592..134648)
+    N=20 phase=first-layout-total us=323134(190471..435447) FXbytes=12898048(12859616..13204768)
+    N=20 phase=FXML-through-initialize us=127725(83364..283226) FXbytes=5488728(5480832..5718976)
+    N=20 phase=stage-assembly us=1813(628..24770) FXbytes=173048(173048..173048)
+    N=20 phase=init-form-synchronous us=1036(411..3278) FXbytes=20264(20264..21768)
+    N=20 phase=bind-including-labels us=6650(2822..11357) FXbytes=141360(139440..146600)
+    N=20 phase=init-entry-to-shown us=84340(70035..126659) FXbytes=5342464(5326784..5380560)
+    N=100 phase=shown-to-layout us=43219(27680..121802) FXbytes=3633688(3628224..3640904)
+    N=100 phase=close-to-cleanup-return us=102868(67500..227361) FXbytes=1196576(1195800..1205008)
+    N=100 phase=labels us=986(365..2540) FXbytes=48104(48104..48264)
+    N=100 phase=config-including-offline-table us=3592(1448..8210) FXbytes=118184(118160..118616)
+    N=100 phase=bind-excluding-labels us=5591(2499..11323) FXbytes=637120(633120..639520)
+    N=100 phase=first-layout-total us=417710(197011..843641) FXbytes=48191592(48164024..48334536)
+    N=100 phase=FXML-through-initialize us=235831(101433..496529) FXbytes=25180152(25164120..25243016)
+    N=100 phase=stage-assembly us=940(495..1944) FXbytes=172992(172968..172992)
+    N=100 phase=init-form-synchronous us=503(301..1123) FXbytes=20264(20264..20264)
+    N=100 phase=bind-including-labels us=6231(3092..13863) FXbytes=685224(681224..687624)
+    N=100 phase=init-entry-to-shown us=106617(63725..284442) FXbytes=19204680(19198712..19346712)
+    N=400 phase=close-to-cleanup-return us=117398(85859..191237) FXbytes=1960632(1957320..2016256)
+    N=400 phase=labels us=5190(3393..10225) FXbytes=192664(192664..192664)
+    N=400 phase=config-including-offline-table us=15433(5506..30912) FXbytes=243888(243888..244432)
+    N=400 phase=bind-excluding-labels us=16485(11103..128056) FXbytes=2651120(2651120..2652592)
+    N=400 phase=first-layout-total us=704841(474576..1156252) FXbytes=180762936(180678000..181164000)
+    N=400 phase=FXML-through-initialize us=392073(242025..726264) FXbytes=99046464(99028192..99299664)
+    N=400 phase=stage-assembly us=851(565..1407) FXbytes=172992(172992..172992)
+    N=400 phase=init-form-synchronous us=905(608..1396) FXbytes=20264(20264..20264)
+    N=400 phase=bind-including-labels us=21676(15641..133099) FXbytes=2843784(2843784..2845256)
+    N=400 phase=init-entry-to-shown us=224007(151330..378824) FXbytes=71547552(71459280..71767280)
+    N=400 phase=shown-to-layout us=115219(71592..245199) FXbytes=10003440(9999368..10049568)
+
+Largest 400-field allocation phases were FXML through initialization (99.05 MB), controller-init entry through shown (71.55 MB including binding/configuration and initial skin/CSS work), then shown through first layout (10.00 MB). Total 180.76 MB and 704.841 ms median. Inside the second interval, Binder excluding labels 2.65 MB, config 0.244 MB and label matching 0.193 MB. Do not add overlapping intervals. Source identifies persistent per-field RequiredState, several properties, and skin-owned ContextMenu, wrapper and overflow button, plus initially lazy LOV listener. Counts are not retained heap or per-class allocation. Smallest next experiment: compare equivalent stock versus framework field construction and instrument constructor versus first CSS/skin installation in the same novel one-control fixture; use an allocation profiler if attributing classes. Keep CTRL-086/087 rejected traversal/key indexing out of scope. Consider bind-side profiling only after those larger costs are understood. No GC-based leak conclusion.
+
+Ignored target/ctrl-102/FormStartupAudit.java and generated startup-N.fxml. javac -cp "target/ctrl-084;target/classes;<deps>" -d target/ctrl-102 target/ctrl-102/FormStartupAudit.java; java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-102;target/ctrl-084;target/classes;<deps>" FormStartupAudit 20 100; repeat with -Xmx2048m and argument 400. Deps from target/ctrl-079a/original-dependencies.txt. Final compile and direct native JVM exits 0, no probe runner. Preserved earlier fixture failures: ignored private FXML hook because controller implements Initializable, unsupported custom column preference naming/offline DB preference persistence, and 1 GiB heap exhaustion while the measurement history held closed controller graphs. Corrected fixture records only phase maps and uses offline preference saver. These failures do not establish application retention. Production state and allocation unchanged.
