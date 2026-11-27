@@ -4442,3 +4442,29 @@ READ-ONLY. Inventory actual all in-repo skins with source paths/methods: action 
 **Task:** VERIFY — complete architecture migration, measurements and regression
 
 READ-ONLY. Verify actual final HEAD and chain of isolated commits across PERF-014…016 and ARCH-001…007. Full supported smoke battery at final SHA, 57 original plus each actual new mode; no opt-in Robot/unresolved CTRL-014/034/CAL-TIME-001. Record true native JVM and runner exits, all failures/timeouts, Maven -Pbuild compile, PowerShell parse, diff check. Use faithful ignored diagnostic recorder. Repeat matched stock/framework baseline 0982d211 vs final with actual build artifacts, same JVM flags, styles and 20/100/400, 5/9 where practical. Total FX allocations/time, nested skin/CSS/layout, no-menu-use vs first/repeated menu, overflow and toolbar activation; live shallow object counts and global deltas from controlled histograms if available, distinguish retained/dominators UNKNOWN. Quantify overall and individual changes only from matched evidence, not adding isolated costs. Confirm ownership, absence of duplicate handlers/menus/temporary action buttons, exact instance-state delta, supported existing API and intentionally changed pre-menu contract, explicit external UNKNOWN. List all eleven dispositions, exact SHAs, evidence, regressions, user rerun commands incl pending CTRL-104/105/106, performance results and unresolved blockers. No corporate SQL/transaction/native input/paint/MDI/WAIT readiness claims. STOP after ARCH-008.
+
+
+---
+
+## MESSAGE PERF-014A — native JVM failure differential diagnosis
+
+**Status:** USER APPROVED / ASSIGNED — ONLY ACTIVE DIAGNOSTIC TASK.
+**Timebox:** 60 minutes ceiling.
+**Reply ID:** PERF-014A.
+**Repo:** ssu95a/fore25.
+**Production branch:** migration/java25-correctness.
+**Baseline:** 0982d2112b8f8020d16f917adaab77caee29005d.
+**Mailbox:** agent/codex-mailbox.
+**Incident:** Reply PERF-014 at 1d99d96fa3210143bb36b68d90cb2e8f4deddf3f.
+
+**Latest authorization overrides all earlier ACTIVE labels for execution:** combined assignment 98856c3c remains STOPPED. PERF-014 remains BLOCKED; PERF-015/016 and ARCH-001…008 remain NOT_RUN. Do not resume, publish the candidate, or modify production even if every diagnostic run passes. Separate architect/user regression gate decision required. CTRL-079 waiver does not apply.
+
+READ-ONLY production diagnosis. Before running, verify remote refs, clean tracked baseline and local artifact availability. Preserve original target/perf-014 evidence without overwriting: candidate patch, added sources, compiled classes, matrix.csv, run-06 stdout/stderr, win-events.xml, original args/runner and hashes. Record exact candidate identity and compare source/class hashes with saved artifacts; if exact reconstruction or isolated execution cannot be established, report BLOCKED and STOP. Use separate ignored diagnostic directories/artifacts; do not contaminate baseline or candidate classpaths. No production commit, tracked test changes, dependency upgrades, system configuration changes, other repo writes, destructive Git or force push.
+
+Incident: WrapButtonOwnership printed CTRL-055 PASS then native JVM exit -1073740791 / 0xC0000409, outer runner 1, timeout false. Windows Application Error JVM PID 15248, Java 25.0.1, ucrtbase.dll offset 0xA527E, WER BEX64 parameter 9=7, report ID 34e53bcc-5329-4b3e-8071-81fe33a32f33. Root cause UNKNOWN. Do not infer stack overflow or menu/wrapper/shutdown causality from marker or module.
+
+Run at most 10 fresh JVMs per variant, serial alternating A1,B1,A2,B2… (A=exact production baseline, B=exact saved final PERF-014 candidate), mode WrapButtonOwnership, same original assertions, Java arguments (only necessary isolated artifact/log path substitutions, document them), JavaFX/JDK, environment, runner behavior and settings D:\Java\.m2\settings.xml. Use faithful ignored recorder preserving actual child exit immediately, and actual outer process exit. Baseline official command reference: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -WrapButtonOwnership -SettingsFile "D:\Java\.m2\settings.xml". Verify both variants use correct classes and probe; record unavoidable differences. No parallel runs, arbitrary sleeps, modified shutdown, forced exit, suppressed errors, retry-until-green or weakened assertions.
+
+For each invocation preserve variant, ordinal, artifact hashes/classpath, exact command/args, child PID and runner PID, start/end timestamps with timezone, stdout/stderr, PASS marker, native signed/hex exit, outer exit, timeout and matching Windows Application Error/WER/hs_err if present. Absence of hs_err does not prove absence of native failure. Inspect available original WER evidence read-only; no enabling dumps or changing registry without separate approval. On first repeated native failure OR other unexplained nonzero/timeout, capture available evidence, stop immediately (remaining runs NOT_RUN), do not retry. If all 20 focused runs finish 0/0, report NOT_REPRODUCED, not FIXED; next proposed step is replay of original regression sequence and full regression under separate gate authorization, not part of this assignment. If timebox expires, report actual counts and incomplete scope without calling it green. Distinguish failure on baseline versus candidate, neither alone proves root cause. Restore/verify clean tracked baseline and unchanged remote production at completion.
+
+Publish exactly one Reply PERF-014A in docs/codex/outbox.md on mailbox branch, with actual matrix, native/outer exits, artifact verification, environment and commands, original and new evidence locations, confirmed facts vs hypotheses/UNKNOWN, remaining NOT_RUN, recommendation and final production SHA. Git/GitHub operations necessary within this diagnostic/mailbox scope approved. STOP after reply; no self-assignment, no production push, no regression gate waiver.
