@@ -100,8 +100,14 @@ public final class LegacyTextFieldsSmoke {
         text.setText(null);
         check(empty(text.getText()), "base: setText(null) unexpectedly produced text");
 
+        check(text.getContextMenu() == null, "control: no framework context menu before a request");
+        var anchor = text.localToScreen(5, 5);
+        text.fireEvent(new javafx.scene.input.ContextMenuEvent(
+                javafx.scene.input.ContextMenuEvent.CONTEXT_MENU_REQUESTED,
+                5, 5, anchor.getX(), anchor.getY(), false, null));
         ContextMenu own = text.getContextMenu();
-        check(own != null && !own.getItems().isEmpty(), "skin: default context menu missing");
+        check(own != null && own.isShowing() && !own.getItems().isEmpty(), "control: default context menu missing");
+        own.hide();
         text.setOnContextMenuRequested(event -> event.consume());
         check(text.getContextMenu() == null, "skin: menu did not yield to application handler");
         var custom = new ContextMenu(new MenuItem("Custom"));

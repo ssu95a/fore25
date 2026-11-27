@@ -14,6 +14,7 @@ import javafx.scene.AccessibleAttribute;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
@@ -48,6 +49,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static org.slf4j.LoggerFactory.getLogger;
 import static ru.inversion.fx.form.controls.Controls.*;
@@ -82,6 +84,8 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
     private final ObjectProperty<Button> externalButton = new SimpleObjectProperty<>();
     private BooleanProperty externalButtonExists = new SimpleBooleanProperty(false);
     private IndexRange cachedSelection;
+    private TextControlMenu contextMenuSupport;
+    private EventHandler<ActionEvent> menuEditAction;
 
     protected void initKeyBoard() {
         JInvKeyboardManager.initNaviationOnNode(this);
@@ -217,8 +221,14 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
     public JInvTextField(String arg0) {
         super(arg0);
         readOnlyProperty().addListener((obs, oldV, newV) -> Controls.disableControl(this, obs.getValue()));
+        // Обработчик регистрируется до обработчиков поведения, создаваемых skin.
+        addEventHandler(ContextMenuEvent.CONTEXT_MENU_REQUESTED, JInvTextField::requestControlMenu);
         this.setSkin(createDefaultSkin());
-        initContextMenu();
+        if (getSkin() instanceof JInvTextFieldButtonSkin) {
+            menuEditAction = getEditDialogAction().orElse(null);
+        } else {
+            initContextMenu();
+        }
         initDefaultToolTip();
         initKeyBoard();
         initFocusListener();
@@ -258,6 +268,42 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
         });
 
         editableOrLovEditableProperty.bind(buttonIgnoresEditableProperty.or(editableProperty()));
+    }
+
+    private static void requestControlMenu(ContextMenuEvent event) {
+        if (event.getSource() instanceof JInvTextField field && field.getSkin() instanceof JInvTextFieldButtonSkin
+                && TextControlMenu.isRequestEligible(field, event)) {
+            field.controlMenu().show(event);
+        }
+    }
+
+    private TextControlMenu controlMenu() {
+        if (contextMenuSupport == null) {
+            contextMenuSupport = new TextControlMenu(this, "ru.inversion.fx.form.controls.skin.JInvTextFieldMenu",
+                    menuEditAction);
+        }
+        return contextMenuSupport;
+    }
+
+    /**
+     * Возвращает список расширений меню. Само меню создаётся по первому запросу показа.
+     */
+    public ObservableList<MenuItem> getListItemsToPopulateContextMenu() {
+        return controlMenu().extensions();
+    }
+
+    /** Заполняет переданное меню текущими командами и расширениями поля. */
+    public void populateContextMenu(ContextMenu menu) {
+        controlMenu().populate(menu);
+    }
+
+    @Override
+    public void onPopulateContextMenu(Consumer<ContextMenu> action) {
+        if (getSkin() instanceof JInvTextFieldButtonSkin || contextMenuSupport != null) {
+            controlMenu().onPopulate = action;
+        } else {
+            ITextFieldBase.super.onPopulateContextMenu(action);
+        }
     }
 
     private void initContextMenu() {

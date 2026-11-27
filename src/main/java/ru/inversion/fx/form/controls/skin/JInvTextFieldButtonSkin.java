@@ -43,9 +43,9 @@ public class JInvTextFieldButtonSkin extends TextFieldSkin implements ISkinPopul
     final static private PseudoClass focusedButton = PseudoClass.getPseudoClass("focused");
 
     //Список элементов меню PopulateContextMenu
-    private final ObservableList<MenuItem> listPopulateContextMenu = FXCollections.observableArrayList();
+    private final ObservableList<MenuItem> listPopulateContextMenu;
     private Consumer<ContextMenu> onPopulateContextMenu;
-    private final ContextMenu textContextMenu = new ContextMenu();
+    private final ContextMenu textContextMenu;
     private static final ResourceBundle menuBundle = ResourceBundle.getBundle(
             "ru.inversion.fx.form.controls.skin.JInvTextFieldMenu");
     private boolean disposed;
@@ -53,6 +53,10 @@ public class JInvTextFieldButtonSkin extends TextFieldSkin implements ISkinPopul
     public JInvTextFieldButtonSkin(TextField textField) {
         super(textField);
         this.textField = textField;
+        // Для обычного JavaFX TextField сохраняется прежний контракт публичного skin.
+        boolean frameworkField = textField instanceof JInvTextField;
+        listPopulateContextMenu = frameworkField ? null : FXCollections.observableArrayList();
+        textContextMenu = frameworkField ? null : new ContextMenu();
 
         overflowButton = new JInvFEButton();
         overflowButton.setGraphic(
@@ -88,11 +92,13 @@ public class JInvTextFieldButtonSkin extends TextFieldSkin implements ISkinPopul
         registerChangeListener(textField.textProperty(), overflowChanged);
         registerChangeListener(textField.widthProperty(), overflowChanged);
         registerChangeListener(textField.fontProperty(), overflowChanged);
-        textContextMenu.setOnShowing(event -> populateContextMenu(textContextMenu));
-        populateContextMenu(textContextMenu);
-        registerChangeListener(textField.contextMenuProperty(), observable -> installContextMenu());
-        registerChangeListener(textField.onContextMenuRequestedProperty(), observable -> installContextMenu());
-        installContextMenu();
+        if (textContextMenu != null) {
+            textContextMenu.setOnShowing(event -> populateContextMenu(textContextMenu));
+            populateContextMenu(textContextMenu);
+            registerChangeListener(textField.contextMenuProperty(), observable -> installContextMenu());
+            registerChangeListener(textField.onContextMenuRequestedProperty(), observable -> installContextMenu());
+            installContextMenu();
+        }
     }
 
     private void installContextMenu() {
@@ -117,11 +123,13 @@ public class JInvTextFieldButtonSkin extends TextFieldSkin implements ISkinPopul
             return;
         disposed = true;
         TextField area = getSkinnable();
-        textContextMenu.hide();
-        textContextMenu.setOnShowing(null);
-        textContextMenu.getItems().clear();
-        if (area.getContextMenu() == textContextMenu && !area.contextMenuProperty().isBound())
-            area.setContextMenu(null);
+        if (textContextMenu != null) {
+            textContextMenu.hide();
+            textContextMenu.setOnShowing(null);
+            textContextMenu.getItems().clear();
+            if (area.getContextMenu() == textContextMenu && !area.contextMenuProperty().isBound())
+                area.setContextMenu(null);
+        }
         super.dispose();
 
         var innerButton = wrapButton.getInnerButton();
@@ -205,6 +213,10 @@ public class JInvTextFieldButtonSkin extends TextFieldSkin implements ISkinPopul
      * @param contextMenu
      */
     public void populateContextMenu(ContextMenu contextMenu) {
+        if (textField instanceof JInvTextField field) {
+            field.populateContextMenu(contextMenu);
+            return;
+        }
         TextField area = getSkinnable();
         boolean selected = area.getSelection().getLength() > 0;
         contextMenu.getItems().clear();
@@ -238,11 +250,16 @@ public class JInvTextFieldButtonSkin extends TextFieldSkin implements ISkinPopul
     }
 
     public ObservableList<MenuItem> getListItemsToPopulateContextMenu() {
-        return listPopulateContextMenu;
+        return textField instanceof JInvTextField field
+                ? field.getListItemsToPopulateContextMenu() : listPopulateContextMenu;
     }
 
     @Override
     public void onPopulateContextMenu( Consumer<ContextMenu> action ) {
-        onPopulateContextMenu = action;
+        if (textField instanceof JInvTextField field) {
+            field.onPopulateContextMenu(action);
+        } else {
+            onPopulateContextMenu = action;
+        }
     }
 }
