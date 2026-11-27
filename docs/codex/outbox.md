@@ -5232,3 +5232,16 @@ The same real shown dialog fixture passed on baseline and candidate. It verified
 Three fresh focused JVMs and extra instrumented equivalent exited 0/0; original official focused runner 0. Ten scoped modes all 0/0: both menu modes, TextFieldSkinDisposal, TextFields, LovIntegration, ExternalLovReadOnly, CurrencyLovDelayedCompletion, MoneyDecimal, FormLifecycle and TextAreaSkinDisposal. Maven compile, parse and diff check passed. Exact outputs in target/arch-001/matrix.csv and characterize.ps1. Preexisting external subclass compatibility remains UNKNOWN.
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -FEActionDelegation -SettingsFile "D:\Java\.m2\settings.xml"
+
+
+---
+
+## Reply ARCH-002
+
+DONE. Baseline ab771153acc644fbb5586842437b0f0696459906; final ce6b0540216e40b9e0f85617b5e5d837ec194c6f. JInvButton target association is now a final package-private operation using the existing properties map. Association/removal does not configure tooltip, disabled binding or external registration. Legacy public setTextField retains its original branches, null no-op and failure ordering. JInvFEButton, LOV subclass and external FXML idTextField controller association retain legacy entry points. JInvTextField uses the target-only operation for the exact detached built-in inner FE with the ordinary bind flag and explicitly applies the previous configuration/actions. Subclasses, parented external and other configured buttons still use the virtual setter. No new public API, permanent state, per-control manager or tooltip behavior change.
+
+Baseline legacy characterization 0; candidate characterization 0; three fresh focused and additional instrumented 0/0; unchanged original runner 0. Tests cover FXML id and linking, pre-parent/external registration, reassociation/null, bound tooltip identity, bound disable legacy partial failure, controlled target-only attach/detach and readOnly/editability. Nine scoped regressions 0/0: FEActionDelegation, SceneKeyLookup, ExternalLovReadOnly, WrapButtonOwnership, CurrencyLovDelayedCompletion, TextFieldSkinDisposal, TextAreaSkinDisposal, LovIntegration, BoundLovSetter. Compile, parse, diff check passed. Logs target/arch-002.
+
+Warmed reassociation 10,000 times allocated 320,056 FX B (~32 B/map replacement), no new side-state or Tooltip. Existing overflow still creates then discards a Tooltip through legacy configuration; PERF-009 isolated detached Tooltip median 10,669,112 B/400, and PERF-013 showed moving its creation into target configuration erases most expected savings. No new overflow claim under ARCH-002. External application compatibility UNKNOWN.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ButtonTargetAssociation -SettingsFile "D:\Java\.m2\settings.xml"
