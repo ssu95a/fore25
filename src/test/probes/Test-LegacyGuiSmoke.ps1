@@ -44,6 +44,8 @@ param(
     [switch] $TableAdapterClose,
     [Parameter(ParameterSetName = 'TextAreaLovLifecycle')]
     [switch] $TextAreaLovLifecycle,
+    [Parameter(ParameterSetName = 'ButtonTargetAssociation')]
+    [switch] $ButtonTargetAssociation,
     [Parameter(ParameterSetName = 'FEActionDelegation')]
     [switch] $FEActionDelegation,
     [Parameter(ParameterSetName = 'TextAreaContextMenuLifecycle')]
@@ -196,6 +198,9 @@ if ($TextAreaToolbarOwnership) {
 } elseif ($TextAreaLovLifecycle) {
     $probeId = 'CTRL-050'
     $probeClass = 'TextAreaLovLifecycleSmoke'
+} elseif ($ButtonTargetAssociation) {
+    $probeId = 'ARCH-002'
+    $probeClass = 'ru.inversion.fx.form.controls.ButtonTargetAssociationSmoke'
 } elseif ($FEActionDelegation) {
     $probeId = 'ARCH-001'
     $probeClass = 'FEActionDelegationSmoke'

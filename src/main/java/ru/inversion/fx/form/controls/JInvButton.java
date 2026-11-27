@@ -362,7 +362,7 @@ public class JInvButton extends Button implements IJInvControl {
     public void setTextField(TextInputControl ed) {
         if (ed != null) {
 
-            getProperties().put(PROPERTY_TEXTFIELD, ed);
+            associateTextField(ed);
 
             if (getBindBlockFromTextField()) {
                 disableProperty().bind(ed.editableProperty().not());
@@ -386,6 +386,15 @@ public class JInvButton extends Button implements IJInvControl {
                 }
             }
 
+        }
+    }
+
+    // Связь с полем без настройки подсказки, блокировки и внешней кнопки.
+    final void associateTextField(TextInputControl field) {
+        if (field != null) {
+            getProperties().put(PROPERTY_TEXTFIELD, field);
+        } else if (hasProperties()) {
+            getProperties().remove(PROPERTY_TEXTFIELD);
         }
     }
 

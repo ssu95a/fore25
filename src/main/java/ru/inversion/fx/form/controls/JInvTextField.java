@@ -450,10 +450,24 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
         }
         if (getSkin() != null || getSkin() instanceof JInvTextFieldButtonSkin) {
             ((JInvTextFieldButtonSkin) getSkin()).getButton().setInnerButton(button);
-            button.setTextField(this);
+            configureInnerButtonTarget(button);
             button.disableProperty().bind(Bindings.or(readOnlyProperty(),
                     editableProperty().not().and(buttonIgnoresEditableProperty().not())));
         }
+    }
+
+    private void configureInnerButtonTarget(JInvButton button) {
+        if (button.getClass() != JInvFEButton.class || button.getParent() != null
+                || !Boolean.FALSE.equals(button.getBindBlockFromTextField())) {
+            button.setTextField(this);
+            return;
+        }
+        button.associateTextField(this);
+        button.setToolTipText(getButtonToolTipText());
+        if (!getButtonIgnoresEditable()) {
+            button.setDisable(!isEditable());
+        }
+        button.setDisable(false);
     }
 
     /**
