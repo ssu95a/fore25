@@ -5269,3 +5269,16 @@ Maven compile, runner parse, diff check passed. Three fresh focused & extra inst
 Ignored shown prototype target/arch-004/WrapperPlacementAudit.java, javac/JVM 0. At field width 260 the existing wrapper and direct button both measured width 71 in this sample, and both fired the caller handler. However the actual node found by .button_in_textfield changed from JInvWrapButton to JInvButton, the graphic parent changed, the functional button became a direct child, the legacy getButton returned a detached wrapper, the logical CONTROL_PARENT disappeared, and focusTraversable changed false → true. Thus direct placement cannot be adopted under the existing API and CSS contract. Legacy validation/keyboard/native routing beyond observed flags remains unproven in the prototype. No production, persistent state, or allocation delta; no savings credited. PERF-011 measured the actual existing 400 wrappers at 275,200 shallow class bytes, excluding their dependencies. ARCH-003's verified WrapButtonDeferred/Ownership and related regressions remain applicable at this unchanged SHA.
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -WrapButtonOwnership -SettingsFile "D:\Java\.m2\settings.xml"
+
+
+---
+
+## Reply ARCH-005
+
+**BLOCKED / read-only characterization.** Baseline and final b56c650b0772562b8bf8d9645bcfe6f23a46e767. JInvTextAreaSkin currently owns toolbar composition/FE, exact Scene EDIT_EXTERNAL registration and its editor action. JInvTextArea.getToolBar constructs a disconnected ToolBar without the framework skin. The current external-editor worker captures the skin and later reads getSkinnable().getText and calls Controls.setValue on the worker. The source establishes exposure to retired-skin and FX-thread concerns; it does not establish how an admitted late editor result should be handled after detach/replacement or an intervening text edit.
+
+ExternalEditorManager has a private constructor and static singleton. The actual success path writes a temporary file and calls ProcessBuilder.start or Desktop.open, with no supported offline result provider found in the authorized classes. Its public settings facility supplies executable paths, not an in-memory editor substitute. Existing toolbar/Scene tests check exact ownership but do not drive a real in-flight editor completion or original error delivery. No editor process or write outside ignored fixtures, no private injection, no speculative toolbar/worker migration. To complete this slice, authorize a non-process editor-result boundary and decide admission after detach vs skin replacement separately from overwrite policy for intervening text edits. Do not infer cancellation.
+
+Current SHA characteristic regression, all JVM/runner 0/0, no timeout: TextAreaSkinDisposal, TextAreaToolbarOwnership, TextAreaLovLifecycle, TextAreaLovDelayedCompletion, TextAreaContextMenuLifecycle. Commands and outputs at target/arch-005/matrix.csv, from target/perf-014/regression.ps1. No production/API/state/allocation delta. ARCH-006 only depends on the target separation and TextField ownership and remains independent.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextAreaToolbarOwnership -SettingsFile "D:\Java\.m2\settings.xml"
