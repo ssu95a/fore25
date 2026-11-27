@@ -9,7 +9,6 @@ import ru.inversion.fx.form.JInvFEDialog;
 import ru.inversion.icons.IconFactory;
 import ru.inversion.icons.enums.FontAwesome;
 
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 /**
@@ -59,9 +58,7 @@ public class JInvFEButton extends JInvButton {
         public void handle( Event event ) {
             TextInputControl p = getTextField();
             if ( p != null ) {
-                JInvFEDialog dialog = new JInvFEDialog( p, stringConverter );
-                Optional<String> op = dialog.showAndWait();
-                op.ifPresent( p::setText );
+                JInvFEDialog.edit(p, stringConverter);
             }
         }
     }

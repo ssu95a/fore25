@@ -27,6 +27,16 @@ public class JInvFEDialog extends Dialog<String> implements IFormStateListener {
 
     private final StringConverter<String> stringConverter;
 
+    /**
+     * Открывает редактор для указанного поля и применяет результат подтверждения.
+     *
+     * @param target исходное поле
+     * @param converter преобразователь или {@code null}
+     */
+    public static void edit(TextInputControl target, StringConverter<String> converter) {
+        new JInvFEDialog(target, converter).showAndWait().ifPresent(target::setText);
+    }
+
     public JInvFEDialog( TextInputControl textField ) {
         this(textField, null);
     }

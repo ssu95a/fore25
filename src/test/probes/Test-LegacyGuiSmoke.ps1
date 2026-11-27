@@ -44,6 +44,8 @@ param(
     [switch] $TableAdapterClose,
     [Parameter(ParameterSetName = 'TextAreaLovLifecycle')]
     [switch] $TextAreaLovLifecycle,
+    [Parameter(ParameterSetName = 'FEActionDelegation')]
+    [switch] $FEActionDelegation,
     [Parameter(ParameterSetName = 'TextAreaContextMenuLifecycle')]
     [switch] $TextAreaContextMenuLifecycle,
     [Parameter(ParameterSetName = 'TextFieldContextMenuLifecycle')]
@@ -194,6 +196,9 @@ if ($TextAreaToolbarOwnership) {
 } elseif ($TextAreaLovLifecycle) {
     $probeId = 'CTRL-050'
     $probeClass = 'TextAreaLovLifecycleSmoke'
+} elseif ($FEActionDelegation) {
+    $probeId = 'ARCH-001'
+    $probeClass = 'FEActionDelegationSmoke'
 } elseif ($TextAreaContextMenuLifecycle) {
     $probeId = 'PERF-015'
     $probeClass = 'TextAreaContextMenuLifecycleSmoke'

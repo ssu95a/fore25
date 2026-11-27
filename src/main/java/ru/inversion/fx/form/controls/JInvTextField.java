@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import ru.inversion.dataset.fx.DSFXAdapter;
 import ru.inversion.db.entity.RegisterEnum;
 import ru.inversion.fx.app.es.JInvErrorService;
+import ru.inversion.fx.form.JInvFEDialog;
 import ru.inversion.fx.form.LifeCycleStateEnum;
 import ru.inversion.fx.form.ViewContext;
 import ru.inversion.fx.form.action.IAction;
@@ -328,7 +329,7 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
                getInnerButton().get().fire();
             } else {
             //иначе делаем временный
-                new JInvFEButton(this).fire();
+                JInvFEDialog.edit(this, null);
             }
         });
     }
