@@ -3828,3 +3828,100 @@ At N=2000, 480 viewport, 4 text plus mark columns, full refresh allocated 5.418 
 Recommended next experiment: isolate one supported row-only mutation with a stated edit/notification contract, then compare the existing refreshRow route against an observable cell value that reports only that row. Existing refreshRow's lower allocation is useful evidence for that narrow workload; it is not a substitute for full refresh or its event order. No production changes, cache, paint or retained heap claim.
 
 Ignored target/ctrl-096/RefreshTargetAudit.java. Reproduce with javac -cp "target/ctrl-088;target/classes;<deps>" -d target/ctrl-096 target/ctrl-096/RefreshTargetAudit.java and java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-096;target/ctrl-088;target/classes;<deps>" RefreshTargetAudit, deps from target/ctrl-079a/original-dependencies.txt. Java 25.0.1 / FX25. Final javac 0 and native JVM 0; no outer probe runner. Raw attempts and exits preserved.
+
+
+---
+
+## Reply CTRL-097
+
+**DONE / READ-ONLY.** All 53 supported modes (52 named plus Default), including the three new modes, recorded JVM and outer PowerShell exit 0/0 and PASS. No timeout. Maven -Pbuild compile 0, PowerShell parse clean and git diff --check 0.
+
+Assignment a5503f36e34cabe1d2bf2e116a3bc3e9fac610a3. Baseline 3976625111c448f00f07837ca987da7da9a0a1d7, final verified production 60685aad5e7f564dffdf32e3327754ff333b5fc9. Only three fast-forward production commits. CTRL-091 scoped to JInvTextField and JInvTextFieldCUR. CTRL-092 and CTRL-093 scoped to DSFXAdapter. Each adds only its focused smoke and runner mode to tracked tests. CTRL-094…097 left production and tracked tests unchanged.
+
+| Task | Disposition | Evidence |
+| --- | --- | --- |
+| CTRL-091 | DONE | de95eefc66700425f46720f43119c74298adf0d4. Nine stale currency paths plus default ABA guarded; zero stale text/model writes and accepted navigation. Existing epoch reused. |
+| CTRL-092 | DONE | 8914be08e3399bed7fabbb55e016412a03da9e72. Four retired bulk NPE routes eliminated; active success, cancel, error and exact fetch admission checks. |
+| CTRL-093 | DONE | 60685aad5e7f564dffdf32e3327754ff333b5fc9. Four retired search NPE routes and six obsolete predicate calls eliminated. Exact originating listener removal and completed last-swap result retained. |
+| CTRL-094 | DONE / READ-ONLY | A no-consumer miss can show a stale old-owner dialog or throw FX NPE for a detached table. Completed external consumer and genuine pre/post-retirement errors retained. |
+| CTRL-095 | DONE / READ-ONLY | Isolated production marker snapshot is 40 B/read, 15.655 ns median. At 19 reads, about 760 B of the earlier 3.148 MB marked refresh workload. |
+| CTRL-096 | NO_CHANGE / READ-ONLY | Row replacement reduced allocations and cell creation but canceled without restarting the editor. Extractor UPDATE/layout-only left stale snapshot text. No tested replacement for full refresh. |
+| CTRL-097 | Final verification | See status and complete exit matrix. |
+
+For each implemented fix, tracked unchanged-production RED exited 1/1 (JVM/runner) on the intended assertion; three fresh instrumented GREEN JVMs and all scoped regressions exited 0/0, plus an unchanged official runner invocation exited 0. CTRL-091 first candidate compile failure (runner 1, no probe JVM) and CTRL-096 initial diagnostic failure were recorded and preserved. Final regression uses the faithful ignored copy of the final tracked runner with path resolution adjusted and immediate child exit recorded before the existing exit check. Java 25.0.1 / FX 25, Windows PowerShell 5.1, IDEA Maven 3.9.16 offline. Raw output, PID, both exits, timestamps and timeout markers in target/ctrl-097. No opt-in Robot, CTRL-014/034 or CAL-TIME-001. Default is a no-switch invocation. CTRL-079 initial exit incident remains UNKNOWN / NOT_REPRODUCED, with separate prior architect acceptance.
+
+State and allocation delta: CTRL-091 adds no fields or request wrappers. CTRL-092 adds one volatile long per DSFXAdapter and primitive capture in the existing callback. CTRL-093 reuses it, adds no fields, and adds one FX callback in the no-consumer hit route to publish existing cancellation state on FX. No production cache or optimization commits. Retirement changes worker admission, not whether already-entered blocking work may return. No SQL cancellation or rollback guarantee.
+
+Measurements and compatibility: CTRL-095 candidates measured 24 B/read for isolated immutable snapshots and 0 B/read for shared immutable constants. They change writability or identity; no production comparison or retained-memory estimate. CTRL-096 at 2000 rows, 480 viewport, 4 text columns plus mark measured full refresh 5.418 MB / 95 cells / 95 value calls, versus same-item row replacement 0.355 MB / 0 cells / 190 value calls, median per update. Median post-layout 30.439 vs 14.775 ms, with overlapping ranges. Observer delivery, list events, active editor identity and converter behavior prevent substituting one path for the other. Raw ranges and fixture commands in Replies CTRL-095/096. These measurements concern allocation and observable layout, not paint or retained heap.
+
+Independent Windows commands from project root (IDEA Maven bin on PATH; local replay used MAVEN_ARGS=-o).
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -CurrencyLovDelayedCompletion -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterBulkWorkerClose -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterSearchWorkerClose -SettingsFile "D:\Java\.m2\settings.xml"
+    mvn -s "D:\Java\.m2\settings.xml" -Pbuild "-Dmaven.buildNumber.skip=true" compile
+
+Recommended next candidates in order:
+
+1. Fix the reproducible detached-table search miss NPE and retired-owner dialog. Gate only the table-owned no-consumer FX action by the originating attachment and scene/window lifetime. Keep external Consumer delivery and genuine error handling.
+2. Verify Binder ownership in a corporate form with an explicitly shared FXEntity. Require a supported cleanup contract before changing any close/post-bind-failure behavior.
+3. Isolate a supported row-only update with a stated editor and mark notification contract. Test public observable updates for that surface before considering any full-refresh change; the measured allocation difference is large but broad replacement breaks behavior.
+4. Keep marker snapshot optimization low priority. The isolated property cost accounts for about 0.024 percent of the marked refresh measurement.
+
+Local tests do not establish production readiness. Corporate SQL/transaction behavior, real currency lookup, blocking server failure and cancel, actual focus and native input, form MDI/WAIT and real TaskContext remain separately unverified. Stop after CTRL-097.
+
+Final runner matrix. Columns are mode, probe marker, elapsed seconds, native JVM exit, outer PowerShell exit and timeout.
+
+    CurrencyLovDelayedCompletion | CTRL-091 PASS | 9.232 | 0 | 0 | False
+    TableAdapterBulkWorkerClose | CTRL-092 PASS | 10.113 | 0 | 0 | False
+    TableAdapterSearchWorkerClose | CTRL-093 PASS | 9.98 | 0 | 0 | False
+    TableAdapterSearchListener | CTRL-081 PASS | 9.63 | 0 | 0 | False
+    TableEditRowIdentity | CTRL-075 PASS | 9.971 | 0 | 0 | False
+    TableAdapterBulkClose | CTRL-076 PASS | 9.359 | 0 | 0 | False
+    TableAdapterQueuedClose | CTRL-077 PASS | 9.391 | 0 | 0 | False
+    TextFieldLovDelayedCompletion | CTRL-078 PASS | 8.995 | 0 | 0 | False
+    TableEditing | GUI-005 PASS | 9.193 | 0 | 0 | False
+    TableCancel | GUI-006 PASS | 9.21 | 0 | 0 | False
+    EditorReentry | GUI-007 PASS | 9.408 | 0 | 0 | False
+    DataBinding | GUI-009 PASS | 10.696 | 0 | 0 | False
+    TableAdapterClose | CTRL-051 PASS | 8.831 | 0 | 0 | False
+    TableAdapterPagingClose | CTRL-065 PASS | 9.329 | 0 | 0 | False
+    TextAreaLovDelayedCompletion | CTRL-062 PASS | 8.927 | 0 | 0 | False
+    ExternalLovReadOnly | CTRL-061 PASS | 9.134 | 0 | 0 | False
+    LovIntegration | CTRL-031 PASS | 8.718 | 0 | 0 | False
+    BoundLovSetter | CTRL-044 PASS | 8.95 | 0 | 0 | False
+    LovBindingInterleaving | CTRL-045 PASS | 9.216 | 0 | 0 | False
+    MoneyDecimal | NUM-001 PASS (tested invariants) | 9.677 | 0 | 0 | False
+    FormLifecycle | GUI-010 PASS (standalone production FXML/controller and SDI close) | 9.213 | 0 | 0 | False
+    FormCancel | CTRL-022 PASS | 9.75 | 0 | 0 | False
+    SingletonLifecycleMatrix | CTRL-035 PASS | 9.311 | 0 | 0 | False
+    TextAreaToolbarOwnership | CTRL-066 PASS | 9.013 | 0 | 0 | False
+    WrapButtonOwnership | CTRL-055 PASS | 8.704 | 0 | 0 | False
+    TabPaneSkinListeners | CTRL-054 PASS | 8.896 | 0 | 0 | False
+    TextAreaSkinDisposal | CTRL-053 PASS | 9.186 | 0 | 0 | False
+    ValidatorSubchanges | CTRL-052 PASS | 8.756 | 0 | 0 | False
+    TextAreaLovLifecycle | CTRL-050 PASS | 9.511 | 0 | 0 | False
+    TextFieldSkinDisposal | CTRL-049 PASS | 9.244 | 0 | 0 | False
+    WrapButtonDeferred | CTRL-043 PASS | 9.096 | 0 | 0 | False
+    Editors | GUI-004 PASS | 9.958 | 0 | 0 | False
+    SceneKeyLookup | CTRL-024 PASS | 8.67 | 0 | 0 | False
+    LovListenerLifecycle | CTRL-026 PASS | 8.961 | 0 | 0 | False
+    LovDefaultValidation | CTRL-027 PASS | 8.73 | 0 | 0 | False
+    SingletonCloseVeto | CTRL-032 PASS | 8.924 | 0 | 0 | False
+    ValidatorScopedUnbind | CTRL-033 PASS | 8.724 | 0 | 0 | False
+    ValidatorMultiControl | CTRL-036 PASS | 8.942 | 0 | 0 | False
+    TextFields | GUI-012 PASS (tested matrix) | 10.209 | 0 | 0 | False
+    ValueFields | VF-001 PASS | 9.304 | 0 | 0 | False
+    ValueLifecycle | VF-002 PASS (custom listener ownership) | 8.981 | 0 | 0 | False
+    DatePickerBinding | CTRL-002 PASS | 8.962 | 0 | 0 | False
+    NodeTraversal | CTRL-003 PASS | 8.889 | 0 | 0 | False
+    RadioReadOnly | CTRL-006 PASS | 8.969 | 0 | 0 | False
+    ComboReadOnly | CTRL-007 PASS | 15.128 | 0 | 0 | False
+    CheckBoxReadOnly | CTRL-009 PASS | 15.133 | 0 | 0 | False
+    ValueChangedFlag | CTRL-013 PASS | 7.647 | 0 | 0 | False
+    ControlsFollowup | CTRL-CONTROLS-FOLLOWUP PASS | 9.325 | 0 | 0 | False
+    ChoiceAdapter | CTRL-015 PASS | 9.042 | 0 | 0 | False
+    BinderChoiceNull | CTRL-017 PASS | 8.889 | 0 | 0 | False
+    ChoiceNullLookup | CTRL-018 PASS | 8.384 | 0 | 0 | False
+    ChoiceNonNullSet | CTRL-019 PASS | 8.363 | 0 | 0 | False
+    Default | GUI-001 PASS | 9.37 | 0 | 0 | False
