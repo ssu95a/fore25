@@ -3782,3 +3782,49 @@ Retained A/B properties were distinct, and a repeat read of A returned another p
 At 19 factory values per observed refresh, isolated properties contribute about 760 B versus the earlier mark-enabled total 3.148 MB (about 0.024 percent) and about 0.041 percent of the 1.853 MB mark-enabled increase. Saving 16 B per read would remove about 304 B at that viewport. This extrapolates isolated allocations to the observed count; it does not measure retained heap or paint. Rank low. Prioritize renderer/layout reconstruction. Any narrow snapshot follow-up needs evidence about public writable/identity consumers, listener independence and mark/sort/selection parity.
 
 Ignored target/ctrl-095/MarkerFactoryAudit.java and audit streams. Compile with javac -cp "target/ctrl-088;target/classes;<deps>" -d target/ctrl-095 target/ctrl-095/MarkerFactoryAudit.java then java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-095;target/ctrl-088;target/classes;<deps>" MarkerFactoryAudit. Deps from target/ctrl-079a/original-dependencies.txt. javac and JVM exit 0, no runner. No production state/allocation delta.
+
+
+---
+
+## Reply CTRL-096
+
+**NO_CHANGE / READ-ONLY.** Baseline and verified final production 60685aad5e7f564dffdf32e3327754ff333b5fc9. No tracked edits.
+
+Inspected JavaFX 25 TableView.refresh bytecode from the installed jar, and actual JInvTable/DSFXAdapter public refresh paths. Full refresh requests cell recreation; AFTER EXECUTE delivers the adapter refresh in a queued callback. DSFXAdapter.refreshRow uses same-index list replacement plus focus restoration, including for mark notifications. Row UPDATE also queues navigation. A new list, an in-place replacement and a property invalidation expose different list/selection/edit semantics. No private skin/VirtualFlow access.
+
+Shown real JInvTable and DSFXAdapter, in-memory XXIDataSet fixture, 200/2000 loaded rows, 240/480 viewport, 1/4 text columns, marker off/on. Five warmup and nine measured samples per mode and configuration. Measures public post-layout pulse, FX thread allocated bytes and cell/value factories per single update. A value-factory snapshot of a plain string models a source that does not itself notify cells. Compare actual AFTER EXECUTE full refresh, actual refreshRow same-item replacement, a public extractor-generated UPDATE, and requestLayout. Mark is a plain in-memory value through the production factory/renderer. Cursor and selected identity stayed at the original row; measured updates made zero commits. Full data and ranges follow.
+
+    N=200 height=240 C=1 mark=false mode=FULL postlayout-us=11785(9261..15888) FX-bytes=612592(610288..614872) cells=9(9..9) values=9(9..9) pulses=1(1..1) notice=9 text=9/9 marks=9/9
+    N=200 height=240 C=1 mark=false mode=ROW_REPLACE postlayout-us=15075(3355..38415) FX-bytes=57072(57072..529360) cells=0(0..0) values=18(18..18) pulses=1(1..2) notice=0 text=9/9 marks=9/9
+    N=200 height=240 C=1 mark=false mode=EXTRACTOR postlayout-us=15247(14189..30646) FX-bytes=7464(7464..7464) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=200 height=240 C=1 mark=false mode=LAYOUT_ONLY postlayout-us=14411(13586..14986) FX-bytes=968(968..968) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=240 C=1 mark=false mode=FULL postlayout-us=10168(8829..12753) FX-bytes=610680(608376..619000) cells=9(9..9) values=9(9..9) pulses=1(1..1) notice=9 text=9/9 marks=9/9
+    N=2000 height=240 C=1 mark=false mode=ROW_REPLACE postlayout-us=6616(3195..18035) FX-bytes=54896(54896..56168) cells=0(0..0) values=18(18..18) pulses=1(1..1) notice=0 text=9/9 marks=9/9
+    N=2000 height=240 C=1 mark=false mode=EXTRACTOR postlayout-us=14995(14722..15581) FX-bytes=7464(7464..7464) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=240 C=1 mark=false mode=LAYOUT_ONLY postlayout-us=15259(14819..15546) FX-bytes=968(968..968) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=480 C=1 mark=false mode=FULL postlayout-us=16251(13139..35795) FX-bytes=1284160(1282720..1291344) cells=19(19..19) values=19(19..19) pulses=1(1..1) notice=9 text=9/9 marks=9/9
+    N=2000 height=480 C=1 mark=false mode=ROW_REPLACE postlayout-us=9076(7812..23346) FX-bytes=92016(92016..92328) cells=0(0..0) values=38(38..38) pulses=1(1..1) notice=0 text=9/9 marks=9/9
+    N=2000 height=480 C=1 mark=false mode=EXTRACTOR postlayout-us=14861(12986..16565) FX-bytes=8424(8424..8424) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=480 C=1 mark=false mode=LAYOUT_ONLY postlayout-us=14454(13365..15716) FX-bytes=968(968..968) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=480 C=4 mark=false mode=FULL postlayout-us=14945(12295..18182) FX-bytes=3550232(3545416..3600928) cells=76(76..76) values=76(76..76) pulses=1(1..1) notice=9 text=9/9 marks=9/9
+    N=2000 height=480 C=4 mark=false mode=ROW_REPLACE postlayout-us=6555(4990..35744) FX-bytes=269672(269672..270544) cells=0(0..0) values=152(152..152) pulses=1(1..2) notice=0 text=9/9 marks=9/9
+    N=2000 height=480 C=4 mark=false mode=EXTRACTOR postlayout-us=15290(14592..16019) FX-bytes=8424(8424..8424) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=480 C=4 mark=false mode=LAYOUT_ONLY postlayout-us=15444(13850..16383) FX-bytes=968(968..968) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=9/9
+    N=2000 height=480 C=4 mark=true mode=FULL postlayout-us=30439(19872..35586) FX-bytes=5417888(5414696..5440816) cells=95(95..95) values=95(95..95) pulses=1(1..1) notice=9 text=9/9 marks=9/9
+    N=2000 height=480 C=4 mark=true mode=ROW_REPLACE postlayout-us=14775(8435..28395) FX-bytes=354856(354856..355640) cells=0(0..0) values=190(190..190) pulses=1(1..1) notice=0 text=9/9 marks=9/9
+    N=2000 height=480 C=4 mark=true mode=EXTRACTOR postlayout-us=14883(13327..15340) FX-bytes=8424(7512..8424) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=5/9
+    N=2000 height=480 C=4 mark=true mode=LAYOUT_ONLY postlayout-us=14498(13770..15198) FX-bytes=968(968..968) cells=0(0..0) values=0(0..0) pulses=1(1..1) notice=0 text=0/9 marks=5/9
+    editor validation FULL preexistingCommits=0 rejectedCommitDelta=0 errors=[java.lang.IllegalArgumentException: invalid draft]
+    editor FULL draft=row-0 starts=2 cancels=1 validation=3 rejection=1 commits=1 staleWrite=false listSignals=[REPLACE]
+    editor validation ROW_REPLACE preexistingCommits=0 rejectedCommitDelta=0 errors=[java.lang.IllegalArgumentException: invalid draft]
+    editor ROW_REPLACE draft=no-editor starts=1 cancels=1 validation=2 rejection=1 commits=1 staleWrite=false listSignals=[REPLACE, REPLACE, REPLACE]
+    editor validation EXTRACTOR preexistingCommits=0 rejectedCommitDelta=0 errors=[java.lang.IllegalArgumentException: invalid draft]
+    editor EXTRACTOR draft=no-editor starts=1 cancels=1 validation=2 rejection=1 commits=1 staleWrite=false listSignals=[UPDATE, REPLACE, UPDATE]
+    editor validation LAYOUT_ONLY preexistingCommits=0 rejectedCommitDelta=0 errors=[java.lang.IllegalArgumentException: invalid draft]
+    editor LAYOUT_ONLY draft=draft starts=1 cancels=0 validation=2 rejection=1 commits=1 staleWrite=false listSignals=[REPLACE]
+
+At N=2000, 480 viewport, 4 text plus mark columns, full refresh allocated 5.418 MB median and created 95 cells. Row replacement allocated 0.355 MB, created zero cells and read 190 values, with correct target text and mark in 9/9; post-layout time was 30.439 ms versus 14.775 ms with overlapping ranges. Replacement emitted observable REPLACE and canceled the active draft without a replacement editor; full refresh canceled/restarted, showing model text in a new editor. Extractor UPDATE also canceled without a replacement editor and did not refresh the plain text snapshot (0/9). RequestLayout retained the draft but did not update snapshot text (0/9). The targeted paths did not deliver the AFTER EXECUTE refresh observer call. No equivalence for full refresh. Actual edit identity probe reopened a missing editor before testing rejected F8 (one original exception, zero commits), valid F8 (one commit) and armed same-index equal-valued distinct replacement (zero stale writes) in each mode. Counts are converter checks, not a full business validator matrix. Earlier diagnostic attempt exit 1 on a candidate because its generic text-field lookup selected a non-editor; its raw result is preserved. Final fixture identifies the actual editing TableCell graphic. CTRL-089 remains the navigation/refresh interleaving evidence.
+
+Recommended next experiment: isolate one supported row-only mutation with a stated edit/notification contract, then compare the existing refreshRow route against an observable cell value that reports only that row. Existing refreshRow's lower allocation is useful evidence for that narrow workload; it is not a substitute for full refresh or its event order. No production changes, cache, paint or retained heap claim.
+
+Ignored target/ctrl-096/RefreshTargetAudit.java. Reproduce with javac -cp "target/ctrl-088;target/classes;<deps>" -d target/ctrl-096 target/ctrl-096/RefreshTargetAudit.java and java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-096;target/ctrl-088;target/classes;<deps>" RefreshTargetAudit, deps from target/ctrl-079a/original-dependencies.txt. Java 25.0.1 / FX25. Final javac 0 and native JVM 0; no outer probe runner. Raw attempts and exits preserved.
