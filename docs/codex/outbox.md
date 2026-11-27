@@ -4100,3 +4100,100 @@ Java 25.0.1/FX25, five warmup and nine measured launches per size. FX-thread Thr
 Largest 400-field allocation phases were FXML through initialization (99.05 MB), controller-init entry through shown (71.55 MB including binding/configuration and initial skin/CSS work), then shown through first layout (10.00 MB). Total 180.76 MB and 704.841 ms median. Inside the second interval, Binder excluding labels 2.65 MB, config 0.244 MB and label matching 0.193 MB. Do not add overlapping intervals. Source identifies persistent per-field RequiredState, several properties, and skin-owned ContextMenu, wrapper and overflow button, plus initially lazy LOV listener. Counts are not retained heap or per-class allocation. Smallest next experiment: compare equivalent stock versus framework field construction and instrument constructor versus first CSS/skin installation in the same novel one-control fixture; use an allocation profiler if attributing classes. Keep CTRL-086/087 rejected traversal/key indexing out of scope. Consider bind-side profiling only after those larger costs are understood. No GC-based leak conclusion.
 
 Ignored target/ctrl-102/FormStartupAudit.java and generated startup-N.fxml. javac -cp "target/ctrl-084;target/classes;<deps>" -d target/ctrl-102 target/ctrl-102/FormStartupAudit.java; java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-102;target/ctrl-084;target/classes;<deps>" FormStartupAudit 20 100; repeat with -Xmx2048m and argument 400. Deps from target/ctrl-079a/original-dependencies.txt. Final compile and direct native JVM exits 0, no probe runner. Preserved earlier fixture failures: ignored private FXML hook because controller implements Initializable, unsupported custom column preference naming/offline DB preference persistence, and 1 GiB heap exhaustion while the measurement history held closed controller graphs. Corrected fixture records only phase maps and uses offline preference saver. These failures do not establish application retention. Production state and allocation unchanged.
+
+
+---
+
+## Reply CTRL-103
+
+**DONE / READ-ONLY.** All 54 supported modes (53 named plus Default) recorded JVM and outer PowerShell exit 0/0 and PASS. No timeout. Maven -Pbuild compile 0, PowerShell parse clean, git diff --check 0.
+
+Assignment e41b3f45acb4f62800f521e0295bd4b5e314edde. Baseline 60685aad5e7f564dffdf32e3327754ff333b5fc9, final verified production df95a931230b57e87e7bef4bfba6267c3e9a395d. One isolated fast-forward production fix, DSFXAdapter only, plus focused smoke and official runner mapping. CTRL-099…103 left production and tracked tests unchanged. No force push or dependency changes.
+
+| Task | Disposition | Verified result |
+| --- | --- | --- |
+| CTRL-098 | DONE | df95a931230b57e87e7bef4bfba6267c3e9a395d. Retired/no-scene/no-window/reparented/hidden search miss paths suppressed only for table-owned dialog. Active original-owner alert, external Consumer and genuine Throwable routing retained. RED 1/1, three fresh GREEN 0/0, unchanged official runner exit 0 and all six scoped regressions 0/0. |
+| CTRL-099 | DONE / READ-ONLY | Deferred refreshRow still emits after retirement, and can refresh a new same-index occupant after replace/remove/permutation. Zero model writes in these tests. Actual single marker path and genuine row UPDATE already targeted; no qualifying row-only full refresh caller. |
+| CTRL-100 | NO_CHANGE | Repeated cheaper row replacement differs in refresh delivery, list event and active edit lifecycle. No equivalent supported substitution or eligible caller. |
+| CTRL-101 | DONE / READ-ONLY | Single mark targeted, actual parallel bulk mark does full refresh. Two close timings each gave a stale refresh. A detached-table bulk error lost original routing to an FX NPE; active original error identity and dialog retained. |
+| CTRL-102 | DONE / READ-ONLY | Shown synthetic 20/100/400-field SDI FXML/Binder forms, post-layout and close/veto/reopen checked. Dominant phases were FXML, controller entry through shown, and first layout. No retained heap claim. |
+| CTRL-103 | Final verification | See status and matrix below. |
+
+CTRL-098 guards after FX cancellation-state publication. It adds no persistent state or wrapper allocation, only the launch Stage capture in existing closures. No transaction, generic progress/error or independent Consumer contract changes. Original RED and the first incomplete implementation attempt with unchanged visible failure are saved. CTRL-102 early fixture failures and harness memory pressure are preserved, then corrected in the ignored measurement fixture. None of these were dropped from the evidence. CTRL-079's original incident remains UNKNOWN / NOT_REPRODUCED; prior acceptance is separate.
+
+Selected absolute measurements (full ranges and reproducibility in individual replies):
+
+- CTRL-100 largest case (2000 rows, 480 viewport, four text columns plus mark): full refresh median 5,423,176 B and 28,621 µs, 95 cells; replacement median 358,600 B and 15,128 µs, zero cells, but edit/notification semantics differ. No production savings claimed.
+- CTRL-101 (2000, 480, one text plus mark): single mark 169,144 B (166,816–169,832) and 15,671 µs (12,737–17,367), zero cells. Bulk mark 3,150,568 B (3,147,536–3,169,312) and 14,927 µs (10,268–18,241), 38 recreated cells, one full refresh, 2000 in-memory logical writes. No corporate bulk row notification claim.
+- CTRL-102 first post-layout: 20 fields 323,134 µs and 12,898,048 B median; 100 fields 417,710 µs and 48,191,592 B; 400 fields 704,841 µs and 180,762,936 B. Different heap settings for the large fixture; timings are not a controlled scaling ratio. FX allocated bytes and post-layout, not retained bytes or paint.
+
+Recommended next candidates in order:
+
+1. Scope bulk mark worker and delivery ownership, including a genuine error after detachment. Preserve admitted operations and original error identity while guarding table-owned refresh; agree on error dialog ownership before editing.
+2. Scope deferred refreshRow retirement and mark event identity separately. Prove original event/row identity or documented index ownership, with replace/remove/permutation and late list-observer assertions.
+3. Split FXML construction, framework control construction and first skin/CSS installation in a matched offline form workload. Profile classes only after establishing exact phase costs.
+4. Prove a narrow supported row-only visual invalidation contract before optimizing. Full refresh and AFTER EXECUTE remain as they are.
+
+Independent Windows rerun from project root with IDEA Maven on PATH. This machine used MAVEN_ARGS=-o and its corporate cache.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterSearchMissDelivery -SettingsFile "D:\Java\.m2\settings.xml"
+    mvn -s "D:\Java\.m2\settings.xml" -Pbuild "-Dmaven.buildNumber.skip=true" compile
+
+Final regression uses a faithful diagnostic copy of the tracked runner, with path adjustments and immediate child exit recording before the original exit check; probes/arguments unchanged. Raw stdout/stderr, PID, timestamps, exits and timeout evidence in target/ctrl-103/matrix.csv and accompanying files. Java 25.0.1 / FX25, Windows PowerShell 5.1 and Maven 3.9.16. No opt-in Robot or unresolved CTRL-014/034/CAL-TIME-001. Default is the no-switch invocation. Local correctness is limited to tested paths; corporate SQL/transactions, real TaskContext/currency lookup, actual native input/focus and MDI/WAIT remain unverified. Stop after CTRL-103.
+
+Final matrix. Mode, probe marker, wall seconds, JVM exit, outer PowerShell exit, timeout.
+
+    TableAdapterSearchMissDelivery | CTRL-098 PASS | 14.318 | 0 | 0 | False
+    CurrencyLovDelayedCompletion | CTRL-091 PASS | 11.757 | 0 | 0 | False
+    TableAdapterBulkWorkerClose | CTRL-092 PASS | 15.359 | 0 | 0 | False
+    TableAdapterSearchWorkerClose | CTRL-093 PASS | 15.098 | 0 | 0 | False
+    TableAdapterSearchListener | CTRL-081 PASS | 12.315 | 0 | 0 | False
+    TableEditRowIdentity | CTRL-075 PASS | 12.736 | 0 | 0 | False
+    TableAdapterBulkClose | CTRL-076 PASS | 11.381 | 0 | 0 | False
+    TableAdapterQueuedClose | CTRL-077 PASS | 13.631 | 0 | 0 | False
+    TextFieldLovDelayedCompletion | CTRL-078 PASS | 10.804 | 0 | 0 | False
+    TableEditing | GUI-005 PASS | 9.827 | 0 | 0 | False
+    TableCancel | GUI-006 PASS | 10.385 | 0 | 0 | False
+    EditorReentry | GUI-007 PASS | 11.167 | 0 | 0 | False
+    DataBinding | GUI-009 PASS | 10.804 | 0 | 0 | False
+    TableAdapterClose | CTRL-051 PASS | 10.83 | 0 | 0 | False
+    TableAdapterPagingClose | CTRL-065 PASS | 10.665 | 0 | 0 | False
+    TextAreaLovDelayedCompletion | CTRL-062 PASS | 10.46 | 0 | 0 | False
+    ExternalLovReadOnly | CTRL-061 PASS | 11.373 | 0 | 0 | False
+    LovIntegration | CTRL-031 PASS | 10.774 | 0 | 0 | False
+    BoundLovSetter | CTRL-044 PASS | 10.447 | 0 | 0 | False
+    LovBindingInterleaving | CTRL-045 PASS | 11.142 | 0 | 0 | False
+    MoneyDecimal | NUM-001 PASS (tested invariants) | 14.579 | 0 | 0 | False
+    FormLifecycle | GUI-010 PASS (standalone production FXML/controller and SDI close) | 12.234 | 0 | 0 | False
+    FormCancel | CTRL-022 PASS | 15.382 | 0 | 0 | False
+    SingletonLifecycleMatrix | CTRL-035 PASS | 13.112 | 0 | 0 | False
+    TextAreaToolbarOwnership | CTRL-066 PASS | 17.628 | 0 | 0 | False
+    WrapButtonOwnership | CTRL-055 PASS | 15.3 | 0 | 0 | False
+    TabPaneSkinListeners | CTRL-054 PASS | 10.775 | 0 | 0 | False
+    TextAreaSkinDisposal | CTRL-053 PASS | 10.492 | 0 | 0 | False
+    ValidatorSubchanges | CTRL-052 PASS | 9.762 | 0 | 0 | False
+    TextAreaLovLifecycle | CTRL-050 PASS | 10.334 | 0 | 0 | False
+    TextFieldSkinDisposal | CTRL-049 PASS | 11.365 | 0 | 0 | False
+    WrapButtonDeferred | CTRL-043 PASS | 11.296 | 0 | 0 | False
+    Editors | GUI-004 PASS | 15.307 | 0 | 0 | False
+    SceneKeyLookup | CTRL-024 PASS | 9.982 | 0 | 0 | False
+    LovListenerLifecycle | CTRL-026 PASS | 15.714 | 0 | 0 | False
+    LovDefaultValidation | CTRL-027 PASS | 12.388 | 0 | 0 | False
+    SingletonCloseVeto | CTRL-032 PASS | 13.542 | 0 | 0 | False
+    ValidatorScopedUnbind | CTRL-033 PASS | 10.304 | 0 | 0 | False
+    ValidatorMultiControl | CTRL-036 PASS | 10.251 | 0 | 0 | False
+    TextFields | GUI-012 PASS (tested matrix) | 10.972 | 0 | 0 | False
+    ValueFields | VF-001 PASS | 11.078 | 0 | 0 | False
+    ValueLifecycle | VF-002 PASS (custom listener ownership) | 10.548 | 0 | 0 | False
+    DatePickerBinding | CTRL-002 PASS | 10.196 | 0 | 0 | False
+    NodeTraversal | CTRL-003 PASS | 10.255 | 0 | 0 | False
+    RadioReadOnly | CTRL-006 PASS | 12.316 | 0 | 0 | False
+    ComboReadOnly | CTRL-007 PASS | 17.671 | 0 | 0 | False
+    CheckBoxReadOnly | CTRL-009 PASS | 16.899 | 0 | 0 | False
+    ValueChangedFlag | CTRL-013 PASS | 8.703 | 0 | 0 | False
+    ControlsFollowup | CTRL-CONTROLS-FOLLOWUP PASS | 10.311 | 0 | 0 | False
+    ChoiceAdapter | CTRL-015 PASS | 9.786 | 0 | 0 | False
+    BinderChoiceNull | CTRL-017 PASS | 10.45 | 0 | 0 | False
+    ChoiceNullLookup | CTRL-018 PASS | 10.583 | 0 | 0 | False
+    ChoiceNonNullSet | CTRL-019 PASS | 9.991 | 0 | 0 | False
+    Default | GUI-001 PASS | 11.338 | 0 | 0 | False
