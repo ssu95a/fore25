@@ -3602,3 +3602,97 @@ With active editor draft, interleaved cursor 1, AFTER EXECUTE, cursor 2 and two 
     edit interleave=[cursor:1, notify:true, cursor:2, notify:true, notify:true, selected:1, refresh:editing=true, selected:2, refresh:editing=true, refresh:editing=true] edits=2 cancels=1 commits=0 writes=0 selected=2 cursor=2 active=true sample=Sample[queueNanos=9891900, wallNanos=21292400, bytes=1915976, refresh=3, cells=9, values=10, pulses=1, needsLayout=false]
 
 Ignored target/ctrl-089/RefreshPulseAudit.java, audit.stdout/stderr and exit.txt. javac -cp "target/classes;<deps>" -d target/ctrl-089 target/ctrl-089/RefreshPulseAudit.java, then java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-089;target/classes;<deps>" RefreshPulseAudit, deps from target/ctrl-079a/original-dependencies.txt. Compile 0 and direct JVM 0, no outer probe runner or timeout. No production state/allocation changes.
+
+
+---
+
+## Reply CTRL-090
+
+**DONE / READ-ONLY.** All 50 supported modes (49 named plus Default) reached their PASS marker and recorded immediate JVM and outer PowerShell exits 0/0. No timeout. Maven -Pbuild compile 0, PowerShell parse clean, git diff --check 0.
+
+Batch baseline 70b139ed54d00c46b4c2ae597535d82ddbe5a2ab. Final verified production 3976625111c448f00f07837ca987da7da9a0a1d7. The only production edits in the fast-forward chain were JInvTextFieldTableCell in CTRL-080 and DSFXAdapter in CTRL-081, with their focused probe and runner changes. Clean tracked checkout and remote refs verified before publishing. The Java 25.0.1 / FX 25 Windows matrix used the scope-preserving diagnostic runner copy, with separate stdout/stderr, timestamp, PID, timeout and signed/hex child code in target/ctrl-090/matrix.csv. Original tracked probe assertions and Java invocation were used. No opt-in Robot or unresolved CTRL-014/034/CAL-TIME-001 tasks. Default omits the mode switch. CTRL-079 and CTRL-079A were not repeated.
+
+| Task | Disposition | Verified result |
+| --- | --- | --- |
+| CTRL-079 | Accepted gate via CTRL-079A | Architect accepted 49/49 actual child/runner pairs. The initial SceneKeyLookup exit 1 remains UNKNOWN / NOT_REPRODUCED. |
+| CTRL-080 | DONE | 85a4b1f8aeef5558e32430da1f6e2c7061f42cb8. Rejected conversion leaves zero commit/write, clears edit state, preserves original exception, valid reentry commits once. RED 1/1; GREEN 0/0 ×3. |
+| CTRL-081 | DONE | 3976625111c448f00f07837ca987da7da9a0a1d7. Four owned registrations and four identical removals on GREEN; zero stale predicate calls. Original controlled error and independent listener preserved. RED 1/1 after explicit fixture pool teardown; GREEN 0/0 ×3. Initial fixture timeout and thread dump retained. |
+| CTRL-082 | DONE / READ-ONLY | Three obsolete bulk worker NPE dialogs after close; no retired selection, cursor writes or navigation reattachment. Controlled cancellation/error scenarios recorded. |
+| CTRL-083 | BLOCKED / READ-ONLY | Nine stale currency writes confirmed in direct/F9/button routes. Existing attachment epoch is private; safe reuse requires a separately scoped base-class contract. |
+| CTRL-084 | DONE / READ-ONLY | Bidirectional converter binding survives normal SDI close with intentionally held external entity/control; confirmed explicit selective unlink. |
+| CTRL-085 | DONE / READ-ONLY | Binding also survives real post-bind initialization failure; original error callback, cleanup, and singleton reopen observed. |
+| CTRL-086 | NO_CHANGE | Shared traversal buffer failed equivalence with controller graph mutation and increased allocated bytes. |
+| CTRL-087 | NO_CHANGE | Label index failed exact label identity when a setter changed a later key. |
+| CTRL-088 | DONE / READ-ONLY | Refresh/layout created 981–2052 text cells and equal mark cells when enabled per 108 operations; steady first-row reentry created zero further editors. |
+| CTRL-089 | DONE / READ-ONLY | 1/3/10/100 refresh deliveries stayed observable; same-turn burst produced one observed layout pulse and 9/19 reconstructed cells. |
+| CTRL-090 | Final verification | See matrix and outcome above. |
+
+Production state delta: zero additional persistent fields or eager objects across both fixes. Their normal paths introduce no new application object allocation. No performance change was published. CTRL-086 traversal-only at 480 groups measured 386.160 → 204.061 µs median and 13,544 → 28,568 B. CTRL-087 at 400 labels/fields measured 1059.158 → 200.367 µs and 104,312 → 47,208 B, but selected a different label in the mutation case. CTRL-088 at N=2000, 19 visible rows, scroll-refresh medians were 2.052/4.247 ms and 1.30/3.15 MB with mark disabled/enabled. CTRL-089 queue medians were 0.094–0.156 ms for a single event, 3.072–4.101 ms for 100, and 14.819–16.187 ms to post-layout across the matrix. Per-size ranges, workload counts and reproducible ignored fixtures are in Replies CTRL-086…089. Bytes count FX-thread allocations, not retained heap. Post-layout observation does not measure paint.
+
+Independent Windows rerun from project root. Put IDEA Maven 3.9.16 on PATH; this machine used MAVEN_ARGS=-o and the corporate Maven settings. The official runner is given here; the recorded matrix used its diagnostic copy.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableEditRowIdentity -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterSearchListener -SettingsFile "D:\Java\.m2\settings.xml"
+    mvn -s "D:\Java\.m2\settings.xml" -Pbuild "-Dmaven.buildNumber.skip=true" compile
+
+Recommended next scoped work, in order:
+
+1. Currency LOV attachment identity, highest confirmed model risk. Authorize a minimal base attachment check reusable by JInvTextFieldCUR and RED/GREEN the nine stale write paths, including ABA.
+2. Bulk worker lifetime after close. Separate already-entered fetch from subsequent obsolete access and stale error delivery; verify ordering and unchanged cancellation/selection semantics.
+3. Establish supported Binder ownership with a real corporate caller sharing an FXEntity. Test successful close and post-bind failure before deciding any targeted unlink contract.
+4. Measure refresh-induced cell reconstruction independently of notifications and mark-property allocation. Preserve cursor/selection order, edits and marker semantics before considering optimization.
+
+Local regression and fixture results are evidence for the tested paths; independent acceptance and corporate SQL/transaction semantics, SDI forms with real TaskContext, MDI/WAIT, native input and actual focus/paint remain unverified. The original CTRL-079 exit cause remains unknown. Stop after CTRL-090.
+
+Final CTRL-090 runner matrix. Columns are mode, probe output, elapsed seconds, JVM exit, runner exit and timeout.
+
+    TableAdapterSearchListener | CTRL-081 PASS | 11.548 | 0 | 0 | False
+    TableEditRowIdentity | CTRL-075 PASS | 9.597 | 0 | 0 | False
+    TableAdapterBulkClose | CTRL-076 PASS | 9.346 | 0 | 0 | False
+    TableAdapterQueuedClose | CTRL-077 PASS | 9.228 | 0 | 0 | False
+    TextFieldLovDelayedCompletion | CTRL-078 PASS | 8.972 | 0 | 0 | False
+    TableEditing | GUI-005 PASS | 8.983 | 0 | 0 | False
+    TableCancel | GUI-006 PASS | 8.927 | 0 | 0 | False
+    EditorReentry | GUI-007 PASS | 9.099 | 0 | 0 | False
+    DataBinding | GUI-009 PASS | 9.619 | 0 | 0 | False
+    TableAdapterClose | CTRL-051 PASS | 8.675 | 0 | 0 | False
+    TableAdapterPagingClose | CTRL-065 PASS | 8.944 | 0 | 0 | False
+    TextAreaLovDelayedCompletion | CTRL-062 PASS | 8.753 | 0 | 0 | False
+    ExternalLovReadOnly | CTRL-061 PASS | 9.004 | 0 | 0 | False
+    LovIntegration | CTRL-031 PASS | 8.723 | 0 | 0 | False
+    LovDefaultValidation | CTRL-027 PASS | 8.6 | 0 | 0 | False
+    TextAreaLovLifecycle | CTRL-050 PASS | 8.977 | 0 | 0 | False
+    NodeTraversal | CTRL-003 PASS | 8.65 | 0 | 0 | False
+    FormLifecycle | GUI-010 PASS (standalone production FXML/controller and SDI close) | 9.232 | 0 | 0 | False
+    FormCancel | CTRL-022 PASS | 9.588 | 0 | 0 | False
+    SingletonLifecycleMatrix | CTRL-035 PASS | 9.245 | 0 | 0 | False
+    MoneyDecimal | NUM-001 PASS (tested invariants) | 9.848 | 0 | 0 | False
+    TextAreaToolbarOwnership | CTRL-066 PASS | 8.764 | 0 | 0 | False
+    WrapButtonOwnership | CTRL-055 PASS | 8.362 | 0 | 0 | False
+    TabPaneSkinListeners | CTRL-054 PASS | 8.506 | 0 | 0 | False
+    TextAreaSkinDisposal | CTRL-053 PASS | 8.785 | 0 | 0 | False
+    ValidatorSubchanges | CTRL-052 PASS | 8.26 | 0 | 0 | False
+    TextFieldSkinDisposal | CTRL-049 PASS | 8.828 | 0 | 0 | False
+    LovBindingInterleaving | CTRL-045 PASS | 8.925 | 0 | 0 | False
+    BoundLovSetter | CTRL-044 PASS | 8.558 | 0 | 0 | False
+    WrapButtonDeferred | CTRL-043 PASS | 8.628 | 0 | 0 | False
+    Editors | GUI-004 PASS | 8.821 | 0 | 0 | False
+    SceneKeyLookup | CTRL-024 PASS | 8.155 | 0 | 0 | False
+    LovListenerLifecycle | CTRL-026 PASS | 8.664 | 0 | 0 | False
+    SingletonCloseVeto | CTRL-032 PASS | 8.829 | 0 | 0 | False
+    ValidatorScopedUnbind | CTRL-033 PASS | 8.297 | 0 | 0 | False
+    ValidatorMultiControl | CTRL-036 PASS | 8.676 | 0 | 0 | False
+    TextFields | GUI-012 PASS (tested matrix) | 9.448 | 0 | 0 | False
+    ValueFields | VF-001 PASS | 8.922 | 0 | 0 | False
+    ValueLifecycle | VF-002 PASS (custom listener ownership) | 8.638 | 0 | 0 | False
+    DatePickerBinding | CTRL-002 PASS | 8.452 | 0 | 0 | False
+    RadioReadOnly | CTRL-006 PASS | 8.393 | 0 | 0 | False
+    ComboReadOnly | CTRL-007 PASS | 14.437 | 0 | 0 | False
+    CheckBoxReadOnly | CTRL-009 PASS | 14.48 | 0 | 0 | False
+    ValueChangedFlag | CTRL-013 PASS | 7.136 | 0 | 0 | False
+    ControlsFollowup | CTRL-CONTROLS-FOLLOWUP PASS | 8.378 | 0 | 0 | False
+    ChoiceAdapter | CTRL-015 PASS | 8.248 | 0 | 0 | False
+    BinderChoiceNull | CTRL-017 PASS | 8.541 | 0 | 0 | False
+    ChoiceNullLookup | CTRL-018 PASS | 8.022 | 0 | 0 | False
+    ChoiceNonNullSet | CTRL-019 PASS | 8.122 | 0 | 0 | False
+    Default | GUI-001 PASS | 8.926 | 0 | 0 | False
