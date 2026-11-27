@@ -1365,16 +1365,22 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     }
 
     /** Обновление записи */
-    public void refreshRow( int index ) {
-        Platform.runLater( ()->
-            {
-                if( index >= 0 && index < getTable().getItems().size() ) {
-                    int focused = getTable().getSelectionModel().getFocusedIndex();
-                    getTable().getItems().set( index, getTable().getItems().get(index) );
-                    getTable().getSelectionModel().focus(focused);
-                }
+    public void refreshRow(int index) {
+        var attachment = dataSet;
+        long revision = workerAttachmentRevision;
+        if (attachment == null) return;
+        Platform.runLater(() -> {
+            if (workerAttachmentRevision != revision || dataSet != attachment) return;
+            var table = getTable();
+            var items = table.getItems();
+            if (index >= 0 && index < items.size()) {
+                int focused = table.getSelectionModel().getFocusedIndex();
+                items.set(index, items.get(index));
+                // Слушатель списка может синхронно снять привязку.
+                if (workerAttachmentRevision == revision && dataSet == attachment)
+                    table.getSelectionModel().focus(focused);
             }
-        );
+        });
     }
 
     /** Позиционирование текущей записи */
