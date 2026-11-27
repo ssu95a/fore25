@@ -4756,3 +4756,109 @@ Final runner is a faithful diagnostic copy with path adjustments and direct nati
 | BinderChoiceNull | 0 | 0 | PASS |
 | ChoiceNullLookup | 0 | 0 | PASS |
 | ChoiceNonNullSet | 0 | 0 | PASS |
+
+
+---
+
+## Reply PERF-013
+
+**NO_CHANGE.** Assignment 5ec7e853226e46ecde46da84a481cee5106f65d9. Baseline and final production 0982d2112b8f8020d16f917adaab77caee29005d. The behavior-correct candidate with the approved constructor was evaluated locally. It saves 0.50–1.05% of median shown-lifecycle FX allocations across the tested workloads and leaves one discarded Tooltip per overflow button. This is substantially below the 12.28 MB/400 decoration-only estimate and does not qualify for publication under the assignment. Production API, class layout, tracked probes and per-instance state remain unchanged.
+
+### Compatibility and the remaining allocation
+
+The first candidate passed the final SMALL colored ellipsis and null as approved. The focused test detected an immediately exposed non-null Tooltip (candidate JVM 1, saved). JInvFEButton.setTextField delegates to JInvButton.setTextField, which copies JInvTextField.getButtonToolTipText() through setToolTipText. Its default is the empty string; a non-null value creates a Tooltip if the button has none. The legacy preinstalled Tooltip was reused there and subsequently cleared. Keeping the skin's final setTooltip(null) restored equivalent behavior, but merely moved the one Tooltip allocation from construction to target assignment. Avoiding this call path without changing target/tooltip behavior would require a separately scoped internal target-attachment option. Existing public setters and tooltip contracts were preserved in the tested candidate. No new fields, caches or persistent objects.
+
+The matched fixture passed on the baseline (with only the new-constructor assertions omitted) and the corrected candidate, both javac/JVM/outer script 0. Real JInvFEDialog stages had the correct owner, editor and target. Programmatic window dismissal discarded a modified draft; OK applied exactly one converted result, isolated from the sentinel field. Read-only opened a non-editable editor and did not write. Legacy defaults, FXML no-arg, custom identities and explicit null, exact overflow class, graphic, initial lookup and child order, currency construction, short/long/short, width and font, external button suppression, internal LOV and synthetic F9, custom menu action, legacy fallback and skin disposal/replacement passed. Initial expanded baseline fixture JVM 1 checked the wrapper before its documented deferred binding; corrected using the FX event-queue barrier. These two failed attempts are preserved. Native window/input, corporate SQL, physical focus, and retained memory were outside these checks.
+
+### Measurements
+
+From repo root, powershell.exe -NoProfile -ExecutionPolicy Bypass -File target/perf-013/benchmark.ps1 baseline (and candidate). Baseline classes copied from a build at the verified production SHA before editing. Oracle JDK 25 / FX25, G1 256m–1024m, matched shown scene and CSS, identical workload fixture, 5 warmups/9 samples per size and 6 fresh final JVMs (all 0). Time includes post-layout pulse, not paint. Candidate ran from actual project classes, not the isolated decoration analogue. Separate first-dialog cost unmeasured.
+
+Cold N=1 complete baseline/candidate B: short 22,486,456/22,449,120, overflow 22,738,040/22,700,240, including one-time startup. At N=400 the nested skin seam measured 75,558,504 (75,548,800..75,616,296) → 73,899,152 (73,833,600..73,938,416) B and 108,332 (84,690..138,242) → 92,245 (82,717..114,281) µs. Short ordinary constructor measured 92,473,608 (92,453,800..92,492,864) → 91,235,208 (91,191,896..91,266,800) B. Exact phase values and N=20/100 nested data in target/perf-013/{baseline,candidate}-{short,overflow,nested}.stdout. No reproducible wall-time gain outside overlapping ranges.
+
+| Workload | N | Baseline FX bytes median (min..max) | Candidate FX bytes median (min..max) | Saved B | Baseline µs median (min..max) | Candidate µs median (min..max) |
+| --- | ---: | --- | --- | ---: | --- | --- |
+| short | 20 | 8031488(8023592..8042472) | 7947328(7939016..7957992) | 84160 | 50515(40266..83198) | 50355(39687..78981) |
+| short | 100 | 39588664(39436424..39756992) | 39268096(39198720..39426504) | 320568 | 123566(95707..157113) | 97134(78146..154763) |
+| short | 400 | 156948608(156928472..156992680) | 156096776(156041120..156153968) | 851832 | 254994(225493..359442) | 245741(226246..300609) |
+| overflow | 20 | 10095760(10087968..10106288) | 10011808(10001176..10021872) | 83952 | 56552(41217..105511) | 48512(40896..100301) |
+| overflow | 100 | 49860152(49760864..49977120) | 49602472(49462032..49724216) | 257680 | 125460(101820..161616) | 130903(98008..180038) |
+| overflow | 400 | 198185280(198101216..198269280) | 197190200(197115672..197350256) | 995080 | 336587(303943..429708) | 372783(318002..416121) |
+
+### Checks and regression
+
+Candidate battery: 58/58 PASS; child JVM and runner exits 0/0, no timeout.
+Three separate focused JVMs 0/0 and unchanged official runner 0 (the official runner enforces the child exit but does not expose a separate marker). A fourth instrumented run obtained 0/0 immediately before the official run. Maven -Pbuild compile 0, PowerShell parse clean, git diff --check 0. Raw stdout/stderr, exact codes, timestamps, and rejected candidate diagnostics in target/perf-013. Original CTRL-079 remains UNKNOWN / NOT_REPRODUCED.
+
+Independent Windows rerun from repo root with IDEA Maven on PATH and MAVEN_ARGS=-o:
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextFieldSkinDisposal -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextAreaSkinDisposal -SettingsFile "D:\Java\.m2\settings.xml"
+    mvn -s "D:\Java\.m2\settings.xml" -Pbuild "-Dmaven.buildNumber.skip=true" compile
+
+The candidate-only FEButtonConstruction mode is preserved locally with candidate.patch and candidate-focused-source.java; production's official runner does not gain this mode. User acceptance remains separate.
+
+| Candidate mode | JVM | Runner | Result |
+| --- | ---: | ---: | --- |
+| FEButtonConstruction [final-01] | 0 | 0 | PASS |
+| FEButtonConstruction [focused-02] | 0 | 0 | PASS |
+| FEButtonConstruction [focused-03] | 0 | 0 | PASS |
+| FEButtonConstruction [official] | 0 | 0 | PASS |
+| FEButtonConstruction [official-native] | — | 0 | PASS |
+| TextFieldSkinDisposal [final-02] | 0 | 0 | PASS |
+| TextFields [final-03] | 0 | 0 | PASS |
+| ValueFields [final-04] | 0 | 0 | PASS |
+| LovIntegration [final-05] | 0 | 0 | PASS |
+| BoundLovSetter [final-06] | 0 | 0 | PASS |
+| LovBindingInterleaving [final-07] | 0 | 0 | PASS |
+| ExternalLovReadOnly [final-08] | 0 | 0 | PASS |
+| WrapButtonOwnership [final-09] | 0 | 0 | PASS |
+| CurrencyLovDelayedCompletion [final-10] | 0 | 0 | PASS |
+| MoneyDecimal [final-11] | 0 | 0 | PASS |
+| FormLifecycle [final-12] | 0 | 0 | PASS |
+| TextAreaSkinDisposal [final-13] | 0 | 0 | PASS |
+| TextAreaLovLifecycle [final-14] | 0 | 0 | PASS |
+| TextAreaLovDelayedCompletion [final-15] | 0 | 0 | PASS |
+| TextAreaToolbarOwnership [final-16] | 0 | 0 | PASS |
+| Default [final-17] | 0 | 0 | PASS |
+| TableAdapterRowRefreshClose [final-18] | 0 | 0 | PASS |
+| TableAdapterBulkMarkClose [final-19] | 0 | 0 | PASS |
+| TableAdapterBulkMarkErrorDelivery [final-20] | 0 | 0 | PASS |
+| TableAdapterSearchMissDelivery [final-21] | 0 | 0 | PASS |
+| TableAdapterSearchWorkerClose [final-22] | 0 | 0 | PASS |
+| TableAdapterBulkWorkerClose [final-23] | 0 | 0 | PASS |
+| TableAdapterSearchListener [final-24] | 0 | 0 | PASS |
+| TableEditRowIdentity [final-25] | 0 | 0 | PASS |
+| TableAdapterBulkClose [final-26] | 0 | 0 | PASS |
+| TableAdapterQueuedClose [final-27] | 0 | 0 | PASS |
+| TextFieldLovDelayedCompletion [final-28] | 0 | 0 | PASS |
+| TableAdapterPagingClose [final-29] | 0 | 0 | PASS |
+| TabPaneSkinListeners [final-30] | 0 | 0 | PASS |
+| ValidatorSubchanges [final-31] | 0 | 0 | PASS |
+| TableAdapterClose [final-32] | 0 | 0 | PASS |
+| WrapButtonDeferred [final-33] | 0 | 0 | PASS |
+| Editors [final-34] | 0 | 0 | PASS |
+| TableEditing [final-35] | 0 | 0 | PASS |
+| TableCancel [final-36] | 0 | 0 | PASS |
+| EditorReentry [final-37] | 0 | 0 | PASS |
+| DataBinding [final-38] | 0 | 0 | PASS |
+| FormCancel [final-39] | 0 | 0 | PASS |
+| SceneKeyLookup [final-40] | 0 | 0 | PASS |
+| LovListenerLifecycle [final-41] | 0 | 0 | PASS |
+| LovDefaultValidation [final-42] | 0 | 0 | PASS |
+| SingletonCloseVeto [final-43] | 0 | 0 | PASS |
+| SingletonLifecycleMatrix [final-44] | 0 | 0 | PASS |
+| ValidatorScopedUnbind [final-45] | 0 | 0 | PASS |
+| ValidatorMultiControl [final-46] | 0 | 0 | PASS |
+| ValueLifecycle [final-47] | 0 | 0 | PASS |
+| DatePickerBinding [final-48] | 0 | 0 | PASS |
+| NodeTraversal [final-49] | 0 | 0 | PASS |
+| RadioReadOnly [final-50] | 0 | 0 | PASS |
+| ComboReadOnly [final-51] | 0 | 0 | PASS |
+| CheckBoxReadOnly [final-52] | 0 | 0 | PASS |
+| ValueChangedFlag [final-53] | 0 | 0 | PASS |
+| ControlsFollowup [final-54] | 0 | 0 | PASS |
+| ChoiceAdapter [final-55] | 0 | 0 | PASS |
+| BinderChoiceNull [final-56] | 0 | 0 | PASS |
+| ChoiceNullLookup [final-57] | 0 | 0 | PASS |
+| ChoiceNonNullSet [final-58] | 0 | 0 | PASS |
