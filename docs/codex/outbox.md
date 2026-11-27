@@ -3411,3 +3411,15 @@ Matrix: run, mode, launch kind, process PID, JVM exit (decimal and hex when reco
     gate-49 Default gate-instrumented 18212 0 0x00000000 0 False 9.549 GUI-001 PASS
 
 CTRL-080…090 remain NOT_RUN / PAUSED. Explicit architect release is required. Stopped after CTRL-079A.
+
+---
+
+## Reply CTRL-080
+
+**DONE.** Baseline 70b139ed54d00c46b4c2ae597535d82ddbe5a2ab. Verified production 85a4b1f8aeef5558e32430da1f6e2c7061f42cb8.
+
+On a shown JInvTable with real ArrayDataSet and DSFXAdapter, synthetic mouse-armed same-row cancellation called a controlled rejecting converter. RED observed one original exception, zero commits and model writes, cursor 0, and a cell that remained editing with its editor attached. GREEN surfaces the same exception once, completes cancellation, detaches the editor, leaves the cursor at 0, and performs zero commits or model writes. Reentry plus F8 commits once to A. Positive mouse-armed cancellation, F8 and ENTER each commit once to A; Escape, replacement with an equal-valued distinct entity, removal and permutation produce zero commits/writes. Filter removal is in the cleanup path; registration count and native click/focus behavior were not instrumented.
+
+Only JInvTextFieldTableCell and the existing TableEditRowIdentitySmoke changed. The existing cancellation teardown runs in finally, preserving both original-row guards and propagation of converter failures. No added instance state or allocations on the production path. Dedicated rejection assertions extend the existing runner mode.
+
+Windows rerun (Java 25.0.1, JavaFX 25, IDEA Maven 3.9.16 offline): powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableEditRowIdentity -SettingsFile "D:\Java\.m2\settings.xml". Diagnostic runner copy records native JVM and outer exits separately in target/ctrl-080/matrix.csv. RED 1/1 on unchanged production, GREEN 0/0 in three fresh JVMs. TableEditing, TableCancel, EditorReentry, DataBinding, MoneyDecimal and LovDefaultValidation all 0/0. Maven -Pbuild compile, PowerShell parse and staged diff checks passed.
