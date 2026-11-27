@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'TableAdapterBulkMarkClose')]
+    [switch] $TableAdapterBulkMarkClose,
     [Parameter(ParameterSetName = 'TableAdapterBulkMarkErrorDelivery')]
     [switch] $TableAdapterBulkMarkErrorDelivery,
     [Parameter(ParameterSetName = 'TableAdapterSearchMissDelivery')]
@@ -128,6 +130,10 @@ if ($TextAreaToolbarOwnership) {
 } elseif ($TableAdapterBulkMarkErrorDelivery) {
     $probeId = 'CTRL-104'
     $probeClass = 'TableAdapterBulkMarkErrorDeliverySmoke'
+} elseif ($TableAdapterBulkMarkClose) {
+    $probeId = 'CTRL-105'
+    $probeClass = 'TableAdapterBulkMarkErrorDeliverySmoke'
+    $probeArgs = @('close')
 } elseif ($TableAdapterSearchMissDelivery) {
     $probeId = 'CTRL-098'
     $probeClass = 'TableAdapterSearchMissDeliverySmoke'

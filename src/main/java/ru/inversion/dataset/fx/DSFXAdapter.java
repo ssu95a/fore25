@@ -506,6 +506,8 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     @Override
     public void close() {
         if (dataSet != null) workerAttachmentRevision++;
+        markAllAction = null;
+        unMarkAllAction = null;
         if (keyReleaseHandler != null) {
             tableView.removeEventHandler(KeyEvent.KEY_RELEASED, keyReleaseHandler);
             keyReleaseHandler = null;
@@ -640,7 +642,8 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
                                         xxiDs.markAllRows( savePrevMarkedRowsProperty.get() );
 
                                         Platform.runLater(() -> {
-                                            refresh();
+                                            var launchOwner = event.getSource() instanceof Window window ? window : null;
+                                            if (isCurrentBulkMarkOwner(attachment, revision, launchOwner)) refresh();
                                         });
 
                                     } catch (Throwable ex) {
@@ -673,7 +676,8 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
                                         xxiDs.unMarkAllRows(savePrevMarkedRowsProperty.get());
 
                                         Platform.runLater(() -> {
-                                            refresh();
+                                            var launchOwner = event.getSource() instanceof Window window ? window : null;
+                                            if (isCurrentBulkMarkOwner(attachment, revision, launchOwner)) refresh();
                                         });
 
                                     } catch (Throwable ex) {
@@ -697,9 +701,13 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
 
     private void deliverBulkMarkError(IDataSet<T> attachment, long revision, Window owner, Throwable error) {
         // Ошибка операции сохраняется, даже если её окно или привязка уже сняты.
-        boolean current = attachment != null && dataSet == attachment && workerAttachmentRevision == revision
-                && owner != null && owner.isShowing() && ViewContext.tryGetWindow(tableView) == owner;
+        boolean current = owner != null && isCurrentBulkMarkOwner(attachment, revision, owner);
         JInvErrorService.handleException(current ? owner : null, error);
+    }
+
+    private boolean isCurrentBulkMarkOwner(IDataSet<T> attachment, long revision, Window owner) {
+        return attachment != null && dataSet == attachment && workerAttachmentRevision == revision
+                && ViewContext.tryGetWindow(tableView) == owner && (owner == null || owner.isShowing());
     }
 
     /** */
