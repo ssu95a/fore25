@@ -4616,3 +4616,16 @@ Production baseline and final: 0982d2112b8f8020d16f917adaab77caee29005d. Before 
 The stylesheet has matching transparentButton selectors and the initial FX skin child order is overflow before wrapper. No production candidate proceeded after the compatibility counterexample. Previous isolated overflow constructor median 34,824 B and replacement icon 4,128 B are allocation costs, with no saving measured by this task. No instance-state delta.
 
 Reproduce with target/perf-008/OverflowAudit.java and target/perf-001/FieldCostAudit.class on the real production/dependency classpath, Java 25 -Xms256m -Xmx1024m -XX:+UseG1GC --enable-native-access=ALL-UNNAMED. javac and JVM exit 0. Before any future opt-in contract change, repeat actual styled dialog, activation, and disposal checks.
+
+
+### Reply PERF-009 — DONE / READ-ONLY
+
+Production baseline and final: 0982d2112b8f8020d16f917adaab77caee29005d. Reproduce with target/perf-009/profile.ps1 and OverflowCosts.java, real project classpath, JDK 25/G1 256m–1024m, 5 warmups and 9 samples. Exact FX ThreadMXBean totals B / us, median (min..max), short matched N=400 stock 54,413,424 (54,333,008..54,903,920) / 106,720 (73,737..142,280); framework 157,626,736 (157,530,392..157,776,144) / 271,244 (216,061..299,033). Framework construction 92,773,176 B, CSS 46,742,432 B, layout 5,123,592 B, post-layout 4,020,584 B. Stock bare 1,590,432 B plus explicit skin 42,656,872 B, CSS 4,427,456 B. Separate actual protected constructor seam measured 75,551,392 (75,514,280..75,651,248) B nested skin allocation per 400. Cold N=1 complete stock 13,009,240 B and framework 22,942,672 B include class/runtime startup.
+
+1,124 constructor-attributed JFR allocation samples. CSS matching iterator stacks account for ~232 MB sample weight across the recording; key mappings ~65.7 MB. These are sampled weights across the run. No private JavaFX API invoked. Exact construction and applyCss totals come from MXBean.
+
+Public isolated decoration analogue, N=400, same final graphic and null tooltip: eager 15,251,200 (15,235,392..15,252,360) B, direct 2,976,000 (2,976,000..2,976,592) B, delta of medians 12,275,200 B. Production button + replacement 15,349,424 B; detached default icon 1,590,400 B; detached Tooltip 10,669,112 B. The analogue isolates decoration, with no claim of exact runtime class/handler or of whole-form or heap savings.
+
+The delegating public checkExcessTextLength override counts 400 checks for 200 two-way text/font/width/external transitions each, and 200 for 200 explicit layouts. Exact bytes inside checks: text 1,192,000; font/width 956,800 each; external 934,400; layout 478,400; text plus layout 800 calls / 2,364,800 B; read-only text 400 calls / 1,169,600 B (no extra tooltip check occurred in this fixture). Confirmed short/long geometry outcomes. Source reads actual font and width and subtracts actual visible wrapper width; no replacement measurement or cache justified.
+
+Direct audit JVM 0, all 5 profiling/decoder JVMs 0 and profiling wrapper 0 after correcting Windows PowerShell terminating on ordinary native stderr. Initial wrapper exit 1 before capturing the child exit; its files are preserved with .initial suffix. Logs, exits and JFR are local. Pending retained heap and native tooltip hover.
