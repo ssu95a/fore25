@@ -4421,3 +4421,59 @@ Same Java/heap settings, five warmups/nine measurements, N=20/100/400, exact FX 
     n=400 candidate=true setup ns=141100(124400..157900) B=99200(99200..99200) activate ns=118500(98800..138300) B=0(0..0)
 
 Compile target/perf-004/BindingInitAudit.java with javac -cp "target/perf-001;target/classes;<deps>" -d target/perf-004 and run BindingInitAudit with the PERF-001 flags and target/perf-004 on the classpath. Native compile/JVM 0, no runner. Keep CSS-heavy skin construction and ownership as higher-priority investigation. No state or allocation delta in production.
+
+
+---
+
+## Reply PERF-005
+
+**DONE / READ-ONLY.** Baseline and verified final production 0982d2112b8f8020d16f917adaab77caee29005d. No tracked edits.
+
+Matched PERF-001 controls/JVM settings, independent JVMs stock/framework × N=20,100,400 × two repeats. Warmed four shown fields before stage-empty baseline. Each synthetic process hands off its verified PID to local jcmd GC.class_histogram after FX phase barriers: constructed (framework already skinned), explicit skin, shown/CSS/layout, detached with strong hold, disposed with strong hold, released field references. No -all option; full GC is diagnostic, not a reclamation guarantee. Histograms report shallow bytes of live objects and global increment versus the same process baseline. Shared CSS/icon/font/cached state can contribute, and no dominator analysis was performed. True retained heap UNKNOWN.
+
+At N=400: shown stock 31,192,616 B midpoint (31,186,336–31,198,896), framework 76,392,164 B (76,389,752–76,394,576). At equivalent skin-only state stock 28,297,024 B (28,291,944–28,302,104), framework 53,699,040 B (53,693,984–53,704,096). Bare stock 1.48 MB is a separate phase. Framework shown had 400 fields (297,600 shallow B), 400 skins (80,000), 800 ContextMenus (243,200), 400 wrappers (275,200), 400 overflow buttons (275,200), 400 RequiredState (9,600), 3200 MenuItem (256,000). Stock shown had 400 fields (275,200), 400 skins (70,400), 400 ContextMenus (121,600). Counts are exact for these snapshots, not ownership/dominators.
+
+Detached held and disposed held are separate. The sampled disposed stage retained the field objects but no counted skins/menu/wrapper/overflow classes. Released group counts initially remained in two N=100 follow-ups; after dropping the held Scene/Stage fixture, diagnostic GC cleared all 100 weak references in both. That demonstrates a bounded observation, not absence of leaks. A separate N=20 framework first use of overflow, menu opening and one LOV moved global histogram total from 25,544,512 to 26,132,784 B; combined state includes first-popup caches and is not per-feature retained size.
+
+    stock, 20, constructed delta-median=65536 range=62456..68616
+    stock, 20, skin delta-median=1405968 range=1403200..1408736
+    stock, 20, shown delta-median=1548140 range=1541896..1554384
+    stock, 20, detached-held delta-median=1444412 range=1429272..1459552
+    stock, 20, disposed-held delta-median=216336 range=203992..228680
+    stock, 20, released delta-median=216536 range=204192..228880
+    stock, 100, constructed delta-median=362904 range=360872..364936
+    stock, 100, skin delta-median=7068292 range=7066624..7069960
+    stock, 100, shown delta-median=7769000 range=7765744..7772256
+    stock, 100, detached-held delta-median=7640868 range=7618376..7663360
+    stock, 100, disposed-held delta-median=1546844 range=1470776..1622912
+    stock, 100, released delta-median=1546068 range=1470000..1622136
+    stock, 400, constructed delta-median=1480516 range=1476856..1484176
+    stock, 400, skin delta-median=28297024 range=28291944..28302104
+    stock, 400, shown delta-median=31192616 range=31186336..31198896
+    stock, 400, detached-held delta-median=31032528 range=31019632..31045424
+    stock, 400, disposed-held delta-median=6357700 range=6344072..6371328
+    stock, 400, released delta-median=6358048 range=6344392..6371704
+    framework, 20, constructed delta-median=2677000 range=2674496..2679504
+    framework, 20, skin delta-median=2677448 range=2674944..2679952
+    framework, 20, shown delta-median=3787832 range=3782576..3793088
+    framework, 20, detached-held delta-median=3599544 range=3579464..3619624
+    framework, 20, disposed-held delta-median=616056 range=608728..623384
+    framework, 20, released delta-median=616272 range=608744..623800
+    framework, 100, constructed delta-median=13427920 range=13423864..13431976
+    framework, 100, skin delta-median=13428368 range=13424312..13432424
+    framework, 100, shown delta-median=19088796 range=19084600..19092992
+    framework, 100, detached-held delta-median=18824388 range=18813008..18835768
+    framework, 100, disposed-held delta-median=3786740 range=3767800..3805680
+    framework, 100, released delta-median=3785392 range=3766480..3804304
+    framework, 400, constructed delta-median=53698592 range=53693536..53703648
+    framework, 400, skin delta-median=53699040 range=53693984..53704096
+    framework, 400, shown delta-median=76392164 range=76389752..76394576
+    framework, 400, detached-held delta-median=75867700 range=75844800..75890600
+    framework, 400, disposed-held delta-median=15569736 range=15523600..15615872
+    framework, 400, released delta-median=15567740 range=15521112..15614368
+
+Follow-ups in order: document root/scene ownership across real close; attribute skin live graph with a controlled dominator tool if available; evaluate avoidable second ContextMenu/overflow only with compatibility tests. Do not infer Binder ownership from these roots.
+
+Ignored target/perf-005/FieldHeapAudit.java, run.ps1, root-run.ps1, summarize.ps1 and local histograms. Compile javac -cp "target/perf-001;target/classes;<deps>" -d target/perf-005. Run the two scripts on Windows with installed JDK 25 and matching Maven-generated deps from target/ctrl-079a/original-dependencies.txt. All 15 synthetic JVM exits and each jcmd exit 0, no external probe runner. No raw dumps uploaded, no production delta.
+
+Per-phase increment below is median of two independent runs with min/max in bytes.
