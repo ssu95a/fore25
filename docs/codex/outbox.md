@@ -4197,3 +4197,16 @@ Final matrix. Mode, probe marker, wall seconds, JVM exit, outer PowerShell exit,
     ChoiceNullLookup | CTRL-018 PASS | 10.583 | 0 | 0 | False
     ChoiceNonNullSet | CTRL-019 PASS | 9.991 | 0 | 0 | False
     Default | GUI-001 PASS | 11.338 | 0 | 0 | False
+
+
+---
+
+## Reply CTRL-104
+
+**DONE.** Baseline df95a931230b57e87e7bef4bfba6267c3e9a395d. Verified production 17cabb0b11b7b414fab811bcd59650f02a483561. Only DSFXAdapter plus focused smoke and runner mode.
+
+Actual shown table, JInvParallelAction and an in-memory XXIDataSet failure after the worker is admitted. Mark and unmark, active/retired/detached/hidden/reparented plus active success. Baseline delivered neither detached sentinel and raised one secondary FX NPE per direction. After the fix every genuine failure reached JInvErrorService exactly once with original Throwable identity, one dialog and zero secondary FX errors, writes or success refresh. Positive successes each mutated one in-memory row and delivered one refresh.
+
+The invocation passes its launch Window through the existing action event path. Existing epoch and captured original Dataset check ownership at actual FX error delivery. Current shown launch window remains the context; otherwise the service receives null. DialogError currently leaves its native dialog owner unset even with a supplied context, so the probe checks the actual ownerless neutral dialog and Throwable identity; active context preservation also follows from the checked source path. The first baseline probe expected a native owner and was corrected before the recorded RED. No per-instance fields; one ActionEvent per admitted bulk invocation. No suppression, transaction or cancellation change.
+
+Windows rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterBulkMarkErrorDelivery -SettingsFile "D:\Java\.m2\settings.xml". Java 25.0.1/FX25. RED JVM/runner 1/1, three fresh GREEN 0/0, unchanged official exit 0. SearchMissDelivery, BulkWorkerClose, TableAdapterClose, DataBinding and QueuedClose all 0/0. Maven compile, PowerShell parse and diff check passed. Logs in target/ctrl-104; no corporate SQL.
