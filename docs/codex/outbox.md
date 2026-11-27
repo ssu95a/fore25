@@ -3518,3 +3518,22 @@ Shown nested VBox/HBox graph, 24/120/480 groups each with JInvLabel, JInvTextFie
 These are traversal-only measurements and include candidate result buffers. Full form initialization and retained heap were not measured. Faster traversal on an immutable graph does not establish equivalence at the controller hooks. This version also increases allocated bytes. No production optimization or persistent state.
 
 Ignored source and raw data target/ctrl-086/TraversalAudit.java and audit.stdout. Compile with javac -cp "target/ctrl-084;target/classes;<deps>" -d target/ctrl-086 target/ctrl-086/TraversalAudit.java, then java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-086;target/ctrl-084;target/classes;<deps>" TraversalAudit. Deps are the contents of target/ctrl-079a/original-dependencies.txt. Final javac and native JVM exits 0, no probe runner. First fixture compile exposed an invalid helper call, corrected to the existing protected formMode seam.
+
+
+---
+
+## Reply CTRL-087
+
+**NO_CHANGE / READ-ONLY.** Baseline and verified final production 3976625111c448f00f07837ca987da7da9a0a1d7. No tracked edits.
+
+Actual AbstractBaseController.initLabels and an isolated per-call index ran in shown nested graphs. Both selected identical Label objects in the same order on the static fixture with duplicate field names and keys, pre-associated label and field, empty/null keys and missing matches. The index rechecks current label eligibility inside a bucket. A supported setLabel override changed an earlier unused label key during the first association. The actual method used that newly eligible label on the next field. The candidate selected a later label instead. A fresh key index cannot be assumed after arbitrary user setters/property listeners, so the measured improvement does not authorize changing production.
+
+Five warmup and nine measurement batches of 12 invocations. Fixture state reset, construction and CSS/layout excluded. Includes the label traversal, matching, bindings and candidate index construction. FX-thread ThreadMXBean allocations, Oracle Java 25.0.1 / JavaFX 25+29, 1 GiB heap ceiling. Median (range) elapsed µs and bytes per invocation. N adds this many labels and fields plus one prebound pair.
+
+| N | Existing µs | Index µs | Existing B | Index B |
+| ---: | --- | --- | --- | --- |
+| 20 | 63.558 (28.025–194.842) | 26.167 (22.758–45.250) | 7752 (7752–7752) | 5208 (5208–5221.3) |
+| 100 | 209.733 (164.450–461.292) | 98.583 (63.683–160.983) | 27288 (25992–37054) | 13576 (13576–13593.3) |
+| 400 | 1059.158 (1027.033–1177.300) | 200.367 (198.442–209.008) | 104312 (104312–104312) | 47208 (47208–47208) |
+
+Small graph timing varied; dynamic mutation makes the tested candidate ineligible at every size. No retained-memory estimate or actual production saving. Ignored target/ctrl-087/LabelMatchingAudit.java and audit streams. javac -cp "target/ctrl-084;target/classes;<deps>" -d target/ctrl-087 target/ctrl-087/LabelMatchingAudit.java, then java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-087;target/ctrl-084;target/classes;<deps>" LabelMatchingAudit, using target/ctrl-079a/original-dependencies.txt. Compile 0 and direct JVM 0, no outer probe runner.
