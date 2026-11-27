@@ -5300,3 +5300,29 @@ Whole shown FX B medians, baseline → candidate, N=20/100/400:
 G1 256m–1024m, separate JVM per phase/workload, 5 warmups/9 samples. N=400 12.19–12.75 MB saved; wall-time ranges overlap. Nested skin 61,264,280 → 49,047,920 B per 400. Fresh first activation median 67,120 → 67,120 B, same node; short-to-long warmed layout median 52,560 → 52,560 B; no shifted creation cost observed. One N=400 jcmd run per variant shows global shallow delta 63,940,232 → 63,367,320 B, 400 JInvFEButton and 400 JInvTooltipValue in each. Retained heap and native input/paint UNKNOWN. All final measurement JVMs, jcmd and wrappers exit 0. Exact time/byte ranges in target/arch-006/benchmark.ps1 and measure-activation.ps1 outputs.
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -FEButtonConstruction -SettingsFile "D:\Java\.m2\settings.xml"
+
+
+---
+
+## Reply ARCH-007
+
+DONE / READ-ONLY. Baseline and final 515d01fd20ba491bc39044f939191b85229b7a08. Inventory of all ten in-repo skin classes with source paths and call sites is in target/arch-007/skin-inventory.txt and behavior-sites.txt.
+
+| Skin | Presentation and remaining behavioral ownership |
+| --- | --- |
+| controls/skin/JInvTextFieldButtonSkin | Geometry, clipping and visual bindings appropriate; immediate wrapper/overflow affordances; framework menu and FE action now delegated. Stock TextField retains its own compatible skin-menu path. |
+| controls/skin/JInvTextAreaSkin | Toolbar layout/visual widths are presentation. initToolBar, updateExternalEditorAction, editInExtEditor own composition, keyboard registration, editor service and worker/model delivery. ARCH-005 blocked on offline completion seam. |
+| controls/skin/JInvComboBoxListViewSkin | forceCommitValue converts editable text, applies model value, normalizes editor; compare existing readOnly/converter failure contracts before relocation. |
+| controls/skin/BigDecimalFieldSkin | Spinner arrows and editor presentation; NumberTextField action/focus conversion and Timeline repeat invoke numeric mutation. Check hold/release lifecycle and bound values before any slice. |
+| controls/skin/JInvTimeSkin | ActionFactory buttons delegate time changes to field. Focus styling and layout visual; examine listener disposal and keep increase/decrease semantics control-owned. |
+| controls/skin/JInvTableViewSkin | Virtual flow/header/layout and visibility visual; refreshFromAdapterSafe and dataset/filter status attach to data lifecycle. Verify ownership before moving any subscriptions. |
+| controls/treetableex/JInvTreeTableViewSkin | Virtual flow visibility and status presentation, inspect data attachment separately if expanded. |
+| controls/sheet/JInvPropertySheetSkin | Grid layout visual; editor creation, LOV and get/set adapter conversion have behavioral contracts requiring concrete caller characterization. |
+| controls/skin/JInvTabPaneSkin | Left tab CSS presentation and listeners; keep scope visual. |
+| controls/skin/JInvToolBarSkin | CSS metadata, spacing and alignment presentation. |
+
+CTRL-108 current shown DataSet fixture repro, native JVM 0: for equal-but-distinct X/A, original delivery shows [0:X:false:false,1:A:true:true]; suppressing stale-slot refresh via ignored adapter override shows [0:A:false:false,1:X:false:false] although list A is marked at index 1. Unequal move renders in both routes; zero foreign writes in all tests. Local JavaFX25 bytecode shows Cell.isItemChanged uses Object.equals and TableRow skips updateItem when the same index appears unchanged by equals; TableCell also consults its own equality guard. A second ignored run installed the public TableView rowFactory / protected TableRow.isItemChanged identity override and recovered [0:X:false:false,1:A:true:true] with suppression in the same fixture (JVM 0). This isolates JavaFX row equality as sufficient for the observed stale rendering, not a production change or proof across external custom row factories, focus, editing, or corporate filters. No private access, scan, or full refresh. Evidence target/arch-007/MarkMovedAudit.java, mark.stdout, identity-row.stdout, javafx-table.javap.
+
+Ranked next controlled slices: (1) offline editor completion seam and explicitly owned FX result delivery; (2) CTRL-108 supported row identity/factory contract preserving user factories, focus/edit and refresh channels; (3) ComboBox commit/readOnly and spinner bound lifecycle independently; (4) supported CSS/measurement profiling by actual call site. PERF-009 saw 2.3–3.0 kB per check plus CSS iterator/event registration stacks; current ARCH-006 moves geometry, without claiming a cheaper measure or suggesting a per-field cache. Binder external FXEntity ownership UNKNOWN. ISkinPopulatable remains used by IContextMenuAppendable, ParamCellTextField, framework skins, and custom-skin fallback in JInvTextField; external compatibility unknown and removal needs explicit API decision. No state/allocation/production delta.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterRowRefreshClose -SettingsFile "D:\Java\.m2\settings.xml"
