@@ -5126,3 +5126,18 @@ JInvTextField owns the lazy framework menu and extension lifecycle. Public skin 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextFieldContextMenuLifecycle -SettingsFile "D:\Java\.m2\settings.xml"
 
 Independent acceptance remains separate. Continue PERF-015 and mandatory PERF-016.
+
+
+---
+
+## Reply PERF-015
+
+DONE. Baseline 93031bb15f03b89ace175278152b4a2a9d3d3c56, final ecad2198c3ab9badfd097fa490999a14d884db22. JInvTextArea owns lazy context-menu creation, configuration, and extensions via the existing TextControlMenu helper. Skin methods delegate and preserve API signatures. Menu and extensions survive skin replacement; no old skin menu callback remains. Existing toolbar, Scene editor registration and LOV code preserved. Before first request the framework menu is absent; LegacyEditorsSmoke explicitly requests the menu before checking the existing precedence assertions. Control adds two references, skin drops three menu references and retains one control reference for legacy delegates. No new eager manager or Action.
+
+Three fresh focused JVMs and extra instrumented official all 0/0; unchanged official runner 0. Editors, TextAreaSkinDisposal, TextAreaToolbarOwnership, TextAreaLovLifecycle, TextAreaLovDelayedCompletion, FormLifecycle and TextFieldContextMenuLifecycle all JVM/runner 0/0, no timeout. Actual popup, synthetic mouse/keyboard/child requests, consumption, bound null/non-null, caller handler, custom order, skin replacement and real offline multiline FE cancel/accept with sentinel checked. Physical touch, clipboard writes and external-custom-skin compatibility UNKNOWN. Maven compile, runner parse and git diff --check passed.
+
+Matched B median (min..max), 5/9, 20/100/400: 13,511,472 (13,466,128..13,522,560) → 12,552,144 (12,507,392..12,569,984); 65,861,704 (65,807,568..66,039,688) → 61,132,168 (61,028,336..61,305,472); 262,288,520 (262,235,672..262,484,912) → 243,279,240 (243,146,632..243,423,464). N=400 lifecycle µs 559,931 (458,787..727,613) → 444,676 (391,915..587,833). N=20 first open B 27,744,040 (27,717,680..27,808,712) → 20,622,240 (20,590,880..20,670,576), repeated 17,820,112 (17,799,936..17,862,120) → 19,237,984 (19,214,240..19,330,912). N=400 shown global shallow delta 135,287,672 → 123,031,272 B, ContextMenu 1,200 → 800 and 801 after one activation. No retained estimate. All measurement JVM/jcmd/outer exits 0. Commands and output in target/perf-015/measure.ps1, cost-exits.txt and matrix.csv.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextAreaContextMenuLifecycle -SettingsFile "D:\Java\.m2\settings.xml"
+
+Independent acceptance remains separate.
