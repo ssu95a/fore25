@@ -4236,3 +4236,18 @@ Shown real JInvTable/adapter and in-memory Dataset. RED observed one obsolete RE
 Epoch and origin guard existing FX callback before list access and after the synchronous replacement before focus. No scene requirement for active detached table, no persistent fields, no new queued callback or per-row state. Public index ownership, mark event semantics and transactions unchanged.
 
 Windows rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterRowRefreshClose -SettingsFile "D:\Java\.m2\settings.xml". RED JVM/runner 1/1, three fresh GREEN 0/0 and unchanged official exit 0. QueuedClose, TableAdapterClose, PagingClose, EditRowIdentity, TableEditing, TableCancel, DataBinding and BulkMarkClose all 0/0. Maven compile, parse and diff passed. Logs target/ctrl-106. Corporate Dataset/SQL behavior remains untested.
+
+
+---
+
+## Reply CTRL-107
+
+**DONE / READ-ONLY.** Baseline and verified final production 0982d2112b8f8020d16f917adaab77caee29005d.
+
+Installed JInvCommon javap evidence: DataSetMarkEvent.getRow returns the exact row supplied with MARK_ROW/UNMARK_ROW and getIndex returns the original position; MARK_ALL/UNMARK_ALL/REFRESH carry null row and index -1. XXIDataSet.doMark mutates the actual IMarkable and then fires the event with that object. Adapter markAction forwards only the index, unlike the original event identity. No SQL invoked.
+
+Shown in-memory table: independent observer received one event with source Dataset and exact A at index 0. Stable delivery replaced A→A and rendered checked/pseudoclass on A. Equal-distinct replacement and removal made the deferred visual event replace X→X and B→B without marking either. Permuting A from 0 to 1 made the delayed refresh operate on B, although the permutation itself let A display checked/pseudoclass at 1. Selection, focus and cursor followed A to 1. Offscreen R150 was marked and refreshed by original slot with visible rows unchanged. Zero commits or text/model writes and no foreign mark changes. This confirms identity loss in the rendering notification, distinct from database corruption.
+
+Suggested smallest follow-up: separate entity-owned single-marker delivery from public index-based refreshRow, verify source and row identity at the original index, and define behavior when reorder moved the row before considering any lookup or broader visual fallback. Prove supported sort/filter/update routes already render moved rows before suppressing such a delivery. Bulk remains index -1. No scan/cache by assumption.
+
+Ignored target/ctrl-107/MarkIdentityAudit.java, mark-bytecode.txt and raw streams. javac -cp "target/ctrl-088;target/classes;<deps>" -d target/ctrl-107 then java --enable-native-access=ALL-UNNAMED -cp "target/ctrl-107;target/ctrl-088;target/classes;<deps>" MarkIdentityAudit. Deps from target/ctrl-079a/original-dependencies.txt. Native compile/JVM 0, no probe runner; no tracked edits or state/allocation changes.
