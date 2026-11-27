@@ -3303,3 +3303,111 @@ Initial matrix. Columns are mode, runner exit, elapsed wall seconds including co
 ### Batch disposition
 
 CTRL-080, CTRL-081, CTRL-082, CTRL-083, CTRL-084, CTRL-085, CTRL-086, CTRL-087, CTRL-088, CTRL-089 and CTRL-090 are NOT_RUN under the gate stop rule. No task measurements or production changes. Before resuming, reproduce SceneKeyLookup with the original tracked assertions and collect the child JVM exit and Windows process/crash diagnostics separately from the PowerShell runner exit. Re-run the baseline gate after explaining the failure.
+
+
+---
+
+## Reply CTRL-079A
+
+**DONE / READ-ONLY.** Baseline and final production 70b139ed54d00c46b4c2ae597535d82ddbe5a2ab. Inbox assignment 1ace50d8d01f7889ac255183d754c61c78d1ad4b. No production, tracked test, or tracked runner edits.
+
+Original evidence: 2026-11-27 12:09:01–12:09:13 +03:00. Maven BUILD SUCCESS, expected focus/action counters and CTRL-024 PASS, followed by the runner exception at its post-Java LASTEXITCODE check and outer exit 1. The original native child code and PID were not logged. The test prints PASS before Platform.exit() in finally, so assertion success cannot identify the exit phase. No Application events matched IDs 1000, 1001, 1002 or 1026 in the checked original window 12:08:45–12:10:00 +03:00. Cause UNKNOWN.
+
+Windows 11 amd64 build 26100.9711, Windows PowerShell 5.1.26100.9711, Oracle Java and javac 25.0.1 (HotSpot 25.0.1+8-LTS-27), JavaFX 25 Windows jars, IDEA Maven 3.9.16 offline with D:\Java\.m2\settings.xml. java.exe and javac.exe were resolved from C:\Program Files\Common Files\Oracle\Java\javapath. JAVA_TOOL_OPTIONS, JDK_JAVA_OPTIONS and _JAVA_OPTIONS were unset. No extra JVM flags or system settings changed.
+
+Two focus runs use the unchanged official runner, eight use a diagnostic copy and twenty launch the original generated java.args directly. The diagnostic copy resolves the original repository and tracked probe paths and writes LASTEXITCODE immediately after the unchanged Java invocation, before the original exit check. The 49-mode battery uses that diagnostic copy for per-mode native and outer exit evidence. All 48 named modes plus Default, no opt-in Robot or unresolved CTRL-014/034 routes. Default omits the mode switch.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -SceneKeyLookup -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\target\ctrl-079a\InstrumentedRunner.ps1 -SceneKeyLookup -SettingsFile "D:\Java\.m2\settings.xml"
+    java "@D:\Java\Projects\fore25\target\ctrl-024-46fda821fc014afc825a7bb6af3b9c88\java.args"
+    mvn -s "D:\Java\.m2\settings.xml" -Pbuild "-Dmaven.buildNumber.skip=true" compile
+
+Commands use the IDEA Maven bin on PATH and MAVEN_ARGS=-o. The instrumented runner expects CTRL079A_CHILD_EXIT to name the per-run sidecar. Locally, target/ctrl-079a holds original and repeat logs, matrix.csv, separate per-run stdout and stderr, child-exit sidecars, timestamps, PID (PowerShell for runner modes, Java for direct), timeout field, scripts, environment and Windows/JVM diagnostic checks. Generated JVM inputs are preserved in their original target directories. The initial recorder did not retain the process handle; focus-01 through focus-03 retain actual output and available child codes, with outer codes marked UNKNOWN. The recorder was interrupted during focus-04 to correct capture. Its Maven log and generated arguments remain available; no JVM output, PASS or exit evidence was captured for that interrupted attempt. The other three initial records were preserved. focus-31 completed the planned 30 completed runs. After retaining the handle, remaining runner exits were collected. The official runner does not expose a successful Java child's immediate numeric exit. No outer runner exists for direct launches.
+
+Original failure NOT_REPRODUCED. Thirty focus runs printed CTRL-024 PASS. All 28 recorded focus JVM exits and all seven recorded focus PowerShell exits were 0. All 49 gate modes printed PASS and both exit codes were 0 in all 49. No timeouts. Recommend that the architect decide whether to accept the residual one-off UNKNOWN risk. The original cause and phase remain UNKNOWN.
+
+Application events via UTC XPath, 13:07:00-13:19:00 +03:00: NoMatchingEventsFound,Microsoft.PowerShell.Commands.GetWinEventCommand. JVM hs_err files in scanned working/output paths: 0. Checks: compile=0, diff-check=0, PowerShell parse=0.
+
+Matrix: run, mode, launch kind, process PID, JVM exit (decimal and hex when recorded), outer PowerShell exit, timeout, wall seconds, probe marker.
+
+    focus-01 SceneKeyLookup official 14896 UNKNOWN UNKNOWN False 9.096 CTRL-024 PASS
+    focus-02 SceneKeyLookup instrumented 5416 0 0x00000000 UNKNOWN False 8.367 CTRL-024 PASS
+    focus-03 SceneKeyLookup instrumented 10080 0 0x00000000 UNKNOWN False 9.162 CTRL-024 PASS
+    focus-05 SceneKeyLookup official 9456 UNKNOWN 0 False 8.352 CTRL-024 PASS
+    focus-06 SceneKeyLookup instrumented 11452 0 0x00000000 0 False 8.781 CTRL-024 PASS
+    focus-07 SceneKeyLookup instrumented 3204 0 0x00000000 0 False 8.979 CTRL-024 PASS
+    focus-08 SceneKeyLookup instrumented 10588 0 0x00000000 0 False 8.632 CTRL-024 PASS
+    focus-09 SceneKeyLookup instrumented 16428 0 0x00000000 0 False 8.524 CTRL-024 PASS
+    focus-10 SceneKeyLookup instrumented 7312 0 0x00000000 0 False 8.975 CTRL-024 PASS
+    focus-11 SceneKeyLookup direct 18260 0 0x00000000 n/a False 1.958 CTRL-024 PASS
+    focus-12 SceneKeyLookup direct 3264 0 0x00000000 n/a False 1.978 CTRL-024 PASS
+    focus-13 SceneKeyLookup direct 15376 0 0x00000000 n/a False 2.072 CTRL-024 PASS
+    focus-14 SceneKeyLookup direct 14364 0 0x00000000 n/a False 2.225 CTRL-024 PASS
+    focus-15 SceneKeyLookup direct 12408 0 0x00000000 n/a False 2.236 CTRL-024 PASS
+    focus-16 SceneKeyLookup direct 13864 0 0x00000000 n/a False 2 CTRL-024 PASS
+    focus-17 SceneKeyLookup direct 4312 0 0x00000000 n/a False 2.06 CTRL-024 PASS
+    focus-18 SceneKeyLookup direct 9888 0 0x00000000 n/a False 1.944 CTRL-024 PASS
+    focus-19 SceneKeyLookup direct 1400 0 0x00000000 n/a False 2.048 CTRL-024 PASS
+    focus-20 SceneKeyLookup direct 6900 0 0x00000000 n/a False 2.013 CTRL-024 PASS
+    focus-21 SceneKeyLookup direct 5556 0 0x00000000 n/a False 1.943 CTRL-024 PASS
+    focus-22 SceneKeyLookup direct 15624 0 0x00000000 n/a False 1.946 CTRL-024 PASS
+    focus-23 SceneKeyLookup direct 14572 0 0x00000000 n/a False 1.947 CTRL-024 PASS
+    focus-24 SceneKeyLookup direct 2092 0 0x00000000 n/a False 1.97 CTRL-024 PASS
+    focus-25 SceneKeyLookup direct 12904 0 0x00000000 n/a False 1.941 CTRL-024 PASS
+    focus-26 SceneKeyLookup direct 16016 0 0x00000000 n/a False 2.162 CTRL-024 PASS
+    focus-27 SceneKeyLookup direct 17008 0 0x00000000 n/a False 2.05 CTRL-024 PASS
+    focus-28 SceneKeyLookup direct 16256 0 0x00000000 n/a False 2.025 CTRL-024 PASS
+    focus-29 SceneKeyLookup direct 828 0 0x00000000 n/a False 2.068 CTRL-024 PASS
+    focus-30 SceneKeyLookup direct 17012 0 0x00000000 n/a False 2.05 CTRL-024 PASS
+    focus-31 SceneKeyLookup instrumented 8748 0 0x00000000 0 False 8.534 CTRL-024 PASS
+    gate-01 TextAreaToolbarOwnership gate-instrumented 17596 0 0x00000000 0 False 8.966 CTRL-066 PASS
+    gate-02 TableEditRowIdentity gate-instrumented 2052 0 0x00000000 0 False 9.608 CTRL-075 PASS
+    gate-03 TableAdapterBulkClose gate-instrumented 13140 0 0x00000000 0 False 9.932 CTRL-076 PASS
+    gate-04 TableAdapterQueuedClose gate-instrumented 8164 0 0x00000000 0 False 9.638 CTRL-077 PASS
+    gate-05 TextFieldLovDelayedCompletion gate-instrumented 7204 0 0x00000000 0 False 9.513 CTRL-078 PASS
+    gate-06 TableAdapterPagingClose gate-instrumented 7192 0 0x00000000 0 False 9.004 CTRL-065 PASS
+    gate-07 TextAreaLovDelayedCompletion gate-instrumented 11308 0 0x00000000 0 False 9.221 CTRL-062 PASS
+    gate-08 ExternalLovReadOnly gate-instrumented 2468 0 0x00000000 0 False 9.776 CTRL-061 PASS
+    gate-09 WrapButtonOwnership gate-instrumented 3168 0 0x00000000 0 False 8.587 CTRL-055 PASS
+    gate-10 TabPaneSkinListeners gate-instrumented 18252 0 0x00000000 0 False 8.637 CTRL-054 PASS
+    gate-11 TextAreaSkinDisposal gate-instrumented 7544 0 0x00000000 0 False 8.955 CTRL-053 PASS
+    gate-12 ValidatorSubchanges gate-instrumented 5860 0 0x00000000 0 False 8.367 CTRL-052 PASS
+    gate-13 TableAdapterClose gate-instrumented 6756 0 0x00000000 0 False 8.696 CTRL-051 PASS
+    gate-14 TextAreaLovLifecycle gate-instrumented 18428 0 0x00000000 0 False 8.967 CTRL-050 PASS
+    gate-15 TextFieldSkinDisposal gate-instrumented 16120 0 0x00000000 0 False 9.002 CTRL-049 PASS
+    gate-16 LovBindingInterleaving gate-instrumented 16452 0 0x00000000 0 False 8.993 CTRL-045 PASS
+    gate-17 BoundLovSetter gate-instrumented 18416 0 0x00000000 0 False 8.65 CTRL-044 PASS
+    gate-18 WrapButtonDeferred gate-instrumented 17156 0 0x00000000 0 False 8.82 CTRL-043 PASS
+    gate-19 Editors gate-instrumented 17180 0 0x00000000 0 False 9.099 GUI-004 PASS
+    gate-20 TableEditing gate-instrumented 7424 0 0x00000000 0 False 9.015 GUI-005 PASS
+    gate-21 TableCancel gate-instrumented 1840 0 0x00000000 0 False 9.373 GUI-006 PASS
+    gate-22 EditorReentry gate-instrumented 11468 0 0x00000000 0 False 9.722 GUI-007 PASS
+    gate-23 DataBinding gate-instrumented 3496 0 0x00000000 0 False 9.518 GUI-009 PASS
+    gate-24 FormLifecycle gate-instrumented 5064 0 0x00000000 0 False 9.665 GUI-010 PASS (standalone production FXML/controller and SDI close)
+    gate-25 FormCancel gate-instrumented 9580 0 0x00000000 0 False 10.09 CTRL-022 PASS
+    gate-26 SceneKeyLookup gate-instrumented 11704 0 0x00000000 0 False 8.614 CTRL-024 PASS
+    gate-27 LovListenerLifecycle gate-instrumented 2572 0 0x00000000 0 False 9.378 CTRL-026 PASS
+    gate-28 LovDefaultValidation gate-instrumented 4560 0 0x00000000 0 False 9.115 CTRL-027 PASS
+    gate-29 LovIntegration gate-instrumented 17768 0 0x00000000 0 False 9.262 CTRL-031 PASS
+    gate-30 SingletonCloseVeto gate-instrumented 4812 0 0x00000000 0 False 9.677 CTRL-032 PASS
+    gate-31 SingletonLifecycleMatrix gate-instrumented 2880 0 0x00000000 0 False 9.639 CTRL-035 PASS
+    gate-32 ValidatorScopedUnbind gate-instrumented 3484 0 0x00000000 0 False 8.534 CTRL-033 PASS
+    gate-33 ValidatorMultiControl gate-instrumented 10764 0 0x00000000 0 False 8.831 CTRL-036 PASS
+    gate-34 TextFields gate-instrumented 8588 0 0x00000000 0 False 11.657 GUI-012 PASS (tested matrix)
+    gate-35 ValueFields gate-instrumented 8808 0 0x00000000 0 False 9.183 VF-001 PASS
+    gate-36 ValueLifecycle gate-instrumented 7464 0 0x00000000 0 False 9.165 VF-002 PASS (custom listener ownership)
+    gate-37 MoneyDecimal gate-instrumented 12716 0 0x00000000 0 False 10.234 NUM-001 PASS (tested invariants)
+    gate-38 DatePickerBinding gate-instrumented 10476 0 0x00000000 0 False 9.238 CTRL-002 PASS
+    gate-39 NodeTraversal gate-instrumented 2392 0 0x00000000 0 False 8.965 CTRL-003 PASS
+    gate-40 RadioReadOnly gate-instrumented 10592 0 0x00000000 0 False 9.004 CTRL-006 PASS
+    gate-41 ComboReadOnly gate-instrumented 14556 0 0x00000000 0 False 15.119 CTRL-007 PASS
+    gate-42 CheckBoxReadOnly gate-instrumented 7488 0 0x00000000 0 False 15.373 CTRL-009 PASS
+    gate-43 ValueChangedFlag gate-instrumented 4808 0 0x00000000 0 False 7.429 CTRL-013 PASS
+    gate-44 ControlsFollowup gate-instrumented 2088 0 0x00000000 0 False 8.711 CTRL-CONTROLS-FOLLOWUP PASS
+    gate-45 ChoiceAdapter gate-instrumented 1700 0 0x00000000 0 False 8.935 CTRL-015 PASS
+    gate-46 BinderChoiceNull gate-instrumented 5156 0 0x00000000 0 False 9.248 CTRL-017 PASS
+    gate-47 ChoiceNullLookup gate-instrumented 8268 0 0x00000000 0 False 9.054 CTRL-018 PASS
+    gate-48 ChoiceNonNullSet gate-instrumented 8000 0 0x00000000 0 False 8.789 CTRL-019 PASS
+    gate-49 Default gate-instrumented 18212 0 0x00000000 0 False 9.549 GUI-001 PASS
+
+CTRL-080…090 remain NOT_RUN / PAUSED. Explicit architect release is required. Stopped after CTRL-079A.
