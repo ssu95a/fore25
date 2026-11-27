@@ -4652,3 +4652,107 @@ Shown global shallow delta from each process baseline, B, midpoint of two (min..
 N=400 midpoint over constructed / skin / shown / detached-held / disposed-held / released: stock 1,478,748 / 28,296,644 / 31,217,276 / 31,072,508 / 6,382,164 / 6,382,460 B; framework 53,686,048 / 53,686,496 / 76,377,568 / 75,846,024 / 15,570,812 / 15,568,236 B. Framework eager skin is already included in constructed. Shown N=400 counts: 800 ContextMenu (243,200 B), 400 JInvWrapButton and 400 JInvFEButton (275,200 B each), 400 JInvTooltipValue (144,000 B), 3,200 javafx MenuItem and 3,200 behavior ContextMenuItem (256,000 B each). These are exact class shallow bytes only.
 
 Mixed activation on 5/25/100 nodes at N=20/100/400 added 77,312 / 229,848 / 805,664 global live shallow bytes compared to the short phase within each process, containing changed text and CSS/layout effects. N=20 one overflow + menu show/hide + late LOV added 597,112 B. Each group had eager overflow nodes even on short text. The two N=100 root-release checks each observed 100 weak refs before the marker's diagnostic GC and zero afterward with the fixture root dropped. This is bounded evidence only. True retained sizes, general absence of leaks and actual activation allocation/time remain unestablished. Separate FX allocated totals are in PERF-009.
+
+
+---
+
+## Reply PERF-012
+
+Assignment 0a6b991d1ed32161b719a39bdd6787d0146fb97b. Production baseline and final 0982d2112b8f8020d16f917adaab77caee29005d. No production or tracked test changes, and no per-instance state delta. Independent acceptance remains separate.
+
+| Task | Disposition | Evidence |
+| --- | --- | --- |
+| CTRL-108 | BLOCKED / READ-ONLY | Using real shown table and equal-but-distinct rows, old-slot notification makes the moved original’s mark visible. Suppressing it leaves stale visible row identities and loses mark rendering. Both unequal move control and original route passed. No compliant RED/GREEN fix established. |
+| PERF-007 | DONE / READ-ONLY | Supported inspection distinguishes fallback JavaFX and framework menus. Actual property, bound null, handler, repeat opening and disposal routes confirmed. |
+| PERF-008 | NO_CHANGE | Ordinary and currency controls expose the visible overflow button immediately through public lookup and children. Short/long/short retains node identity. |
+| PERF-009 | DONE / READ-ONLY | MXBean phases, JFR attribution, decoration prototype and measured overflow-check operation counts. |
+| PERF-010 | NO_CHANGE | Decoration cost material in isolation. No scoped exact-class construction with proven equivalent observable contracts. |
+| PERF-011 | DONE / READ-ONLY | 18 JVMs and all jcmd/runner exits zero. Matched live shallow histograms and bounded root release. |
+| PERF-012 | DONE / READ-ONLY. 57/57 PASS, JVM and runner exits 0, no timeout. Maven compile, PowerShell parse and diff check all 0. | See complete regression matrix. |
+
+### Allocation, time and live heap
+
+Matched warmed shown-lifecycle FX allocations, stock/framework, median with N=20/100/400: 2,812,024/8,031,928 B, 13,807,616/39,766,224 B, 54,413,424/157,626,736 B. At N=400 ranges are 54,333,008–54,903,920 and 157,530,392–157,776,144 B; wall-time medians 106.720 and 271.244 ms (73.737–142.280 and 216.061–299.033). Stock bare constructor 1,590,432 B plus stock explicit skin 42,656,872 B; framework eager constructor 92,773,176 B, CSS 46,742,432 B, layout 5,123,592 B. Actual nested framework skin instrumented medians 75,551,392 B and 119.762 ms. Old same-SHA lifecycle stock/framework medians ~54.439/156.951 MB. Pulse timing is not paint.
+
+N=400 shown global incremental live shallow stock/framework B, prior same-SHA 31,192,616/76,392,164, current 31,217,276/76,377,568 (ranges 31,216,576–31,217,976 and 76,368,224–76,386,912). Framework 800 ContextMenus, 400 wrappers, 400 overflow buttons, 400 JInvTooltipValue. Mixed 100/400 activated adds 805,664 shallow live B within one shown run, including text and layout effects. No allocation or retained-heap savings established. Actual first activation allocation/time UNKNOWN. Same matched Java settings and workload as PERF-009/011; logs and exact phase ranges are local. Sampled JFR weights rank CSS iterator stacks and default behavior key mapping; exact calls to text measurement allocate approximately 2.3–3.0 kB/check on tested operations. Decoration-only analogue isolates 12.28 MB/400 temporary bytes; use a proven whole-candidate measurement for any savings claim.
+
+### Ranked follow-up
+
+1. Establish supported invalidation and identity semantics when equal-but-distinct table rows move. Repeat CTRL-108 with deterministic row identity, observer counts, mark pseudo-class, cursor/focus/edit and guarded close.
+2. Decide whether public immediate node exact class or construction path can change. Then isolate overflow's default Tooltip and graphic construction with real F9 and dialog cancel/accept, matched CSS and full allocation/activation comparison.
+3. Attribute framework CSS initialization to supported skin-local call sites with the actual stylesheet. Confirm geometry and node/style identity in a real form before any narrowly scoped edit.
+4. Profile actual text-measure and tooltip demand in wide forms and interactive resizing before changing the overridable measurement path.
+5. Verify real form and TaskContext root ownership and native input. Two zero weak-reference outcomes after synthetic root release do not establish corporate lifecycle behavior.
+
+### Independent Windows commands
+
+Use repository root, IDEA Maven on PATH and MAVEN_ARGS=-o. No new tracked modes in this batch.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterBulkMarkErrorDelivery -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterBulkMarkClose -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterRowRefreshClose -SettingsFile "D:\Java\.m2\settings.xml"
+    mvn -s "D:\Java\.m2\settings.xml" -Pbuild "-Dmaven.buildNumber.skip=true" compile
+
+Final runner is a faithful diagnostic copy with path adjustments and direct native exit capture. Separate stdout/stderr, PID, timestamps and both process exits in target/perf-012/matrix.csv. No opt-in Robot, CTRL-014/034/CAL-TIME-001 or corporate SQL. Original CTRL-079 remains UNKNOWN / NOT_REPRODUCED. Real currency execution, TaskContext, MDI/WAIT, native focus/input, paint and retained heap remain unverified.
+
+### Regression matrix
+
+| Mode | JVM | Runner | Result |
+| --- | ---: | ---: | --- |
+| TableAdapterBulkMarkErrorDelivery | 0 | 0 | PASS |
+| TableAdapterBulkMarkClose | 0 | 0 | PASS |
+| TableAdapterRowRefreshClose | 0 | 0 | PASS |
+| TableAdapterQueuedClose | 0 | 0 | PASS |
+| TableEditRowIdentity | 0 | 0 | PASS |
+| TableEditing | 0 | 0 | PASS |
+| TableCancel | 0 | 0 | PASS |
+| DataBinding | 0 | 0 | PASS |
+| TextFieldSkinDisposal | 0 | 0 | PASS |
+| TextFields | 0 | 0 | PASS |
+| ValueFields | 0 | 0 | PASS |
+| LovIntegration | 0 | 0 | PASS |
+| BoundLovSetter | 0 | 0 | PASS |
+| LovBindingInterleaving | 0 | 0 | PASS |
+| ExternalLovReadOnly | 0 | 0 | PASS |
+| WrapButtonOwnership | 0 | 0 | PASS |
+| CurrencyLovDelayedCompletion | 0 | 0 | PASS |
+| MoneyDecimal | 0 | 0 | PASS |
+| FormLifecycle | 0 | 0 | PASS |
+| Default | 0 | 0 | PASS |
+| TableAdapterSearchMissDelivery | 0 | 0 | PASS |
+| TableAdapterSearchWorkerClose | 0 | 0 | PASS |
+| TableAdapterBulkWorkerClose | 0 | 0 | PASS |
+| TableAdapterSearchListener | 0 | 0 | PASS |
+| TextAreaToolbarOwnership | 0 | 0 | PASS |
+| TableAdapterBulkClose | 0 | 0 | PASS |
+| TextFieldLovDelayedCompletion | 0 | 0 | PASS |
+| TableAdapterPagingClose | 0 | 0 | PASS |
+| TextAreaLovDelayedCompletion | 0 | 0 | PASS |
+| TabPaneSkinListeners | 0 | 0 | PASS |
+| TextAreaSkinDisposal | 0 | 0 | PASS |
+| ValidatorSubchanges | 0 | 0 | PASS |
+| TableAdapterClose | 0 | 0 | PASS |
+| TextAreaLovLifecycle | 0 | 0 | PASS |
+| WrapButtonDeferred | 0 | 0 | PASS |
+| Editors | 0 | 0 | PASS |
+| EditorReentry | 0 | 0 | PASS |
+| FormCancel | 0 | 0 | PASS |
+| SceneKeyLookup | 0 | 0 | PASS |
+| LovListenerLifecycle | 0 | 0 | PASS |
+| LovDefaultValidation | 0 | 0 | PASS |
+| SingletonCloseVeto | 0 | 0 | PASS |
+| SingletonLifecycleMatrix | 0 | 0 | PASS |
+| ValidatorScopedUnbind | 0 | 0 | PASS |
+| ValidatorMultiControl | 0 | 0 | PASS |
+| ValueLifecycle | 0 | 0 | PASS |
+| DatePickerBinding | 0 | 0 | PASS |
+| NodeTraversal | 0 | 0 | PASS |
+| RadioReadOnly | 0 | 0 | PASS |
+| ComboReadOnly | 0 | 0 | PASS |
+| CheckBoxReadOnly | 0 | 0 | PASS |
+| ValueChangedFlag | 0 | 0 | PASS |
+| ControlsFollowup | 0 | 0 | PASS |
+| ChoiceAdapter | 0 | 0 | PASS |
+| BinderChoiceNull | 0 | 0 | PASS |
+| ChoiceNullLookup | 0 | 0 | PASS |
+| ChoiceNonNullSet | 0 | 0 | PASS |
