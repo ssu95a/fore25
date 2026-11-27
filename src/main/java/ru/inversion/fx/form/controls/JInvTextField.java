@@ -580,6 +580,10 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
 //        logger.info( "cached selection is now {}", cachedSelection );
     }
 
+    final long lovAttachmentRevision() {
+        return lovValueListener == null ? -1 : lovValueListener.revision;
+    }
+
     /** */
     @Override
     public void showLOV(BiConsumer<Boolean, ILov> clb) {
@@ -587,8 +591,7 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
         try {
             var provider = getLOV();
             if (provider != null) {
-                var attachment = lovValueListener;
-                long revision = attachment == null ? 0 : attachment.revision;
+                long revision = lovAttachmentRevision();
 
                 if (provider.isSmallLov()) {
                     Bounds boundsInLocal = this.getBoundsInLocal();
@@ -598,8 +601,7 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
                 BiConsumer<Boolean, ILov> completion = (accepted, source) -> {
                     if (clb != null) {
                         // Повторное подключение того же LOV не восстанавливает прежний выбор.
-                        boolean current = getLOV() == provider && lovValueListener == attachment
-                                && (attachment == null || attachment.revision == revision);
+                        boolean current = getLOV() == provider && lovAttachmentRevision() == revision;
                         clb.accept(current ? accepted : Boolean.FALSE, source);
                     }
                 };

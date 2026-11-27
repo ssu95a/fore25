@@ -159,22 +159,21 @@ public class JInvTextFieldCUR extends JInvTextField {
     @Override
     public void showLOV(BiConsumer<Boolean, ILov> clb) {
 
-        if( getLOV() != null )
-        {
-            getLOV().setSkipFilterString( isSkipFilter() );
-            getLOV().showChoiceList     ( ViewContext.of(getScene().getWindow()), getText(), new BiConsumer<Boolean, ILov>() {
-                @Override
-                public void accept( Boolean t, ILov u )
-                {
-                    if (t)
-                    {
-                        setText( TypeConverter.convert( getLOV().getValue(), String.class) );
+        AbstractLovBase<?> provider = getLOV();
+        if (provider != null) {
+            long revision = lovAttachmentRevision();
+            provider.setSkipFilterString(isSkipFilter());
+            provider.showChoiceList(ViewContext.of(getScene().getWindow()), getText(), (accepted, source) -> {
+                if (accepted) {
+                    // Сначала проверяем поколение, чтобы не создавать внутренний LOV для устаревшего запроса.
+                    accepted = lovAttachmentRevision() == revision && getLOV() == provider;
+                    if (accepted) {
+                        setText(TypeConverter.convert(provider.getValue(), String.class));
                         updateProperty();
                     }
-
-                    if( clb != null )
-                        clb.accept( t, u);
                 }
+
+                if (clb != null) clb.accept(accepted, source);
             });
         }
     }
