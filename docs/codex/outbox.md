@@ -3537,3 +3537,35 @@ Five warmup and nine measurement batches of 12 invocations. Fixture state reset,
 | 400 | 1059.158 (1027.033–1177.300) | 200.367 (198.442–209.008) | 104312 (104312–104312) | 47208 (47208–47208) |
 
 Small graph timing varied; dynamic mutation makes the tested candidate ineligible at every size. No retained-memory estimate or actual production saving. Ignored target/ctrl-087/LabelMatchingAudit.java and audit streams. javac -cp "target/ctrl-084;target/classes;<deps>" -d target/ctrl-087 target/ctrl-087/LabelMatchingAudit.java, then java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-087;target/ctrl-084;target/classes;<deps>" LabelMatchingAudit, using target/ctrl-079a/original-dependencies.txt. Compile 0 and direct JVM 0, no outer probe runner.
+
+
+---
+
+## Reply CTRL-088
+
+**DONE / READ-ONLY.** Baseline and verified final production 3976625111c448f00f07837ca987da7da9a0a1d7. No tracked edits.
+
+Shown fixed-cell-size virtualized JInvTable with real DSFXAdapter, production text editor and mark renderer. XXIDataSet subclass uses preloaded in-memory rows and emits genuine mark notifications, with mark/unmark writes handled in memory. The fixture fired the visible first-row CheckBox twice: one mark and one unmark reached only the original row, and the marker pseudoclass was observed on mark. Repeated first-row reentry armed the real mouse filter, used Escape and canceled. Each of 108 measured episodes invoked one active mouse handler, zero after cancellation, allocated zero new editors after warmup and wrote zero drafts. Across workloads, selection still identified original row 0.
+
+Five warmup, nine measured batches of 12 operations. Oracle 25.0.1 / FX 25+29, 1 GiB max heap, elapsed wall µs and FX-thread allocated bytes per operation. N=200/2000, height=240/480 gives roughly 9/19 live rows. Scroll + refresh + synchronous layout cost much more than same-row reentry. Across the 108 measured operations, the text cell/value factory ran 981–990 times at height 240 and 2052 at 480. Mark-enabled ran an equal number of marker cell/value factory calls, with a fresh SimpleBooleanProperty per mark value factory hit. Counts tracked viewport height more closely than loaded N. The mark-enabled difference includes cell, checkbox, CSS and layout, so it cannot be attributed to the boolean property alone. Raw rows below are ordered by N, viewport, marker and workload; counts are text cells, text value reads, mark cells, mark value reads, editors and active mouse calls.
+
+    N=200 height=240 liveRows=9 mark=false workload=reedit ops=108 us median=1628,375 range=1233,400..1816,750 B median=48684,7 range=48680,0..48754,0 counts=[0, 108, 0, 0, 0, 108]
+    N=200 height=240 liveRows=10 mark=false workload=scroll-refresh ops=108 us median=3507,200 range=3211,283..3999,442 B median=611451,3 range=610569,3..614307,3 counts=[981, 981, 0, 0, 0, 0]
+    N=200 height=240 liveRows=9 mark=true workload=reedit ops=108 us median=940,250 range=701,450..1290,533 B median=61680,0 range=61680,0..61680,0 counts=[0, 108, 0, 0, 0, 108]
+    N=200 height=240 liveRows=10 mark=true workload=scroll-refresh ops=108 us median=4840,800 range=4112,725..5558,908 B median=1505722,0 range=1501382,7..1508860,0 counts=[981, 981, 981, 981, 0, 0]
+    N=200 height=480 liveRows=19 mark=false workload=reedit ops=108 us median=462,183 range=357,458..556,350 B median=44904,0 range=44904,0..44904,0 counts=[0, 108, 0, 0, 0, 108]
+    N=200 height=480 liveRows=19 mark=false workload=scroll-refresh ops=108 us median=2923,183 range=2225,225..3559,917 B median=1261513,3 range=1258777,3..1268857,3 counts=[2052, 2052, 0, 0, 0, 0]
+    N=200 height=480 liveRows=19 mark=true workload=reedit ops=108 us median=395,775 range=362,933..641,925 B median=55520,0 range=55520,0..55520,0 counts=[0, 108, 0, 0, 0, 108]
+    N=200 height=480 liveRows=19 mark=true workload=scroll-refresh ops=108 us median=6013,625 range=5411,033..6653,475 B median=3116513,3 range=3111386,0..3121749,3 counts=[2052, 2052, 2052, 2052, 0, 0]
+    N=2000 height=240 liveRows=9 mark=false workload=reedit ops=108 us median=327,608 range=267,908..569,933 B median=43824,0 range=43824,0..44100,0 counts=[0, 108, 0, 0, 0, 108]
+    N=2000 height=240 liveRows=9 mark=false workload=scroll-refresh ops=108 us median=1043,483 range=935,492..1430,475 B median=626366,7 range=625197,3..629178,0 counts=[990, 990, 0, 0, 0, 0]
+    N=2000 height=240 liveRows=9 mark=true workload=reedit ops=108 us median=364,092 range=259,075..522,858 B median=54408,0 range=54406,0..54684,0 counts=[0, 108, 0, 0, 0, 108]
+    N=2000 height=240 liveRows=9 mark=true workload=scroll-refresh ops=108 us median=2608,025 range=2316,967..3010,158 B median=1522560,0 range=1519864,0..1525204,0 counts=[990, 990, 990, 990, 0, 0]
+    N=2000 height=480 liveRows=19 mark=false workload=reedit ops=108 us median=270,158 range=224,283..422,742 B median=43660,0 range=43648,0..43924,0 counts=[0, 108, 0, 0, 0, 108]
+    N=2000 height=480 liveRows=19 mark=false workload=scroll-refresh ops=108 us median=2052,108 range=1592,883..3239,108 B median=1295560,0 range=1295092,7..1300304,0 counts=[2052, 2052, 0, 0, 0, 0]
+    N=2000 height=480 liveRows=19 mark=true workload=reedit ops=108 us median=272,592 range=243,667..432,025 B median=53784,0 range=53760,0..54036,0 counts=[0, 108, 0, 0, 0, 108]
+    N=2000 height=480 liveRows=19 mark=true workload=scroll-refresh ops=108 us median=4246,833 range=4036,492..5163,333 B median=3148246,7 range=3148040,0..3158005,3 counts=[2052, 2052, 2052, 2052, 0, 0]
+
+Production StubObservableValue and StubCallbackValue are per-column proxies with a mutable row reference, each serving synchronous reads. The mark value factory uses separate snapshot objects and the renderer maintains row-level visual state. Sharing the marker value via a mutable proxy needs independent observer/notification equivalence proof. First follow-up candidate is isolated marker-only value factory cost against refresh/layout, then measure whether refresh-induced construction can be avoided with identical notification and editor behavior. No per-row cache or retained heap inference.
+
+Ignored target/ctrl-088/CellReuseAudit.java and audit streams. javac -cp "target/classes;<deps>" -d target/ctrl-088 target/ctrl-088/CellReuseAudit.java, then java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-088;target/classes;<deps>" CellReuseAudit. Deps from target/ctrl-079a/original-dependencies.txt. javac 0 and direct JVM 0, no probe runner. This fixture does not measure paint, SQL, or full-row mark-all behavior. No production state or allocation delta.
