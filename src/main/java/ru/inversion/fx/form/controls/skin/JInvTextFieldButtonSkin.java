@@ -19,6 +19,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import ru.inversion.fx.form.controls.JInvFEButton;
 import ru.inversion.fx.form.controls.JInvTextField;
 import ru.inversion.fx.form.controls.JInvWrapButton;
@@ -58,14 +59,17 @@ public class JInvTextFieldButtonSkin extends TextFieldSkin implements ISkinPopul
         listPopulateContextMenu = frameworkField ? null : FXCollections.observableArrayList();
         textContextMenu = frameworkField ? null : new ContextMenu();
 
-        overflowButton = new JInvFEButton();
-        overflowButton.setGraphic(
-                IconFactory.getLabel( FontAwesome.fa_ellipsis_h, IconSize.SMALL, Color.DODGERBLUE.deriveColor(1,1,1,0.5) ));
-        overflowButton.setTextField(textField);
+        overflowButton = new JInvFEButton(
+                IconFactory.getLabel( FontAwesome.fa_ellipsis_h, IconSize.SMALL, Color.DODGERBLUE.deriveColor(1,1,1,0.5) ),
+                null);
+        if (textField instanceof JInvTextField field) {
+            field.associateOverflowButton(overflowButton);
+        } else {
+            overflowButton.setTextField(textField);
+        }
         overflowButton.setManaged(false);
         overflowButton.setFocusTraversable(false);
         overflowButton.getStyleClass().add("transparentButton");
-        overflowButton.setTooltip(null);
         overflowButton.setMaxWidth(12);
 
         wrapButton = new JInvWrapButton();
@@ -159,6 +163,21 @@ public class JInvTextFieldButtonSkin extends TextFieldSkin implements ISkinPopul
         }
 
         overflowButton.setVisible(showOverflowButton);
+    }
+
+    /** Проверяет ширину текста с учётом фактического места, занятого функциональной кнопкой. */
+    public static boolean isTextClipped(JInvTextField field) {
+        Text measure = new Text(field.getText());
+        measure.setFont(field.getFont());
+        double textWidth = measure.getLayoutBounds().getWidth() + 15;
+        double width = field.getWidth();
+        if (field.getSkin() instanceof JInvTextFieldButtonSkin skin) {
+            JInvWrapButton button = skin.getButton();
+            if (button.isVisible() && button.getInnerButton() != null) {
+                width -= button.getWidth();
+            }
+        }
+        return width != 0.0 && textWidth > width;
     }
 
     @Override protected void layoutChildren(double x, double y, double w, double h) {

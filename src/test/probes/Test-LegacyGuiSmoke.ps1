@@ -44,6 +44,8 @@ param(
     [switch] $TableAdapterClose,
     [Parameter(ParameterSetName = 'TextAreaLovLifecycle')]
     [switch] $TextAreaLovLifecycle,
+    [Parameter(ParameterSetName = 'FEButtonConstruction')]
+    [switch] $FEButtonConstruction,
     [Parameter(ParameterSetName = 'TextFieldInnerButtonOwnership')]
     [switch] $TextFieldInnerButtonOwnership,
     [Parameter(ParameterSetName = 'ButtonTargetAssociation')]
@@ -200,6 +202,9 @@ if ($TextAreaToolbarOwnership) {
 } elseif ($TextAreaLovLifecycle) {
     $probeId = 'CTRL-050'
     $probeClass = 'TextAreaLovLifecycleSmoke'
+} elseif ($FEButtonConstruction) {
+    $probeId = 'ARCH-006'
+    $probeClass = 'FEButtonConstructionSmoke'
 } elseif ($TextFieldInnerButtonOwnership) {
     $probeId = 'ARCH-003'
     $probeClass = 'TextFieldInnerButtonOwnershipSmoke'

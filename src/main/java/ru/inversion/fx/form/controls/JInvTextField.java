@@ -17,7 +17,6 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.text.Text;
 import javafx.util.StringConverter;
 import org.slf4j.Logger;
 import ru.inversion.dataset.fx.DSFXAdapter;
@@ -330,9 +329,19 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
                getInnerButton().get().fire();
             } else {
             //иначе делаем временный
-                JInvFEDialog.edit(this, null);
+                editFullText(null);
             }
         });
+    }
+
+    final void editFullText(StringConverter<String> converter) {
+        JInvFEDialog.edit(this, converter);
+    }
+
+    /** Связывает визуальную кнопку полного просмотра с полем без настройки подсказки и LOV. */
+    public void associateOverflowButton(JInvFEButton button) {
+        button.associateTextField(this);
+        button.setDisable(false);
     }
 
     @Override
@@ -748,18 +757,7 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
      * @return превышает ли текст размеры текстового поля
      */
     public boolean checkExcessTextLength() {
-        Text measure = new Text(getText());
-        measure.setFont(getFont());
-        double textWidth = measure.getLayoutBounds().getWidth() + 15;
-        double width = getWidth();
-
-        if (getSkin() instanceof JInvTextFieldButtonSkin skin) {
-            JInvWrapButton button = skin.getButton();
-            if (button.isVisible() && button.getInnerButton() != null) {
-                width = width - button.getWidth();
-            }
-        }
-        return width != 0.0 && textWidth > width;
+        return JInvTextFieldButtonSkin.isTextClipped(this);
     }
     /**
      * {@inheritDoc }

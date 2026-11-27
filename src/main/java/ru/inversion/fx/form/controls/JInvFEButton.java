@@ -2,6 +2,7 @@ package ru.inversion.fx.form.controls;
 
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.Tooltip;
 import javafx.util.StringConverter;
@@ -38,9 +39,24 @@ public class JInvFEButton extends JInvButton {
 
     public JInvFEButton() {
         setGraphic( IconFactory.getLabel( FontAwesome.fa_ellipsis_h ) );
+        initializeAction();
+        setTooltip( new Tooltip( fore.getString( "OTKRYT_V_DIALOGOVOM_OKNE" ) ) );
+    }
+
+    /**
+     * Создаёт кнопку с указанными графикой и подсказкой.
+     * @param graphic графика кнопки или {@code null}, если она не нужна
+     * @param tooltip подсказка кнопки или {@code null}, если она не нужна
+     */
+    public JInvFEButton(Node graphic, Tooltip tooltip) {
+        setGraphic(graphic);
+        initializeAction();
+        setTooltip(tooltip);
+    }
+
+    private void initializeAction() {
         setOnAction( new FEButtonHandler() );
         setFocusTraversable( false );
-        setTooltip( new Tooltip( fore.getString( "OTKRYT_V_DIALOGOVOM_OKNE" ) ) );
     }
 
     /**
@@ -57,7 +73,9 @@ public class JInvFEButton extends JInvButton {
         @Override
         public void handle( Event event ) {
             TextInputControl p = getTextField();
-            if ( p != null ) {
+            if (p instanceof JInvTextField field) {
+                field.editFullText(stringConverter);
+            } else if (p != null) {
                 JInvFEDialog.edit(p, stringConverter);
             }
         }
