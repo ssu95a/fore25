@@ -5111,3 +5111,18 @@ New evidence: target/perf-014b/plan.csv, results.csv, A/B-sources.json and per-i
 | run-58 | TextFieldContextMenuLifecycle | 20536 / 15176 | 0 / 0x00000000 | 0 | True | False | 0 |
 
 Recommendation: consider this complete regression evidence for a separate gate decision while retaining the original unexplained native incident. This Reply does not clear the gate.
+
+
+---
+
+## Reply PERF-014-FINAL
+
+Published exact approved archived candidate. Baseline 0982d2112b8f8020d16f917adaab77caee29005d, final 93031bb15f03b89ace175278152b4a2a9d3d3c56. Decision 0b207e37a66a061aa4f8fc04ba019558dad292a5. Archive patch SHA-256 2fa7e590c16b3178cfedda393f78265ffd069be234d1749c6fcf0a0a20cd9b93; normalized source post-images and added probe matched before removing one EOF blank line in the smoke for diff --check. All three compiled smoke classes matched the original diagnostic hashes after that whitespace-only normalization. All 1,106 output files of the Maven rebuild matched the frozen B manifest 010b980d40a014e55692c539ca7f24a75e6087ddd40576a6b026a7207798fe61. Maven compile, runner parse, diff check 0.
+
+Three fresh focused JVM/runner 0/0, extra instrumented focused 0/0, unchanged official focused runner 0, all 8 scoped modes 0/0 with no timeout (TextFields, TextFieldSkinDisposal, ValueFields, LovIntegration, ExternalLovReadOnly, WrapButtonOwnership, CurrencyLovDelayedCompletion, FormLifecycle). Raw evidence target/perf-014-final/matrix.csv. Prior approved diagnostic evidence remains intact: 20/20 PERF-014A and 128/128 PERF-014B. Original native failure confirmed and NOT_REPRODUCED; root cause UNKNOWN. Accepted residual risk applies only to that incident.
+
+JInvTextField owns the lazy framework menu and extension lifecycle. Public skin delegates and stock TextField compatibility retained. Explicitly authorized difference: no framework menu before its first request. Existing app menus/handlers/bindings and JavaFX fallback preserved in tested routes. Two control references, no eager manager or new Action. Measured full shown allocation at N=400 157,028,744 → 138,995,880 B; held global shallow delta 76,411,464 → 64,067,968 B. N=20 first menu operations 27,720,000 → 20,616,192 B, repeated opens 17,834,704 → 19,263,480 B. Retained heap, physical touch and external applications UNKNOWN. Full ranges in original PERF-014 Reply.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextFieldContextMenuLifecycle -SettingsFile "D:\Java\.m2\settings.xml"
+
+Independent acceptance remains separate. Continue PERF-015 and mandatory PERF-016.
