@@ -5245,3 +5245,16 @@ Baseline legacy characterization 0; candidate characterization 0; three fresh fo
 Warmed reassociation 10,000 times allocated 320,056 FX B (~32 B/map replacement), no new side-state or Tooltip. Existing overflow still creates then discards a Tooltip through legacy configuration; PERF-009 isolated detached Tooltip median 10,669,112 B/400, and PERF-013 showed moving its creation into target configuration erases most expected savings. No new overflow claim under ARCH-002. External application compatibility UNKNOWN.
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ButtonTargetAssociation -SettingsFile "D:\Java\.m2\settings.xml"
+
+
+---
+
+## Reply ARCH-003
+
+DONE. Baseline ce6b0540216e40b9e0f85617b5e5d837ec194c6f, final b56c650b0772562b8bf8d9645bcfe6f23a46e767. JInvTextField owns one nullable functional button reference, and its selection policy preserves LOV over FE. Currency uses the same control selection. The installed skin connects the selected button, disposes only visual bindings, and does not clear the control selection. Legacy setInnerButton on the exact active wrapper delegates to the control; independent wrapper instances retain legacy standalone selection. The wrapper keeps its existing displayed-button reference for binding provenance and the deferred callback guard. No eager ObjectProperty/listener on the field, new manager, extra wrapper or selection allocation. Minimal additive getConfiguredInnerButton and displayInnerButton bridge control and skin packages. External applications UNKNOWN.
+
+Baseline and candidate characterization passed, with explicit expected difference: existing functional button (LOV, currency, or caller) reattaches on skin replacement rather than being lost. TextFieldSkinDisposalSmoke changed only the previous expectation of an empty replacement and continues asserting retired wrapper isolation; focused coverage adds live replacement bindings and exact actions. Runtime tests verify standalone/custom skin, same LOV object and one write, F9, readOnly, legacy wrapper set/clear and currency, no old action. Existing ABA/bound-setter cases preserved. External-button suppression and previously accepted precedence unchanged; unresolved coexistence policy not redefined.
+
+Maven compile, runner parse, diff check passed. Three fresh focused & extra instrumented official 0/0, unchanged official focused runner 0. Thirteen scoped modes 0/0: TextFieldSkinDisposal, FEActionDelegation, ButtonTargetAssociation, WrapButtonOwnership, WrapButtonDeferred, TextFieldLovDelayedCompletion, CurrencyLovDelayedCompletion, BoundLovSetter, LovBindingInterleaving, ExternalLovReadOnly, MoneyDecimal, FormLifecycle, TextFieldContextMenuLifecycle. Exact logs in target/arch-003.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextFieldInnerButtonOwnership -SettingsFile "D:\Java\.m2\settings.xml"
