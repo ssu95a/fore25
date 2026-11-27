@@ -5141,3 +5141,81 @@ Matched B median (min..max), 5/9, 20/100/400: 13,511,472 (13,466,128..13,522,560
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextAreaContextMenuLifecycle -SettingsFile "D:\Java\.m2\settings.xml"
 
 Independent acceptance remains separate.
+
+
+---
+
+## Reply PERF-016
+
+**GREEN — mandatory intermediate gate.** Verified production ecad2198c3ab9badfd097fa490999a14d884db22, exact isolated chain 0982d211 → 93031bb (PERF-014) → ecad219 (PERF-015). Both migrations published; original unexplained native incident remains UNKNOWN / NOT_REPRODUCED. Maven compile, runner parse and diff check passed. All 59 supported modes (57 original plus 2 menu modes) exited child/runner 0/0 with PASS and no timeout. Raw timing/process IDs/stdout/stderr in target/perf-016/matrix.csv. Reproduce with diagnostic target/perf-014/regression.ps1 -Directory target/perf-016 -FullCount 59 and priority order in modes.txt. No unrelated modes or Robot.
+
+Field and area menus share the lazy TextControlMenu implementation. Exact control ownership, first/repeat popup and onShowing population, skin detach/replace, external bindings/precedence, real FE action, and stock TextField skin fallback were verified in sibling probes. No eager helper for unused menu features. Authorized behavior change: external code using getContextMenu().show() before the first framework request can now find null. A shown control's standard ContextMenuEvent opens the framework menu; callers may supply their own context menu or register their extensions. External usage and physical touch UNKNOWN. ISkinPopulatable compatibility delegates remain.
+
+Fresh ecad219 measurements against matching pre-slice baselines, N=400: Field total FX allocations median 157,028,744 → 138,996,248 B (current 138,900,152..139,258,328), Area 262,288,520 → 243,195,536 B (243,050,632..243,318,840). Current N=20/100 Field 7,092,768/35,098,208 B, Area 12,509,120/61,100,720 B. N=20 first/repeated open Field 20,572,480/19,219,680 B, Area 20,662,312/19,264,120 B. First opens improve versus the original per-slice experiments, repeated opens allocate more; no guarantee on wall-time. Current N=400 shown global live shallow deltas 64,150,480 B Field and 123,045,912 B Area. ContextMenu counts before activation 400/800 and after one 401/801. Benchmarks 5/9, same fixtures and flags and all JVM/jcmd/wrapper exits 0. Raw ranges and phases in target/perf-016/measure.ps1 outputs. Retained sizes and paint UNKNOWN.
+
+Remaining slices in authorized order: direct FE action, target/configuration separation, functional inner-button control ownership, visual wrapper, area toolbar/editor, then overflow. Current JInvTextField.getEditDialogAction still creates a temporary fallback button; JInvTextFieldButtonSkin owns overflow node and reads checkExcessTextLength; JInvWrapButton still selects LOV/FE; JInvTextAreaSkin still owns toolbar/editor configuration and editor Scene registration. No removal of ISkinPopulatable authorized. No production edits in this gate.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextFieldContextMenuLifecycle -SettingsFile "D:\Java\.m2\settings.xml"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TextAreaContextMenuLifecycle -SettingsFile "D:\Java\.m2\settings.xml"
+
+| Mode | JVM | Runner | Assertion |
+| --- | ---: | ---: | --- |
+| TextFieldContextMenuLifecycle | 0 | 0 | PERF-014 PASS (control-owned context menu lifecycle) |
+| TextAreaContextMenuLifecycle | 0 | 0 | PERF-015 PASS (control-owned context menu lifecycle) |
+| TableAdapterBulkMarkErrorDelivery | 0 | 0 | CTRL-104 PASS |
+| TableAdapterBulkMarkClose | 0 | 0 | CTRL-105 PASS |
+| TableAdapterRowRefreshClose | 0 | 0 | CTRL-106 PASS |
+| TableAdapterQueuedClose | 0 | 0 | CTRL-077 PASS |
+| TableEditRowIdentity | 0 | 0 | CTRL-075 PASS |
+| TableEditing | 0 | 0 | GUI-005 PASS |
+| TableCancel | 0 | 0 | GUI-006 PASS |
+| DataBinding | 0 | 0 | GUI-009 PASS |
+| TextFieldSkinDisposal | 0 | 0 | CTRL-049 PASS |
+| TextFields | 0 | 0 | GUI-012 PASS (tested matrix) |
+| ValueFields | 0 | 0 | VF-001 PASS |
+| LovIntegration | 0 | 0 | CTRL-031 PASS |
+| BoundLovSetter | 0 | 0 | CTRL-044 PASS |
+| LovBindingInterleaving | 0 | 0 | CTRL-045 PASS |
+| ExternalLovReadOnly | 0 | 0 | CTRL-061 PASS |
+| WrapButtonOwnership | 0 | 0 | CTRL-055 PASS |
+| CurrencyLovDelayedCompletion | 0 | 0 | CTRL-091 PASS |
+| MoneyDecimal | 0 | 0 | NUM-001 PASS (tested invariants) |
+| FormLifecycle | 0 | 0 | GUI-010 PASS (standalone production FXML/controller and SDI close) |
+| Default | 0 | 0 | GUI-001 PASS |
+| TableAdapterSearchMissDelivery | 0 | 0 | CTRL-098 PASS |
+| TableAdapterSearchWorkerClose | 0 | 0 | CTRL-093 PASS |
+| TableAdapterBulkWorkerClose | 0 | 0 | CTRL-092 PASS |
+| TableAdapterSearchListener | 0 | 0 | CTRL-081 PASS |
+| TextAreaToolbarOwnership | 0 | 0 | CTRL-066 PASS |
+| TableAdapterBulkClose | 0 | 0 | CTRL-076 PASS |
+| TextFieldLovDelayedCompletion | 0 | 0 | CTRL-078 PASS |
+| TableAdapterPagingClose | 0 | 0 | CTRL-065 PASS |
+| TextAreaLovDelayedCompletion | 0 | 0 | CTRL-062 PASS |
+| TabPaneSkinListeners | 0 | 0 | CTRL-054 PASS |
+| TextAreaSkinDisposal | 0 | 0 | CTRL-053 PASS |
+| ValidatorSubchanges | 0 | 0 | CTRL-052 PASS |
+| TableAdapterClose | 0 | 0 | CTRL-051 PASS |
+| TextAreaLovLifecycle | 0 | 0 | CTRL-050 PASS |
+| WrapButtonDeferred | 0 | 0 | CTRL-043 PASS |
+| Editors | 0 | 0 | GUI-004 PASS |
+| EditorReentry | 0 | 0 | GUI-007 PASS |
+| FormCancel | 0 | 0 | CTRL-022 PASS |
+| SceneKeyLookup | 0 | 0 | CTRL-024 PASS |
+| LovListenerLifecycle | 0 | 0 | CTRL-026 PASS |
+| LovDefaultValidation | 0 | 0 | CTRL-027 PASS |
+| SingletonCloseVeto | 0 | 0 | CTRL-032 PASS |
+| SingletonLifecycleMatrix | 0 | 0 | CTRL-035 PASS |
+| ValidatorScopedUnbind | 0 | 0 | CTRL-033 PASS |
+| ValidatorMultiControl | 0 | 0 | CTRL-036 PASS |
+| ValueLifecycle | 0 | 0 | VF-002 PASS (custom listener ownership) |
+| DatePickerBinding | 0 | 0 | CTRL-002 PASS |
+| NodeTraversal | 0 | 0 | CTRL-003 PASS |
+| RadioReadOnly | 0 | 0 | CTRL-006 PASS |
+| ComboReadOnly | 0 | 0 | CTRL-007 PASS |
+| CheckBoxReadOnly | 0 | 0 | CTRL-009 PASS |
+| ValueChangedFlag | 0 | 0 | CTRL-013 PASS |
+| ControlsFollowup | 0 | 0 | CTRL-CONTROLS-FOLLOWUP PASS |
+| ChoiceAdapter | 0 | 0 | CTRL-015 PASS |
+| BinderChoiceNull | 0 | 0 | CTRL-017 PASS |
+| ChoiceNullLookup | 0 | 0 | CTRL-018 PASS |
+| ChoiceNonNullSet | 0 | 0 | CTRL-019 PASS |
