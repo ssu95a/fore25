@@ -3436,3 +3436,25 @@ Real shown JInvTable, DSFXAdapter.findRow and ProgressTaskExecutor with in-memor
 Production only DSFXAdapter. The originating DataSet owns registration and removal; removal runs in finally, preserving the primary failure even if removal also fails. Progress work, existing search callback and SQL paths unchanged. No added instance state or successful-path object allocation.
 
 Windows rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterSearchListener -SettingsFile "D:\Java\.m2\settings.xml". Java 25.0.1 / FX25, IDEA Maven 3.9.16 offline. Recorded instrumented JVM/runner exits: RED 1/1, GREEN 0/0 in three fresh JVMs; DataBinding, TableAdapterBulkClose, TableAdapterQueuedClose, TableAdapterClose all 0/0. Maven -Pbuild compile, PowerShell parse and diff check passed. Initial RED assertions also exposed the leak, then standalone fixture timed out because foreground fore-Th-Pool workers remained parked after Platform.exit (thread dump saved). Fixture now shuts down its own pool through ThreadPoolManager.shutdown without forcing JVM success. All first-attempt evidence and completed exits are retained under target/ctrl-081.
+
+
+---
+
+## Reply CTRL-082
+
+**DONE / READ-ONLY.** Baseline and verified final production 3976625111c448f00f07837ca987da7da9a0a1d7. No tracked production or probe changes.
+
+Real shown JInvTable, DSFXAdapter.moveToLast, ProgressTaskExecutor modal nested loop, real ArrayDataSet with controlled in-memory swap and CountDownLatch release. The worker posted an FX action and waited, the FX action closed the adapter twice, then released the worker. This orders close before the next worker dereference without relying on unsynchronized visibility. No SQL invoked.
+
+| Route | Swap calls | Worker count reads | Adapter navigation adds | Selected / cursor / explicit write requests | External navigation | Error dialog |
+| --- | ---: | ---: | ---: | --- | --- | --- |
+| Active | 2 | 3 | 2 | C / 2 / 1 | [2] | 0 |
+| Close before first swap, paused in initial count | 0 | 1 | 1 | null / -1 / 0 | [] | 1 NPE, swappingData |
+| Close during first swap, then return true | 1 | 1 | 1 | null / -1 / 0 | [] | 1 NPE, getLoadedRowCount |
+| Close during second swap, after first progress update | 2 | 3 | 1 | null / -1 / 0 | [] | 1 NPE, getLoadedRowCount |
+| Active cancel via progress button during first swap | 1 | 3 | 2 | C / 2 / 1 | [2] | 0 |
+| Active controlled swap exception | 1 | 1 | 2 | C / -1 / 0 | [] | 1, original fixture message |
+
+Count reads are instrumented getLoadedRowCount calls, not counts of painted progress updates. Close suppression from CTRL-076 held for navigation re-registration, selection and cursor writes. Close did not prevent an already entered in-memory swap from returning. The later mutable field reads caused three obsolete error dialogs. Active cancellation interrupted the latch and left the swap, with no second swap. It still selected C in this fixture. The separate active failure selection is recorded as observed; deciding its contract is outside this audit. Mutable dataSet reads offer no source-level guarantee without an ordering relation. Close before worker entry, exact cancellation task terminal ordering, server-side SQL, paint and production transaction effects remain UNKNOWN.
+
+Reproduce using ignored target/ctrl-082/BulkBlockingAudit.java. Build classpath from target/classes plus target/ctrl-079a/original-dependencies.txt and run javac -cp <classpath> -d target/ctrl-082 target/ctrl-082/BulkBlockingAudit.java then java --enable-native-access=ALL-UNNAMED -cp "target/ctrl-082;<classpath>" BulkBlockingAudit. Java 25.0.1/FX 25. javac 0, actual direct JVM 0, no PowerShell probe runner or timeout. Full stdout/stderr and exit.txt under target/ctrl-082. A focused follow-up should define worker attachment and cancellation/error delivery separately, capture the originating attachment for work already accepted, and test preventing later obsolete swaps/progress calls. No claim of stopping an in-flight database operation.
