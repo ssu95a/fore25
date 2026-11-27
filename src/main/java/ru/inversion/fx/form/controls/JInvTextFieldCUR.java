@@ -12,7 +12,6 @@ import ru.inversion.fx.app.BaseApp;
 import ru.inversion.fx.app.es.JInvErrorService;
 import ru.inversion.fx.form.LifeCycleStateEnum;
 import ru.inversion.fx.form.ViewContext;
-import ru.inversion.fx.form.controls.skin.JInvTextFieldButtonSkin;
 import ru.inversion.fx.form.lov.AbstractLovBase;
 import ru.inversion.fx.form.lov.ILov;
 import ru.inversion.fx.form.lov.JInvEntityLov;
@@ -62,7 +61,7 @@ public class JInvTextFieldCUR extends JInvTextField {
 
         // Устанавливаем кнопку внутрь внутренней кнопки филда
         final JInvLOVButton button = new JInvLOVButton();
-        ((JInvTextFieldButtonSkin) getSkin()).getButton().setInnerButton(button);
+        selectInnerButton(button);
         button.setTextField(this);
         button.setToolTipText(ResourceBundle.getBundle("fore").getString( "LOV_BUTTON" ) );
 

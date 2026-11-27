@@ -101,6 +101,13 @@ public class JInvTextFieldButtonSkin extends TextFieldSkin implements ISkinPopul
         }
     }
 
+    @Override
+    public void install() {
+        if (textField instanceof JInvTextField field && field.getConfiguredInnerButton() != null) {
+            wrapButton.displayInnerButton(field.getConfiguredInnerButton());
+        }
+    }
+
     private void installContextMenu() {
         TextField area = getSkinnable();
         if (disposed || area == null || area.contextMenuProperty().isBound())
@@ -136,7 +143,7 @@ public class JInvTextFieldButtonSkin extends TextFieldSkin implements ISkinPopul
         if (innerButton != null) {
             boolean ownsAction = wrapButton.onActionProperty().isBound()
                     && wrapButton.getOnAction() == innerButton.getOnAction();
-            wrapButton.setInnerButton(null);
+            wrapButton.displayInnerButton(null);
             if (ownsAction) {
                 wrapButton.setOnAction(null);
             }

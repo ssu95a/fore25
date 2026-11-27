@@ -44,6 +44,8 @@ param(
     [switch] $TableAdapterClose,
     [Parameter(ParameterSetName = 'TextAreaLovLifecycle')]
     [switch] $TextAreaLovLifecycle,
+    [Parameter(ParameterSetName = 'TextFieldInnerButtonOwnership')]
+    [switch] $TextFieldInnerButtonOwnership,
     [Parameter(ParameterSetName = 'ButtonTargetAssociation')]
     [switch] $ButtonTargetAssociation,
     [Parameter(ParameterSetName = 'FEActionDelegation')]
@@ -198,6 +200,9 @@ if ($TextAreaToolbarOwnership) {
 } elseif ($TextAreaLovLifecycle) {
     $probeId = 'CTRL-050'
     $probeClass = 'TextAreaLovLifecycleSmoke'
+} elseif ($TextFieldInnerButtonOwnership) {
+    $probeId = 'ARCH-003'
+    $probeClass = 'TextFieldInnerButtonOwnershipSmoke'
 } elseif ($ButtonTargetAssociation) {
     $probeId = 'ARCH-002'
     $probeClass = 'ru.inversion.fx.form.controls.ButtonTargetAssociationSmoke'

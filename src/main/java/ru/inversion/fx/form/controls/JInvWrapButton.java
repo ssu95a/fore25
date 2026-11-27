@@ -7,6 +7,7 @@ package ru.inversion.fx.form.controls;
 
 import javafx.application.Platform;
 import ru.inversion.fx.form.lov.JInvLOVButton;
+import ru.inversion.fx.form.controls.skin.JInvTextFieldButtonSkin;
 
 /**
  *
@@ -21,11 +22,21 @@ public class JInvWrapButton extends JInvChoiceButton {
     }
 
     public void setInnerButton(JInvButton innerButton) {
+        if (getParent() instanceof JInvTextField field
+                && field.getSkin() instanceof JInvTextFieldButtonSkin skin && skin.getButton() == this) {
+            field.selectInnerButton(innerButton);
+            return;
+        }
         //JAVAKERNEL-1550: Игнорим, LOVButton приоритетнее
         if (this.innerButton instanceof JInvLOVButton && innerButton instanceof JInvFEButton) {
             return;
         }
 
+        displayInnerButton(innerButton);
+    }
+
+    /** Подключает визуальные свойства уже выбранной кнопки. */
+    public void displayInnerButton(JInvButton innerButton) {
         var previous = this.innerButton;
         boolean replacing = previous != null && previous != innerButton;
         boolean ownsAction = replacing && onActionProperty().isBound() && getOnAction() == previous.getOnAction();

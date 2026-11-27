@@ -85,6 +85,7 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
     private final ObjectProperty<Button> externalButton = new SimpleObjectProperty<>();
     private BooleanProperty externalButtonExists = new SimpleBooleanProperty(false);
     private IndexRange cachedSelection;
+    private JInvButton innerButton;
     private TextControlMenu contextMenuSupport;
     private EventHandler<ActionEvent> menuEditAction;
 
@@ -392,9 +393,7 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
         // Устанавливаем кнопку внутрь внутренней кнопки филда
         JInvLOVButton button = customComplexIcon == null ? new JInvLOVButton() : new JInvLOVButton( customComplexIcon );
 
-        if (getSkin() != null && getSkin() instanceof JInvTextFieldButtonSkin) {
-            ((JInvTextFieldButtonSkin) getSkin()).getButton().setInnerButton(button);
-        }
+        selectInnerButton(button);
         button.setTextField(this);
         button.tooltipProperty().bind( new TooltipBinding( buttonTooltipTextProperty ));
         button.disableProperty().bind(Bindings.or(readOnlyProperty(),
@@ -448,12 +447,10 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
         if (button == null) {
             throw new IllegalArgumentException("button can't be null");
         }
-        if (getSkin() != null || getSkin() instanceof JInvTextFieldButtonSkin) {
-            ((JInvTextFieldButtonSkin) getSkin()).getButton().setInnerButton(button);
-            configureInnerButtonTarget(button);
-            button.disableProperty().bind(Bindings.or(readOnlyProperty(),
-                    editableProperty().not().and(buttonIgnoresEditableProperty().not())));
-        }
+        selectInnerButton(button);
+        configureInnerButtonTarget(button);
+        button.disableProperty().bind(Bindings.or(readOnlyProperty(),
+                editableProperty().not().and(buttonIgnoresEditableProperty().not())));
     }
 
     private void configureInnerButtonTarget(JInvButton button) {
@@ -474,13 +471,25 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
      * Удаляет внутреннюю кнопку. Если хотите удалить LOV кнопку - воспользуйтесь методом {@link #unbindLOV()}
      */
     public void removeInnerButton() {
-        if (getSkin() != null && getSkin() instanceof JInvTextFieldButtonSkin) {
-            JInvWrapButton button = ((JInvTextFieldButtonSkin) getSkin()).getButton();
-            JInvButton innerButton = button.getInnerButton();
-            if (innerButton != null) {
-                button.setInnerButton(null);
-            }
+        if (innerButton != null) {
+            selectInnerButton(null);
         }
+    }
+
+    // JAVAKERNEL-1550: штатная кнопка LOV имеет приоритет над FE.
+    void selectInnerButton(JInvButton button) {
+        if (innerButton instanceof JInvLOVButton && button instanceof JInvFEButton) {
+            return;
+        }
+        innerButton = button;
+        if (getSkin() instanceof JInvTextFieldButtonSkin skin) {
+            skin.getButton().displayInnerButton(button);
+        }
+    }
+
+    /** Возвращает настроенную функциональную кнопку для её отображения в skin. */
+    public JInvButton getConfiguredInnerButton() {
+        return innerButton;
     }
 
     private static class TooltipBinding extends ObjectBinding<Tooltip> {
@@ -912,31 +921,8 @@ public class JInvTextField extends TextField implements ITextFieldBase, IStateCo
         return (RegisterEnum) getProperties().getOrDefault(CONTROL_CASE_SENSITIVE_MODE, RegisterEnum.UNKNOWN_CASE);
     }
 
-    private Optional<JInvWrapButton> getWrapButton(){
-        if ( externalButton.get() == null
-                && getSkin() != null
-                && getSkin() instanceof JInvTextFieldButtonSkin ) {
-
-            JInvWrapButton wrapButton = ((JInvTextFieldButtonSkin) getSkin()).getButton();
-
-            return Optional.ofNullable(wrapButton);
-        }
-        return Optional.empty();
-    }
-
-    private Optional<JInvButton> getInnerButton(){
-        if ( externalButton.get() == null
-                && getSkin() != null
-                && getSkin() instanceof JInvTextFieldButtonSkin ) {
-
-            Optional<JInvWrapButton> wrapButton = getWrapButton();
-
-            if (wrapButton.isPresent()){
-                JInvButton innerButton = wrapButton.get().getInnerButton();
-                return Optional.ofNullable(innerButton);
-            }
-        }
-        return Optional.empty();
+    private Optional<JInvButton> getInnerButton() {
+        return Optional.ofNullable(externalButton.get() == null ? innerButton : null);
     }
 
     public boolean isEditableOrLovEditable() {

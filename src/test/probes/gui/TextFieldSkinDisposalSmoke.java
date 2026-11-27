@@ -123,7 +123,8 @@ public class TextFieldSkinDisposalSmoke {
             var current = new Skin(field);
             field.setSkin(current);
             check(old.disposals==1 && old.getSkinnable()==null && field.getSkin()==current
-                    && current.getButton().getInnerButton()==null && field.getLOV()==provider,"installed new skin and retained provider");
+                    && current.getButton().getInnerButton()==oldButton && field.getLOV()==provider,
+                    "installed new skin and retained functional button and provider");
             lifecycle(detached(oldWrap) && oldWrap.getOnAction() == null, "disposed wrapper still owns an action");
             boolean retiredOverflowVisible = retiredOverflow.isVisible();
             counts(field,1,"replaced text",() -> field.setText(LONG));
@@ -142,8 +143,7 @@ public class TextFieldSkinDisposalSmoke {
             check(field.isFocused(),"focus returned");
             lifecycle(oldWrap.getPseudoClassStates().contains(FOCUSED) == retiredFocused, "disposed wrapper receives focus");
             oldButton.setText("obsolete");
-            lifecycle(!oldWrap.getText().equals("obsolete") && !current.getButton().getText().equals("obsolete"),
-                    "obsolete text binding still live");
+            lifecycle(!oldWrap.getText().equals("obsolete"), "retired wrapper has a live text binding");
 
             for (int i = 1; i <= 3; i++) {
                 var oldSentinel = (Skin) sentinel.getSkin();
