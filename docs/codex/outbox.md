@@ -4210,3 +4210,16 @@ Actual shown table, JInvParallelAction and an in-memory XXIDataSet failure after
 The invocation passes its launch Window through the existing action event path. Existing epoch and captured original Dataset check ownership at actual FX error delivery. Current shown launch window remains the context; otherwise the service receives null. DialogError currently leaves its native dialog owner unset even with a supplied context, so the probe checks the actual ownerless neutral dialog and Throwable identity; active context preservation also follows from the checked source path. The first baseline probe expected a native owner and was corrected before the recorded RED. No per-instance fields; one ActionEvent per admitted bulk invocation. No suppression, transaction or cancellation change.
 
 Windows rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterBulkMarkErrorDelivery -SettingsFile "D:\Java\.m2\settings.xml". Java 25.0.1/FX25. RED JVM/runner 1/1, three fresh GREEN 0/0, unchanged official exit 0. SearchMissDelivery, BulkWorkerClose, TableAdapterClose, DataBinding and QueuedClose all 0/0. Maven compile, PowerShell parse and diff check passed. Logs in target/ctrl-104; no corporate SQL.
+
+
+---
+
+## Reply CTRL-105
+
+**DONE.** Baseline 17cabb0b11b7b414fab811bcd59650f02a483561. Verified production 72f92bab82063aa873af9d9086d03022dfe2a7d8. Only DSFXAdapter plus a focused mode extending the real mark worker smoke.
+
+Mark and unmark through JInvParallelAction and real shown table. RED gave one stale full refresh in each of 12 routes: worker queued but not entered, closed during work, closed with successful refresh already queued, detached, hidden and reparented, both directions. GREEN gave zero obsolete refreshes and retained the one original logical write in every route. Repeated active operations each wrote/refreshed once, with savePrev true then false. Empty big table admitted zero operations. Active failure retained original identity and one dialog, zero refresh/writes. CTRL-104 errors remain covered independently.
+
+Reuses launch owner, original Dataset and worker epoch at FX delivery, resets cached actions on close to release stale captured Dataset/owner controller references. An action already submitted is admitted even if its thread has not started; fixture kept that original behavior, without a new cancellation policy. No extra fields, action allocation, per-row state or queued callback compared with CTRL-104. No corporate SQL, rollback or same-table rebind claim.
+
+Windows rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterBulkMarkClose -SettingsFile "D:\Java\.m2\settings.xml". RED JVM/runner 1/1, three fresh GREEN 0/0 plus unchanged official runner 0. BulkMarkErrorDelivery, BulkWorkerClose, QueuedClose, TableAdapterClose and DataBinding all 0/0. Compile, PowerShell parse and diff check passed. Logs target/ctrl-105.
