@@ -4947,3 +4947,167 @@ New evidence in target/perf-014a/results.csv, original-artifacts.json, class man
 | B9 | 8788 | 11008 | 0 / 0x00000000 | 0 | True | False | 0 |
 | A10 | 3240 | 15380 | 0 / 0x00000000 | 0 | True | False | 0 |
 | B10 | 2820 | 21248 | 0 / 0x00000000 | 0 | True | False | 0 |
+
+
+---
+
+## Reply PERF-014B
+
+**GREEN diagnostic evidence; original incident NOT_REPRODUCED, root cause UNKNOWN.** Assignment 8476562fbdc0c693534e1ca6682b907ba304d8c3. Production baseline and final 0982d2112b8f8020d16f917adaab77caee29005d. The combined package remains STOPPED, PERF-014 remains BLOCKED pending a separate architect/user decision, and PERF-015/016 and ARCH-001…008 remain NOT_RUN. No gate waiver, production commit or publication of the candidate.
+
+### Artifact and run fidelity
+
+Pre/post verification of the original incident, the frozen variants and runtime originals used PERF-014A verify.py. A class-tree manifest SHA-256: a63c199e296be6972ebd523f41966b4f3081f1aa50f85c5bb536acb1493a35b9. B: 010b980d40a014e55692c539ca7f24a75e6087ddd40576a6b026a7207798fe61. Archive patch SHA-256: 2fa7e590c16b3178cfedda393f78265ffd069be234d1749c6fcf0a0a20cd9b93. Neither frozen class tree was rebuilt. B runner's normalized source is identical to the original incident runner after the original instrumentation substitutions. Archived B TextFields probe preserves the intentionally approved lazy pre-request behavior and the existing precedence assertions. The archived candidate-only TextFieldContextMenuLifecycle probe is unchanged. The other 56 probes/modes use the applicable original tracked sources. Source and per-invocation compiled class hashes are in the diagnostic directory.
+
+The five focused replay invocations reproduce the original preamble (three focused, then instrumented and official-equivalent); for the final recurrence of the official command the same PID/exit instrumentation is applied so its child exit is directly observed. The original eight-mode order follows. Full A uses the PERF-012 ordered 57-mode manifest verified against its historical matrix and the tracked runner inventory. Full B uses the same 57 in order plus TextFieldContextMenuLifecycle. There are 128 planned fresh JVMs in total, serially, with no optional modes or retry.
+
+Oracle JDK 25.0.1, JavaFX 25+29, Windows PowerShell 5.1, original IDEA Maven offline and settings D:/Java/.m2/settings.xml. Original mode mapping, assertions, Maven goals, Java launcher options and shutdown preserved. PERF-014A recorder derives runners with isolated source/compiled probe/application class paths. Original dependency-file hash verified per invocation. WrapButtonOwnership also matches the original compiled probe hash and original Java argfile after path normalization. All other exact argfiles are retained and derived from their verified applicable runner. ProcessStartInfo captures the actual JVM signed exit and child PID immediately after completion; outer PowerShell exit is recorded independently.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\target\perf-014b\run.ps1
+
+New evidence: target/perf-014b/plan.csv, results.csv, A/B-sources.json and per-invocation directories (command, args, hashes, timestamped matrix/PIDs, stdout/stderr, matched event XML and hs_err when present). Earlier PERF-014 and PERF-014A evidence remains in place. See original failed PERF-014 run-06 and archived WER for 0xC0000409. The PASS marker alone does not govern the result. No matching Windows event means none observed in the sampled invocation window. Root cause remains UNKNOWN.
+
+### Replay-B — 13/13 completed 0/0
+
+| Run | Mode | JVM / runner PID | JVM signed / hex | Runner | Marker | Timeout | WER |
+| --- | --- | --- | --- | ---: | --- | --- | ---: |
+| focus-01 | TextFieldContextMenuLifecycle | 18684 / 20432 | 0 / 0x00000000 | 0 | True | False | 0 |
+| focus-02 | TextFieldContextMenuLifecycle | 18376 / 19172 | 0 / 0x00000000 | 0 | True | False | 0 |
+| focus-03 | TextFieldContextMenuLifecycle | 3584 / 9488 | 0 / 0x00000000 | 0 | True | False | 0 |
+| official | TextFieldContextMenuLifecycle | 20532 / 9144 | 0 / 0x00000000 | 0 | True | False | 0 |
+| official-native | TextFieldContextMenuLifecycle | 3120 / 18740 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-01 | TextFields | 20648 / 18744 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-02 | TextFieldSkinDisposal | 14960 / 19060 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-03 | ValueFields | 10876 / 11604 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-04 | LovIntegration | 19356 / 18244 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-05 | ExternalLovReadOnly | 6640 / 19432 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-06 | WrapButtonOwnership | 20092 / 9736 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-07 | CurrencyLovDelayedCompletion | 5456 / 19900 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-08 | FormLifecycle | 8948 / 1816 | 0 / 0x00000000 | 0 | True | False | 0 |
+
+### Full-A — 57/57 completed 0/0
+
+| Run | Mode | JVM / runner PID | JVM signed / hex | Runner | Marker | Timeout | WER |
+| --- | --- | --- | --- | ---: | --- | --- | ---: |
+| run-01 | TableAdapterBulkMarkErrorDelivery | 15208 / 7876 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-02 | TableAdapterBulkMarkClose | 13320 / 5172 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-03 | TableAdapterRowRefreshClose | 19904 / 19292 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-04 | TableAdapterQueuedClose | 20816 / 18876 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-05 | TableEditRowIdentity | 21428 / 21452 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-06 | TableEditing | 1348 / 3696 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-07 | TableCancel | 8952 / 18796 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-08 | DataBinding | 21112 / 16056 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-09 | TextFieldSkinDisposal | 19044 / 9564 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-10 | TextFields | 11992 / 14512 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-11 | ValueFields | 21064 / 7656 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-12 | LovIntegration | 8016 / 19720 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-13 | BoundLovSetter | 16764 / 16156 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-14 | LovBindingInterleaving | 21156 / 21316 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-15 | ExternalLovReadOnly | 17656 / 21232 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-16 | WrapButtonOwnership | 4544 / 20264 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-17 | CurrencyLovDelayedCompletion | 12424 / 17628 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-18 | MoneyDecimal | 17504 / 8204 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-19 | FormLifecycle | 21240 / 12528 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-20 | Default | 4200 / 21184 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-21 | TableAdapterSearchMissDelivery | 20704 / 20220 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-22 | TableAdapterSearchWorkerClose | 6644 / 11792 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-23 | TableAdapterBulkWorkerClose | 20728 / 6904 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-24 | TableAdapterSearchListener | 11104 / 6720 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-25 | TextAreaToolbarOwnership | 15000 / 7792 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-26 | TableAdapterBulkClose | 14972 / 21156 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-27 | TextFieldLovDelayedCompletion | 17672 / 20416 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-28 | TableAdapterPagingClose | 20720 / 8204 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-29 | TextAreaLovDelayedCompletion | 17544 / 19252 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-30 | TabPaneSkinListeners | 9888 / 9872 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-31 | TextAreaSkinDisposal | 6168 / 2084 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-32 | ValidatorSubchanges | 5576 / 12996 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-33 | TableAdapterClose | 7828 / 20288 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-34 | TextAreaLovLifecycle | 11984 / 6544 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-35 | WrapButtonDeferred | 9668 / 1928 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-36 | Editors | 4748 / 19920 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-37 | EditorReentry | 2156 / 18088 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-38 | FormCancel | 7384 / 15040 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-39 | SceneKeyLookup | 268 / 10360 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-40 | LovListenerLifecycle | 2876 / 9464 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-41 | LovDefaultValidation | 19504 / 17620 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-42 | SingletonCloseVeto | 14436 / 19048 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-43 | SingletonLifecycleMatrix | 8840 / 4476 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-44 | ValidatorScopedUnbind | 3000 / 20908 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-45 | ValidatorMultiControl | 14888 / 9200 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-46 | ValueLifecycle | 10268 / 6392 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-47 | DatePickerBinding | 5004 / 18848 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-48 | NodeTraversal | 2668 / 4144 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-49 | RadioReadOnly | 7600 / 20984 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-50 | ComboReadOnly | 20716 / 17376 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-51 | CheckBoxReadOnly | 4528 / 14596 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-52 | ValueChangedFlag | 1964 / 21448 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-53 | ControlsFollowup | 19800 / 18580 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-54 | ChoiceAdapter | 19068 / 19112 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-55 | BinderChoiceNull | 8344 / 15720 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-56 | ChoiceNullLookup | 6356 / 14840 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-57 | ChoiceNonNullSet | 17680 / 8300 | 0 / 0x00000000 | 0 | True | False | 0 |
+
+### Full-B — 58/58 completed 0/0
+
+| Run | Mode | JVM / runner PID | JVM signed / hex | Runner | Marker | Timeout | WER |
+| --- | --- | --- | --- | ---: | --- | --- | ---: |
+| run-01 | TableAdapterBulkMarkErrorDelivery | 19068 / 20072 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-02 | TableAdapterBulkMarkClose | 18460 / 20324 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-03 | TableAdapterRowRefreshClose | 21128 / 18620 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-04 | TableAdapterQueuedClose | 12616 / 11672 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-05 | TableEditRowIdentity | 18388 / 12444 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-06 | TableEditing | 18520 / 19124 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-07 | TableCancel | 11184 / 3584 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-08 | DataBinding | 11976 / 4008 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-09 | TextFieldSkinDisposal | 7364 / 15932 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-10 | TextFields | 4984 / 19280 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-11 | ValueFields | 6232 / 4360 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-12 | LovIntegration | 19436 / 8268 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-13 | BoundLovSetter | 20060 / 12524 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-14 | LovBindingInterleaving | 15644 / 18956 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-15 | ExternalLovReadOnly | 19268 / 15180 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-16 | WrapButtonOwnership | 20244 / 19160 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-17 | CurrencyLovDelayedCompletion | 3728 / 16240 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-18 | MoneyDecimal | 21432 / 1556 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-19 | FormLifecycle | 15980 / 4944 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-20 | Default | 15144 / 18044 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-21 | TableAdapterSearchMissDelivery | 19880 / 19276 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-22 | TableAdapterSearchWorkerClose | 5788 / 14376 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-23 | TableAdapterBulkWorkerClose | 18400 / 2880 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-24 | TableAdapterSearchListener | 8564 / 19264 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-25 | TextAreaToolbarOwnership | 19520 / 12824 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-26 | TableAdapterBulkClose | 4900 / 4524 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-27 | TextFieldLovDelayedCompletion | 20800 / 8084 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-28 | TableAdapterPagingClose | 6096 / 20196 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-29 | TextAreaLovDelayedCompletion | 10592 / 16708 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-30 | TabPaneSkinListeners | 2356 / 17008 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-31 | TextAreaSkinDisposal | 18200 / 12184 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-32 | ValidatorSubchanges | 16180 / 19904 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-33 | TableAdapterClose | 2660 / 3908 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-34 | TextAreaLovLifecycle | 17612 / 6088 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-35 | WrapButtonDeferred | 1776 / 20136 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-36 | Editors | 21256 / 6384 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-37 | EditorReentry | 18388 / 17788 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-38 | FormCancel | 8340 / 20040 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-39 | SceneKeyLookup | 14328 / 15144 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-40 | LovListenerLifecycle | 19372 / 6752 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-41 | LovDefaultValidation | 18212 / 4480 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-42 | SingletonCloseVeto | 11604 / 19300 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-43 | SingletonLifecycleMatrix | 9872 / 15324 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-44 | ValidatorScopedUnbind | 18412 / 21252 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-45 | ValidatorMultiControl | 3348 / 18932 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-46 | ValueLifecycle | 2804 / 20348 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-47 | DatePickerBinding | 18816 / 17196 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-48 | NodeTraversal | 19120 / 6712 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-49 | RadioReadOnly | 19332 / 13252 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-50 | ComboReadOnly | 11184 / 16176 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-51 | CheckBoxReadOnly | 17988 / 20020 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-52 | ValueChangedFlag | 15396 / 11008 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-53 | ControlsFollowup | 13260 / 18852 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-54 | ChoiceAdapter | 14968 / 20000 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-55 | BinderChoiceNull | 4676 / 20348 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-56 | ChoiceNullLookup | 19120 / 2732 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-57 | ChoiceNonNullSet | 20620 / 11364 | 0 / 0x00000000 | 0 | True | False | 0 |
+| run-58 | TextFieldContextMenuLifecycle | 20536 / 15176 | 0 / 0x00000000 | 0 | True | False | 0 |
+
+Recommendation: consider this complete regression evidence for a separate gate decision while retaining the original unexplained native incident. This Reply does not clear the gate.
