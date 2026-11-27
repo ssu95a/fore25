@@ -3696,3 +3696,16 @@ Final CTRL-090 runner matrix. Columns are mode, probe output, elapsed seconds, J
     ChoiceNullLookup | CTRL-018 PASS | 8.022 | 0 | 0 | False
     ChoiceNonNullSet | CTRL-019 PASS | 8.122 | 0 | 0 | False
     Default | GUI-001 PASS | 8.926 | 0 | 0 | False
+
+
+---
+
+## Reply CTRL-091
+
+**DONE.** Baseline 3976625111c448f00f07837ca987da7da9a0a1d7. Verified production de95eefc66700425f46720f43119c74298adf0d4. Only JInvTextField and JInvTextFieldCUR production, plus the focused probe and mode.
+
+Real shown currency field, model bound bidirectionally to curValue, deferred providers for direct/F9/button. All nine accepted retired completions wrote once on RED: replacement wrote EUR from B, detach cleared the value, ABA wrote USD from A. All nine now preserve the draft and model, report false with original A in direct mode and emit zero TAB in UI modes. Cancellation focus remains one in the UI routes. Same-provider, current accept/cancel, overlap, rejected bound set/unbind, programmatic updates and readOnly controls passed. An injectable default provider confirmed current conversion and default→explicit→default invalidation; the real internal provider identity was separately verified without opening a SQL choice list. Corporate currency lookup and actual TAB traversal remain untested.
+
+The package-private final helper reads the existing epoch, including a distinct value before lazy listener creation. The currency callback captures actual provider and epoch, checks the epoch first to avoid stale fallback creation, and keeps skipFilter, text argument, conversion-before-curValue update, original source and standard cancellation. No new per-instance state and one callback per request as before.
+
+Windows rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -CurrencyLovDelayedCompletion -SettingsFile "D:\Java\.m2\settings.xml". Java 25.0.1/FX25; IDEA Maven offline. RED JVM/runner 1/1 on unchanged production; GREEN 0/0 on three fresh instrumented JVMs, plus unchanged official runner exit 0. TextFieldLovDelayedCompletion, TextAreaLovDelayedCompletion, ExternalLovReadOnly, LovBindingInterleaving, BoundLovSetter, LovIntegration, MoneyDecimal and ValueFields all 0/0. Maven -Pbuild compile, PowerShell parse and diff checks passed. Initial implementation compile failure was a raw generic type inference error before a JVM launched; preserved with all streams and exits in target/ctrl-091.
