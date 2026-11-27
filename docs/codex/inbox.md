@@ -4014,3 +4014,132 @@ READ-ONLY. Use actual FXFormLauncher/AbstractBaseController, shown SDI FXML fixt
 **Task:** VERIFY — production baseline regression and readiness
 
 READ-ONLY. Enumerate actual supported smoke modes at final HEAD (53 previous + any new). Run full battery, prioritize CTRL-098 and any implemented CTRL-100, all CTRL-075…093 fixes and form/table/LOV/marker/numeric/navigation. Record actual child JVM and runner exits separately with faithful ignored diagnostic recorder, exact PASS matrix, timestamps, stdout/stderr and timeouts. No opt-in Robot or unresolved CTRL-014/034/CAL-TIME-001. Maven -Pbuild compile, PowerShell parse, git diff --check, verify fast-forward chain and clean remote. Report each of six task statuses, exact SHAs and scopes, RED/GREEN, state/allocations, performance measurements and rejected candidates, independent Windows rerun commands, residual risks and next 3–5 priorities. Original CTRL-079 incident UNKNOWN / NOT_REPRODUCED; new unexplained exit stops, no retry masking. Local test baseline not certification of corporate SQL/transaction, real TaskContext/currency lookup, native focus/input or MDI/WAIT. Stop after CTRL-103.
+
+---
+
+## BATCH CTRL-104…CTRL-107 / PERF-001…PERF-006 — finish confirmed lifecycle fixes and profile control construction
+
+**Status:** ACTIVE / ASSIGNED — user approved next ten-task sequential package.
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Mailbox branch:** agent/codex-mailbox
+**Baseline remote HEAD:** df95a931230b57e87e7bef4bfba6267c3e9a395d
+**Budget:** 630 minutes (10 h 30 min), ceiling.
+**Dependency:** CTRL-098 user PASS/exit 0; acceptance fff0dde7d9fd0f1db472846e7ad685f63e7612d0; CTRL-103 agent 54/54 child and runner exits 0.
+
+### Latest execution contract
+Execute only CTRL-104,105,106,107 then PERF-001,002,003,004,005,006, in exact order, autonomously. Each starts from preceding verified clean HEAD. Verify fresh production/mailbox refs and clean tracked checkout before task/reply. All Git/GitHub operations within explicit scope approved. Main and JInvCommon read-only; no other repository writes, force push/destructive commands, dependency/public API changes, broad refactor, unapproved Binder/keyboard/LOV contracts, CTRL-014/034/CAL-TIME-001. No corporate DB writes, SQL cancellation/rollback guarantee, locks across blocking operation or nested FX loop. GUI ordinary FX thread, real worker paths require explicit publication/admission reasoning.
+
+CTRL-104/105/106 permit isolated scoped correctness fixes after deterministic tracked RED on unchanged baseline and GREEN same assertions; CTRL-107 and PERF-001/002/003/005/006 READ-ONLY, ignored probes/logs only. PERF-004 sole conditional production optimization, at most one isolated change if measured meaningful benefit and semantic equivalence; NO_CHANGE is acceptable. No speculative cache, per-row state, eager compensating per-control objects, private JavaFX skin/VirtualFlow access or reflection, test-only production hooks, arbitrary sleeps, assertion weakening, forced JVM success. Preserve FXML/property/skin/LOV/validation/navigation lifecycle contracts. Russian Java comments. Fix/optimization tracked focused correctness smoke + runner mode, three fresh JVMs and unchanged official runner, relevant regressions, Maven -Pbuild compile, PowerShell parse, git diff --check. One validated fast-forward production commit per implemented task; verify remote SHA, no incomplete push. Profile actual absolute allocations and time with matched warmed workloads/ranges; distinguish allocation, live shallow bytes, retained heap, post-layout and paint; no downloads or dependency changes for profiler. Keep measurement overhead and fixture limitations explicit.
+
+Record real native JVM and outer runner exits and preserve failed attempts. Original CTRL-079 failure UNKNOWN / NOT_REPRODUCED, accepted residual risk not waiver for new failures. Unexplained shared nonzero/timeout, regression, dirty/conflict/unexpected remote advancement/unreliable infrastructure: STOP safely, remaining NOT_RUN. Task-local unknown contract/no benefit: report BLOCKED/PARTIAL/NO_CHANGE and proceed only independent task on clean baseline with no regression. Exactly one Reply per task in docs/codex/outbox.md on agent/codex-mailbox; report scope, baseline/final SHA, actual commands/exits, confirmed facts vs UNKNOWN, state/allocations and Windows rerun with -SettingsFile "D:\Java\.m2\settings.xml" for fixes. User acceptance separate. Timeboxes ceilings; no expansion or self-assignment. STOP after PERF-006.
+
+---
+
+## MESSAGE CTRL-104
+
+**Status:** ASSIGNED / ACTIVE TEN-TASK BATCH
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-104
+**Task:** FIX — bulk mark original error delivery
+
+CTRL-101 proved genuine failure in actual JInvParallelAction bulk mark with detached table becomes FX NPE at getScene().getWindow(), original Throwable not delivered. Scope production ONLY DSFXAdapter; inspect markAll/unMarkAll async and outer catch, existing JInvErrorService.handleException(Object,Throwable), ViewContext.tryGetWindow and DialogError null-owner behavior. Architect authorizes original Throwable delivery exactly once via existing service: if original owner remains appropriate use it; if retired/detached/hidden/reparented use existing neutral/null context routing, not arbitrary stale/new table owner, and verify that existing neutral route is supported. Do not suppress genuine exceptions or change generic error service. Avoid off-FX access to scene/window at delivery; preserve existing active error behavior. If existing service cannot safely support neutral context, BLOCKED rather than redesign. Deterministic real shown table, actual parallel action and in-memory worker failure, mark AND unmark, active, closed, detached, hidden/reparented where applicable, original error identity, one delivery and no secondary FX NPE, no success refresh/write invented; active success controls. Existing admitted operations remain unchanged; no SQL cancellation/rollback. New focused -TableAdapterBulkMarkErrorDelivery; relevant close, search miss, bulk worker, mark/data binding regressions. No persistent fields if avoidable.
+
+---
+
+## MESSAGE CTRL-105
+
+**Status:** ASSIGNED / ACTIVE TEN-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-105
+**Task:** FIX — bulk mark retired refresh ownership
+
+CTRL-101 reproduced one retired full refresh after close during pending mark worker and after queued successful result. Only DSFXAdapter production. Reuse existing workerAttachmentRevision and captured original Dataset at admission, account for cached markAllAction/unMarkAllAction capturing original Dataset: inspect actual JInvParallelAction handle/scheduling and supported one-shot attachment lifecycle; no unsupported same-table rebind contract. Guard table-owned queued refresh at FX delivery, no obsolete refresh after close, no incorrect target on reparent, preserve active one refresh and logical mark/unmark counts/flags/order, existing CTRL-104 genuine error routing. Work already admitted may finish; no worker cancellation redesign or transaction change. Real mark and unmark parallel fixture, close before entry where deterministic, during admitted operation and after completion queued, double close, active success/empty big-table guard/repeated invocations/savePrev true/false, independent observers, fresh table, active failure. Explicitly distinguish whether unstarted work admission needs retirement gate under existing contract; do not add a new cancellation policy by assumption. New focused -TableAdapterBulkMarkClose. Existing bulk mark error/worker, queued close, adapter close, DataBinding modes. Minimize state, no new per-row objects.
+
+---
+
+## MESSAGE CTRL-106
+
+**Status:** ASSIGNED / ACTIVE TEN-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-106
+**Task:** FIX — deferred refreshRow retirement
+
+CTRL-099 confirmed queued refreshRow still emits REPLACE after adapter close even when detached. Only DSFXAdapter production. Capture origin attachment and revision (reuse existing lifecycle state), validate before touching list/focus in existing FX callback and recheck before subsequent focus restore if list event synchronously closes owner. Preserve public index-at-delivery semantics; do NOT convert to entity identity, redirect indices, suppress active list events or change markAction contract in this task. Inspect legitimate detached-but-live caller semantics; close retirement is sufficient independently of visibility, don't require shown Stage if active detached table supported. Real ArrayDataSet/JInvTable plus observers: RED one obsolete REPLACE after close, GREEN zero, explicit and mark-driven queued delivery, close twice, late event, close during list notification, active same index replacement, invalid index, replace/remove/permutation still documented legacy index behavior, exact focus/selection/cursor/edit/commit counts. Positive active offscreen update, active detached case if supported. No transaction, full refresh, row cache or new callback count. New focused -TableAdapterRowRefreshClose; TableAdapterQueuedClose, TableAdapterClose, TableAdapterPagingClose, TableEditRowIdentity, TableEditing, TableCancel, DataBinding and bulk mark regression. Report row identity separately CTRL-107.
+
+---
+
+## MESSAGE CTRL-107
+
+**Status:** ASSIGNED / ACTIVE TEN-TASK BATCH
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-107
+**Task:** AUDIT — mark event identity ownership
+
+READ-ONLY. CTRL-099 marked original A then delayed index refresh targeted X after replacement; zero wrong model writes. Inspect actual installed JInvCommon DataSetMarkEvent API/bytecode or read-only source, event production/dispatch, row identity availability, index meaning for single/all mark, sort/filter/update, live list and adapter markAction callers. Reuse deterministic shown fixture with equal-valued distinct A/X, remove, permutation, same identity and offscreen, independent observers. Distinguish event original identity vs explicitly index-based public refreshRow contract, verify visual mark/pseudoclass after moving A to another index and actual data mark values, commit/write/focus counts. Propose narrow next contract only if proven; no identity scan over all loaded rows or cache by assumption, no edits to JInvCommon or Fore25. Confirm whether mark event even exposes origin identity; if unavailable or ambiguous report UNKNOWN. Do not conflate wrong slot refresh with wrong DB write.
+
+---
+
+## MESSAGE PERF-001
+
+**Status:** ASSIGNED / ACTIVE TEN-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** PERF-001
+**Task:** BENCHMARK — matched stock TextField versus JInvTextField
+
+READ-ONLY. Build reproducible ignored Windows Java25/FX25 benchmark on FX thread, identical text/font/width/parent/CSS/layout/pulse and count; compare stock TextField vs JInvTextField and (optional) stock TextField with actual JInvTextFieldButtonSkin only if compatible, distinguish functionality difference not claim equal features. Actual JInvTextField constructor calls setSkin(createDefaultSkin()) then initContextMenu/tooltips/keyboard/focus; stock generally installs default skin later. Separate fresh construction, attachment, applyCss/skin install and first layout, also total through comparable lifecycle. Do not compare stock bare constructor to framework constructor with eager skin as if same work. Same heap settings/process isolation, sizes e.g. 1/20/100/400 within budget, warmup >=5 batches/9 measured where practical, no retained references to closed graphs across runs, exact FX ThreadMXBean allocated bytes and elapsed ranges per control/batch, cold first-use separately. Verify real normal field behavior, no LOV, later LOV setup, readOnly and existing skin access before scene. Record baseline environment and source paths; raw logs and reproducible commands. Do not modify production/tracked tests. Select matched fixture for PERF-002/003/004/005/006.
+
+---
+
+## MESSAGE PERF-002
+
+**Status:** ASSIGNED / ACTIVE TEN-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** PERF-002
+**Task:** PROFILE — constructor allocation attribution
+
+READ-ONLY. On PERF-001 matched fixture use existing local JDK JFR allocation sampling/available profiler (no downloads/new dependencies) plus exact FX ThreadMXBean deltas for phases; inspect JInvTextField fields, RequiredState, default properties, editableOrLovEditable initialization, external button properties, focus/keyboard/tooltip, skin eager call. Separate superclass, framework own setup and skin-related allocation using safe public/protected seams only where semantics preserved; do not override away behavior and call it equivalent. Report sampled weights/stacks as estimates, not exact per-class sizes, distinguish first class initialization vs steady state; rank top 5 allocation stacks/classes by measured absolute contribution where available. If JFR unavailable or sampling inconclusive, report UNKNOWN and use exact phase totals, no invented attribution. No private JavaFX reflection/test hooks. Use ignored local profiles/logs, avoid external app or secret data. Provide candidate only where measured and API/lifecycle can be preserved.
+
+---
+
+## MESSAGE PERF-003
+
+**Status:** ASSIGNED / ACTIVE TEN-TASK BATCH
+**Timebox:** 75 minutes
+**Reply ID:** PERF-003
+**Task:** PROFILE — skin construction, CSS and context menu/overflow/wrapper costs
+
+READ-ONLY. Inspect actual JInvTextFieldButtonSkin constructor and JInvWrapButton/JInvFEButton, IconFactory, ContextMenu population and dispose; eager ContextMenu populated before install and again on showing, wrapper/getButton used by subclasses, LOV/button and layout paths. Isolate construction and first CSS/skin/layout costs in PERF-001 matched workloads, including no LOV/no custom menu, overflow text, with internal/external button, context-menu custom items/populate callback, readOnly and bound/external menu/handler; preserve CTRL-049/055/061/063/066/078/091 behavior. Measure counts/allocations using existing public observation/profiler, not speculative object size; evaluate whether repeated menu item construction, icons, skin-owned children or CSS parsing dominate, first-use versus warm. Prototype only ignored variants (not tracked) with explicit compatibility tests: immediate getSkin/getButton/getContextMenu/items access before scene, FXML injection/property binding, custom menu override and dispose/recreate, keyboard/mouse activation, overflow layout and actual menu open. No shared mutable menu or node across controls, no production edit. Rank candidates with absolute benefit and blockers. No assumption delaying skin itself is safe.
+
+---
+
+## MESSAGE PERF-004
+
+**Status:** ASSIGNED / ACTIVE TEN-TASK BATCH
+**Timebox:** 90 minutes
+**Reply ID:** PERF-004
+**Task:** PERF — one measured lazy initialization optimization, conditional
+
+Depends PERF-001…003. Only if a materially costly eager object/work is proven unnecessary on common paths AND existing observable contract preserved. Authorize one narrow production change in JInvTextField and/or JInvTextFieldButtonSkin (only these two files) with explicit exact scope; do not rewrite all properties, lazify whole skin, remove immediate getButton/getContextMenu behavior, change FXML/default/property metadata or share Nodes/Menus. Candidate may defer unused internal work or avoid redundant allocation while preserving observed API; do not choose ContextMenu/wrapper/overflow laziness by guess. Prove existing behavior including immediate constructor and property access/binding/default/null semantics, public getListItemsToPopulateContextMenu and onPopulateContextMenu order/count, user custom menu and handlers, editable/readOnly, LOV/provider attachment, F9/button/overflow geometry, dispose and skin replacement, specialized JInvTextFieldCUR and descendants. No eager per-control compensating object/state; justify any added nullable reference vs saved objects and quantify retained delta separately. Compare identical warmed matched fixture before/after, N=20/100/400 same heap, exact allocated bytes/time/median/ranges both first-use and ordinary no-feature path, feature activation cost, no moved cost hidden; require meaningful absolute benefit and no material correctness regression. If no equivalent proven candidate or time insufficient, NO_CHANGE. One isolated validated commit only if conditions met, tracked focused smoke + official mode -TextFieldAllocationLifecycle or appropriate named mode; regressions TextFieldSkinDisposal, TextFields, ValueFields, MoneyDecimal, LovIntegration, BoundLovSetter, LovBindingInterleaving, TextFieldLovDelayedCompletion, CurrencyLovDelayedCompletion, ExternalLovReadOnly, WrapButtonOwnership, FormLifecycle. Do not use artificial performance assertions dependent on wall-clock. No public API changes.
+
+---
+
+## MESSAGE PERF-005
+
+**Status:** ASSIGNED / ACTIVE TEN-TASK BATCH
+**Timebox:** 75 minutes
+**Reply ID:** PERF-005
+**Task:** AUDIT — retained/live heap per control
+
+READ-ONLY. Exact allocation during launch is not retained memory. Use matched stock/framework fixtures from PERF-001 with identical heap flags, controlled strongly held live groups and detached/disposed/released groups, several N and repeated independent processes. Use local JDK jcmd GC.class_histogram or heap dumps/dominator analysis only if existing tools available and controlled synthetic data, never corporate heap; no uploads of raw dumps or secrets. Distinguish class histogram live shallow bytes/count vs true retained/dominator graph; report retained heap UNKNOWN unless dominator measurement exists. If using explicit GC as diagnostic, document not deterministic reclamation proof; weak-reference check bounded observations only. Account for shared static CSS/icon/font caches, scene/window roots and base controls, avoid retaining controller graphs in harness or pooling measurement objects. Separate bare constructor/skin-installed/shown/post-close states and optional features (LOV/ContextMenu/overflow). Compare stock/framework and PERF-004 if implemented, same fixture/heap/roots; record class counts and incremental live bytes per N where defensible, no claim of per-object retained size from global heap delta. Identify avoidable persistent state and verify no functional ownership conclusions from deliberate strong references. Binder shared FXEntity remains separately UNKNOWN. Reproducible commands, limitations, top 3 follow-ups.
+
+---
+
+## MESSAGE PERF-006
+
+**Status:** ASSIGNED / ACTIVE TEN-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** PERF-006
+**Task:** VERIFY — final regression and repeated matched profiling
+
+READ-ONLY. Enumerate actual supported smoke modes at final HEAD (54 previous + new fix modes and any optimization mode); full battery within ceiling, prioritize CTRL-104/105/106, CTRL-098, currency/bulk/search, text/skin/LOV/numeric/controls/forms and table editing. Faithful ignored diagnostic runner immediate native and outer exits, exact PASS matrix, preserve all failures/timeouts and raw output. Maven -Pbuild compile, PowerShell parse, diff check, clean remote and isolated chain/scope. Repeat PERF-001 matched benchmark at same heap/settings before/after if PERF-004 implemented; if no production performance change, report baseline only, no claimed savings. Record all ten tasks dispositions, exact SHAs, RED/GREEN, per-instance and per-operation state/allocation delta, phase/profile/live-heap evidence and limitations; independent Windows rerun commands for fixes, rank next candidates by confirmed risk then measured absolute cost. Original CTRL-079 UNKNOWN / NOT_REPRODUCED remains; no blanket waiver. No claim of corporate SQL/TaskContext/MDI/WAIT/native input/paint readiness from local tests. Stop after PERF-006.
