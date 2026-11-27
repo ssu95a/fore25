@@ -4244,7 +4244,7 @@ READ-ONLY. Enumerate supported runner modes at final HEAD (57 previous + new one
 
 ## MESSAGE PERF-013
 
-**Status:** ASSIGNED — user explicitly approved public overloaded constructor; no factory, no class/package relocation.
+**Status:** NO_CHANGE / ARCHITECT REVIEWED — corrected candidate passed 58/58 locally but saved only 0.50–1.05% shown-lifecycle allocation; setTextField creates another Tooltip. No production or tracked changes. Follow-up ARCH-002/006.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox branch:** agent/codex-mailbox
@@ -4287,11 +4287,11 @@ The user explicitly authorizes the intentional contract change: internal framewo
 
 ## BATCH PERF-014…PERF-016 — event-driven control-owned context menu migration
 
-**Status:** ASSIGNED / QUEUED — execute only in a new session after PERF-013 has reported and stopped, with clean verified production HEAD and no unresolved regression. PERF-013's stop instruction is NOT overridden.
+**Status:** ACTIVE / ASSIGNED — PERF-013 reported NO_CHANGE; verified unchanged production 0982d211. Execute PERF-014…016 once, then continue ARCH-001…008 under the latest combined authorization below.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox branch:** agent/codex-mailbox
-**Starting baseline:** verified final HEAD of PERF-013 (or unchanged 0982d2112b8f8020d16f917adaab77caee29005d if PERF-013 NO_CHANGE); do not assume a SHA until verified.
+**Starting baseline:** 0982d2112b8f8020d16f917adaab77caee29005d (verified PERF-013 NO_CHANGE).
 **Budget:** 270 minutes (4 h 30 min), ceilings.
 **Order:** PERF-014, PERF-015, PERF-016.
 
@@ -4299,7 +4299,7 @@ The user explicitly authorizes the intentional contract change: internal framewo
 
 ## MESSAGE PERF-014
 
-**Status:** ASSIGNED / QUEUED AFTER PERF-013
+**Status:** ASSIGNED / ACTIVE COMBINED BATCH
 **Timebox:** 105 minutes
 **Reply ID:** PERF-014
 **Task:** Migrate JInvTextField menu ownership and event-driven lazy construction.
@@ -4312,7 +4312,7 @@ Production scope: JInvTextField, JInvTextFieldButtonSkin, one shared small conte
 
 ## MESSAGE PERF-015
 
-**Status:** ASSIGNED / QUEUED AFTER PERF-014
+**Status:** ASSIGNED / ACTIVE COMBINED BATCH
 **Timebox:** 90 minutes
 **Reply ID:** PERF-015
 **Task:** Migrate JInvTextArea context menu to the same control-owned behavior.
@@ -4323,12 +4323,122 @@ Current JInvTextArea.initContextMenu and JInvTextAreaSkin duplicate menu ownersh
 
 ## MESSAGE PERF-016
 
-**Status:** ASSIGNED / QUEUED AFTER PERF-015
+**Status:** ASSIGNED / ACTIVE COMBINED BATCH
 **Timebox:** 75 minutes
 **Reply ID:** PERF-016
 **Task:** Verify the control-owned menu architecture and full regression; inventory remaining thin-skin candidates.
 
-READ-ONLY. Run full supported runner battery at actual final HEAD, including PERF-013 if implemented, prior 57 modes and new menu modes. Record real native JVM and runner exits separately, all stdout/stderr, timestamps and timeouts via faithful ignored diagnostic copy, preserve failures. Maven -Pbuild compile, PowerShell parse, diff check, clean remote and exact isolated fast-forward chain. Verify new ownership/control-skin boundary in actual source and tests, inventory remaining skin-side action/feature configuration (overflow, wrapper, TextArea toolbar and editor actions), rank proposed follow-up slices without production changes. Verify no unused eager manager/state or duplicate default menu population; measure comparative total FX allocations and live shallow counts of actual no-menu-use and first-use workloads on same JVM/heap, do not claim retained heap or paint. Report intentional API/behavior changes and exact external compatibility UNKNOWN, programmatic getContextMenu().show() callers before first use need documented migration; report supported explicit way to request/open framework menu if required, no new API without approval. Include test coverage for public stock-control skins if supported, skin replacement, actual dialog and external application precedence. Report all three task statuses, exact SHAs, user rerun commands for every new mode, remaining migration work including possible later retirement of ISkinPopulatable, no global rewrite. STOP after PERF-016.
+READ-ONLY. Run full supported runner battery at actual final HEAD, including PERF-013 if implemented, prior 57 modes and new menu modes. Record real native JVM and runner exits separately, all stdout/stderr, timestamps and timeouts via faithful ignored diagnostic copy, preserve failures. Maven -Pbuild compile, PowerShell parse, diff check, clean remote and exact isolated fast-forward chain. Verify new ownership/control-skin boundary in actual source and tests, inventory remaining skin-side action/feature configuration (overflow, wrapper, TextArea toolbar and editor actions), rank proposed follow-up slices without production changes. Verify no unused eager manager/state or duplicate default menu population; measure comparative total FX allocations and live shallow counts of actual no-menu-use and first-use workloads on same JVM/heap, do not claim retained heap or paint. Report intentional API/behavior changes and exact external compatibility UNKNOWN, programmatic getContextMenu().show() callers before first use need documented migration; report supported explicit way to request/open framework menu if required, no new API without approval. Include test coverage for public stock-control skins if supported, skin replacement, actual dialog and external application precedence. Report all three task statuses, exact SHAs, user rerun commands for every new mode, remaining migration work including possible later retirement of ISkinPopulatable, no global rewrite. PERF-016 is an intermediate mandatory regression gate; continue ARCH-001 only if clean and all supported modes exit 0, under the latest combined authorization below.
 
 ### Execution boundaries
 Each task starts from preceding verified clean HEAD. Verify current production/mailbox refs before task/reply. Main and JInvCommon read-only, no other repository writes, destructive Git, force push, dependency changes, private JavaFX API/reflection, global caches, shared mutable nodes/menus, arbitrary sleeps, forced JVM success or test-only production hooks. New public API restricted to explicitly authorized menu-extension entry points; preserve other contracts. No corporate SQL/transaction changes. For implemented changes deterministic baseline characterization and candidate assertions (intentional new lazy/ownership behavior expected to differ), three fresh JVMs plus unchanged official runner, focused tracked smoke, relevant existing regressions, compile/parse/diff check and exact exit codes. One isolated validated fast-forward production commit per implemented migration step. Russian Java comments. No incomplete push. Record failed attempts; original CTRL-079 UNKNOWN / NOT_REPRODUCED not waiver for new failure. Shared unexplained nonzero/timeout/regression, dirty/conflict/unexpected remote advancement: stop safely, remaining NOT_RUN. Task-local unresolved contract: BLOCKED/PARTIAL and proceed only independent tasks on clean baseline. One Reply per task in docs/codex/outbox.md with exact baseline/final SHA, scope, changed assertions/contract, actual commands/exits, allocation/state measurements, facts/UNKNOWN, independent Windows rerun with -SettingsFile "D:\Java\.m2\settings.xml". User acceptance separate. No self-assignment. All Git/GitHub operations within scope approved.
+
+---
+
+## COMBINED ARCHITECTURE BATCH — PERF-014…016 + ARCH-001…008
+
+**Status:** ACTIVE / ASSIGNED — latest user request authorizes all identified text-control/skin refactoring in sequential slices.
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Mailbox branch:** agent/codex-mailbox
+**Baseline remote HEAD:** 0982d2112b8f8020d16f917adaab77caee29005d
+**Budget:** 1020 minutes (17 hours), ceilings: PERF-014…016 270 + ARCH-001…008 750.
+**Dependency:** PERF-013 NO_CHANGE, Reply 527d633ff37c6a9989f34db618cb9bc2e45575f0; production unchanged, candidate-only 58 modes not published. Prior actual production regression 57/57. CTRL-104/105/106 independent user rerun not reported.
+**Order:** PERF-014, PERF-015, PERF-016 (mandatory intermediate gate), ARCH-001, ARCH-002, ARCH-003, ARCH-004, ARCH-005, ARCH-006, ARCH-007, ARCH-008.
+
+### Latest authorization and design boundaries
+This is the latest execution contract. Do not repeat completed tasks or PERF-013. If PERF-014…016 already in progress, finish original scopes and continue only after verified intermediate gate; do not interrupt or overwrite a running task. PERF-016 no longer requires a session stop if gate fully green; STOP only after ARCH-008 or stop rule. If task-local blocked, document dependencies and continue independent tasks only on clean baseline; PERF-016 failure prevents subsequent implementation.
+
+Control owns behavior, actions, target associations, menu/functional button configuration and lifecycle; skin owns presentation, layout, visual nodes/visual listeners and delegation. Shared behavior may be stateless helper, lazy state only if necessary. No new manager/action/property per control merely to implement pattern; quantify permanent state and temporary allocations. Preserve public FQNs, existing FXML/constructors/signatures and behavior except the approved explicit lazy framework ContextMenu contract; additive minimal control menu/target/behavior entry points and approved JInvFEButton overload permitted within task scope, no factory. No deletion of ISkinPopulatable, JInvWrapButton or wholesale inheritance hierarchy refactor; compatibility adapters delegate rather than own behavior. External caller compatibility UNKNOWN must be recorded. No unapproved removal of immediately observable overflow Node; no arbitrary lifecycle/cancellation/LOV/FE/security/keyboard/transaction semantics changes. Main/JInvCommon read-only. No other repo writes, force push/destructive Git, dependency changes, private JavaFX APIs/reflection, shared mutable Nodes/Menus, global cache, per-row cache, new eager per-control objects, test-only production hooks, arbitrary sleeps, forced JVM success. No real corporate DB writes or external editor process launch. GUI ordinary FX thread, real worker needs explicit safe FX publication/ownership; no lock across blocking I/O/nested loop, no SQL cancellation/rollback guarantees. Russian Java comments/Javadoc.
+
+Each implemented slice: characterize baseline behavior, deterministic RED/GREEN for confirmed defects, equivalent positive tests for refactors, explicit approved intentional contract differences, no weakened assertions outside those. Three fresh JVMs and unchanged official focused runner, actual native and outer exits, relevant regression modes, Maven -Pbuild compile, PowerShell parse, git diff --check. One isolated validated fast-forward production commit per implemented task, verified remote SHA, no incomplete push. Performance changes conditional on meaningful absolute measured benefit and equivalence; architectural ownership migration justified by approved design even if no material performance gain, report that honestly. Read-only tasks allow ignored probes only. Preserve previous accepted fixes; no broad cleanup. If external compatibility cannot be safely established for a specific API, preserve legacy delegate or BLOCKED instead of guessing. Timeboxes ceilings not minimum work duration.
+
+Verify clean tracked checkout and fresh production/mailbox refs before each task and reply. Shared unexplained nonzero/timeout/regression, dirty/conflict/unexpected advancement, unreliable infrastructure: STOP safely, report remaining NOT_RUN. Original CTRL-079 UNKNOWN / NOT_REPRODUCED not waiver. One Reply per task in docs/codex/outbox.md on agent/codex-mailbox. Include baseline/final SHA, scope, actual commands/exits, intentional API change, confirmed vs UNKNOWN, allocations/live-state delta and independent Windows commands -SettingsFile "D:\Java\.m2\settings.xml". All Git/GitHub operations within explicit scopes APPROVED. User acceptance separate. No self-assignment.
+
+---
+
+## MESSAGE ARCH-001
+
+**Status:** ASSIGNED / ACTIVE COMBINED BATCH
+**Timebox:** 90 minutes
+**Reply ID:** ARCH-001
+**Task:** REFACTOR — FE action independent of visual button
+
+Actual JInvFEButton.FEButtonHandler creates JInvFEDialog(target, stringConverter), showAndWait and optional setText. JInvTextField.getEditDialogAction fires existing inner FE button if present, else allocates temporary new JInvFEButton(this). JInvTextArea.getEditDialogAction fires skin.getFeButton. Introduce ONE shared direct FE action execution path, no mandatory Action/manager per field, preferably existing JInvFEDialog or narrowly scoped shared helper with minimal additive API if cross-package requires. Preserve exact existing button public constructors, custom onAction and disabled/fire semantics, configured converter, dialog ownership/title/clipboard/selection, cancel/accept/readOnly and error routing. Existing explicitly configured FE button with overridden action/converter must keep that customization (do not bypass button.fire when its behavior is intentionally supplied). Replace only temporary fallback allocation with direct action; ordinary menu/keyboard path must not create a button just to invoke a dialog. TextArea delegation may remain until ARCH-005 where toolbar owner migrates. Scope JInvFEButton, JInvTextField, JInvTextArea only if needed, JInvFEDialog or one small helper. No generic action redesign. Actual offline dialog shown for direct/button/menu/keyboard path, correct original target vs sentinel, converter to/from, cancellation zero writes, accepted exactly one intended write, readonly zero, configured disabled/custom handler, no temporary visual allocation measured (benchmark separate dialog overhead), skin replacement. Review FXML/subclass callers. Track focused -FEActionDelegation; existing menu, text/skin/LOV/currency, MoneyDecimal and FormLifecycle regressions. One isolated commit if equivalent.
+
+---
+
+## MESSAGE ARCH-002
+
+**Status:** ASSIGNED / ACTIVE COMBINED BATCH
+**Timebox:** 90 minutes
+**Reply ID:** ARCH-002
+**Task:** REFACTOR — target association distinct from button configuration
+
+Actual JInvButton.setTextField(ed) stores PROPERTY_TEXTFIELD, optional disable binding to editable.not, copies JInvTextField button tooltip text (empty string creates Tooltip), recognizes external via CONTROL_PARENT and parent, writes externalButtonProperty, sets disable according to ignoresEditable. JInvFEButton overrides and setsDisable(false), public legacy contract. Inventory all callers including FXML/idTextField linking in controllers/Controls, JInvLOVButton/JInvChoiceButton, special subclasses, external/custom buttons. Introduce minimal explicit target-only association path, ideally package-private/protected within same controls package; additive public API only if justified cross-package use and name/contract clear, no boolean flag matrix. Keep public legacy setTextField and existing FXML/setIdTextField behavior as compatibility delegation; move config decisions to actual control-owned attachment path for migrated internal buttons, do not globally change null/detach/readOnly/security/disable semantics. Preserve custom tooltip/bound tooltip, bound disable rejection behavior, legacy external registration, FE always accessible per JAVAKERNEL-542 where supported, LOV readOnly guard, target identity and reattachment cleanup exact ownership. No automatic external precedence change, no new fields or unnecessary allocation, existing properties map may be reused. If clean separation requires wider unsupported contract, BLOCKED with exact call path. Scope JInvButton, JInvFEButton, JInvTextField/JInvTextArea where necessary for internal configuration; do not edit skin visual layout or global controller binding. Actual internal and external fixtures, pre-scene/parented, FXML linking, repeated attach/detach, bound properties and exception atomicity, custom converters/actions, readOnly and external/LOV. New focused -ButtonTargetAssociation, relevant keyboard, external LOV, WrapButtonOwnership, currency, text/area lifecycle. Measure discarded Tooltip path and actual no-new-object association; optimize overflow specifically ARCH-006. One isolated commit.
+
+---
+
+## MESSAGE ARCH-003
+
+**Status:** ASSIGNED / ACTIVE COMBINED BATCH
+**Timebox:** 120 minutes
+**Reply ID:** ARCH-003
+**Task:** REFACTOR — control-owned innerButton, explicit LOV/FE precedence
+
+Current JInvTextField setLOV/setInnerButton/removeInnerButton/getInnerButton route through concrete skin.getButton wrapper. JInvTextFieldCUR constructor directly installs LOV in wrapper; inventory every actual in-repo caller/subclass and public skin.getButton/getInnerButton consumers at current HEAD. JInvWrapButton currently enforces JAVAKERNEL-1550 LOV > FE. Migrate authoritative functional inner-button state to JInvTextField. Use existing nullable/lazy state if practical; no eager ObjectProperty/manager on every field; justify nullable reference/observable notification and no per-instance duplication if avoidable. Control configures target, tooltip, enable/disable/readOnly/ignoreEditable, LOV-vs-FE precedence, external priority exactly as existing accepted behavior. Skin attaches/render/delegates, no authority on business choice. Retain public setInnerButton/removeInnerButton, setLOV/unbindLOV, skin.getButton and wrapper compatibility where existing callers use it; legacy skin access must not silently desynchronize control ownership, either thin delegation/adaptation with cycle guard or explicit BLOCKED for unsupported contract. Preserve bound LOV setter failure atomicity, attachment revision/ABA delayed completion, model values, F9/external/inner precedence (CTRL-046 external+inner coexistence remains unresolved; do not redefine), custom buttons/converters, currency fallback and specialized init. Correct evident setInnerButton condition (getSkin()!=null || instanceof) only within proven new ownership route, no incidental broad refactor. Skin replacement/no skin/custom skin should retain control-owned behavior; old skin removes only its visual bindings, not control state; no two Nodes with same parent, no stale CONTROL_PARENT or action. Scope JInvTextField, JInvTextFieldButtonSkin, JInvTextFieldCUR and directly identified subclasses using old skin path (list actual files first), JInvWrapButton only minimal delegation needed; no other control families. Test actual skin replacement while LOV/FE/custom attached, before/after scene, direct legacy wrapper callers, FXML, external attach/remove, same-provider/detach/ABA, readOnly/F9/action identity, old skin disposed, exact listener/model writes, no retired actions. New focused -TextFieldInnerButtonOwnership; previous LOV/skin/wrapper/currency/numeric/form regression matrix. One isolated commit if proven, otherwise BLOCKED. Explicitly report compatibility of external callers UNKNOWN.
+
+---
+
+## MESSAGE ARCH-004
+
+**Status:** ASSIGNED / ACTIVE COMBINED BATCH
+**Timebox:** 90 minutes
+**Reply ID:** ARCH-004
+**Task:** REFACTOR/AUDIT — thin JInvWrapButton and direct visual placement feasibility
+
+After ARCH-003, move LOV-vs-FE selection rule out of framework textfield visual path into owning control. Inventory generic standalone JInvWrapButton uses and public methods; don't remove legacy priority for other actual consumers without proven migration. Wrapper currently binds onAction, visible, graphic, text, disable, tooltip and stores CONTROL_PARENT in deferred callback; preserve CTRL-043/055 deferred guard, exact ownership cleanup, logical parent navigation, action/security dispatch, CSS, pref/min/max widths, layout, and active bindings. Make wrapper pure visual adapter for migrated controls; if old standalone contract must stay, compatibility path delegates, document. Evaluate placing actual functional button directly instead of duplicate wrapper in ignored prototypes: actual parent/child, CSS lookup and exact identity, focus/mouse/key behavior, graphic Node reparent, public skin.getButton compatibility and custom FXML. DO NOT delete JInvWrapButton or change public FQN/getButton return type; removal remains conditional separate future contract if compatibility cannot be proven. One narrow implementation only for proven delegation simplification after ARCH-003; scope JInvWrapButton/JInvTextField/JInvTextFieldButtonSkin. No per-field additional wrapper, duplicate state, global cache. New or expanded focused smoke -TextFieldWrapperDelegation, exact active/stale callback, order and identity counters; WrapButtonDeferred/Ownership, TextFieldSkinDisposal, ExternalLovReadOnly, BoundLovSetter, delayed LOV/currency tests. Measure actual allocations and live counts before/after on matched workload, no invented savings. If no safe simplification, NO_CHANGE with explicit blockers.
+
+---
+
+## MESSAGE ARCH-005
+
+**Status:** ASSIGNED / ACTIVE COMBINED BATCH
+**Timebox:** 120 minutes
+**Reply ID:** ARCH-005
+**Task:** REFACTOR — control-owned TextArea toolbar and external editor action
+
+Verified JInvTextArea.getToolBar returns skin toolbar else new disconnected ToolBar; getEditDialogAction calls skin FE button. JInvTextAreaSkin owns initToolBar, FE and external editor buttons, editable-state membership, Scene EDIT_EXTERNAL registration, ExternalEditorManager and parallel action which reads getSkinnable().getText and Controls.setValue(getSkinnable(), result). Migrate functional toolbar composition, target/availability, FE and external editor actions and Scene registration ownership to JInvTextArea. Skin only renders/layouts/stylizes toolbar and delegates, owns visual listeners and releases them. Preserve public getToolBar/getFeButton and supported customization access; no disconnected new toolbar per getter, stable control-owned lazy toolbar if compatible with immediate public access, no eager extra Action/manager per area beyond necessary existing state. Keep custom toolbar items/order, FE/LOV visibility and exact owned buttons, external editor availability/readOnly/editable, keyboard registration security/scene ownership, CTRL-050/053/062/066 and current menu contract. On replacement remove old visual parent/bindings safely before installing new (actual Node can have one parent), control configuration survives. Worker captures original target and input/extension on FX before dispatch where appropriate; test actual JInvParallelAction/ExternalEditorManager API, deliver result on FX with explicit ownership and admission reasoning, no access to disposed skin or foreign control, preserve original error identity. Do not invent external editor cancellation/overwrite policy: test lifecycle/late result, if target remains valid but text changed policy UNKNOWN report separately; do not silently discard or overwrite under new semantics. Use controlled offline external editor fixture/seam already supported; no actual external process launch or file writes outside ignored fixture, if cannot prove action path report BLOCKED/PARTIAL rather than speculative rewrite. Scope JInvTextArea, JInvTextAreaSkin, existing shared FE helper only if needed. No generic SceneKeyManager/parallel service rewrite. Actual scene detach/reattach, skin replacement while worker pending, old/fresh targets, custom toolbar and width listeners, FE dialog, LOV delayed completion, F9/EDIT_EXTERNAL, hide/show, readonly, no duplicate listeners/action registration, exactly one model write or established cancellation. Focused -TextAreaControlOwnedToolbar; existing TextAreaSkinDisposal, TextAreaToolbarOwnership, TextAreaLovLifecycle, TextAreaLovDelayedCompletion, ExternalLovReadOnly, FormLifecycle/Cancel, menu probes. One isolated commit only if proven.
+
+---
+
+## MESSAGE ARCH-006
+
+**Status:** ASSIGNED / ACTIVE COMBINED BATCH
+**Timebox:** 90 minutes
+**Reply ID:** ARCH-006
+**Task:** PERF — overflow feature initialization after target separation
+
+Revisit PERF-008/013 using preceding verified code. PERF-013 candidate locally 58/58 but only 0.50–1.05% whole-lifecycle savings, discarded Tooltip created by legacy setTextField. User previously approved public JInvFEButton(Node graphic, Tooltip tooltip) with explicit null semantics, no factory/package move. Authorize this exact overload if still useful in new architecture and actually skips discarded decoration via ARCH-002 target-only path. Preserve existing constructors/target/custom actions, exact public overflow class and immediate node identity/order unless explicit lazy behavior contract established. PERF-008 public lookup/children pre-layout exposes eager node; user approved laziness for ContextMenu specifically, NOT blanket permission to remove observable overflow node. Audit real references and external UNKNOWN, evaluate lazy creation in ignored prototype, no production change to immediate-node contract without separately documented user decision. May implement eager-but-cheaper exact class path or safe lazy internal resources preserving public node/behavior; no wrapper/menu reversal, new per-field state or private APIs. Control owns behavioral config/action, skin visual layout. Scope JInvFEButton, JInvTextField, JInvTextFieldButtonSkin and minimal reuse of approved target association (JInvButton only if strictly necessary with unchanged legacy API). Matched baseline/candidate N=20/100/400 same G1/heap/CSS/fonts, 5/9 warm, no-overflow/mixed/all and first activation, exact FX allocation/time/ranges/live shallow counts; prove real absolute improvement, no cost shifted. Actual dialog accept/cancel, custom converter, readonly, external/LOV, pre-scene lookup, geometry, identity, skin replace/dispose, tooltip null. If small savings or contract unresolved, NO_CHANGE. New focused -FEButtonConstruction or appropriate mode if implemented, all affected text/area/LOV/menu/skin/FE/toolbar regressions. At most one commit.
+
+---
+
+## MESSAGE ARCH-007
+
+**Status:** ASSIGNED / ACTIVE COMBINED BATCH
+**Timebox:** 60 minutes
+**Reply ID:** ARCH-007
+**Task:** AUDIT — remaining thin-skin and table identity candidates
+
+READ-ONLY. Inventory actual all in-repo skins with source paths/methods: action creation/registration, business services, model writes, configuration owned by skin, control reads concrete skin, eager feature nodes/properties. Classify legitimate visual work versus behavioral ownership, prioritize by data risk and measured absolute allocations. Include actual text measurement checkExcessTextLength allocation 2.3–3 kB/check and CSS stacks from PERF-009; do not add cache, change stylesheet or measurement semantics, propose only supported next experiment. CTRL-108 equal-distinct marker permutation counterexample separate correctness issue: reproduce original visible identities, establish whether underlying JavaFX TableRow/Cell isItemChanged/equals/list update or framework proxy is responsible using public API/source/bytecode, no private access, no edits, no O(N) lookup or global refresh workaround. Distinguish production current behavior from experimental suppression and no foreign writes. Binder external FXEntity ownership remains UNKNOWN, no changes. Report remaining ISkinPopulatable consumers (legacy external compatibility not proven), whether future removal possible only with explicit API decision. Provide small prioritized follow-up slices, no global rewrite.
+
+---
+
+## MESSAGE ARCH-008
+
+**Status:** ASSIGNED / ACTIVE COMBINED BATCH
+**Timebox:** 90 minutes
+**Reply ID:** ARCH-008
+**Task:** VERIFY — complete architecture migration, measurements and regression
+
+READ-ONLY. Verify actual final HEAD and chain of isolated commits across PERF-014…016 and ARCH-001…007. Full supported smoke battery at final SHA, 57 original plus each actual new mode; no opt-in Robot/unresolved CTRL-014/034/CAL-TIME-001. Record true native JVM and runner exits, all failures/timeouts, Maven -Pbuild compile, PowerShell parse, diff check. Use faithful ignored diagnostic recorder. Repeat matched stock/framework baseline 0982d211 vs final with actual build artifacts, same JVM flags, styles and 20/100/400, 5/9 where practical. Total FX allocations/time, nested skin/CSS/layout, no-menu-use vs first/repeated menu, overflow and toolbar activation; live shallow object counts and global deltas from controlled histograms if available, distinguish retained/dominators UNKNOWN. Quantify overall and individual changes only from matched evidence, not adding isolated costs. Confirm ownership, absence of duplicate handlers/menus/temporary action buttons, exact instance-state delta, supported existing API and intentionally changed pre-menu contract, explicit external UNKNOWN. List all eleven dispositions, exact SHAs, evidence, regressions, user rerun commands incl pending CTRL-104/105/106, performance results and unresolved blockers. No corporate SQL/transaction/native input/paint/MDI/WAIT readiness claims. STOP after ARCH-008.
