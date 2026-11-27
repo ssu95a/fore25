@@ -3929,3 +3929,88 @@ READ-ONLY. CTRL-089 measured one layout pulse/reconstruction for same-turn burst
 **Task:** VERIFY — final regression and release readiness triage
 
 READ-ONLY. Enumerate actual supported runner modes at final HEAD (previous 50 plus new modes). Full battery within timebox, prioritize all new fixes and accepted CTRL-075…081, existing table/LOV/readOnly/numeric/form/data binding tests. Capture actual JVM and outer exit codes separately using faithful ignored diagnostic recorder from CTRL-079A/090, separate output/timestamps, preserve any failed/timeout attempt. No opt-in Robot or unresolved CTRL-014/034/CAL-TIME-001. Maven -Pbuild compile, PowerShell parse, diff check, verify remote chain and per-task scope. Any unexplained nonzero stops, not retry-until-green. Final summary all seven statuses, exact SHAs, RED/GREEN evidence, allocation/state deltas, measured performance audit limits, independent Windows reruns for implemented fixes, residual unknown contracts and original CTRL-079 incident. No claim of production readiness from local tests alone; corporate SQL/transaction behavior, native input, real forms/MDI/WAIT remain separately unverified. Rank next tasks by confirmed data integrity then measured benefit. STOP after CTRL-097.
+
+---
+
+## BATCH CTRL-098…CTRL-103 — final search delivery correction and targeted performance
+
+**Status:** ACTIVE / ASSIGNED — user approved next six-task sequential package.
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Mailbox branch:** agent/codex-mailbox
+**Baseline remote HEAD:** 60685aad5e7f564dffdf32e3327754ff333b5fc9
+**Budget:** 450 minutes (7 h 30 min), ceiling.
+**Dependency:** accepted fixes CTRL-080/081/091/092/093; user ALL FIVE TESTS PASSED; CTRL-097 agent 53/53 JVM and runner exits 0. Acceptance mailbox 5c2bfa4e7b7f41a28e921023f29c7d67fc5e53d2.
+
+### Latest execution contract
+Execute only CTRL-098…103 in exact order, autonomously; no intermediate approval for explicitly permitted scope. Verify clean local tracked checkout and fresh production/mailbox refs before each task/reply. Each starts from preceding verified HEAD. Main and JInvCommon read-only; no other repo writes, destructive Git, force push, dependency/public API changes, unrelated refactor, unapproved Binder/LOV/keyboard contracts or CTRL-014/034/CAL-TIME-001. No actual corporate DB writes or SQL cancellation/rollback guarantees. Ordinary GUI on FX thread; actual workers require explicit admission/visibility reasoning. No locks spanning blocking work/nested FX loops.
+
+Only CTRL-098 is mandatory scoped correctness implementation; CTRL-100 conditional measured optimization, not obligation to produce a commit. All other tasks READ-ONLY, ignored probes/logs allowed, no tracked production/test edits. Fix: deterministic tracked RED on unchanged baseline, same assertions GREEN, positive controls, real shown fixtures and exact writes/identity/errors, official runner plus three fresh JVMs, relevant regressions, Maven -Pbuild compile, PowerShell parse, diff check. PERF: prove behavioral equivalence before production edit, actual meaningful absolute improvement on identical warmed workloads, report ranges, no false RED for pure optimization; if not proven NO_CHANGE. No speculative caching, eager per-control/per-row objects, private JavaFX skin/VirtualFlow access, arbitrary sleeps, test-only production hooks, assertion weakening or forced JVM success. Russian Java comments. Minimize state and allocations; distinguish allocations/retained heap, post-layout/paint. One isolated validated fast-forward production commit per implemented task; verify remote SHA, no incomplete push.
+
+Record actual child and runner exits, preserve failed attempts and diagnostic evidence. Original CTRL-079 exit UNKNOWN / NOT_REPRODUCED, accepted residual risk, not a waiver of new failures. Shared unexplained regression/nonzero/timeout, dirty/conflicting checkout, unexpected remote advancement or unreliable infrastructure: STOP safely, remaining NOT_RUN. Task-local unresolved contract or no measured benefit: report BLOCKED/PARTIAL/NO_CHANGE and proceed only independent task on clean baseline. Exactly one Reply per task in docs/codex/outbox.md on agent/codex-mailbox. Include scope, baseline/final SHA, commands/exits, confirmed facts vs UNKNOWN, memory/state delta and independent Windows rerun with -SettingsFile "D:\Java\.m2\settings.xml" for fixes. No claim of user acceptance. Timeboxes ceilings, no expansion or self-assignment. STOP after CTRL-103. All Git/GitHub operations within explicit scopes approved.
+
+---
+
+## MESSAGE CTRL-098
+
+**Status:** ASSIGNED / ACTIVE SIX-TASK BATCH
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-098
+**Task:** FIX — retired table-owned search miss alert
+
+CTRL-094 confirmed old-owner RECORD_NOT_FOUND information dialog and detached-table FX NPE after search's admitted final swap returns false. Inspect current DSFXAdapter.rowFinder queued completion at baseline. Scope production ONLY DSFXAdapter. Guard only no-consumer miss alert at actual FX delivery with existing originating attachment/revision and valid scene/window ownership; consider old hidden window and reparented table separately, use launch-owner identity if needed without adding per-instance state. Recheck after any observable cancellation-state publication which may synchronously retire/detach the owner. Active shown owner miss still one correct alert. Completed independent Consumer<Boolean> still gets original true/false once even when old table retired; incomplete retired search no invented result. Genuine admitted worker exceptions retain original error identity and existing error dispatch regardless of retirement. Preserve cancellation semantics, listener finally, cursor/selection, fresh independent table. Deterministic RED/GREEN shown real table + worker using recovered ProgressDeliveryAudit or focused equivalent; retired still-shown owner, detached scene, closed/hidden owner, active miss/hit, external consumer, genuine error before/after close, no duplicate alerts/errors, actual FX uncaught exceptions collected. Distinguish no-scene from no-window. No generic progress/error-service changes, no SQL cancellation/rollback claims. New focused -TableAdapterSearchMissDelivery. Regressions TableAdapterSearchWorkerClose, TableAdapterSearchListener, TableAdapterBulkWorkerClose, TableAdapterQueuedClose, DataBinding, TableAdapterClose.
+
+---
+
+## MESSAGE CTRL-099
+
+**Status:** ASSIGNED / ACTIVE SIX-TASK BATCH
+**Timebox:** 75 minutes
+**Reply ID:** CTRL-099
+**Task:** AUDIT — precise row-only update and deferred identity contract
+
+READ-ONLY. CTRL-096 found same-index refreshRow can preserve cell objects but changes edit/list semantics vs full refresh. Inspect actual DSFXAdapter.refreshRow, rowOperation UPDATE, markAction, refreshCurrentRowFromDB, row list implementation and callers; inspect available actual JInvCommon contracts read-only, not guessed. Architect verified refreshRow queues getItems().set(index,getItems().get(index)) plus focus restore without retirement or captured row identity; markAction forwards event index. Test real shown table/in-memory fixture normal explicit refreshRow, mark notification and genuine row UPDATE separately; queued close/detach, replace/remove/permutation between enqueue/delivery, duplicate equals/different identities, same object current index, hidden row, active same/other row edit, F8/ENTER/Escape/rejected conversion. Count exact list changes, row identity, selection/focus/cursor, converter/commit/model writes, marker/pseudoclass, cell factory and FX errors. Distinguish index-based public contract from entity-based event ownership; don't assume changed occupant refresh is a data write. Establish one actual supported row-only operation currently causing redundant full reconstruction, or explicitly conclude none found. Propose scoped next fix/optimization, baseline contract, deterministic assertions and measurements; no tracked changes, no invented guarantee about corporate DB refresh. Binder external model ownership remains outside scope.
+
+---
+
+## MESSAGE CTRL-100
+
+**Status:** ASSIGNED / ACTIVE SIX-TASK BATCH
+**Timebox:** 90 minutes
+**Reply ID:** CTRL-100
+**Task:** PERF — narrow row-only refresh optimization, conditional
+
+Use CTRL-099 evidence, not automatic replacement of TableView.refresh. Authorize one isolated production optimization ONLY DSFXAdapter and if strictly necessary JInvTable for one confirmed row-only caller that currently performs unnecessary full reconstruction; preserve public refresh()/AFTER EXECUTE semantics and all listener order. If CTRL-099 finds no such caller or behavior equivalence cannot be proven, NO_CHANGE. A deterministic independently confirmed queued row-refresh retirement NPE/wrong-target side effect may instead be reported for separate correctness assignment, not silently bundled into PERF. Compare unchanged source vs candidate using same real shown fixture, stable identity and exact edit/mark/list/navigation/focus behavior including duplicate equal rows, permutation, active/rejected conversion, valid commits, offscreen changes and closed owner. No full list replacement, coalescing, per-row cached properties, shared mutable observables or private skin/VirtualFlow API. Public JavaFX 25 mechanism only; no extra eager per-control/per-row objects. Warm 5 batches / 9 measured where practical, vary loaded N 200/2000 and viewport 9/19 rows, 1/4 columns, mark off/on; record exact cell/value calls, FX allocated bytes, median/range elapsed to post-layout (not paint), small-case overhead. Require reproducible material allocation/time improvement and contract equivalence; no optimization for hypothetical hot path. Tracked correctness probe and runner mode only if implemented; existing TableEditRowIdentity, TableEditing, TableCancel, EditorReentry, DataBinding, TableAdapterClose, TableAdapterQueuedClose and relevant marker tests. Do not expand scope if unable.
+
+---
+
+## MESSAGE CTRL-101
+
+**Status:** ASSIGNED / ACTIVE SIX-TASK BATCH
+**Timebox:** 90 minutes
+**Reply ID:** CTRL-101
+**Task:** PERF AUDIT — marker-only and bulk mark/unmark lifecycle
+
+READ-ONLY. CTRL-095 isolated property snapshot cost 40 B/read (~760 B at 19 rows) negligible; do not optimize property identity/writability. Inspect actual DSFXAdapter.markRow/unMarkRow, markAction → refreshRow and markAll/unMarkAll → JInvParallelAction → queued full refresh/error, JInvTableCellMark, in-memory XXIDataSet event behavior. Single mark already targeted; don't claim it uses full refresh. Measure real supported mark/unmark and bulk mark/unmark separately (in-memory overrides only, no DB writes); savePrevMarkedRows, empty/big table guard, duplicate keys/equals, reordered rows, offscreen/visible marks, pseudoclass, selection/cursor/focus, active same/other row editor, callbacks/list notification order. Test close while parallel mark worker pending and after result queued, deterministic latches; identify stale dialog/refresh/worker behavior and genuine error routing, no new cancellation guarantees. Measure actual counts/FX allocation/time for visible and loaded sizes, distinguish mark-all logical data changes from visual rendering cost and per-row notification cost. Candidate public targeted marker invalidation only in ignored fixtures, preserve snapshot observable semantics, no per-row cache or private JavaFX internals. If bulk route cannot run offline with real contract, report exact limitation. Recommend narrow next task only with evidence; no production or tracked edits.
+
+---
+
+## MESSAGE CTRL-102
+
+**Status:** ASSIGNED / ACTIVE SIX-TASK BATCH
+**Timebox:** 90 minutes
+**Reply ID:** CTRL-102
+**Task:** PERF AUDIT — representative form startup and retained state
+
+READ-ONLY. Use actual FXFormLauncher/AbstractBaseController, shown SDI FXML fixture with realistic nested layout, fields/labels/table, real Binder/FXEntity and offline app seam where necessary; inspect actual repository form resources and select one representative or clearly label synthetic fixture. No corporate DB/session writes, no claims about production forms if unavailable. CTRL-086/087 rejected traversal sharing and label index due supported hook mutation; do not retry same non-equivalent changes. Measure full launch phases FXML load, controller initialization/bindControls/initLabels/configControls, CSS/layout/first observable post-layout, close/reopen; avoid attributing total to one phase, separate FX thread bytes/time, include warmups/ranges, sizes e.g. 20/100/400 fields only where practical. Use existing hooks/logging or ignored instrumentation with disclosed overhead, no tracked edits. Inspect allocation hotspots with available JFR or ThreadMXBean; distinguish sampled allocations vs exact counters, retained heap requires actual evidence (optional local heap histogram/weak-reference test with bounded GC caveat, not proof of absence). Identify actual persistent per-control/skin state, no speculative caching, no broad refactor. Check close/veto/reopen and ordinary ownership; intentionally retained external FXEntity binding from CTRL-084/085 is separate contract, do not infer leak or auto-unbind. Report top 3 hotspots by measured absolute cost, candidate scope, reproducible commands, limitations and smallest next experiment.
+
+---
+
+## MESSAGE CTRL-103
+
+**Status:** ASSIGNED / ACTIVE SIX-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-103
+**Task:** VERIFY — production baseline regression and readiness
+
+READ-ONLY. Enumerate actual supported smoke modes at final HEAD (53 previous + any new). Run full battery, prioritize CTRL-098 and any implemented CTRL-100, all CTRL-075…093 fixes and form/table/LOV/marker/numeric/navigation. Record actual child JVM and runner exits separately with faithful ignored diagnostic recorder, exact PASS matrix, timestamps, stdout/stderr and timeouts. No opt-in Robot or unresolved CTRL-014/034/CAL-TIME-001. Maven -Pbuild compile, PowerShell parse, git diff --check, verify fast-forward chain and clean remote. Report each of six task statuses, exact SHAs and scopes, RED/GREEN, state/allocations, performance measurements and rejected candidates, independent Windows rerun commands, residual risks and next 3–5 priorities. Original CTRL-079 incident UNKNOWN / NOT_REPRODUCED; new unexplained exit stops, no retry masking. Local test baseline not certification of corporate SQL/transaction, real TaskContext/currency lookup, native focus/input or MDI/WAIT. Stop after CTRL-103.
