@@ -4607,3 +4607,12 @@ JavaFX 25 allocates a fallback ContextMenu inside TextInputControlBehavior. JInv
 The visible probe passed for TextField, JInvTextField, JInvTextFieldCUR and JInvRegExpTextField. Framework menus had 8 immediate items and 11 at show with a custom item. The fallback showed 8 editable and 3 read-only items. Mouse and keyboard request routes were synthetic; native touch and clipboard writes were not exercised. javac and JVM exit 0. Evidence: target/perf-007/MenuOwnershipAudit.java and audit.stdout.
 
 Previous matched N=400 histograms counted 800 menus (243,200 shallow bytes) for the framework and 400 (121,600 bytes) for stock. Those are shallow live bytes. Both menus have observable responsibilities, so no production change.
+
+
+### Reply PERF-008 — NO_CHANGE
+
+Production baseline and final: 0982d2112b8f8020d16f917adaab77caee29005d. Before scene or layout, public lookup(".transparentButton") and direct children expose the actual visible overflow JInvFEButton at index 1, with field as its action target, for both JInvTextField and JInvTextFieldCUR. A lazy button created only on actual overflow would remove that immediately observable node. After CSS/layout on short text the node remained discoverable but hidden. Text transitions short → long → short retained identity. The fixture measured long placement x=256, y=13.5, size 0x0, under its offline stylesheet configuration; no paint or dialog action conclusion follows.
+
+The stylesheet has matching transparentButton selectors and the initial FX skin child order is overflow before wrapper. No production candidate proceeded after the compatibility counterexample. Previous isolated overflow constructor median 34,824 B and replacement icon 4,128 B are allocation costs, with no saving measured by this task. No instance-state delta.
+
+Reproduce with target/perf-008/OverflowAudit.java and target/perf-001/FieldCostAudit.class on the real production/dependency classpath, Java 25 -Xms256m -Xmx1024m -XX:+UseG1GC --enable-native-access=ALL-UNNAMED. javac and JVM exit 0. Before any future opt-in contract change, repeat actual styled dialog, activation, and disposal checks.
