@@ -4010,3 +4010,44 @@ Repeated the same shown JavaFX25 comparison as CTRL-096 on this SHA. Five warmup
     editor LAYOUT_ONLY draft=draft starts=1 cancels=0 validation=2 rejection=1 commits=1 staleWrite=false listSignals=[REPLACE]
 
 Reproduce by compiling target/ctrl-096/RefreshTargetAudit.java with javac -cp "target/ctrl-088;target/classes;<deps>" -d target/ctrl-100, then java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-100;target/ctrl-088;target/classes;<deps>" RefreshTargetAudit. Deps from target/ctrl-079a/original-dependencies.txt. Native compile/JVM 0; no outer probe runner. No production state/allocations changed; no paint or retained heap claim.
+
+
+---
+
+## Reply CTRL-101
+
+**DONE / READ-ONLY.** Baseline and verified final production df95a931230b57e87e7bef4bfba6267c3e9a395d. No tracked edits.
+
+Shown real JInvTable and DSFXAdapter reading production mark values/renderer. Single mark/unmark used actual markAction → deferred refreshRow. Bulk used actual markAll/unMarkAll → JInvParallelAction worker → queued full refresh. In-memory XXIDataSet overrides recorded logical writes, individual mark notifications and savePrev flags. Bulk override applies in-memory fields and emits no row notifications, so actual corporate bulk per-row notification cost is UNKNOWN. Both true/false flags reached the worker and no bulk logical writes ran on FX. Empty big table admitted zero bulk work. Visible marker and offscreen row states, stable selection/cursor/focus, equal-distinct reordered mark target and active editor were checked. Same/other-row marker updates canceled active draft in this fixture, zero commits.
+
+Oracle Java 25.0.1/FX25, 1 GiB, FX allocation and elapsed to post-layout, five warmup and nine single samples per operation; 200/2000 loaded, 240/480 viewport, one text plus marker column. At 2000 / 480, single mark was 169,144 B median (166,816–169,832) and 15,671 µs (12,737–17,367), zero cells and one list notification. Bulk mark was 3,150,568 B (3,147,536–3,169,312) and 14,927 µs (10,268–18,241), 38 cells, one full refresh and 2000 worker writes. Post-layout timing overlaps; allocation delta predominantly includes viewport reconstruction, not marker snapshot cost alone. Totals9 below are across nine recorded samples, allocation and elapsed per operation.
+
+    N=200 height=240 bulk=false mark=true us=15509(14280..17083) FX-bytes=98344(98264..98888) totals9 cells=0 values=324 full=0 notify=9 writes=9 list=9
+    N=200 height=240 bulk=false mark=false us=15019(13421..16353) FX-bytes=98264(98264..98368) totals9 cells=0 values=324 full=0 notify=9 writes=9 list=9
+    N=200 height=240 bulk=true mark=true us=15596(11907..26380) FX-bytes=1525680(1525224..1544720) totals9 cells=162 values=162 full=9 notify=0 writes=1800 list=0
+    N=200 height=240 bulk=true mark=false us=14811(13179..19499) FX-bytes=1515896(1505592..1531104) totals9 cells=162 values=162 full=9 notify=0 writes=1800 list=0
+    bulk savePrev values=[true, false] fxThreadWrites=0 focus=0
+    N=200 height=480 bulk=false mark=true us=15303(11237..25720) FX-bytes=176200(175888..179304) totals9 cells=0 values=684 full=0 notify=9 writes=9 list=9
+    N=200 height=480 bulk=false mark=false us=15361(4519..16479) FX-bytes=175864(175864..179064) totals9 cells=0 values=684 full=0 notify=9 writes=9 list=9
+    N=200 height=480 bulk=true mark=true us=13493(11739..24431) FX-bytes=3176944(3171016..3190056) totals9 cells=342 values=342 full=9 notify=0 writes=1800 list=0
+    N=200 height=480 bulk=true mark=false us=16751(12534..28465) FX-bytes=3156272(3150344..3268616) totals9 cells=342 values=342 full=9 notify=0 writes=1800 list=0
+    bulk savePrev values=[true, false] fxThreadWrites=0 focus=0
+    N=2000 height=240 bulk=false mark=true us=15543(14382..16477) FX-bytes=93976(93896..94608) totals9 cells=0 values=324 full=0 notify=9 writes=9 list=9
+    N=2000 height=240 bulk=false mark=false us=15582(14863..16537) FX-bytes=93896(93896..94000) totals9 cells=0 values=324 full=0 notify=9 writes=9 list=9
+    N=2000 height=240 bulk=true mark=true us=15278(9504..17474) FX-bytes=1501224(1501096..1511944) totals9 cells=162 values=162 full=9 notify=0 writes=18000 list=0
+    N=2000 height=240 bulk=true mark=false us=15840(13561..18668) FX-bytes=1491304(1491304..1493848) totals9 cells=162 values=162 full=9 notify=0 writes=18000 list=0
+    bulk savePrev values=[true, false] fxThreadWrites=0 focus=0
+    N=2000 height=480 bulk=false mark=true us=15671(12737..17367) FX-bytes=169144(166816..169832) totals9 cells=0 values=684 full=0 notify=9 writes=9 list=9
+    N=2000 height=480 bulk=false mark=false us=15467(14646..16952) FX-bytes=168992(166816..169720) totals9 cells=0 values=684 full=0 notify=9 writes=9 list=9
+    N=2000 height=480 bulk=true mark=true us=14927(10268..18252) FX-bytes=3150568(3147536..3169312) totals9 cells=342 values=342 full=9 notify=0 writes=18000 list=0
+    N=2000 height=480 bulk=true mark=false us=15179(11260..16854) FX-bytes=3130512(3127776..3136872) totals9 cells=342 values=342 full=9 notify=0 writes=18000 list=0
+    bulk savePrev values=[true, false] fxThreadWrites=0 focus=0
+    editor sameActive=false otherActive=false commits=0 duplicate-target=199 distinct=true bigEmptyBulkCalls=0
+    close pending=true failure=false staleRefresh=1 bulkWrites=200 firstMark=true select=0 cursor=0 FXerrors=[]
+    close pending=false failure=false staleRefresh=1 bulkWrites=200 firstMark=true select=0 cursor=0 FXerrors=[]
+    close pending=true failure=true staleRefresh=0 bulkWrites=0 firstMark=false select=0 cursor=0 FXerrors=[java.lang.NullPointerException: Cannot invoke "javafx.scene.Scene.getWindow()" because the return value of "javafx.scene.control.TableView.getScene()" is null]
+    active genuine error identity=1 dialogs=1 bulkWrites=0
+
+Closing twice while the bulk worker was paused or after its successful result was queued still gave one retired full refresh and 200 already admitted writes, with unchanged selection/cursor. The detached error route produced one FX NPE from getScene().getWindow(), losing the original error delivery; active error logged the original Throwable identity and displayed once. Proposed first follow-up: explicitly scope table-owned bulk refresh lifetime and ensure genuine error dispatch with a neutral owner when its original table is detached, after agreement on the error contract. No claim of canceling admitted work or handling SQL rollback. Preserve existing snapshot semantics and notification order. Existing extractor/layout-only alternatives failed marker equivalence in CTRL-096/100, so no optimization proposed here.
+
+Ignored target/ctrl-101/MarkLifecycleAudit.java, compile javac -cp "target/ctrl-088;target/classes;<deps>" -d target/ctrl-101 and run java -Xmx1024m --enable-native-access=ALL-UNNAMED -cp "target/ctrl-101;target/ctrl-088;target/classes;<deps>" MarkLifecycleAudit. Deps from target/ctrl-079a/original-dependencies.txt. Native compile/JVM 0; no outer runner. Logs record captured FX failure independently of process exit. No state/allocation changes, retained heap or paint inference.
