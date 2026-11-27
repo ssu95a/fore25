@@ -4148,7 +4148,7 @@ READ-ONLY. Enumerate actual supported smoke modes at final HEAD (54 previous + n
 
 ## BATCH CTRL-108 / PERF-007…PERF-012 — marker identity and measured skin memory reduction
 
-**Status:** ACTIVE / ASSIGNED — user approved next seven-task sequential package.
+**Status:** CLOSED / ARCHITECT REVIEWED — all seven replies received, final agent regression 57/57 child and runner exits 0; production unchanged. CTRL-108 blocked by equal-distinct row rendering counterexample; PERF-008/010 NO_CHANGE. User explicitly approved new public constructor for separately scoped PERF-013.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox branch:** agent/codex-mailbox
@@ -4167,7 +4167,7 @@ Record actual child JVM and outer runner exits, preserve failed attempts. Origin
 
 ## MESSAGE CTRL-108
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** BLOCKED / READ-ONLY / ARCHITECT REVIEWED — removing old-slot refresh breaks visible identities/marks for equal-distinct permutation; no compliant fix
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-108
 **Task:** AUDIT → FIX — single-marker notification row identity
@@ -4178,7 +4178,7 @@ CTRL-107 installed JInvCommon bytecode and fixture established DataSetMarkEvent.
 
 ## MESSAGE PERF-007
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — distinct JavaFX fallback and framework menu responsibilities
 **Timebox:** 60 minutes
 **Reply ID:** PERF-007
 **Task:** AUDIT — ownership and actual use of the two ContextMenus
@@ -4189,7 +4189,7 @@ READ-ONLY. PERF-005 histogram at N=400 showed 800 ContextMenus vs stock 400, but
 
 ## MESSAGE PERF-008
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** NO_CHANGE / ARCHITECT REVIEWED — immediately observable overflow node and identity contract
 **Timebox:** 90 minutes
 **Reply ID:** PERF-008
 **Task:** PERF — lazy overflow button, conditional implementation
@@ -4200,7 +4200,7 @@ PERF-003 isolated overflow constructor 34,824 B and icon 4,128 B; PERF-005 saw 4
 
 ## MESSAGE PERF-009
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — decoration-only analogue delta 12,275,200 B/400, not actual production savings
 **Timebox:** 75 minutes
 **Reply ID:** PERF-009
 **Task:** PROFILE — CSS/handler allocation stacks and overflow measurement
@@ -4211,7 +4211,7 @@ READ-ONLY. PERF-002 exact nested skin creation ~75.45 MB/400, JFR sampled CSS se
 
 ## MESSAGE PERF-010
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** NO_CHANGE / ARCHITECT REVIEWED — cross-package constructor access blocked by old API scope; superseded by PERF-013 explicit authorization
 **Timebox:** 90 minutes
 **Reply ID:** PERF-010
 **Task:** PERF — one additional measured skin construction improvement, conditional
@@ -4222,7 +4222,7 @@ Depends PERF-007…009. Scope ONLY JInvTextFieldButtonSkin and JInvFEButton; one
 
 ## MESSAGE PERF-011
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — same-SHA live shallow baseline reproduced; retained heap UNKNOWN
 **Timebox:** 75 minutes
 **Reply ID:** PERF-011
 **Task:** VERIFY — matched live heap comparison and bounded ownership
@@ -4233,9 +4233,44 @@ READ-ONLY. Use PERF-005 FieldHeapAudit methodology, matched stock, original fram
 
 ## MESSAGE PERF-012
 
-**Status:** ASSIGNED / ACTIVE SEVEN-TASK BATCH
+**Status:** DONE / READ-ONLY / ARCHITECT REVIEWED — 57/57 agent GREEN
 **Timebox:** 60 minutes
 **Reply ID:** PERF-012
 **Task:** VERIFY — final full regression and performance summary
 
 READ-ONLY. Enumerate supported runner modes at final HEAD (57 previous + new ones), full battery, prioritize CTRL-104/105/106/108, all new PERF correctness modes, text/skin/LOV/currency/numeric, table/mark/editing/binding/form/lifecycle. Faithful ignored diagnostic runner actual native JVM/outer exit codes, timestamps, stdout/stderr/timeouts, preserve every failure. Maven -Pbuild compile, PowerShell parse, diff check, exact fast-forward chain and scope, clean refs. No opt-in Robot or unresolved CTRL-014/034/CAL-TIME-001. Report all seven dispositions, SHAs, RED/GREEN for correctness, equivalence and measured savings for PERF only if implemented, actual before/after same-workload FX allocations/time/live counts, per-instance state delta and activation costs, rejected alternatives/UNKNOWN. Independent Windows rerun commands for new modes and pending CTRL-104/105/106; do not assert user acceptance. Original CTRL-079 UNKNOWN / NOT_REPRODUCED stays recorded; new unexplained failure stops. Corporate SQL/TaskContext, real currency, native input/focus, MDI/WAIT, paint and retained heap limitations explicit. Rank next 3–5 by confirmed risk and absolute measured benefit. STOP after PERF-012.
+
+---
+
+## MESSAGE PERF-013
+
+**Status:** ASSIGNED — user explicitly approved public overloaded constructor; no factory, no class/package relocation.
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Mailbox branch:** agent/codex-mailbox
+**Baseline remote HEAD:** 0982d2112b8f8020d16f917adaab77caee29005d
+**Reply ID:** PERF-013
+**Timebox:** 90 minutes, ceiling.
+**Dependency:** PERF-009/010/012 replies at dc818a7af890cb3fd89ac2168e781a63999b9e0e; agent regression 57/57 child and runner exits 0. CTRL-104/105/106 architecture approved, independent user reruns still pending.
+
+### Approved architectural decision
+Keep both classes in their original packages/FQNs. Add exactly one additive public overload to JInvFEButton:
+
+    public JInvFEButton(Node graphic, Tooltip tooltip)
+
+The user rejected a factory and approved this constructor. No static factory, subclass, alternate button class, package move or new persistent fields. Existing public JInvFEButton() and JInvFEButton(TextInputControl) remain source/binary compatible with original default graphic, tooltip, action, focus and target behavior. New overload installs caller-supplied graphic and tooltip; null explicitly means absent, no fallback creation. Same FEButtonHandler, focusTraversable=false, setTextField behavior, StringConverter and dialog accept/cancel semantics. Reuse small private initialization if beneficial. The architect's illustrative delegating default constructor is not mandatory if argument evaluation before super() would change initialization order; preserve legacy behavior and ordering of existing constructors. Document the new public overload with Russian Javadoc.
+
+Production scope ONLY:
+- src/main/java/ru/inversion/fx/form/controls/JInvFEButton.java
+- src/main/java/ru/inversion/fx/form/controls/skin/JInvTextFieldButtonSkin.java
+
+Replace the skin's eager default construction followed by graphic replacement and tooltip removal with construction using the existing final SMALL colored ellipsis graphic and null Tooltip. Preserve all other skin settings, immediate lookup/children order/exact class and identity, geometry, managed/focus/visibility flags, actual target and action. No lazy overflow policy change; no ContextMenu/CSS/text measurement optimization in this task. No unrelated constructor caller changes, public additions other than this overload, new dependencies, cache, extra instance objects or fields.
+
+### Evidence and acceptance
+PERF-009 isolated decoration analogue: 15,251,200 versus 2,976,000 B at N=400 (delta 12,275,200 B); actual end-to-end savings UNKNOWN. Compare unmodified baseline versus actual candidate, not analogue. Reuse PERF-001/009 matched FieldCostAudit with same JDK25/FX25, G1, Xms256m/Xmx1024m, identical stylesheet, text/font/width, N=20/100/400, >=5 warmups/9 samples where practical, separate fresh JVMs for baseline/candidate using safe isolated build or verified existing baseline artifacts. Record constructor and nested skin, full shown through post-layout, exact FX-thread allocated bytes/time medians/ranges, cold vs warm, short and overflow activated cases and first dialog activation separately if practical. No retained-heap claim from allocation delta. Measure actual absolute whole-lifecycle gain and no shifted cost concealed; only publish if meaningful reproducible benefit and compatibility demonstrated. If not, NO_CHANGE with evidence.
+
+Tracked focused correctness smoke and runner mapping -FEButtonConstruction (or clearly named equivalent) if change implemented. Baseline behavior characterization and candidate equivalence, not fabricated RED for optimization. Existing no-arg and TextInputControl constructors, direct caller and FXML/default construction, custom graphic/tooltip including null, exact button class, no shared node/tooltip between controls, pre-scene lookup and child order, actual configured colored graphic and null tooltip in skin, short/long/short and resize/font/external/LOV behavior, readOnly and JInvTextFieldCUR, action target, StringConverter and actual offline JInvFEDialog cancel/accept if fixture supports it, no foreign writes, custom menu/F9/direct fallback, dispose/replacement. Distinguish real dialog evidence from synthetic event dispatch; unsupported cases explicitly UNKNOWN; do not publish if critical action equivalence unproven. Preserve original public constructors' initialization and observable defaults. No private FX APIs/reflection, arbitrary sleeps, test-only production hooks or forced JVM success.
+
+Three fresh GREEN JVMs plus unchanged official focused runner, actual child/outer exits, relevant TextFieldSkinDisposal, TextFields, ValueFields, LovIntegration, BoundLovSetter, LovBindingInterleaving, ExternalLovReadOnly, WrapButtonOwnership, CurrencyLovDelayedCompletion, MoneyDecimal, FormLifecycle and TextArea paths using legacy constructors. Maven -Pbuild compile, PowerShell parse, git diff --check. Full supported regression battery within ceiling, or report explicit coverage and pending cases; any unexplained failure stops. One isolated validated fast-forward production commit if implemented, verify remote SHA and clean tracked tree. No incomplete push. Preserve all failed attempts and exact exit codes; original CTRL-079 UNKNOWN / NOT_REPRODUCED is not waiver of new failures. Main and JInvCommon read-only, no destructive commands or other repo writes. All necessary Git/GitHub operations within scope approved.
+
+Publish exactly one Reply PERF-013 in docs/codex/outbox.md on agent/codex-mailbox, with baseline/final SHA, actual before/after metrics and ranges, compatibility evidence, exact tests/exits, state delta, residual UNKNOWN, independent Windows rerun commands using -SettingsFile "D:\Java\.m2\settings.xml". User acceptance separate. STOP after PERF-013. CTRL-109 and PERF-014…017 remain proposals, not assigned by this decision.
