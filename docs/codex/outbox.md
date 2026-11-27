@@ -4862,3 +4862,44 @@ The candidate-only FEButtonConstruction mode is preserved locally with candidate
 | BinderChoiceNull [final-56] | 0 | 0 | PASS |
 | ChoiceNullLookup [final-57] | 0 | 0 | PASS |
 | ChoiceNonNullSet [final-58] | 0 | 0 | PASS |
+
+
+---
+
+## Reply PERF-014
+
+**BLOCKED / STOPPED — native JVM failure in final regression.** Assignment 98856c3c. Production baseline and final 0982d2112b8f8020d16f917adaab77caee29005d. The candidate was not committed or published. Tracked checkout and baseline classes were restored; Maven exit 0 and hashes of both changed production classes matched the pre-edit snapshot.
+
+Final regression `run-06 WrapButtonOwnership` printed `CTRL-055 PASS` but the JVM exited -1073740791 (0xC0000409), runner 1, timeout false. Runner PID 6416, 2026-11-27 20:18:10.695–20:18:23.244 +03:00. Windows Application Error in the same interval recorded JVM PID 15248 (0x3B90), Java 25.0.1, module ucrtbase.dll, offset 0xA527E, exception 0xC0000409. Windows Error Reporting event BEX64, parameter 9 = 7, report ID 34e53bcc-5329-4b3e-8071-81fe33a32f33. No causal attribution to the menu or any other code path established. The prior candidate iteration's same mode exited 0/0; that does not override this failure. The combined assignment requires stopping on a shared unexplained nonzero. No retry or further modes after the failure.
+
+### Candidate evidence
+
+Control handled the first menu request before the JavaFX behavior handler, only with no application handler/menu/binding and a shown window. Public event dispatch probe showed that installing a property in an early bubbling handler alone produced no popup, a late handler observed the native popup, and an explicit first show avoided double dispatch. After first use the standard property route reopened the same popup. JavaFX's own fallback remains. Defaults and FE menu items were deferred; control captured the existing virtual FE action at the previous initialization point and lazily allocated support for menu and extensions. Legacy skin delegates used the same list and callback; plain stock TextField with the public framework skin retained its eager menu and disposal path. No new eager manager or Action; two nullable control references, with the existing action retained. The old skin fields remained available only for stock fallback. Production state delta is zero.
+
+Three focused passes and one extra instrumented official equivalent each exited 0/0. Unchanged official focused runner exited 0. Actual shown mouse-style, keyboard-style and child-target ContextMenuEvents, consumed filters, bound null/non-null, application handler, programmatic reopen, custom order, skin replacement, currency, regexp and a subclass without FE were checked. Actual offline FE dialog from its menu item discarded a draft or accepted only into the original target. Baseline source and probes show the eager menu contract. An initial probe JVM 1 on forced detached synthetic dispatch exposed the native JavaFX no-owner exception; the corrected probe asserts no framework creation on that route. Physical input/touch and external application compatibility remain UNKNOWN.
+
+| Final regression | JVM exit | Runner exit |
+| --- | ---: | ---: |
+| TextFields | 0 | 0 |
+| TextFieldSkinDisposal | 0 | 0 |
+| ValueFields | 0 | 0 |
+| LovIntegration | 0 | 0 |
+| ExternalLovReadOnly | 0 | 0 |
+| WrapButtonOwnership | -1073740791 | 1 |
+| CurrencyLovDelayedCompletion | NOT_RUN | NOT_RUN |
+| FormLifecycle | NOT_RUN | NOT_RUN |
+
+### Candidate measurements
+
+Matched shown no-menu FX allocation B, baseline → candidate median (min..max), 5 warmups / 9 samples per size, Java 25/FX25/G1 256m–1024m:
+- N=20: 8,031,488 (8,027,352..8,041,760) → 7,093,136 (7,090,648..7,106,088).
+- N=100: 39,643,048 (39,445,264..39,770,456) → 35,096,816 (35,020,080..35,191,856).
+- N=400: 157,028,744 (156,951,480..157,189,664) → 138,995,880 (138,810,736..139,181,616). Time 247,673 (225,136..286,921) → 236,371 (206,863..303,253) µs, overlapping.
+
+For 20 real first show/hide operations, median FX bytes 27,720,000 (27,694,440..27,780,640) → 20,616,192 (20,587,064..20,664,496). For 20 repeated opens, 17,834,704 (17,812,720..17,872,528) → 19,263,480 (19,239,904..19,371,800). N=400 shown heap, one JVM per variant, global shallow delta 76,411,464 → 64,067,968 B. ContextMenus 800 → 400 before usage, then candidate 401 after one activation; exact javafx MenuItems 3200 → 0 before usage, then candidate 8. Features histogram also exercised LOV. These are shallow live samples, with retained heap UNKNOWN. Measurement JVMs, jcmd and wrappers exited 0. No production saving credited.
+
+Diagnostics: `target/perf-014/final/matrix.csv`, `run-06.stdout`, `run-06.stderr`, `win-events.xml`. Candidate diff, added source files and compiled classes preserved under `target/perf-014`. Actual regression invocation used `powershell.exe -NoProfile -ExecutionPolicy Bypass -File target/perf-014/regression.ps1 -Directory target/perf-014/final -Focus TextFieldContextMenuLifecycle -ModeCsv TextFields,TextFieldSkinDisposal,ValueFields,LovIntegration,ExternalLovReadOnly,WrapButtonOwnership,CurrencyLovDelayedCompletion,FormLifecycle`. If a diagnostic run is separately authorized, baseline runner from repo root with IDEA Maven and MAVEN_ARGS=-o:
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -WrapButtonOwnership -SettingsFile "D:\Java\.m2\settings.xml"
+
+**Remaining NOT_RUN:** PERF-015, PERF-016 and ARCH-001…ARCH-008. Mandatory PERF-016 gate was not reached. Stop rule applied.
