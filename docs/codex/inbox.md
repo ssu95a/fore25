@@ -3587,7 +3587,7 @@ Read actual code at verified HEAD; rank candidates by correctness first, then CP
 
 ## BATCH CTRL-075…CTRL-078 — data integrity and stale delivery corrections
 
-**Status:** ACTIVE / ASSIGNED — user approved all four corrections in one sequential session.
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed package verification OK; separate numeric exit codes not supplied. Final accepted HEAD `70b139ed54d00c46b4c2ae597535d82ddbe5a2ab`.
 **Repo:** ssu95a/fore25
 **Production branch:** migration/java25-correctness
 **Mailbox branch:** agent/codex-mailbox
@@ -3602,7 +3602,7 @@ Execute only CTRL-075…078 sequentially, no intermediate confirmations needed w
 
 ## MESSAGE CTRL-075
 
-**Status:** ASSIGNED / ACTIVE FOUR-TASK BATCH
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed package checks OK. Production `eaf0bed0be6a888ce259a69b2899b49da8ad7f57`.
 **Timebox:** 90 minutes
 **Reply ID:** CTRL-075
 **Task:** FIX / CRITICAL — JInvTextFieldTableCell synthetic cancel commit writes wrong row
@@ -3613,7 +3613,7 @@ CTRL-069 reproduced wrong-entity writes on actual JInvTable, DSFXAdapter, JInvTe
 
 ## MESSAGE CTRL-076
 
-**Status:** ASSIGNED / ACTIVE FOUR-TASK BATCH
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed package checks OK. Production `07a51fda7407161b9f1a1eb2bed04930bc6fc0b9`.
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-076
 **Task:** FIX — DSFXAdapter bulk moveToLast/rowLoader after close
@@ -3624,7 +3624,7 @@ CTRL-067 reproduced two NPE and one stale selection after adapter close during n
 
 ## MESSAGE CTRL-077
 
-**Status:** ASSIGNED / ACTIVE FOUR-TASK BATCH
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed package checks OK. Production `f6bfd8bb2a0ca38cf36ea538140bff1f49744c7d`.
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-077
 **Task:** FIX — DSFXAdapter queued positionRow/dataSetChanged deliveries after close
@@ -3635,9 +3635,158 @@ CTRL-072 showed queued navigation and AFTER EXECUTE refresh issued while open su
 
 ## MESSAGE CTRL-078
 
-**Status:** ASSIGNED / ACTIVE FOUR-TASK BATCH
+**Status:** DONE / ARCHITECT APPROVED / USER ACCEPTED — user confirmed package checks OK. Production `70b139ed54d00c46b4c2ae597535d82ddbe5a2ab`.
 **Timebox:** 60 minutes
 **Reply ID:** CTRL-078
 **Task:** FIX — JInvTextField retired LOV completion and stale navigation
 
 CTRL-073 24-case diagnostic: direct/F9/external button × keep/replace/detach/ABA × accepted/cancelled. Completion alone zero model writes, draft preserved; stale accepted result nevertheless forwarded true and F9/button emitted TAB. Architect approves matching CTRL-062 policy: a completion from retired attachment is delivered as false/cancelled exactly once per provider completion with original reporting provider, never as accepted; no accepted focus/navigation side effect. Existing cancellation branch may request focus as before; do not claim zero cancellation focus. Recover target/ctrl-073-research/ResidualLovAudit.java. Read current JInvTextField.showLOV/setLOV/unbindLOV, CTRL-044/045/062 contracts. RED actual shown Stage, controllable deferred provider, A→B, A→null, A→B→A, current acceptance/cancel, repeated same-provider setter, overlapping current requests, bound setter rejection, ordinary current-provider updates, readOnly behavior, direct caller and actual F9/button callback routes. Count actual callback Boolean/provider, TAB intent, focus requests and model writes separately; retain distinct drafts. Only JInvTextField production. Use attachment lifetime/epoch, not provider identity alone; prefer existing lazy state if suitable, no eager object allocation on unused control, justify minimal primitive/reference cost if necessary. Invalidate only successful attachment transitions, preserve same-provider repeat, bound failure atomicity and existing callback semantics for current choices. Do not introduce latest-wins for overlapping current requests or provider API change. Direct writable lovProperty mutations, reattached-provider value notifications (no request identity), readOnly policy, button precedence, CTRL-034 and actual focus traversal outside scope. GREEN stale accepted converted to false, zero stale TAB/accepted focus branch and unchanged draft, current valid routes preserve counts. New focused -TextFieldLovDelayedCompletion mode. Regressions TextAreaLovDelayedCompletion, ExternalLovReadOnly, LovListenerLifecycle, LovIntegration, LovDefaultValidation, BoundLovSetter, LovBindingInterleaving, TextFieldSkinDisposal, WrapButtonOwnership, TextAreaLovLifecycle. Final reply includes batch summary of four statuses, exact final HEAD, confirmed fixes, residual UNKNOWN and stop. No performance optimization tasks authorized.
+
+---
+
+## BATCH CTRL-079…CTRL-090 — regression, residual integrity and measured performance
+
+**Status:** ACTIVE / ASSIGNED — user requested a large next batch; all twelve tasks authorized in one sequential session.
+**Repo:** ssu95a/fore25
+**Production branch:** migration/java25-correctness
+**Mailbox branch:** agent/codex-mailbox
+**Baseline remote HEAD:** 70b139ed54d00c46b4c2ae597535d82ddbe5a2ab
+**Budget:** 720 minutes total (12 hours), ceiling not required elapsed duration.
+**Dependency:** CTRL-075…078 architect approved and user accepted, prior accepted fixes retained.
+
+### Latest authorization and execution contract
+Execute CTRL-079…090 only, in exact order, autonomously, no intermediate approval for explicitly permitted changes. CTRL-079 is a mandatory regression gate; unexplained supported regression stops implementation and batch, report remaining NOT_RUN. READ-ONLY/AUDIT/PERF AUDIT/VERIFY tasks prohibit production and tracked test edits; ignored temporary probes allowed. AUDIT→FIX permits one isolated fix only after deterministic RED and proven contract. PERF permits one narrow measured optimization only after proving semantic equivalence and meaningful benefit using the same workload; no invented defect RED for pure optimization, use baseline correctness plus before/after measurement. If no benefit/unclear contract, report NO_CHANGE or READ-ONLY; do not force a commit. No speculative or broad refactors.
+
+Verify clean local checkout and fresh production/mailbox refs before each task and reply. Each task uses preceding verified clean HEAD. Main and JInvCommon read-only, no other repo writes, force push, destructive reset, dependency/public API changes, user file overwrite, unsupported same-table rebind, CTRL-014/034/CAL-TIME-001 or unapproved LOV/keyboard/transaction contracts. No actual corporate DB writes, no native external editor launches. Ordinary GUI on FX thread; investigate concurrency only in actual worker paths. For fixes use deterministic actual Java25/FX25 fixtures, shown Stage where relevant, positive controls, RED before edit and GREEN same assertions, exact counts, focused tracked smoke + official runner mapping, three fresh JVMs, relevant regressions, Maven -Pbuild compile, PowerShell parse, diff check. For optimizations preserve all correctness and lifecycle semantics, no unnecessary persistent caches, no new eager per-control/per-row objects; measure time/allocations with warmed repeat samples, record environment and ranges, do not confuse allocations and retained heap. No arbitrary sleeps, JavaFX internal reflection, test-only production hooks or assertion weakening. Russian Java comments. One isolated validated fast-forward production commit per implemented task; verify remote SHA. No incomplete push. Publish exactly one Reply per task in docs/codex/outbox.md on agent/codex-mailbox. Include baseline/final SHA, actual commands/exits, scope, confirmed facts vs hypotheses/UNKNOWN, allocation/state delta and independent Windows rerun with -SettingsFile "D:\Java\.m2\settings.xml" for fixes. No claim of user acceptance. On local unresolved contract report and continue only independent task on verified clean baseline with no failed regression. On shared regression, unexpected remote advancement, dirty/conflicting state, unreliable infrastructure, STOP safely; no destructive cleanup. Timeboxes are ceilings; do not expand scope or spend freed time on unscheduled tasks. Stop after CTRL-090. All Git/GitHub operations within these boundaries approved.
+
+---
+
+## MESSAGE CTRL-079
+
+**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-079
+**Task:** VERIFY — full supported baseline regression
+
+READ-ONLY. Enumerate actual ParameterSetName switches and mappings from current Test-LegacyGuiSmoke.ps1, deduplicate parameter attributes and distinguish default invocation. Run all supported smoke modes within timebox, prioritizing every accepted fix CTRL-049…078 (some share modes), table/edit/binding/form, numeric/date, navigation/readOnly/choice/validation/LOV and singleton lifecycle. Include default if supported. Run Maven -Pbuild compile, PowerShell parse and git diff --check. Record exact mode, probe ID, exit, runtime, elapsed, failures and exclusions. Do not enable unresolved CTRL-014/034 or other explicitly unsupported scenarios; if existing mode contains unresolved case, report exact reason. Never silently skip or weaken failing tests. Distinguish infrastructure failure from production failure with evidence. Any unexplained supported regression blocks production changes in subsequent tasks; STOP and report remaining NOT_RUN. No test or production edits, no claim of independent user acceptance.
+
+---
+
+## MESSAGE CTRL-080
+
+**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-080
+**Task:** AUDIT → FIX — TableCell converter rejection / edit lifecycle
+
+CTRL-075 guarded synthetic cancel commit against original row identity before and after conversion; converter rejection on that route remains untested. Read actual JInvTextFieldTableCell and existing TableEditRowIdentity/TableEditing/TableCancel/EditorReentry probes. Shown Stage with actual adapter and stable distinct rows, controlled converter throws/rejects input, positive valid same-row mouse-armed cancellation commit, ordinary F8/ENTER, Escape, row invalidation and equal-valued replacement. Observe exceptions, actual model writes, row/cursor/editor state, handler registration, row reference and reentry after failure. Separate expected validation rejection from unintended exception or abandoned edit lifecycle. If deterministic defect and clear established contract, only JInvTextFieldTableCell production; smallest cleanup/ordering fix preserving original row guard and draft/validation semantics, no automatic commit after rejected conversion, no silent swallowed errors or new draft recovery policy. No additional idle-cell row retention or eager allocation. Otherwise READ-ONLY/BLOCKED. New or extended focused probe plus TableEditRowIdentity, TableEditing, TableCancel, EditorReentry, DataBinding, MoneyDecimal and relevant validation tests.
+
+---
+
+## MESSAGE CTRL-081
+
+**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-081
+**Task:** AUDIT → FIX — DSFXAdapter search temporary row listener
+
+CTRL-067 source candidate: search registers temporary row listener and removes it on straight-line completion; stale result policy unresolved. Inspect current actual find/search implementation and ProgressTaskExecutor boundary. Recover BulkLifecycleAudit if available. Controlled in-memory Dataset with distinguishable independent listener, real search positive hit/miss, deterministic exception after successful listener registration, cancellation if reachable, repeated searches. Count exact add/remove and notifications; preserve original exception/error dispatch, caller result semantics and independent listeners. If confirmed missing removal on exceptional exit, only DSFXAdapter production, exact owned listener cleanup in proper finally around registration lifetime; avoid masking original exception, do not remove caller listeners or change search result delivery/cancellation/SQL. No new eager fields/objects; no blanket listener clearing. GREEN no retained owned listener after failure and normal paths intact. New focused search-listener probe or existing extension. Regressions DataBinding, TableAdapterBulkClose, TableAdapterQueuedClose, TableAdapterClose and actual search-related modes. If no reproducible exception leak, READ-ONLY with evidence.
+
+---
+
+## MESSAGE CTRL-082
+
+**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-082
+**Task:** AUDIT — bulk worker close during blocking fetch
+
+READ-ONLY. CTRL-076 guarded UI delivery and listener restoration but current rowLoader still accesses mutable getDataSet()/dataSet in worker fetch loop. Verify actual source and supported owner threading semantics, ProgressTaskExecutor nested FX loop, cancellation and error dispatch. Use controlled blocking in-memory swap with latches/barriers, not arbitrary sleeps or real SQL writes; close before initial work, during first swap, between swaps, then release; normal, cancellation/error controls if available. Count fetch attempts, progress callbacks, stale errors, navigation registration, selection/cursor/model changes, worker termination and original exception. Distinguish already accepted work from subsequent obsolete access, report memory visibility/ownership only as source evidence unless tested. No cancellation/rollback guarantee, no changes to worker scheduling or ProgressTaskExecutor. Propose minimum scoped fix or UNKNOWN; avoid expanding CTRL-076 contract by assumption.
+
+---
+
+## MESSAGE CTRL-083
+
+**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Timebox:** 45 minutes
+**Reply ID:** CTRL-083
+**Task:** AUDIT → FIX — specialized TextFieldCUR delayed LOV completion
+
+CTRL-078 excluded specialized TextFieldCUR override. Locate actual class and caller paths, inspect override contract and compare accepted TextField/TextArea stale completion policy. Real controlled delayed provider, shown Stage, A→B/null/ABA, repeated same provider, overlapping current requests, accepted/cancelled results; actual supported direct and user routes, model writes, TAB/focus and any specialized currency semantics. If reproducible stale acceptance or wrong update and existing contract equivalent to CTRL-078, only actual specialized TextFieldCUR class production; use existing lifetime state/accessors where possible without public API change or adding eager objects; preserve specialized current provider conversion/callback behavior. No generic provider API, direct lovProperty or reattached-notification redesign; if base private state makes safe isolated fix impossible, report BLOCKED with proposed minimal contract, no base edit. Focused test plus TextFieldLovDelayedCompletion, TextAreaLovDelayedCompletion, ExternalLovReadOnly and relevant numeric/currency modes.
+
+---
+
+## MESSAGE CTRL-084
+
+**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Timebox:** 75 minutes
+**Reply ID:** CTRL-084
+**Task:** AUDIT — full launched form Binder ownership on normal close
+
+READ-ONLY. Resolve CTRL-070 limitation: prior Stage.hide fixture was not actual controller launcher. Build ignored real SDI FXML/controller fixture through FXFormLauncher, externally retained FXEntity and at least one real converter-bound text control. Verify actual bindControls, two-way writes, close request/veto, WINDOW_HIDDEN and closeResources/TaskContext completion gates; retain old control and external model deliberately, then mutate each direction and reopen fresh form with same model. Count model/control changes, callbacks, old/new bindings and resource cleanup. Test explicit owned converter unlink with Object/Object overload separately, not as production policy. Establish whether supported real callers reuse external entities and whether cleanup is contractually expected. No global Binder rollback, no automatic unbind change, no heap leak conclusion from intentional retention. Report actual launcher coverage and minimal next fix if proven.
+
+---
+
+## MESSAGE CTRL-085
+
+**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-085
+**Task:** AUDIT — initialization failure after real model bind
+
+READ-ONLY. Extend CTRL-071 real launcher test which had no actual entity fields. Reuse CTRL-084 fixture if available, inject failure immediately after successful real converter binding; externally retained model and old control, normal successful launch positive control, exact failure/callback/close-resource/hidden order, reopen fresh form, check old versus new writes in both directions and singleton registration. Test veto/failure interaction only if supported, use deterministic WINDOW_HIDDEN and cleanup gates, not sleep or early assertions mistaken for final result. Distinguish error callback from resource teardown and model ownership. No rollback/transaction/MDI/WAIT policy edits, no changes to Binder/controller production. Report whether actual post-failure binding remains and whether supported caller reuse makes it a defect; propose precise smallest follow-up.
+
+---
+
+## MESSAGE CTRL-086
+
+**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-086
+**Task:** PERF — reduce redundant form control traversal if equivalent
+
+CTRL-074 measured Controls.getControlList flat traversal; architect verified AbstractBaseController.bindControls scans IJInvControl then initLabels then getBindingFilter scan, and initLabels itself scans labels. Inspect actual traversal exclusions, overrideable getBindingFilter/initLabels/setLabel and supported subclass graph mutations. Benchmark representative real nested FXML/form or equivalent shown graph; distinguish full initialization from traversal-only, same fixtures and warm-up, at least 5 warmup/9 measurement batches where practical, exact identity/order/filter results and FX-thread allocated bytes + time ranges. Candidate: eliminate one redundant traversal or share only local temporary results IF proven equivalent including custom predicates, label-induced mutations, traversal order/exclusions, non-IJInvControl binding targets and no-entity path. Do not globally cache control lists or change public API. Only AbstractBaseController and/or Controls if strictly necessary, one narrow optimization with explicit file scope and correctness fixture. If equivalent optimization cannot be proven or measurable benefit is absent/noisy, READ-ONLY/NO_CHANGE. No implementation based on flat benchmark alone; preserve init order and all caller semantics. If fix, tracked correctness smoke, before/after same workload and relevant NodeTraversal, DataBinding, FormLifecycle, FormCancel, singleton, ControlsFollowup tests; report median/range and allocated bytes, not retained heap.
+
+---
+
+## MESSAGE CTRL-087
+
+**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-087
+**Task:** PERF — label matching complexity in initLabels
+
+Architect source confirmed each eligible control searches listLabel via stream.filter/findFirst, candidate O(C×L) worst-case. Inspect actual JInvLabel.getLinkFieldName/getLabelFor and IJInvControl.setLabel, overrides and order. Create representative nested fixture with unmatched/matched labels, duplicate field names, multiple free labels with same key, pre-associated labels, already-labeled controls, null/empty names and user-defined setter behavior; exact selected label identity, order and bindings before/after. Measure varying C and L, allocations/time with same warmed fixture and reset state outside measurement; separate matching cost from FX node construction/CSS. Consider local lookup/index of eligible labels preserving first currently unassociated match, rechecking eligibility and mutation behavior; no persistent cache, no per-control field. Only AbstractBaseController.initLabels production scope. If graph/label changes during setters prevent equivalent indexing, NO_CHANGE/READ-ONLY. Optimize only with demonstrated correctness and meaningful measured improvement; report small-form overhead/memory tradeoff and duplicate behavior. Tracked correctness probe and relevant NodeTraversal, DataBinding, FormLifecycle, ControlsFollowup and CTRL-086 tests if implemented. No broad traversal refactor.
+
+---
+
+## MESSAGE CTRL-088
+
+**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-088
+**Task:** PERF AUDIT — table cell/editor allocation and reuse
+
+READ-ONLY. CTRL-074 identified lazy editor construction, per-edit filters and markColumn value factory SimpleBooleanProperty allocations. Inspect current DSFXAdapter, renderers, StubObservableValue/StubCallbackValue sharing and mark renderer behavior; first check correctness of row identity/notification and reuse, not generic caching. Real shown virtualized table, vary loaded row count independently of visible rows, normal scroll/refresh and repeated edit/cancel/reentry; count cell factory, value factory, editor creation, handler registrations and mark value accesses using safe fixture instrumentation. Measure warmed FX-thread allocated bytes/time where practical, baseline exact selection/mark/model semantics; compare mark-enabled/disabled and repeated edits. No property cache per row, no production edits, no change to mark semantics. Distinguish allocation from retained memory, queue from layout. Rank measured hotspots and minimal next task, report limits.
+
+---
+
+## MESSAGE CTRL-089
+
+**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-089
+**Task:** PERF AUDIT — end-to-end DataSet refresh and FX layout
+
+READ-ONLY. CTRL-074 measured AFTER EXECUTE dispatch/queue drain ~45–49 µs, 201.2 allocated B/call, not full layout/paint. Use actual shown JInvTable/adapter, preloaded rows and genuine notifications, vary loaded N and visible row count independently. Compare single refresh vs burst of 3/10/100, count actual refresh calls, selection/cursor order, cell factory/value callbacks, pulses and elapsed to completed layout with deterministic observable barriers/AnimationTimer where valid, not arbitrary sleeps. Warm repeat, report FX-thread allocations and median/ranges, separate setup and SQL (not measured). Investigate whether intermediate refresh effects are observable/required by active editing, selection and validation; no coalescing or production edits. Propose optimization only if measured impact and compatible event ordering established. No claim of paint completion if only layout observed.
+
+---
+
+## MESSAGE CTRL-090
+
+**Status:** ASSIGNED / ACTIVE TWELVE-TASK BATCH
+**Timebox:** 60 minutes
+**Reply ID:** CTRL-090
+**Task:** VERIFY — final regression, performance evidence and readiness triage
+
+READ-ONLY on final verified HEAD. Run supported modes affected by any batch fixes plus all CTRL-075…078 and core DataBinding/TableEditing/TableCancel/EditorReentry/TableAdapterClose/TableAdapterPagingClose, LOV/readOnly/lifecycle, NodeTraversal/Forms and new tracked modes; prioritize full CTRL-079 battery if time permits. Exact exit matrix, Maven compile, PowerShell parse, diff check. Verify commit chain/scope and clean remote, no hidden modifications. Summarize all 12 tasks DONE/NO_CHANGE/READ-ONLY/BLOCKED/PARTIAL/NOT_RUN with evidence, production SHA and independent Windows rerun commands for fixes, performance before/after measured where available, memory/state delta, no invented savings. Rank next 3–5 tasks by confirmed data risk then measured cost. Separate production readiness from local smoke success; list actual corporate SQL/forms/native input/MDI/WAIT and open contracts needing user environment. Stop after CTRL-090, no self-assignment.
