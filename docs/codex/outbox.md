@@ -6366,3 +6366,55 @@ Raw results are under target/act-019-validation (matrix.csv, per-mode native/out
     }
 
 Pending gate: a separately authorized continuation with a verified focus-capable desktop, unchanged isolated fixtures and measurements on this SHA. MAINT-001 remains queued. STOP.
+
+
+## Reply ACT-019 final continuation
+
+Production SHA eabf4c6725fc984363c57d54ff8633a66ebef20d.
+
+**FINAL GREEN on exact production. STOP.** Completed the pending independent desktop preflight, four frozen modes and footprint suite. The new canary (JVM 1520 / runner 14864) was visible and focused at the first FX pulse, exited 0/0 and did not time out. The previous visible-but-unfocused preflight remains in the archive and its cause remains unknown. The original GUI-005 incident has no new causal finding.
+
+Reused the final 80/80 regression (73 original plus seven ACT modes) and its compile, ABI, lifecycle and architecture results. Verified exact local and remote SHA, clean checkout, saved matrix/native exits and unchanged archived ABI/fixture inputs. Only the approved getWaitActions removals and dispatch behavior deltas apply. ACT-018 remains NO_CHANGE. No production change or maintenance action.
+
+The four frozen ACT-002 modes ran unchanged through the ACT-016-FIXTURE isolated harness. Each run emitted both ACT-002 PASS and ISOLATION PASS. Loader identities and source hashes separate reference binder/Fore classes from production SceneKeyManager/SceneKeyBinder and the production binder; shared JavaFX and legacy contracts are on the app loader. The earlier flat-classpath failure remains preserved.
+
+| Mode | JVM PID | Runner PID | JVM (hex) / runner | Timeout |
+|---|---:|---:|---|---|
+| keys | 13600 | 5496 | 0 (0x00000000) / 0 | False |
+| key-edges | 18768 | 11896 | 0 (0x00000000) / 0 | False |
+| meta | 1988 | 5824 | 0 (0x00000000) / 0 | False |
+| bridge | 9940 | 9680 | 0 (0x00000000) / 0 | False |
+
+Footprint compared 655b728 (before ACT-017/016) and the final SHA with JDK 25, the same JavaFX/ControlsFX dependencies and Xms/Xmx 256 MiB. Nine measurement JVMs and the measurement runner exited 0, with no timeout. Legacy action/button/menu shallow sizes were 104/688/88 bytes on both revisions; native sizes were 72/680/80. These are shallow sizes, excluding referenced objects. Legacy allocation medians per 1,000 operations (before -> final): action 528000 -> 528000 bytes, action with button and menu 36001672 -> 35682544 bytes, registration/removal 24000 -> 40000 bytes. The last increase is specific to the sampled registration path. The final ActionMap probe used seven measured batches of 20,000 after warmup; inherited lookup measured zero bytes in that sample. Synthetic event baseline versus dispatched hit measured median 96 versus 176 bytes per event. These samples do not measure retained heap, corporate throughput or all dispatch shapes. Source-review notes on the static progress sink index and per-event Match allocation are unchanged.
+
+Raw measurement outputs (allocation figures are bytes per reported batch, not retained bytes):
+    before-action FOOTPRINT mode=action count=1000 median=528000 min=440000 max=528888
+    before-both FOOTPRINT mode=both count=1000 median=36001672 min=35824256 max=36064000
+    before-registration FOOTPRINT mode=registration count=1000 median=24000 min=24000 max=24000
+    before-shallow FOOTPRINT legacy shallow action=104 button=688 menu=88
+    before-shallow FOOTPRINT native shallow action=72 button=680 menu=80
+    final-action FOOTPRINT mode=action count=1000 median=528000 min=528000 max=528744
+    final-both FOOTPRINT mode=both count=1000 median=35682544 min=35606160 max=35786464
+    final-registration FOOTPRINT mode=registration count=1000 median=40000 min=40000 max=40408
+    final-shallow FOOTPRINT legacy shallow action=104 button=688 menu=88
+    final-shallow FOOTPRINT native shallow action=72 button=680 menu=80
+    final-map FOOTPRINT map-empty n=20000 median=480000 min=480000 max=480664
+    final-map FOOTPRINT map-one-entry n=20000 median=2240000 min=2240000 max=2240000
+    final-map FOOTPRINT owner-empty n=20000 median=448320000 min=448320000 max=448320000
+    final-map FOOTPRINT owner-with-one-entry n=20000 median=450560000 min=450560000 max=450560000
+    final-map FOOTPRINT parent-lookup-hit n=20000 median=0 min=0 max=0
+    final-map FOOTPRINT event-baseline n=20000 median=1920000 min=1920000 max=1920000
+    final-map FOOTPRINT event-dispatch-hit n=20000 median=3520000 min=2880000 max=3625552
+
+Evidence: target/act-019-validation/matrix.csv, compact ABI inventories, continuation/preflight, binary/final-continuation-*, binary/direct.csv, measure.csv, per-mode args/streams and continuation/measure-run.log. The exact production chain and earlier dispositions are recorded in the preceding ACT-019 reply.
+
+Independent Windows rerun on this SHA, with Maven on PATH and a verified focus-capable desktop:
+
+    $env:JAVA_HOME = 'C:\Program Files\Java\jdk-25'
+    $env:MAVEN_ARGS = '-o'
+    foreach ($mode in 'ActionWaitOwnership','ActionMapCore','ActionMapController','ActionMapAdapters','ActionKeyContext','ActionMapMarkView','ActionKeyUnified') {
+        powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 "-$mode" -SettingsFile "D:\Java\.m2\settings.xml"
+        if ($LASTEXITCODE -ne 0) { throw "$mode failed with exit $LASTEXITCODE" }
+    }
+
+The local frozen fixtures can be repeated after a fresh desktop preflight using target/act-019-validation/binary/run.ps1 -Modes "keys,key-edges,meta,bridge" -Label <new-unique-label>. The prepared footprint command is powershell.exe -NoProfile -ExecutionPolicy Bypass -File target/act-019-validation/measure.ps1; keep the original measurement artifacts when rerunning. Independent acceptance remains separate. MAINT-001 remains queued. STOP.
