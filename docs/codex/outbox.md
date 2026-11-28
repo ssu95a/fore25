@@ -6507,3 +6507,39 @@ Full suite preflight measured an FX Stage showing and focused on its first pulse
 Evidence: target/act-021-validation/baseline and candidate (official probe streams and outer exits), full-preflight (focus canary), full/matrix.csv, full/run-59.stdout, full/run-59.stderr, full/run-59.child-pid and full/run-59.child-exit. The initial sandboxed setup attempt fell back to the Maven wrapper before launching a JavaFX probe; the installed offline Maven then completed the recorded baseline and candidate runs.
 
 STOP under the agreed regression rule.
+
+
+## Reply ACT-021-DIAG
+
+Production SHA 25ca2aa2fd3d5ebb679fdbf37da1c77f3863f9ec.
+
+**NOT REPRODUCED in the bounded ACT-021-DIAG sample.** Baseline A is 25ca2aa2fd3d5ebb679fdbf37da1c77f3863f9ec. Candidate B is 2cabd4432ea2d30e2988514cc8266d31cea3a11c, its direct child. Both exact detached comparison worktrees and the original candidate checkout were clean. Production remains at A.
+
+Original gate mode 59 printed CTRL-006 PASS, then JVM 6080 exited -1073740791 (0xC0000409), runner 18448 exited 1, timeout false. Windows Application Error 143386 matches PID 0x17c0. WER 143387 matches report ID 00a97145-fa0c-4831-a9ef-1a7235485da4. Records identify java.exe 25.0.1.0, System32 ucrtbase.dll 10.0.26100.9711, fault offset 0xA527E, BEX64 and exception data 0x7. The WER report is present and its crash fields were extracted. The referenced temporary dump is absent and no matching JVM hs_err log was found in the original working directory or top-level target. There is no native call stack. The original gate remains RED and root cause UNKNOWN.
+
+Each worktree was built offline with the same settings. Both dependency lists match the original runtime classpath in order, with dependency hashes recorded. JDK 25.0.1, JavaFX 25 and ControlsFX 11.2.6 were shared. The unchanged RadioReadOnlySmoke source compiled to identical bytecode in A, B and the original fault run. Launcher arguments match the original outside the intentional isolated output and production class paths. The recorder retained the original 55-second runner ceiling, assertions and exit policy. The official mode used targeted JavaFX events, with no Robot flag. Four independent preflights focused on the first FX pulse with native/outer 0/0 before each A/B/B/A block. No desktop/session change was detected.
+
+| Run | Side | JVM PID | Runner PID | Native signed (hex) | Outer | Timeout | CTRL-006 PASS |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | A | 17572 | 14744 | 0 (0x00000000) | 0 | False | True |
+| 2 | B | 17420 | 16072 | 0 (0x00000000) | 0 | False | True |
+| 3 | B | 17532 | 14384 | 0 (0x00000000) | 0 | False | True |
+| 4 | A | 19012 | 8588 | 0 (0x00000000) | 0 | False | True |
+| 5 | A | 14024 | 14752 | 0 (0x00000000) | 0 | False | True |
+| 6 | B | 15672 | 10252 | 0 (0x00000000) | 0 | False | True |
+| 7 | B | 7396 | 16900 | 0 (0x00000000) | 0 | False | True |
+| 8 | A | 14620 | 7692 | 0 (0x00000000) | 0 | False | True |
+| 9 | A | 15232 | 18256 | 0 (0x00000000) | 0 | False | True |
+| 10 | B | 7132 | 2380 | 0 (0x00000000) | 0 | False | True |
+| 11 | B | 12168 | 10564 | 0 (0x00000000) | 0 | False | True |
+| 12 | A | 2872 | 6408 | 0 (0x00000000) | 0 | False | True |
+| 13 | A | 5276 | 16724 | 0 (0x00000000) | 0 | False | True |
+| 14 | B | 1584 | 16672 | 0 (0x00000000) | 0 | False | True |
+| 15 | B | 19108 | 7524 | 0 (0x00000000) | 0 | False | True |
+| 16 | A | 10664 | 8676 | 0 (0x00000000) | 0 | False | True |
+
+The probe exercises JInvRadioButton/JInvRadioGroup in a standalone Stage and calls Platform.exit() in finally after printing PASS. No direct call into the candidate's changed FormWait/ProgressDelivery paths was found. The post-marker native exit is consistent with a failure around shutdown, but the event records do not identify the caller of the faulting module or establish a JavaFX, desktop or candidate cause. Isolated fresh JVMs matched the mode and inputs; this sample did not recreate the preceding full-suite sequence. There is no positive evidence of a candidate-specific regression or a demonstrated failure common to both revisions.
+
+Artifacts are under target/act-021-diag, including original SHA-256 inventory and copied streams, arguments and WER records, dependency and probe hashes, preflight records, matrix.csv with timestamps, per-run streams, child PID/exit and foreground/session observations. The initial Maven setup argument error was corrected before launching any probe and is preserved separately.
+
+All 16 scheduled diagnostic attempts completed. The remaining ACT-021 regression and frozen gates were deliberately not run. If separately authorized, keep B exact and the original RED record, require a fresh independent desktop preflight and an exact-SHA ACT-021 regression gate with native and outer exit capture, followed by the pending frozen fixtures. Stop and preserve matching Windows evidence on any unexplained exit. No production push, candidate modification, waiver or automatic continuation. STOP.
