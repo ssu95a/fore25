@@ -15,6 +15,7 @@ import ru.inversion.fx.app.ThreadPoolManager;
 import ru.inversion.fx.form.AbstractBaseController;
 import ru.inversion.fx.form.FormWait;
 import ru.inversion.fx.form.IFormStateListener;
+import ru.inversion.fx.form.ProgressDelivery;
 import ru.inversion.fx.form.StateEnum;
 import ru.inversion.fx.form.action.JInvAction;
 import ru.inversion.fx.form.action.TaskHandler;
@@ -250,11 +251,93 @@ public final class ActionWaitOwnershipSmoke {
         });
     }
 
+    private static void exceptionalOwnership() throws Exception {
+        fx(() -> {
+            var failures = new java.util.ArrayList<String>();
+            var form = new AbstractBaseController<>();
+            var original = new IllegalStateException("caption getter failed");
+            var command = new JInvAction() {
+                private boolean first = true;
+
+                @Override
+                public StringProperty getStateMessageProperty() {
+                    if (first) {
+                        first = false;
+                        throw original;
+                    }
+                    return super.getStateMessageProperty();
+                }
+            };
+            try {
+                form.addWaitAction(command);
+                throw new AssertionError("caption failure was swallowed");
+            } catch (IllegalStateException error) {
+                require(error == original, "caption failure identity");
+            }
+            command.getStateMessageProperty().set("recovered");
+            form.addWaitAction(command);
+            if (form.getState() != StateEnum.WAIT || !"recovered".equals(form.getStateText())) {
+                failures.add("legacy WAIT admission cannot recover");
+            }
+            form.removeWaitAction(command);
+
+            var target = new SimpleStringProperty();
+            var first = new ProgressDelivery(target, new SimpleStringProperty("first"), () -> true);
+            first.attach();
+            var rejected = new ProgressDelivery(target, new SimpleStringProperty("rejected"), () -> {
+                throw original;
+            });
+            try {
+                rejected.attach();
+                throw new AssertionError("progress failure was swallowed");
+            } catch (IllegalStateException error) {
+                require(error == original, "progress failure identity");
+            }
+            var replacement = new ProgressDelivery(target, new SimpleStringProperty("replacement"), () -> true);
+            replacement.attach();
+            try {
+                replacement.close();
+                if (!"first".equals(target.get())) {
+                    failures.add("failed attach shadows previous source");
+                }
+            } catch (IllegalStateException error) {
+                require(error == original, "restoration failure identity");
+                failures.add("failed attach shadows previous source");
+            }
+            rejected.close();
+            first.close();
+
+            var newer = new ProgressDelivery(target, new SimpleStringProperty("newer"), () -> true);
+            try (var older = new ProgressDelivery(target, new SimpleStringProperty("older"), () -> {
+                newer.attach();
+                return true;
+            })) {
+                older.attach();
+                if (!"newer".equals(target.get())) {
+                    failures.add("reentrant current predicate permits stale write");
+                }
+            } finally {
+                newer.close();
+            }
+
+            var releases = new java.util.concurrent.atomic.AtomicInteger();
+            Runnable finish = FormWait.acquire(form, new JInvAction(), releases::incrementAndGet);
+            finish.run();
+            finish.run();
+            if (releases.get() != 1 || form.getState() != StateEnum.ACTIVE) {
+                failures.add("WAIT retirement callback runs twice");
+            }
+            require(failures.isEmpty(), String.join("; ", failures));
+            return null;
+        });
+    }
+
     public static void main(String[] args) throws Exception {
         Platform.startup(() -> Platform.setImplicitExit(false));
         try {
             contracts();
             overlap();
+            exceptionalOwnership();
             rejection();
         } finally {
             if (!ThreadPoolManager.getInstance().isShutdown()) {

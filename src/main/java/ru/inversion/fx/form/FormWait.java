@@ -62,12 +62,26 @@ public final class FormWait {
         }
         active.add(registration);
         registration.form = this;
-        var captionSource = action.getStateMessageProperty();
-        registration.caption = new ProgressDelivery(owner.stateTextProperty(), captionSource,
-                () -> action.getStateMessageProperty() == captionSource);
-        registration.caption.attach();
-        if (registration.form == this && automatic && owner.getState() == StateEnum.ACTIVE) {
-            owner.setState(StateEnum.WAIT);
+        try {
+            var captionSource = action.getStateMessageProperty();
+            var target = owner.stateTextProperty();
+            if (registration.form == this) {
+                registration.caption = new ProgressDelivery(target, captionSource,
+                        () -> action.getStateMessageProperty() == captionSource);
+                registration.caption.attach();
+            }
+            if (registration.form == this && automatic && owner.getState() == StateEnum.ACTIVE) {
+                owner.setState(StateEnum.WAIT);
+            }
+        } catch (RuntimeException | Error failure) {
+            try {
+                release(registration);
+            } catch (RuntimeException | Error cleanup) {
+                if (cleanup != failure) {
+                    failure.addSuppressed(cleanup);
+                }
+            }
+            throw failure;
         }
     }
 
@@ -162,6 +176,7 @@ public final class FormWait {
         private FormWait form;
         private ProgressDelivery caption;
         private boolean finished;
+        private boolean progressRetired;
 
         private Registration(IFormStateListener owner, JInvAction action, Runnable retireProgress) {
             this.owner = owner;
@@ -170,6 +185,10 @@ public final class FormWait {
         }
 
         private void retire() {
+            if (progressRetired) {
+                return;
+            }
+            progressRetired = true;
             try {
                 if (caption != null) {
                     caption.close();

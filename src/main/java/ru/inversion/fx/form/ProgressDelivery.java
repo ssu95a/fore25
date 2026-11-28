@@ -37,15 +37,32 @@ public final class ProgressDelivery implements AutoCloseable {
         }
         ACTIVE.computeIfAbsent(target, ignored -> new ArrayList<>()).add(this);
         attached = true;
-        source.addListener(change);
-        publish();
+        try {
+            source.addListener(change);
+            publish();
+        } catch (RuntimeException | Error failure) {
+            try {
+                close();
+            } catch (RuntimeException | Error cleanup) {
+                if (cleanup != failure) {
+                    failure.addSuppressed(cleanup);
+                }
+            }
+            throw failure;
+        }
     }
 
     private void publish() {
-        var deliveries = ACTIVE.get(target);
-        if (attached && deliveries.getLast() == this && current.getAsBoolean() && !target.isBound()) {
-            target.set(source.get());
+        if (ownsTarget() && current.getAsBoolean() && ownsTarget() && !target.isBound() && ownsTarget()) {
+            String message = source.get();
+            if (ownsTarget() && !target.isBound() && ownsTarget()) {
+                target.set(message);
+            }
         }
+    }
+
+    private boolean ownsTarget() {
+        return attached && ACTIVE.get(target).getLast() == this;
     }
 
     static void clearIdle(StringProperty target) {
@@ -60,14 +77,29 @@ public final class ProgressDelivery implements AutoCloseable {
             return;
         }
         attached = false;
-        source.removeListener(change);
         var deliveries = ACTIVE.get(target);
         boolean latest = deliveries.getLast() == this;
         deliveries.remove(this);
         if (deliveries.isEmpty()) {
             ACTIVE.remove(target);
-        } else if (latest) {
-            deliveries.getLast().publish();
+        }
+        var previous = latest && !deliveries.isEmpty() ? deliveries.getLast() : null;
+        try {
+            source.removeListener(change);
+        } catch (RuntimeException | Error failure) {
+            if (previous != null) {
+                try {
+                    previous.publish();
+                } catch (RuntimeException | Error cleanup) {
+                    if (cleanup != failure) {
+                        failure.addSuppressed(cleanup);
+                    }
+                }
+            }
+            throw failure;
+        }
+        if (previous != null) {
+            previous.publish();
         }
     }
 }
