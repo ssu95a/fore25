@@ -6156,3 +6156,18 @@ The frozen ExternalWaitContract fixture uses those two forms and never calls the
 The frozen worker probes still reproduce same-action premature cleanup, rejection leaving WAIT/message behind, and cleanup detaching a caller's replacement binding on the unchanged baseline. Prior worker success/failure/cancel and legacy nextAction controls remain in the frozen suites. ABI snapshot, source of the external fixture, PIDs, commands, and streams are under ignored target/act-007a. The mandatory post-implementation regression/ABI gate has no candidate and remains pending. The 73/73 gate from ALERT-007 is historical evidence for the same production SHA.
 
 STOP at the compatibility blocker. ACT-012 through ACT-019 are NOT_RUN for this execution.
+
+
+## Reply ACT-007A
+
+Production SHA 4818c7a7060ab53d7273d1cea0100c8b347bbc45.
+
+**IMPLEMENTED / GREEN continuation under DECISION ACT-007A.** Parent 259f9887b95ee9cd7761a231e86bc57610325b88.
+
+IFormStateListener.getFormWait() defaults to null. AbstractBaseController opts in with a lazy stable FormWait and retires it on the close lifecycle. External migration: declare a private final FormWait wait = new FormWait(this); override public FormWait getFormWait() { return wait; }. Return one stable instance per form. Default legacy hooks remain passive for both unchanged external forms, including the previously getter-only opt-in. The admitted task keeps its precise WAIT registration and captures the progress target. Scoped dispatch preserves virtual add/remove hook calls. Manual WAIT stays manually owned. Progress writes are FX-only and conditional on an unbound target. Active deliveries are ordered per actual sink and retire their listeners; the sink index removes entries as they become idle. Worker submission remains on the legacy caller path.
+
+The package ABI comparison found only the approved getWaitActions removals from the interface and controller. The two original external fixture classes were used unchanged by a candidate-side assertion driver (JVM 18412, exit 0). Four unchanged ACT-002 precompiled modes passed: meta, bridge, keys, key-edges. Old worker/worker-edges and ACT-007 rebind probes ran on baseline and reproduced original behavior, including overlap and rejection. Their assertions for action-set membership/early cleanup/framework binding are intentionally superseded by the tracked ActionWaitOwnership mode. It covers actual overlap, reset generation, cancellation while worker still held, inherited/custom legacy hook dispatch, caller replacement binding, rejection, original failure identity and forced deferred next. Existing lifecycle modes also passed. Actual corporate external forms, database sessions, and every possible reentrant custom property callback remain unverified.
+
+Official ActionWaitOwnership runner PID 9320 exited 0 and printed ACT-007A PASS. Three fresh focused JVMs 18820/15620/10564 exited 0, timeout false. Full exact-SHA gate: 74/74 with JVM signed 0 (0x00000000), outer 0, no timeout and a PASS marker in each run. Offline Maven compile, tracked runner PowerShell parse, and diff checks passed. First full recorder invocation failed before launching a JVM due to an incorrectly escaped variable name in its ignored copy. The corrected recorder and all raw outputs, PIDs and ABI evidence are under target/act-007a-resume.
+
+Independent rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 -ActionWaitOwnership -SettingsFile "D:\Java\.m2\settings.xml".
