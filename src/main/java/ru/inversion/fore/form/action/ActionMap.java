@@ -1,14 +1,14 @@
 package ru.inversion.fore.form.action;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
 /**
  * Реестр операций одного владельца. Доступ и изменение выполняются в одном потоке.
  * Строки сравниваются без учета регистра. Ключи разных типов независимы.
- * Числовые ключи одного типа равны по compareTo, перечисления — по объявленному типу и константе.
+ * Целые ключи Integer сравниваются по значению, перечисления — по объявленному типу и константе.
+ * Остальные ненулевые ключи преобразуются в строки через toString().
  */
 public final class ActionMap {
     private TreeMap<Comparable<?>, ForeAction> local;
@@ -30,13 +30,17 @@ public final class ActionMap {
     }
 
     public ForeAction get(Comparable<?> key) {
-        if (key == null) {
+        return get((Object) key);
+    }
+
+    public ForeAction get(Object key) {
+        Comparable<?> canonical = normalize(key);
+        if (canonical == null) {
             return null;
         }
-        keyType(key);
         for (var scope = this; scope != null; scope = scope.parent) {
             if (scope.local != null) {
-                ForeAction action = scope.local.get(key);
+                ForeAction action = scope.local.get(canonical);
                 if (action != null) {
                     return action;
                 }
@@ -46,34 +50,40 @@ public final class ActionMap {
     }
 
     public ForeAction getLocal(Comparable<?> key) {
-        if (key == null) {
-            return null;
-        }
-        keyType(key);
-        return local == null ? null : local.get(key);
+        return getLocal((Object) key);
+    }
+
+    public ForeAction getLocal(Object key) {
+        Comparable<?> canonical = normalize(key);
+        return local == null || canonical == null ? null : local.get(canonical);
     }
 
     public ForeAction put(Comparable<?> key, ForeAction action) {
+        return put((Object) key, action);
+    }
+
+    public ForeAction put(Object key, ForeAction action) {
         requireLive();
-        if (key == null) {
-            throw new NullPointerException("key");
-        }
-        keyType(key);
+        Comparable<?> canonical = normalize(Objects.requireNonNull(key, "key"));
         if (action == null) {
-            return remove(key);
+            return removeLocal(canonical);
         }
         if (local == null) {
             local = new TreeMap<>(ActionMap::compare);
         }
-        return local.put(key, action);
+        return local.put(canonical, action);
     }
 
     public ForeAction remove(Comparable<?> key) {
-        if (key == null) {
-            return null;
-        }
-        keyType(key);
-        if (local == null) {
+        return remove((Object) key);
+    }
+
+    public ForeAction remove(Object key) {
+        return removeLocal(normalize(key));
+    }
+
+    private ForeAction removeLocal(Comparable<?> key) {
+        if (local == null || key == null) {
             return null;
         }
         ForeAction removed = local.remove(key);
@@ -110,17 +120,18 @@ public final class ActionMap {
         }
     }
 
+    private static Comparable<?> normalize(Object key) {
+        return switch (key) {
+            case null -> null;
+            case String value -> value;
+            case Enum<?> value -> value;
+            case Integer value -> value;
+            default -> Objects.requireNonNull(key.toString(), "key.toString()");
+        };
+    }
+
     private static Class<?> keyType(Comparable<?> key) {
-        if (key instanceof Enum<?> value) {
-            return value.getDeclaringClass();
-        }
-        Class<?> type = key.getClass();
-        if (type == String.class || type == Byte.class || type == Short.class || type == Integer.class
-                || type == Long.class || type == Float.class || type == Double.class
-                || type == BigInteger.class || type == BigDecimal.class) {
-            return type;
-        }
-        throw new IllegalArgumentException("Unsupported ActionMap key type: " + type.getName());
+        return key instanceof Enum<?> value ? value.getDeclaringClass() : key.getClass();
     }
 
     private static int compare(Comparable<?> left, Comparable<?> right) {
@@ -136,14 +147,7 @@ public final class ActionMap {
         return switch (left) {
             case String value -> value.compareToIgnoreCase((String) right);
             case Enum<?> value -> Integer.compare(value.ordinal(), ((Enum<?>) right).ordinal());
-            case Byte value -> value.compareTo((Byte) right);
-            case Short value -> value.compareTo((Short) right);
             case Integer value -> value.compareTo((Integer) right);
-            case Long value -> value.compareTo((Long) right);
-            case Float value -> value.compareTo((Float) right);
-            case Double value -> value.compareTo((Double) right);
-            case BigInteger value -> value.compareTo((BigInteger) right);
-            case BigDecimal value -> value.compareTo((BigDecimal) right);
             default -> throw new IllegalArgumentException("Unsupported ActionMap key type: " + type.getName());
         };
     }

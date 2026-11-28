@@ -89,9 +89,9 @@ public final class ActionKeyContextSmoke {
             var form = leftForm.getActionMap();
             var data = adapter.getActionMap();
             var sibling = rightForm.getActionMap();
-            form.put("refresh", parent);
+            form.put("1", parent);
             sibling.put("refresh", other);
-            data.put("refresh", local);
+            data.put(1L, local);
             data.put("denied", denied);
             proxy.getProperties().put(Controls.CONTROL_PARENT, table);
             scene.getAccelerators().put(new KeyCodeCombination(KeyCode.F5), nativeCalls::incrementAndGet);
@@ -104,7 +104,7 @@ public final class ActionKeyContextSmoke {
                 // На сцену допускается один диспетчер.
             }
             press(table, KeyCode.F5, false);
-            require(nativeCalls.get() == 1 && observed.isEmpty(), "changed local hotkey shadows ancestor ID");
+            require(nativeCalls.get() == 1 && observed.isEmpty(), "normalized local ID shadows ancestor hotkey");
             press(table, KeyCode.F3, false);
             press(left, KeyCode.F5, false);
             press(right, KeyCode.F5, false);
