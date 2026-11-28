@@ -6171,3 +6171,12 @@ The package ABI comparison found only the approved getWaitActions removals from 
 Official ActionWaitOwnership runner PID 9320 exited 0 and printed ACT-007A PASS. Three fresh focused JVMs 18820/15620/10564 exited 0, timeout false. Full exact-SHA gate: 74/74 with JVM signed 0 (0x00000000), outer 0, no timeout and a PASS marker in each run. Offline Maven compile, tracked runner PowerShell parse, and diff checks passed. First full recorder invocation failed before launching a JVM due to an incorrectly escaped variable name in its ignored copy. The corrected recorder and all raw outputs, PIDs and ABI evidence are under target/act-007a-resume.
 
 Independent rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 -ActionWaitOwnership -SettingsFile "D:\Java\.m2\settings.xml".
+
+
+## Reply ACT-012
+
+Production SHA 832f0719be55f5e0b73352a4d600f9f51a99b469.
+
+Implemented the local ForeAction registry and iterative parent lookup. Supported keys are String, enums (including StandardAction and enum constants with bodies), primitive numeric wrappers, BigInteger and BigDecimal. Strings are case-insensitive, same-type numbers compare naturally and enum keys are distinguished by declaring type and ordinal. Unsupported/colliding types and cycles are rejected. Backing TreeMap is created on first insertion and released when empty. Existing consumers and public API are untouched.
+
+Official ActionMapCore runner PID 1616 and fresh JVMs 16532/5780/18504 passed. ActionWaitOwnership and ForeActionModel regressions (864/692) passed. Direct JVM exits 0 (0x00000000), no timeout. Offline Maven compile, PowerShell parse and diff passed. Current-thread allocation for 1 million alternating inherited string hits/misses was 480 bytes first and 0 bytes in each of the next three batches (JDK 25). This is an allocation sample for that lookup shape. Rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 -ActionMapCore -SettingsFile "D:\Java\.m2\settings.xml".
