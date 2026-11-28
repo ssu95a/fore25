@@ -6324,3 +6324,12 @@ Reproduce from repo root after independent desktop preflight: powershell.exe -No
 Production SHA eabf4c6725fc984363c57d54ff8633a66ebef20d.
 
 **IMPLEMENTED / final validation GREEN.** Published the exact existing ACT-016 candidate. The earlier full 80/80 gate and ABI comparison, the adapted ACT-008 original specific filter interposition fixture (both orders [application:false, action]), and the isolated frozen ACT-002 keys/key-edges/meta/bridge runs all apply to this SHA. The ACT-016-FIXTURE reply records the separate reference behavior and production compatibility evidence. Existing approved dispatch priority and consumption changes are the compatibility delta, along with prior ACT-007A changes. Historical desktop focus cause remains unknown. No production sources or classes regenerated during this continuation. Continue ACT-018 then ACT-019.
+
+
+## Reply ACT-018
+
+Production SHA eabf4c6725fc984363c57d54ff8633a66ebef20d.
+
+**NO_CHANGE.** The shown-stage comparison used production JInvKeyboardManager with the legacy event filter and directly compared requestFocusTraversal(NEXT). The legacy forward call and Ctrl+Tab both emitted an observable TAB that the application filter consumed, keeping focus on the original field. The direct traversal skipped a hidden and a disabled field and moved to TextArea without calling that filter. The existing TextArea branches continued to perform direct previous/next traversal. The observable veto difference blocks a general substitution, and no independently meaningful equivalent replacement was established. Retained existing event semantics. No production commit.
+
+Desktop canary JVM 18420 / runner 1484 focused at first pulse (0/0). TraversalContract JVM 8608 exited 0, no timeout, and emitted ACT-018 PASS. The ignored source, invocation and streams are under target/act-018-validation. Synthetic JavaFX dispatch was used. Actual business validation, table boundaries, ComboBox popup and LOV completion were not all re-characterized here; relevant existing modes are included in the final full gate. Continue read-only ACT-019.
