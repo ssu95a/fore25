@@ -5654,3 +5654,14 @@ Exact ACT-001 javap ABI match and frozen ACT-002 metadata/bridge JVM and runner 
 | BinderChoiceNull | 0 | 0 | CTRL-017 PASS |
 | ChoiceNullLookup | 0 | 0 | CTRL-018 PASS |
 | ChoiceNonNullSet | 0 | 0 | CTRL-019 PASS |
+
+
+---
+
+## Reply ACT-006
+
+DONE. Baseline 2443a651a326c6c68a91d9876536579558ade853, final 33478bb8b05522c747eb2a5a444c4ec4bf86c64e. Stateless generic admission evaluates requested enabled before authorization and returns disabled/denied/allowed. JInvAction and legacy SceneKeyManager use it while retaining existing caller-specific errors, selection order, consumption, event and real authorization timing. ControlsFX retains its native guard; no security bypass, new per-action state or per-call allocation. Shared legacy view security-effect selection for JInvButton/JInvMenuItem leaves distinct mutation/listener order unchanged. Existing cached/recheck, setId/strategy, actual TaskContext calls and StubAction/WrapAction remain in the facade/service. No assertion of corporate login or real authorization equivalence beyond unchanged code.
+
+Baseline synthetic override characterization 0; three fresh focused and extra instrumented 0/0; unchanged official runner 0. Requested-disabled skips check, requested-enabled can reject without executing, allow forwards original event. Two actual views verified initial DISABLE, HIDE and ERROR_ON_ACTION presentation. Legacy later requested-enabled listener can reenable a menu initially disabled by policy, while button snapshot stays disabled; this view behavior is preserved and does not bypass invocation admission. Corporate IDs/recheck behavior source-only. LegacyActionFacade, ForeActionInvocation, SceneKeyLookup, WrapButtonOwnership, TextAreaToolbarOwnership, FormLifecycle 0/0. Compile, parse, diff, legacy ABI unchanged. Logs target/act-006.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ActionSecurityAdmission -SettingsFile "D:\Java\.m2\settings.xml"
