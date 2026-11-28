@@ -5223,3 +5223,22 @@ Per task verify exact HEAD, clean tree and expected remote ancestry before work/
 
 Ceiling 90 minutes for this bounded diagnostic task, not an estimate. All unrelated original STOP rules remain in effect. Reuse safe mailbox checkout, preserve all original evidence; no target cleanup.
 
+
+
+---
+
+## DECISION ACT-021 — resume after controlled native-exit diagnosis
+
+**Status: USER APPROVED / ACTIVE.** The user accepts the bounded residual uncertainty of the specific historical CTRL-006 native exit and explicitly authorizes continuation of the previously approved Phase III package, following Reply ACT-021-DIAG at 1096d97a0bafdf6a2b65eff7d65a2c6c97b4a141. This clears only that historical STOP; it does not reclassify the failed run as PASS, establish root cause, waive any gate or authorize future unexplained exits.
+
+Verified remote baseline remains 25ca2aa2fd3d5ebb679fdbf37da1c77f3863f9ec. Resume from exact preserved local candidate 2cabd4432ea2d30e2988514cc8266d31cea3a11c, direct child of baseline. Preserve original CTRL-006 RED record (JVM 6080, signed -1073740791 / 0xC0000409, runner 18448 exit 1, no timeout), WER/Application Error records identifying ucrtbase.dll, and all original and diagnostic artifacts. A/B/B/A x4 yielded A 8/8 and B 8/8 with native/outer 0/0 and unchanged probe bytecode/dependencies; direct involvement of changed WAIT/progress paths was not found. Isolated matrix did not reproduce the preceding full-suite sequence. Root cause remains UNKNOWN; no native stack/dump available. No evidence of candidate-specific regression in the bounded sample, not proof of absence.
+
+1. Verify exact clean local candidate, direct parent, current branch and remote SHA, relevant inputs and preserved hashes. Do not amend, rebase, rewrite or repeat implementation. Retain earlier four-defect reproductions, focused/ABI results and 58 green modes as historical evidence.
+2. Run fresh independent focus-capable desktop preflight, then a **new complete official ACT-021 full regression gate from mode 1**, preserving existing order including CTRL-006 at its normal position, all supported modes, assertions, timeouts and actual child/outer exit capture. No splicing old 58 results into the new gate or treating diagnostic PASS as gate PASS. Preserve previous matrices separately. Repeat desktop preflight before each focus-sensitive group and after session changes; do not assume input is yielded. If preflight fails STOP before the group.
+3. Complete the outstanding fresh frozen binary compatibility modes using the established isolated harness with unchanged frozen consumer/reference bytes, assertions and loader identity/hash verification; complete required focused, offline compile, PowerShell parse, ABI and git diff checks as prescribed by original ACT-021 assignment. Previously completed focused/ABI evidence may be reused only where exact candidate and input equivalence are verified. Record PID, signed/hex native exit, outer exit, timeout, PASS markers and raw streams for all new runs.
+4. Any new unexplained nonzero exit, native crash (including the same historical signature), timeout, unreliable evidence, unexpected remote advance or dirty state: STOP immediately, preserve candidate and matched Windows/WER evidence if available. No arbitrary retries, forced focus, synthetic input to manufacture green, relaxation or automatic waiver.
+5. Only when every mandatory ACT-021 gate is GREEN, publish the exact existing candidate by fast-forward, verify remote SHA and append separate Reply ACT-021 continuation with historical RED, diagnostic outcome, new full gate, frozen compatibility, actual changes and limitations clearly separated.
+6. Then resume ACT-022 -> ACT-023A -> ACT-023B -> ACT-023G sequentially under the original approved Phase III assignment at 2deea5f24fdace7f7ae737a002bfdfa416597050. All original correctness, authorization, phase/consumption, lifecycle, ABI, regression and STOP rules remain binding. No intermediate confirmation for already approved scope; unresolved architectural/security changes require STOP. Separate task commits/Replies. ACT-024 onward NOT ACTIVE. STOP after ACT-023G or earlier blocker.
+
+Fresh ceiling 90 minutes for ACT-021 validation continuation; subsequent ceilings unchanged (120/90/90/90 minutes). These are ceilings, not estimates. No cleanup, unrelated production work or mailbox history changes. Architect mailbox remains read-only while this package runs.
+
