@@ -1,14 +1,22 @@
 package ru.inversion.fx.form;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.InputEvent;
+import javafx.scene.input.InputMethodEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
@@ -26,9 +34,13 @@ import ru.inversion.utils.U;
 
 import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.function.Supplier;
 
 import static org.slf4j.LoggerFactory.getLogger;
 import static ru.inversion.fx.app.service.ViewPrefAppService.localizeDialog;
@@ -39,7 +51,7 @@ import static ru.inversion.fx.app.service.ViewPrefAppService.localizeDialog;
  */
 public class Alerts {
 
-    //private final static Logger logger = getLogger(MethodHandles.lookup().lookupClass());
+    private static final Logger logger = getLogger(MethodHandles.lookup().lookupClass());
 
     final static private ResourceBundle g_bundle = ResourceBundle.getBundle("alerts");
 
@@ -446,6 +458,9 @@ public class Alerts {
         return new AlertMaker();
     }
 
+    /** Кнопка результата и состояние дополнительного флажка на момент закрытия. */
+    public record AlertResult(ButtonType button, boolean checkBoxSelected) {}
+
     public interface IAlertMaker {
         /** */
         IAlertMaker window( Object w );
@@ -496,6 +511,29 @@ public class Alerts {
         default IAlertMaker resizable(boolean resizable) {
             throw new UnsupportedOperationException();
         }
+
+        /** Задает начальное состояние флажка. */
+        default IAlertMaker checkBoxSelected(boolean selected) {
+            throw new UnsupportedOperationException();
+        }
+
+        /** Делает указанные кнопки доступными только при установленном флажке. */
+        default IAlertMaker requireCheckBox(ButtonType... buttons) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Дополнительное условие доступности OK. Только true разрешает OK.
+         * Условие проверяется при показе, после событий ввода и перед подтверждением.
+         */
+        default IAlertMaker validator(Supplier<Boolean> validator) {
+            throw new UnsupportedOperationException();
+        }
+
+        /** Возвращает результат JavaFX и состояние флажка, если результат есть. */
+        default Optional<AlertResult> showResultAndWait() {
+            throw new UnsupportedOperationException();
+        }
     }
 
     private static final class AlertMaker implements IAlertMaker {
@@ -512,6 +550,10 @@ public class Alerts {
         private boolean sound = true;
         private Boolean expanded;
         private boolean resizable = true;
+        private String checkBoxText;
+        private boolean checkBoxSelected;
+        private Set<ButtonType> checkBoxRequired = Set.of();
+        private Supplier<Boolean> validator;
 
         @Override
         public IAlertMaker window(Object window) {
@@ -521,7 +563,7 @@ public class Alerts {
 
         @Override
         public IAlertMaker type(Alert.AlertType type) {
-            this.type = java.util.Objects.requireNonNull(type);
+            this.type = Objects.requireNonNull(type);
             return this;
         }
 
@@ -556,7 +598,26 @@ public class Alerts {
 
         @Override
         public IAlertMaker checkBoxText(String text) {
-            throw new UnsupportedOperationException();
+            this.checkBoxText = text;
+            return this;
+        }
+
+        @Override
+        public IAlertMaker checkBoxSelected(boolean selected) {
+            checkBoxSelected = selected;
+            return this;
+        }
+
+        @Override
+        public IAlertMaker requireCheckBox(ButtonType... buttons) {
+            checkBoxRequired = new LinkedHashSet<>(List.of(buttons));
+            return this;
+        }
+
+        @Override
+        public IAlertMaker validator(Supplier<Boolean> validator) {
+            this.validator = validator;
+            return this;
         }
 
         @Override
@@ -567,7 +628,7 @@ public class Alerts {
 
         @Override
         public IAlertMaker modality(Modality modality) {
-            this.modality = java.util.Objects.requireNonNull(modality);
+            this.modality = Objects.requireNonNull(modality);
             return this;
         }
 
@@ -579,7 +640,7 @@ public class Alerts {
 
         @Override
         public IAlertMaker defaultButton(ButtonType button) {
-            defaultButton = java.util.Objects.requireNonNull(button);
+            defaultButton = Objects.requireNonNull(button);
             return this;
         }
 
@@ -610,6 +671,11 @@ public class Alerts {
 
         @Override
         public Optional<ButtonType> showButtonAndWait() {
+            return showResultAndWait().map(AlertResult::button);
+        }
+
+        @Override
+        public Optional<AlertResult> showResultAndWait() {
             requireFxThread();
             Alert alert = new Alert(type, "", buttons);
             Window owner = configure(alert, window, type, title, headerText,
@@ -618,8 +684,8 @@ public class Alerts {
             if (expanded != null) {
                 alert.getDialogPane().setExpanded(expanded);
             }
+            var pane = alert.getDialogPane();
             if (defaultButton != null) {
-                var pane = alert.getDialogPane();
                 if (!pane.getButtonTypes().contains(defaultButton)) {
                     throw new IllegalArgumentException("Default button is absent from the dialog");
                 }
@@ -630,8 +696,106 @@ public class Alerts {
             if (sound) {
                 alert.setOnShown(event -> playSoundIfLoggedIn(alert.getAlertType()));
             }
+            Set<ButtonType> required = checkBoxRequired;
+            CheckBox checkBox = addCheckBox(pane, required);
+            Supplier<Boolean> condition = validator;
+            var ok = (Button) pane.lookupButton(ButtonType.OK);
+            boolean validateOk = condition != null && ok != null;
+            for (ButtonType choice : required) {
+                if (choice == ButtonType.OK && validateOk) {
+                    continue;
+                }
+                Button button = (Button) pane.lookupButton(choice);
+                button.disableProperty().bind(checkBox.selectedProperty().not());
+            }
+            if (!required.isEmpty()) {
+                // Закрытие окна может синтезировать результат кнопки отмены.
+                alert.setResultConverter(choice -> choice != null && required.contains(choice) && !checkBox.isSelected()
+                        ? null : choice);
+            }
             bringOwnerForward(owner);
-            return alert.showAndWait();
+            Runnable cleanup = validateOk
+                    ? installOkValidator(alert, ok, condition, required.contains(ButtonType.OK) ? checkBox : null)
+                    : null;
+            try {
+                return alert.showAndWait().map(choice ->
+                        new AlertResult(choice, checkBox != null && checkBox.isSelected()));
+            } finally {
+                if (cleanup != null) {
+                    cleanup.run();
+                }
+                if (!required.isEmpty()) {
+                    alert.setResultConverter(null);
+                    for (ButtonType choice : required) {
+                        pane.lookupButton(choice).disableProperty().unbind();
+                    }
+                }
+            }
+        }
+
+        private CheckBox addCheckBox(DialogPane pane, Set<ButtonType> required) {
+            if (!pane.getButtonTypes().containsAll(required)) {
+                throw new IllegalArgumentException("A checkbox-gated button is absent from the dialog");
+            }
+            if (checkBoxText == null) {
+                if (!required.isEmpty()) {
+                    throw new IllegalArgumentException("Checkbox gating requires a checkbox");
+                }
+                return null;
+            }
+            var checkBox = new CheckBox(checkBoxText);
+            checkBox.setSelected(checkBoxSelected);
+            Node existing = pane.getContent();
+            var content = new VBox(5);
+            if (existing != null) {
+                pane.setContent(null);
+                content.getChildren().add(existing);
+                VBox.setVgrow(existing, Priority.ALWAYS);
+            }
+            content.getChildren().add(checkBox);
+            pane.setContent(content);
+            return checkBox;
+        }
+    }
+
+    private static Runnable installOkValidator(Alert alert, Button ok, Supplier<Boolean> validator, CheckBox checkBox) {
+        var valid = new SimpleBooleanProperty(evaluate(validator));
+        var disabled = checkBox == null ? valid.not() : valid.not().or(checkBox.selectedProperty().not());
+        ok.disableProperty().bind(disabled);
+        EventHandler<ActionEvent> confirm = event -> {
+            valid.set(evaluate(validator));
+            if (ok.isDisabled()) {
+                event.consume();
+            }
+        };
+        ok.addEventFilter(ActionEvent.ACTION, confirm);
+        var pane = alert.getDialogPane();
+        EventHandler<InputEvent> refresh = event -> {
+            var type = event.getEventType();
+            if (type == KeyEvent.KEY_RELEASED || type == MouseEvent.MOUSE_RELEASED
+                    || type == InputMethodEvent.INPUT_METHOD_TEXT_CHANGED) {
+                Platform.runLater(() -> {
+                    if (alert.isShowing()) {
+                        valid.set(evaluate(validator));
+                    }
+                });
+            }
+        };
+        pane.addEventFilter(InputEvent.ANY, refresh);
+        return () -> {
+            pane.removeEventFilter(InputEvent.ANY, refresh);
+            ok.removeEventFilter(ActionEvent.ACTION, confirm);
+            ok.disableProperty().unbind();
+            disabled.dispose();
+        };
+    }
+
+    private static boolean evaluate(Supplier<Boolean> validator) {
+        try {
+            return Boolean.TRUE.equals(validator.get());
+        } catch (RuntimeException failure) {
+            logger.error("Не удалось проверить доступность кнопки OK", failure);
+            return false;
         }
     }
 }
