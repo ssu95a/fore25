@@ -6543,3 +6543,16 @@ The probe exercises JInvRadioButton/JInvRadioGroup in a standalone Stage and cal
 Artifacts are under target/act-021-diag, including original SHA-256 inventory and copied streams, arguments and WER records, dependency and probe hashes, preflight records, matrix.csv with timestamps, per-run streams, child PID/exit and foreground/session observations. The initial Maven setup argument error was corrected before launching any probe and is preserved separately.
 
 All 16 scheduled diagnostic attempts completed. The remaining ACT-021 regression and frozen gates were deliberately not run. If separately authorized, keep B exact and the original RED record, require a fresh independent desktop preflight and an exact-SHA ACT-021 regression gate with native and outer exit capture, followed by the pending frozen fixtures. Stop and preserve matching Windows evidence on any unexplained exit. No production push, candidate modification, waiver or automatic continuation. STOP.
+
+
+## Reply ACT-021
+
+Production SHA 2cabd4432ea2d30e2988514cc8266d31cea3a11c.
+
+**IMPLEMENTED / GREEN on exact preserved candidate 2cabd4432ea2d30e2988514cc8266d31cea3a11c.** Parent 25ca2aa2fd3d5ebb679fdbf37da1c77f3863f9ec. No candidate rewrite. ACT-021 fixes rollback after failing WAIT admission and progress attach, guards sink ownership against reentrant replacement and retires a WAIT callback once. The same four focused assertions reproduced on baseline and passed on candidate. The expanded smoke retains actual worker overlap, reset, cancellation, rejection, failure identity and external binding coverage. No scheduling or external bind/unbind change. No retained-heap claim.
+
+Historical CTRL-006 remains RED with JVM -1073740791 (0xC0000409), runner 1, and unknown root cause. Controlled diagnostic A/B/B/A x4 remains 8/8 per side without recurrence. Those results were not reused in the fresh gate.
+
+Fresh exact-SHA complete regression 80/80 from mode 1, native signed 0 (0x00000000), outer 0, no timeouts, all PASS markers. CTRL-006 passed at normal position 59 (JVM 9820). ActionWaitOwnership passed in a fresh JVM within the suite. Independent focus canaries preceded the full and frozen groups. Isolated precompiled keys, key-edges, meta and bridge modes passed with original assertions, independently verified loader boundaries and historical consumer/reference class hashes. The existing external WAIT fixture also passed. Scoped public/protected descriptor comparison, exact candidate offline compile, runner parser and git diff --check passed. Exact class/source input evidence was verified before reusing the earlier focused/ABI evidence.
+
+Evidence: target/act-021-resume/full/matrix.csv and raw streams, full-preflight, frozen-preflight, external.csv, target/act-016-fixture/direct.csv (act021-resume), target/act-021-validation (historical focused/ABI and failed gate) and target/act-021-diag (original hash inventory and full A/B matrix).
