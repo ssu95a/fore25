@@ -489,28 +489,8 @@ public class ActionFactory {
     @Deprecated
     public static IAction getAction(ActionTypeEnum type, EventHandler<ActionEvent> handler, boolean parallel, Integer id, SecurityStrategyEnum strategy) {
 
-        ActionTypeEnum typical = null;
-        if (type != null) {
-            typical = type;
-        }
-
-        if (type == null) {
-
-            if (parallel) {
-                return createParallelAction(typical,  null, null,
-                        null, handler, null, id, strategy);
-            } else {
-                return createAction(typical,  null, null,
-                        null, handler, null, id, strategy);
-            }
-        } else if (parallel) {
-
-            return createParallelAction(typical,  null, null,
-                    null, handler, type.getHotKey(), id, strategy);
-        } else {
-            return createAction(typical, null,  null,
-                    null, handler, type.getHotKey(), id, strategy);
-        }
+        return buildLegacyAction(type, null, null, null, handler, id, strategy,
+                type == null ? null : type.getHotKey(), parallel);
     }
 
     @Deprecated
@@ -1976,12 +1956,8 @@ public class ActionFactory {
                                        Integer id,
                                        SecurityStrategyEnum strategy) {
 
-        return createActionBuilder(typicalType,
-                icon, title, toolTipText,
-                eventHandler,
-                id,
-                strategy,
-                keyCodeCombinations).build();
+        return buildLegacyAction(typicalType, icon, title, toolTipText, eventHandler,
+                id, strategy, keyCodeCombinations, false);
     }
 
     /**
@@ -2003,15 +1979,8 @@ public class ActionFactory {
                                                Integer id,
                                                SecurityStrategyEnum strategy
     ) {
-        return createActionBuilder(typicalType,
-                icon,
-                title,
-                toolTipText,
-                eventHandler,
-                id,
-                strategy,
-                keyCodeCombinations).
-                setParallel(true).build();
+        return buildLegacyAction(typicalType, icon, title, toolTipText, eventHandler,
+                id, strategy, keyCodeCombinations, true);
     }
 
     /**
@@ -2025,14 +1994,14 @@ public class ActionFactory {
         if (typicalType != null) {
             IAction action = typicalType.getAction();
             if (action != null) {
-                return createActionBuilder(typicalType,
+                return buildLegacyAction(typicalType,
                         action.getIcon(),
                         action.getTitle(),
                         action.getToolTip(),
                         eventHandler,
                         action.getId(),
                         action.getSecurityStrategy(),
-                        action.getHotKey()).build();
+                        action.getHotKey(), false);
             } else {
                 return null;
             }
@@ -2200,12 +2169,13 @@ public class ActionFactory {
 
     }
 
-    private static ActionBuilder createActionBuilder(ActionTypeEnum typicalType,
+    private static IAction buildLegacyAction(ActionTypeEnum typicalType,
                                                      IBaseIconDescriptor icon,
                                                      String title, String toolTipText,
                                                      EventHandler<ActionEvent> eventHandler,
                                                      Integer id,
-                                                     SecurityStrategyEnum strategy, List<KeyCodeCombination> keyCodeCombinations) {
+                                                     SecurityStrategyEnum strategy, List<KeyCodeCombination> keyCodeCombinations,
+                                             boolean parallel) {
 
         if (icon == null && typicalType != null) {
             icon = typicalType.getAction().getIcon();
@@ -2218,7 +2188,8 @@ public class ActionFactory {
                 toolTipText(toolTipText).
                 handler(eventHandler).
                 id(id).setActionType(typicalType).
-                securityStrategy(strategy).setListKeyCombination(keyCodeCombinations);
+                securityStrategy(strategy).setListKeyCombination(keyCodeCombinations).
+                setParallel(parallel).build();
 
     }
 
