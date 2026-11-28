@@ -4714,3 +4714,83 @@ Use ACT-001 64-file inventory updated against current HEAD. Classify each consum
 **Task:** Final ABI, correctness, architecture and measured footprint gate.
 
 READ-ONLY final verification. Verify remote exact chain from 515d01fd, scope of every commit and clean tracked tree. Full supported 63 original + all new tracked modes at final SHA with actual child signed/hex and outer exits, timeouts, assertion markers, compile/parse/diff. Compare public/protected ABI inventory with original including method descriptors, fields, nested types, enum names/order, inheritance and constructors. Execute original precompiled baseline legacy consumers unchanged; add representative compatibility checks as ignored fixtures if needed, no claim of complete external compatibility. Verify actual legacy and native action paths, security admission, worker ownership/cleanup, keyboard resolution and native accelerator coexistence, no accidental double dispatch, lifecycle/unbind. Audit dependency direction and one execution/registration authority versus residual adapters, explicitly list any not yet migrated paths and blockers; do not mark architecture complete if two independent core paths persist. Matched representative baseline/final action construction, no-view and Button/MenuItem views, multiple views, bind/unbind/registration, execution (sync/worker separately) allocation and live shallow state if practical with same JDK/FX/ControlsFX/CSS/heap, medians/ranges and actual mode counts; no retained heap or corporate throughput claims. Report missing/negative performance evidence honestly, no artificial requirement for improvements. List all nine task dispositions and exact SHAs, gate matrices, intentional contract differences/remaining UNKNOWN, actual security/MDI/TaskContext/real app limits, independent Windows rerun commands for new modes with settings D:\Java\.m2\settings.xml, final production SHA. Previous class/skin/editor/table backlog not silently closed. STOP after Reply ACT-011, no self-assignment.
+
+
+---
+
+## QUEUED PACKAGE ALERT-001…ALERT-007 — Alerts / IAlertMaker evolution
+
+**Status:** USER APPROVED DIRECTION / QUEUED / NOT ACTIVE.
+**IMPORTANT:** ACT-003…011 remains the only active implementation package. This append is an architect-approved mailbox-only queue announcement; it does not alter ACT scope, stop conditions, production authorization or expected production chain. Do not interrupt, parallelize, or start ALERT tasks while ACT is active. STOP after ACT-011 as previously ordered. ALERT execution requires a subsequent architect activation with exact verified baseline after ACT final report/review. If ACT stops early, ALERT stays queued. This known append is not an unexpected production advancement. No production authorization from this queue entry alone.
+**Repo:** ssu95a/fore25; production migration/java25-correctness; mailbox agent/codex-mailbox.
+**Baseline:** to be pinned upon activation; source review was at 515d01fd before Action migration. Reopen actual current source and ABI at activation.
+**Order:** ALERT-001…007. Proposed timebox ceilings 60/90/75/75/90/90/90 minutes (570 total); no time estimate or minimum.
+**User direction:** do not break old API, add capabilities. Static Alerts method signatures MUST NOT change; preserve result mapping, default modality, ownership, localization, sync behavior and other supported semantics unless explicit approved correction. Focus final showAlert implementation. Evolve IAlertMaker. Ignore JInvAlert as development target; do not edit/remove/rewrite that class. Existing AlertBuilder public build() return type and package-private Alerts.getAlert route are compatibility constraints; retain existing legacy creation bridge if needed, use shared configuration implementation, no duplicate engine. No forced migration of external callers.
+
+### Common architecture / scope
+
+One compact implementation for static Alerts facade and fluent maker, using public JavaFX25 Alert/Dialog/DialogPane facilities. No large AlertManager, service locator, global dialog cache, generic forms framework or per-control validation infrastructure. Keep show lifecycle distinct from configuration. Preserve synchronous showAndWait contract; no silent asynchronous conversion or FX-thread blocking wait from worker. New optional nonblocking show/result delivery may use native lifecycle; document exact semantics. Do not invent cross-thread marshalling semantics. User-approved feature intent: content/detail/graphic, expanded, resizable, modality, default button, sound, service checkbox, functional checkbox, initial selection, optional validator. Candidate result API and method names below are design guidance; preserve existing IAlertMaker methods/erased descriptors and source compatibility where applicable. Do not introduce incompatible generic interface change without separate approval. Existing <T> Optional<T> showAndWait() cannot provide arbitrary runtime T safely; inventory implementations and consumers, preserve its existing signature if needed, define actual supported result explicitly and prefer an additive typed terminal/result converter API for new callers. No misleading arbitrary type cast in new typed API. Proposed AlertResult(ButtonType button, boolean checkBoxSelected), Optional empty on actual no-result per native contract, explicit close/cancel characterization; converter may map typed result; choose one minimal path, avoid overload ambiguity. Existing static ButtonType.CANCEL fallback and yesNo/yesNoCancel mappings unchanged. Do not use static facade result fallback to erase actual new fluent result distinctions.
+
+**Checkbox contract USER APPROVED:** checkBoxText(String) is service checkbox, independent of buttons; initial selection default false, checkBoxSelected(boolean) optional. Return its state to caller; no persistence/settings side effect. requireCheckBox(ButtonType...) gates ONLY explicitly selected actual buttons, including YES/APPLY/OK if requested. No enum modes or separate checkbox managers. No checkbox means no implicit gating; invalid configuration (gating without checkbox or missing button) must have explicit deterministic behavior, prefer fail-fast for new API; no legacy behavior changes. CANCEL/ESC/close remain available under native close policy unless explicitly gated by supported contract; do not turn window close into affirmative operation. Functional acknowledgement cannot be bypassed by keyboard/default button or alternate normal UI invocation.
+
+**Validator contract USER APPROVED:** exactly validator(Supplier<Boolean>), no additional validator overloads, no arbitrary button-specific validation, no validation contexts/severity/chain/events/framework. It affects ONLY ButtonType.OK; if no OK, does not affect other buttons. No validator = no extra restriction. Boolean.TRUE permits; false blocks. Evaluate on FX thread and recheck immediately before accepting OK; combine checkbox condition and other existing OK restrictions without clobbering them. Establish explicit null/exception handling (never accept invalid/failed validation; surface failure appropriately, no silent swallowing). Supplier is not observable: establish supported input-triggered reevaluation after actual user changes and initial evaluation; no polling/Timeline, no listeners on every child, no claim of universal observation of arbitrary programmatic supplier dependencies. If event-driven refresh cannot cover a needed contract, report limitation/propose minimal explicit refresh API separately, do not add a validation subsystem. Test mouse/keyboard/default-button, input text/paste/selection where relevant, state transitions, no OK, other buttons unaffected, checkbox AND, close/cancel, exception, reuse and exact lifecycle cleanup. No direct business writes from validation.
+
+### Execution protocol (upon later activation only)
+
+Fresh refs and clean tracked baseline, exact source/ABI inventory, isolated scoped commits on production, one Reply ALERT-nnn per task. Existing public/protected API and static signatures frozen; inspect binary descriptors, compile old consumer and run precompiled fixture unchanged. Main, JInvCommon, fore26_Arch read-only; no other repo writes, dependency upgrades, destructive Git, private JavaFX APIs, corporate DB/security changes, or native system configuration modifications. Use existing JDK25/FX25/Maven offline settings D:\Java\.m2\settings.xml, Russian Java comments, actual shown offline dialogs with deterministic FX callbacks and real ButtonType results. Three fresh focused JVMs + official focused runner, true native/outer exits, timeouts/PIDs/streams; relevant regressions, Maven -Pbuild compile, PowerShell parse, git diff --check. Defects baseline RED/candidate GREEN; refactors positive equivalence. Preserve original evidence and failed attempts; unexplained native/nonzero/timeout/shared failure stops all dependent work, no retry-to-green. No blanket prior waiver. Task-local unresolved contract BLOCKED and report, independent slices only on clean green baseline where safe. Final full suite all supported modes at activated baseline plus new tracked modes, ABI verification and independent user rerun commands. No publication of incomplete unvalidated changes.
+
+---
+
+## MESSAGE ALERT-001
+
+**Status:** QUEUED, not assigned for execution.
+**Timebox:** 60 min.
+**Task:** READ-ONLY characterization of Alerts and consumers. Inventory all static overloads and descriptors, IAlertMaker, AlertBuilder (including build() ABI), actual calls with rg, ViewContext.tryGetWindow, JInvErrorService and LoginManager, Dialog localization, SoundPlayer, existing AlertException paths, actual thread/owner/modality use. Do not inspect/refactor JInvAlert internals. Check actual default/native ButtonType semantics for null/empty arrays, NONE/default type, title bundle, header/content null/empty/custom Node, detail String/String[]/List/Node, expanded state, custom graphics, YES/NO/CANCEL mapping, ESC/X/default ENTER, Stage without scene and null owner, no BaseApp/login, builder build vs show sound/owner effects, repeated show. Preserve supported contracts; label confirmed source hazards versus reproduced defects. Baseline ABI and precompiled legacy fixture. Use ignored probes, no production edit. Reply ALERT-001 with contract matrix, test evidence and decisions needed.
+
+---
+
+## MESSAGE ALERT-002
+
+**Status:** QUEUED.
+**Timebox:** 90 min.
+**Task:** Compact IAlertMaker implementation, factory and common dialog preparation/show path. Introduce minimal additive fluent API, preserve legacy static signatures and old AlertBuilder bridge. Use standard JavaFX Alert/Dialog internally, no JInvAlert changes. Refactor shared owner/content/detail/button/localization setup without duplicating actual show implementation; static showAlert integration staged in ALERT-007 if necessary. Keep legacy configuration and show side effects characterized until relevant correction. Typed result design must not break existing IAlertMaker API; report exact proposed method signatures and compatibility evidence; prefer additive typed entry point, preserve old generic signature as compatibility surface with explicit supported behavior. New basic maker returns selected ButtonType through a sound typed route. Add initial focused tests for maker configuration, isolation of successive dialogs, native result, content and button defaults; no unsupported new result semantics.
+
+---
+
+## MESSAGE ALERT-003
+
+**Status:** QUEUED.
+**Timebox:** 75 min.
+**Task:** Keyboard and default button correctness. Existing onShown adds Scene KEY_PRESSED filter for ENTER, casts arbitrary event target to ButtonBase and consumes all ENTER. Establish actual JavaFX25 dispatch/default-button behavior and historical requirement focused NO must not trigger YES. Preserve focused button activation, nonbutton/custom content (TextArea multiline, CheckBox, TextField etc.) native editing semantics and disabled/default button behavior; avoid global interception if public native route suffices. No ClassCastException on nonbutton target, exactly one execution, no repeated-show filter accumulation, exact handler ownership and removal, no override of caller event property unnecessarily. New defaultButton(ButtonType) only for explicit maker configuration; legacy default behavior not silently changed. Test actual shown dialogs, mouse-style/button action, keyboard-style event through real dispatch, ESC/X and repeated show. Physical input UNKNOWN if not tested. Reproduce source hazards before fixing, no private APIs.
+
+---
+
+## MESSAGE ALERT-004
+
+**Status:** QUEUED.
+**Timebox:** 75 min.
+**Task:** Owner, modality, FX lifecycle, sound. Current owner resolution via ViewContext, scene-less Stage JAVAKERNEL-1572 workaround, alwaysOnTop true/false mutation and deiconify, BaseApp.APP() null exposure, SoundPlayer at construction. Characterize actual behavior and preserve valid owner/modality (legacy WINDOW_MODAL and error builder APPLICATION_MODAL) and intended bring-forward/deiconify without changing persistent alwaysOnTop flag. Do not remove historical workaround without JavaFX25 evidence. New maker sound(boolean) respects existing sound settings and plays at actual show, not mere config. Preserve legacy builder pre-show contract unless approved correction justified; distinguish build side effects from show lifecycle. Handle no-app/pre-login safely without triggering corporate settings or fake login. Define FX-thread precondition, no silent asynchronous change to static methods. Test no owner, detached Node, actual Stage/Scene, pre-login/no app, repeated show, correct owner and modal result, lifecycle/cleanup. No system audio config modifications. If actual sound playback unavailable, report source-only/offline evidence.
+
+---
+
+## MESSAGE ALERT-005
+
+**Status:** QUEUED.
+**Timebox:** 90 min.
+**Task:** Content/details layout and sizing. Preserve selectable/copyable message text, wrapping, custom Node identity and ownership, String/String[]/List and custom Node details, initial expandable state (legacy Node currently expanded), localization and resizable defaults. Improve actual width/font-aware measurement and bounded dialog size via public JavaFX layout, no hidden text truncation, no arbitrary fixed magic line counts or eager caches. Characterize long unbroken text, multiline, Cyrillic, font/width changes, small window, expandable detail, external node reuse, existing content binding behavior. Do not claim pixel/paint/native DPI evidence absent measurement. New expanded/resizable configuration additive. Unsupported legacy detail types remain as before unless explicit extension approved; no generic exception disclosure policy change.
+
+---
+
+## MESSAGE ALERT-006
+
+**Status:** QUEUED.
+**Timebox:** 90 min.
+**Task:** Service/functional checkbox, typed result and OK-only validator. Implement agreed contracts above using minimal public API, no persisted service-checkbox preference, no arbitrary validation framework. Shared gate conditions AND, preserve other buttons and native close behavior. Actual shown controls, initial false/true, user toggling, checkbox state returned on result, service no button gating, functional specified buttons only, dynamic Supplier<Boolean> affects exclusively ButtonType.OK, absent OK, invalid/exception cases, input reevaluation and final confirmation check, disabled button keyboard/default path and lifecycle cleanup. Result conversion typed without breaking static or existing fluent signatures; document exact choices, ambiguous legacy generic behavior and limitations. No change to business operation invocation. Focused tracked regression mode(s).
+
+---
+
+## MESSAGE ALERT-007
+
+**Status:** QUEUED.
+**Timebox:** 90 min.
+**Task:** Complete static Alerts facade delegation and final gate. Confirm all original static signatures and JVM descriptors identical; all overloads converge on shared implementation with same return/fallback, synchronous semantics and supported owner/content/localization/modal contracts. Preserve AlertBuilder build() binary compatibility and JInvAlert untouched. No duplicate configuration/show engine; legacy bridge only where necessary. Run old compiled fixture unchanged, actual static info/error/yesNo/yesNoCancel/showAlert paths and new maker tests. Full supported regression at final exact SHA (all baseline Action/GUI modes plus new Alerts modes), actual native/outer exits, compile/parse/diff, ABI comparison, fast-forward chain and clean tree. Report all seven dispositions, exact commits, tests, approved intentional differences, remaining UNKNOWN and independent Windows commands. STOP after Reply ALERT-007.
