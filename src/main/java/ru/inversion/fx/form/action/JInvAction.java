@@ -27,6 +27,8 @@ import ru.inversion.fx.app.sec.JInvSecurityService;
 import ru.inversion.fx.app.sec.SecurityStrategyEnum;
 import ru.inversion.fx.form.ActionFactory;
 import ru.inversion.fx.form.IFormStateListener;
+import ru.inversion.fx.form.FormWait;
+import ru.inversion.fx.form.ProgressDelivery;
 import ru.inversion.fx.form.JInvFXFormController;
 import ru.inversion.fx.form.controls.Controls;
 import ru.inversion.icons.IBaseIconDescriptor;
@@ -34,6 +36,7 @@ import ru.inversion.icons.IconDescriptor;
 import ru.inversion.icons.enums.FontAwesome;
 import ru.inversion.utils.U;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -61,15 +64,17 @@ public class JInvAction implements IAction {
     private String description;
     private String title;
     private SimpleBooleanProperty enabledProperty = new SimpleBooleanProperty(true);
-    private StringProperty messageProperty = new SimpleStringProperty();
-    private StringProperty stateMessageProperty = new SimpleStringProperty();
+    private volatile StringProperty messageProperty = new SimpleStringProperty();
+    private volatile StringProperty stateMessageProperty = new SimpleStringProperty();
 
     private boolean enabledBySecurity = true;
     private EventHandler<ActionEvent> handler;
     private BiConsumer<ActionEvent, IAction> handlerWithNextAction;
 
     private boolean parallel;
-    private IFormStateListener formStateListener;
+    private volatile ArrayList<JInvTask> delivering;
+    private volatile long progressGeneration;
+    private volatile IFormStateListener formStateListener;
     private Consumer<Throwable> exceptionHandler;
     private IAction nextAction;
     private boolean forceFxThreadForNextAction;
@@ -82,7 +87,10 @@ public class JInvAction implements IAction {
 
     /** Устанавливает свойство, на которое будет привязано свойство сообщения в классе Task. */
     public void setMessageProperty(StringProperty messageProperty) {
-        this.messageProperty = messageProperty;
+        if (this.messageProperty != messageProperty) {
+            this.messageProperty = messageProperty;
+            retireObsoleteProgress();
+        }
     }
 
     public StringProperty getStateMessageProperty() {
@@ -107,7 +115,10 @@ public class JInvAction implements IAction {
     }
 
     public void setFormStateListener(IFormStateListener formStateListener) {
-        this.formStateListener = formStateListener;
+        if (this.formStateListener != formStateListener) {
+            this.formStateListener = formStateListener;
+            retireObsoleteProgress();
+        }
     }
 
     public boolean isParallel() {
@@ -274,14 +285,7 @@ public class JInvAction implements IAction {
             }
 
             if (isParallel()) {
-                if (!handleBeforeParallel(event)) {
-                    return;
-                }
-                Task<Void> task = new JInvTask(event);
-                if (messageProperty != null) {
-                    messageProperty.bind(task.messageProperty());
-                }
-                ThreadPoolManager.getInstance().executeTask(task);
+                submit(event);
             } else if (handlerWithNextAction != null) {
                 if (forceFxThreadForNextAction){
                     Platform.runLater(() -> {
@@ -308,49 +312,57 @@ public class JInvAction implements IAction {
      *
      * @param event
      */
-    private boolean handleBeforeParallel(ActionEvent event) {
-        logger.trace("handleBefore");
-
-        if (formStateListener == null && event != null) {
-
-            Node node = null;
-
-            if (event instanceof JInvEvent) {
-                node = ((JInvEvent) event).getControl();
-            }
-
-            if (node == null
-                    && event.getSource() instanceof Node) {
-                node = (Node) event.getSource();
-            }
-
-            if (node != null) {
-                JInvFXFormController abc = Controls.getControllerFromControl(node);
-                formStateListener = abc;
-            }
-
-        }
-
-        if (formStateListener != null) {
-            formStateListener.addWaitAction(this);
-        }
-
-        return true;
-    }
-
-    /**
-     * после меняем стейт на дефолтовый
-     *
-     * @param event
-     */
-    private void handleAfter(ActionEvent event) {
-        logger.trace("handleAfter");
-
-        if (formStateListener != null) {
-            formStateListener.removeWaitAction(this);
+    private void submit(ActionEvent event) {
+        var task = new JInvTask(event);
+        IFormStateListener owner = resolveOwner(event);
+        StringProperty target = messageProperty;
+        long generation = progressGeneration;
+        try {
+            onFx(() -> task.acquire(owner, target, generation));
+            ThreadPoolManager.getInstance().executeTask((Runnable) task);
+        } catch (RuntimeException | Error failure) {
+            onFx(() -> task.cleanup(failure));
+            throw failure;
         }
     }
 
+    private IFormStateListener resolveOwner(ActionEvent event) {
+        IFormStateListener owner = formStateListener;
+        if (owner != null || event == null) {
+            return owner;
+        }
+        Node node = event instanceof JInvEvent actionEvent ? actionEvent.getControl() : null;
+        if (node == null && event.getSource() instanceof Node source) {
+            node = source;
+        }
+        if (node != null) {
+            formStateListener = Controls.getControllerFromControl(node);
+        }
+        return formStateListener;
+    }
+
+    private static void onFx(Runnable work) {
+        if (Platform.isFxApplicationThread()) {
+            work.run();
+        } else {
+            Platform.runLater(work);
+        }
+    }
+
+    private void retireObsoleteProgress() {
+        progressGeneration++;
+        if (delivering != null) {
+            onFx(() -> {
+                if (delivering != null) {
+                    for (var task : List.copyOf(delivering)) {
+                        if (task.generation != progressGeneration) {
+                            task.retireProgress();
+                        }
+                    }
+                }
+            });
+        }
+    }
     private void handleException(Throwable e) {
 
         if (exceptionHandler != null) {
@@ -371,6 +383,59 @@ public class JInvAction implements IAction {
     public class JInvTask extends Task<Void> {
 
         private final ActionEvent event;
+        private Runnable releaseWait;
+        private ProgressDelivery progress;
+        private long generation;
+        private boolean progressRetired;
+
+        private void acquire(IFormStateListener owner, StringProperty target, long generation) {
+            this.generation = generation;
+            if (owner != null) {
+                releaseWait = FormWait.acquire(owner, JInvAction.this, this::retireProgress);
+            }
+            if (!progressRetired && target != null && generation == progressGeneration) {
+                progress = new ProgressDelivery(target, messageProperty(), () -> generation == progressGeneration);
+                if (delivering == null) {
+                    delivering = new ArrayList<>();
+                }
+                delivering.add(this);
+                progress.attach();
+            }
+        }
+
+        private void retireProgress() {
+            progressRetired = true;
+            ProgressDelivery delivery = progress;
+            if (delivery != null) {
+                progress = null;
+                delivering.remove(this);
+                if (delivering.isEmpty()) {
+                    delivering = null;
+                }
+                delivery.close();
+            }
+        }
+
+        private void cleanup(Throwable original) {
+            try {
+                Runnable wait = releaseWait;
+                releaseWait = null;
+                try {
+                    if (wait != null) {
+                        wait.run();
+                    }
+                } finally {
+                    retireProgress();
+                }
+            } catch (RuntimeException | Error failure) {
+                if (original == null) {
+                    throw failure;
+                }
+                if (original != failure) {
+                    original.addSuppressed(failure);
+                }
+            }
+        }
 
         public JInvTask(ActionEvent event) {
             this.event = event;
@@ -398,42 +463,25 @@ public class JInvAction implements IAction {
 
         @Override
         protected void succeeded() {
-            super.succeeded(); //To change body of generated methods, choose Tools | Templates.
-            handleAfter(event);
-            unbindMessageProperty();
+            super.succeeded();
+            cleanup(null);
         }
 
         @Override
         protected void failed() {
-            super.failed(); //To change body of generated methods, choose Tools | Templates.
-            logger.trace("failed");
-
-            if (this.getException() != null) {
-                Platform.runLater(() -> {
-                    if (formStateListener != null) {
-                        formStateListener.removeWaitAction(JInvAction.this);
-                    }
-                    handleException(this.getException());
-                });
-            } else {
-                handleAfter(event);
+            super.failed();
+            Throwable failure = getException();
+            cleanup(failure);
+            if (failure != null) {
+                Platform.runLater(() -> handleException(failure));
             }
-            unbindMessageProperty();
         }
 
         @Override
         protected void cancelled() {
             super.cancelled();
-            handleAfter(event);
-            unbindMessageProperty();
+            cleanup(null);
         }
-
-        private void unbindMessageProperty() {
-            if (messageProperty != null && messageProperty.isBound()) {
-                messageProperty.unbind();
-            }
-        }
-
         public void setMessage(String message) {
             updateMessage(message);
         }

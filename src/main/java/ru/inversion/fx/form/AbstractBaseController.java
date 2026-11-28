@@ -284,7 +284,7 @@ public class AbstractBaseController<T> implements Initializable, IFormStateListe
     /**
      * Набор действий, держащих форму в состоянии WAIT (с колесом)
      */
-    private final Set<JInvAction> waitActions = Collections.synchronizedSet(new HashSet<>());
+    private FormWait formWait;
 
     /**
      * Флаг для включения функционала работы IChoiceControl для выбора какого-либо значения
@@ -814,8 +814,11 @@ public class AbstractBaseController<T> implements Initializable, IFormStateListe
     }
 
     @Override
-    public Optional<Set<JInvAction>> getWaitActions() {
-        return Optional.of(waitActions);
+    public FormWait getFormWait() {
+        if (formWait == null) {
+            formWait = new FormWait(this);
+        }
+        return formWait;
     }
 
     public ObjectProperty<StateEnum> stateProperty() {
@@ -1906,6 +1909,9 @@ public class AbstractBaseController<T> implements Initializable, IFormStateListe
         try {
             logger.trace("internalActionsOnClose");
 
+            if (formWait != null) {
+                formWait.retire();
+            }
             lifeCycleStateProperty().set(LifeCycleStateEnum.ON_CLOSE);
             onCloseWindow();
 

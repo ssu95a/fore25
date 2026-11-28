@@ -7,10 +7,10 @@ package ru.inversion.fx.form;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import ru.inversion.fx.form.action.JInvAction;
-import ru.inversion.utils.S;
 
-import java.util.Optional;
-import java.util.Set;
+
+
+
 
 /**
  * Слушатель состояния формы
@@ -26,10 +26,11 @@ public interface IFormStateListener {
     default void setState(StateEnum state) {
 
         if (state == StateEnum.ACTIVE) {
-            //Если кто-то явно ставит state.ACTIVE, очищаем список действий, требующих колесо
-            getWaitActions().ifPresent(Set::clear);
+            FormWait wait = getFormWait();
+            if (wait != null) {
+                wait.reset();
+            }
         }
-
         stateProperty().set(state);
     }
 
@@ -39,42 +40,28 @@ public interface IFormStateListener {
     /**
      * Добавить действие, держащее форму в состоянии WAIT (с колесом)
      */
-    default void addWaitAction(JInvAction action){
-        Optional<Set<JInvAction>> waitActions = getWaitActions();
-        if (!waitActions.isPresent() || action == null){
-            return;
+    default void addWaitAction(JInvAction action) {
+        FormWait wait = getFormWait();
+        if (wait != null) {
+            wait.add(action);
         }
-        if (action.getStateMessageProperty() != null){
-            stateTextProperty().bind(action.getStateMessageProperty());
-        }
-        waitActions.get().add(action);
-        if (getState() == StateEnum.ACTIVE){
-            setState(StateEnum.WAIT);
+    }
+
+    /** Освобождает регистрацию, принадлежащую указанному действию. */
+    default void removeWaitAction(JInvAction action) {
+        FormWait wait = getFormWait();
+        if (wait != null) {
+            wait.remove(action);
         }
     }
 
     /**
-     * Убрать действие, держащее форму в состоянии WAIT (с колесом)
-     * Если таковых не осталось, форма переходит в состояние ACTIVE (без колеса)
+     * Для автоматического WAIT форма возвращает один принадлежащий ей FormWait.
+     * Пассивные реализации оставляют значение по умолчанию.
      */
-    default void removeWaitAction(JInvAction action){
-        Optional<Set<JInvAction>> waitActions = getWaitActions();
-        if (!waitActions.isPresent()){
-            return;
-        }
-        stateTextProperty().unbind();
-        waitActions.get().remove(action);
-        if (waitActions.get().isEmpty() && getState() == StateEnum.WAIT){
-            setState(StateEnum.ACTIVE);
-            setStateText( S.EMPTY_STRING );
-        }
+    default FormWait getFormWait() {
+        return null;
     }
-
-    /**
-     * Набор действий, держащих форму в состоянии WAIT (с колесом)
-     */
-    default Optional<Set<JInvAction>> getWaitActions(){return Optional.empty();}
-
     default String getStateText() { return stateTextProperty().get(); }
 
     default void setStateText(String state) { stateTextProperty().set(state);}

@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'ActionWaitOwnership')]
+    [switch] $ActionWaitOwnership,
     [Parameter(ParameterSetName = 'AlertsFacade')]
     [switch] $AlertsFacade,
     [Parameter(ParameterSetName = 'AlertsCheckbox')]
@@ -155,7 +157,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($AlertsFacade) {
+if ($ActionWaitOwnership) {
+    $probeId = 'ACT-007A'
+    $probeClass = 'ActionWaitOwnershipSmoke'
+} elseif ($AlertsFacade) {
     $probeId = 'ALERT-007'
     $probeClass = 'AlertsFacadeSmoke'
 } elseif ($AlertsCheckbox) {
