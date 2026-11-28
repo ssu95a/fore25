@@ -112,11 +112,12 @@ public class Alerts {
             Node graphic,
             ButtonType... buttons
     ) {
-        Modality defaultModality = Modality.WINDOW_MODAL;
-
-        Alert alert = getAlert( windowContainer, alertType, title, headerText, contentText, detailText, graphic, defaultModality, buttons );
-
-        return alert.showAndWait().orElse(ButtonType.CANCEL);
+        requireFxThread();
+        Alert alert = new Alert(alertType, "", buttons);
+        Window owner = configure(alert, windowContainer, alertType, title, headerText,
+                contentText, detailText, graphic, Modality.WINDOW_MODAL);
+        playSoundIfLoggedIn(alertType);
+        return showPrepared(alert, owner).orElse(ButtonType.CANCEL);
     }
 
     static JInvAlert getAlert(
@@ -134,7 +135,8 @@ public class Alerts {
         JInvAlert alert = new JInvAlert( alertType, "", buttons );
         Window window = configure(alert, windowContainer, alertType, title, headerText,
                 contentText, detailText, graphic, modality);
-        initBeforeShow(alertType, alert, window);
+        playSoundIfLoggedIn(alertType);
+        bringOwnerForward(window);
         return alert;
     }
 
@@ -259,12 +261,9 @@ public class Alerts {
     }
 
 
-    /**
-     Общий код инициализации алертов перед показом
-     */
-    private static void initBeforeShow( final Alert.AlertType alertType, final Alert alert, final Window window ) {
-        playSoundIfLoggedIn(alertType);
-        bringOwnerForward(window);
+    private static Optional<ButtonType> showPrepared(Alert alert, Window owner) {
+        bringOwnerForward(owner);
+        return alert.showAndWait();
     }
 
     private static void playSoundIfLoggedIn(Alert.AlertType type) {
@@ -713,12 +712,11 @@ public class Alerts {
                 alert.setResultConverter(choice -> choice != null && required.contains(choice) && !checkBox.isSelected()
                         ? null : choice);
             }
-            bringOwnerForward(owner);
             Runnable cleanup = validateOk
                     ? installOkValidator(alert, ok, condition, required.contains(ButtonType.OK) ? checkBox : null)
                     : null;
             try {
-                return alert.showAndWait().map(choice ->
+                return showPrepared(alert, owner).map(choice ->
                         new AlertResult(choice, checkBox != null && checkBox.isSelected()));
             } finally {
                 if (cleanup != null) {

@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'AlertsFacade')]
+    [switch] $AlertsFacade,
     [Parameter(ParameterSetName = 'AlertsCheckbox')]
     [switch] $AlertsCheckbox,
     [Parameter(ParameterSetName = 'AlertsLayout')]
@@ -153,7 +155,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($AlertsCheckbox) {
+if ($AlertsFacade) {
+    $probeId = 'ALERT-007'
+    $probeClass = 'AlertsFacadeSmoke'
+} elseif ($AlertsCheckbox) {
     $probeId = 'ALERT-006'
     $probeClass = 'AlertsCheckboxSmoke'
 } elseif ($AlertsLayout) {
