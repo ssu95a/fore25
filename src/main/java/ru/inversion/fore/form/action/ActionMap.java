@@ -13,12 +13,14 @@ import java.util.function.BiConsumer;
 public final class ActionMap {
     private TreeMap<Comparable<?>, ForeAction> local;
     private ActionMap parent;
+    private boolean retired;
 
     public ActionMap getParent() {
         return parent;
     }
 
     public void setParent(ActionMap parent) {
+        requireLive();
         for (var scope = parent; scope != null; scope = scope.parent) {
             if (scope == this) {
                 throw new IllegalArgumentException("ActionMap parent cycle");
@@ -52,6 +54,7 @@ public final class ActionMap {
     }
 
     public ForeAction put(Comparable<?> key, ForeAction action) {
+        requireLive();
         if (key == null) {
             throw new NullPointerException("key");
         }
@@ -86,6 +89,19 @@ public final class ActionMap {
 
     public int size() {
         return local == null ? 0 : local.size();
+    }
+
+    /** Освобождает регистрации и отсоединяет реестр от родителя при закрытии владельца. */
+    public void retire() {
+        retired = true;
+        local = null;
+        parent = null;
+    }
+
+    private void requireLive() {
+        if (retired) {
+            throw new IllegalStateException("ActionMap owner is closed");
+        }
     }
 
     void forEachLocal(BiConsumer<? super Comparable<?>, ? super ForeAction> action) {

@@ -7,6 +7,8 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.scene.Parent;
 import javafx.stage.*;
+import ru.inversion.fore.form.action.ActionMap;
+import ru.inversion.fore.form.action.ForeActions;
 import ru.inversion.fx.app.BaseApp;
 import ru.inversion.fx.app.property.*;
 import ru.inversion.fx.app.frame.JInvMainFrame.JInvFrameMode;
@@ -20,6 +22,8 @@ public class SingletonCloseVetoSmoke {
     static final List<Controller> opened = new ArrayList<>();
     static final List<ResultForm<Object>> callbacks = new ArrayList<>();
     static boolean failNextInit;
+    private static boolean actionMaps;
+    private static final Map<Controller, ActionMap> maps = new IdentityHashMap<>();
     static class App extends BaseApp {
         static void install() { g_app = new App(); }
         @Override public void reportGuiLaunch() {}
@@ -43,7 +47,14 @@ public class SingletonCloseVetoSmoke {
         int rejectedOkCalls;
         final AtomicInteger cleaned = new AtomicInteger();
         @Override protected void closeResources() { cleaned.incrementAndGet(); }
-        @Override protected void beforeInit() {}
+        @Override protected void beforeInit() {
+            if (actionMaps) {
+                require(peekActionMap() == null, "controller registry is lazy before init");
+                var map = getActionMap();
+                map.put("operation", ForeActions.custom("operation", event -> {}));
+                maps.put(this, map);
+            }
+        }
         @Override protected void init() {
             if (failNextInit) {
                 failNextInit = false;
@@ -54,6 +65,7 @@ public class SingletonCloseVetoSmoke {
         @Override public ru.inversion.tc.TaskContext getTaskContext() { return null; }
         @Override protected boolean onCancel() { return super.onCancel() && !veto; }
         @Override protected boolean onOK() { rejectedOkCalls++; return false; }
+        void useParent(ViewContext parent) { parentviewContext = parent; }
     }
     static void launch(Runnable check) {
         new FXFormLauncher<Object>(null,null,"singleton.fxml")
@@ -79,12 +91,24 @@ public class SingletonCloseVetoSmoke {
         launch(() -> {
             require(opened.size()==1 && showing(opened.getFirst()), "first launch");
             var first=opened.getFirst();
+            if (actionMaps) {
+                var child = new Controller();
+                child.useParent(first.getViewContext());
+                var inherited = child.getActionMap();
+                require(inherited.getParent() == first.getActionMap()
+                        && inherited.get("operation") == first.getActionMap().get("operation"),
+                        "parent resolves through the shown form's existing controller context");
+            }
             launch(() -> {
                 require(opened.size() == 1 && showing(first) && first.getException() == null
                         && first.getLifeCycleState() == LifeCycleStateEnum.RUNTIME, "duplicate blocked before veto");
                 requestClose(first);
                 require(showing(first) && callbacks.isEmpty() && first.cleaned.get() == 0
                         && first.getLifeCycleState() == LifeCycleStateEnum.RUNTIME, "veto remained open");
+                if (actionMaps) {
+                    require(first.getActionMap() == maps.get(first) && first.getActionMap().get("operation") != null,
+                            "veto preserves operation identity");
+                }
                 launch(() -> {
                     long visible = opened.stream().filter(SingletonCloseVetoSmoke::showing).count();
                     System.out.printf("after veto: launched=%d visible=%d callbacks=%d%n", opened.size(), visible, callbacks.size());
@@ -96,6 +120,11 @@ public class SingletonCloseVetoSmoke {
                         launch(() -> {
                             require(opened.size() == 2 && showing(opened.getLast()), "reopen after accepted Cancel");
                             var next = opened.getLast();
+                            if (actionMaps) {
+                                require(next.getActionMap() != maps.get(first)
+                                        && next.getActionMap().get("operation") != null,
+                                        "reopened controller has its own operation registry");
+                            }
                             afterProgressHidden(next, () -> {
                                 verifyClosed(next, 2);
                                 launch(() -> {
@@ -147,6 +176,9 @@ public class SingletonCloseVetoSmoke {
                         && callbacks.getLast().getException() instanceof IllegalStateException
                         && "controlled initialization failure".equals(callbacks.getLast().getException().getMessage()),
                         "failed initialization closes and reports the original error");
+                if (actionMaps) {
+                    checkRetired(failed);
+                }
                 launch(() -> {
                     require(opened.size() == 5 && showing(opened.getLast()), "reopen after initialization failure");
                     var last = opened.getLast();
@@ -189,10 +221,26 @@ public class SingletonCloseVetoSmoke {
                 && callbacks.getLast().getController() == controller
                 && callbacks.getLast().getFormReturn() == AbstractBaseController.FormReturnEnum.RET_CANCEL
                 && callbacks.getLast().getException() == null, "one callback and cleanup for matching owner " + count);
+        if (actionMaps) {
+            checkRetired(controller);
+        }
+    }
+
+    private static void checkRetired(Controller owner) {
+        var map = maps.get(owner);
+        require(map == owner.peekActionMap() && map.get("operation") == null && map.getParent() == null,
+                "retained reference loses registrations and parent");
+        try {
+            map.put("operation", ForeActions.custom("retired", event -> {}));
+            throw new AssertionError("retired registry accepts registration");
+        } catch (IllegalStateException expected) {
+            // Закрытый владелец больше не принимает операции.
+        }
     }
 
     public static void main(String[] args) throws Exception {
-        matrix = args.length == 1 && "matrix".equals(args[0]);
+        actionMaps = args.length == 1 && "action-map".equals(args[0]);
+        matrix = actionMaps || (args.length == 1 && "matrix".equals(args[0]));
         Path output = Path.of(SingletonCloseVetoSmoke.class.getProtectionDomain().getCodeSource().getLocation().toURI());
         Files.writeString(output.resolve("singleton.fxml"), """
                 <?import javafx.scene.layout.VBox?>
@@ -204,7 +252,7 @@ public class SingletonCloseVetoSmoke {
             Platform.runLater(() -> checked(SingletonCloseVetoSmoke::start));
         });
         int code=1;
-        try { done.get(20,TimeUnit.SECONDS); System.out.println(matrix ? "CTRL-035 PASS" : "CTRL-032 PASS"); code=0; }
+        try { done.get(20,TimeUnit.SECONDS); System.out.println(actionMaps ? "ACT-013 PASS" : matrix ? "CTRL-035 PASS" : "CTRL-032 PASS"); code=0; }
         catch (Exception error) { error.printStackTrace(); }
         finally { Platform.exit(); }
         System.exit(code);

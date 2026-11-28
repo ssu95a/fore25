@@ -34,6 +34,7 @@ import ru.inversion.dataset.fx.DSFXAdapter;
 import ru.inversion.db.expr.SQLExpressionException;
 import ru.inversion.db.expr.SQLExpressionFactory;
 import ru.inversion.db.rs.RSUtils;
+import ru.inversion.fore.form.action.ActionMap;
 import ru.inversion.fx.app.AppException;
 import ru.inversion.fx.app.AppKiller;
 import ru.inversion.fx.app.BaseApp;
@@ -285,6 +286,7 @@ public class AbstractBaseController<T> implements Initializable, IFormStateListe
      * Набор действий, держащих форму в состоянии WAIT (с колесом)
      */
     private FormWait formWait;
+    private ActionMap actionMap;
 
     /**
      * Флаг для включения функционала работы IChoiceControl для выбора какого-либо значения
@@ -821,6 +823,35 @@ public class AbstractBaseController<T> implements Initializable, IFormStateListe
         return formWait;
     }
 
+    /** Возвращает реестр операций этой формы, создавая его по запросу. */
+    public ActionMap getActionMap() {
+        if (actionMap == null) {
+            actionMap = new ActionMap();
+            if (getLifeCycleState() == LifeCycleStateEnum.ON_CLOSE) {
+                actionMap.retire();
+            } else {
+                attachActionMapParent();
+            }
+        }
+        return actionMap;
+    }
+
+    /** Возвращает уже созданный реестр без выделения нового. */
+    public ActionMap peekActionMap() {
+        return actionMap;
+    }
+
+    private void attachActionMapParent() {
+        if (actionMap == null) {
+            return;
+        }
+        var window = parentviewContext == null ? null : parentviewContext.getWindow();
+        var scene = window == null ? null : window.getScene();
+        AbstractBaseController<?> parent = scene == null ? null : Controls.getControllerFromControl(scene.getRoot());
+        actionMap.setParent(parent == null || parent == this || parent.getLifeCycleState() == LifeCycleStateEnum.ON_CLOSE
+                ? null : parent.getActionMap());
+    }
+
     public ObjectProperty<StateEnum> stateProperty() {
         return activeState;
     }
@@ -1309,7 +1340,11 @@ public class AbstractBaseController<T> implements Initializable, IFormStateListe
 
         try {
             this.returnCallback = returnCallback;
+            if (getLifeCycleState() == LifeCycleStateEnum.ON_CLOSE) {
+                actionMap = null;
+            }
             this.parentviewContext = parentViewContext;
+            attachActionMapParent();
             this.dataObject = dataObject;
             if (dialogMode != null) {
                 this.formMode = dialogMode;
@@ -1911,6 +1946,9 @@ public class AbstractBaseController<T> implements Initializable, IFormStateListe
 
             if (formWait != null) {
                 formWait.retire();
+            }
+            if (actionMap != null) {
+                actionMap.retire();
             }
             lifeCycleStateProperty().set(LifeCycleStateEnum.ON_CLOSE);
             onCloseWindow();
