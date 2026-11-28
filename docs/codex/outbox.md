@@ -6260,3 +6260,14 @@ In the new interactive condition the canary Stage was shown and focused by the f
 Both sides completed the visible edit, single-property commit, Enter navigation/focus and cancellation assertions twice. The fixed matrix provides no evidence of a reproducible candidate-only failure under this desktop condition. Passing pairs do not establish the cause of the historical failure. No extra trial or waiver was applied. Raw timestamps, process outcomes, streams, args, foreground samples and classpath equivalence are under target/act-017-diag/resume. Previous outputs remain under their original paths.
 
 Minimum next gate is a separately authorized ACT-017 validation on the exact preserved candidate with a verified focus-capable desktop and the required scoped regression and ABI checks. Production remains unchanged. ACT-017 implementation and ACT-018/019 were not resumed. STOP.
+
+
+## Reply ACT-017
+
+Production SHA b5bb8fb10be4fd574f8f86eb8e77c4aec90ef563.
+
+**IMPLEMENTED / GREEN continuation.** Published the exact preserved ACT-017 candidate. Adapter-owned current-row mark ForeAction serves toolbar and table views and calls the original virtual mark method. Legacy handlers and presentation remain in place. Retained operations cannot reach retired attachments. Legacy keyboard, tree/form and mark-all paths remain outside this slice.
+
+Canary JVM 5944 / runner 10740 focused on the first pulse, exits 0/0. Official ActionMapMarkView runner 2416 passed. Direct JVMs: focused 1764/14636/10416, GUI-005 18448, SceneKeyLookup 11792, ACT-015 18672, ACT-014 6716, ACT-013 11884, CTRL-104 6452 and CTRL-106 18132. All exit 0 (0x00000000) and no timeout. Offline compile, parser and staged diff passed. Scoped javap declarations/descriptors match after excluding blank formatting and the two additions DSFXAdapter.ACTION_MARK_CURRENT_ROW and invokeMarkCurrentRow(). Original candidate and incident hashes verified. Raw evidence under target/act-017-validation. Original GUI-005 cause remains UNKNOWN.
+
+Rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 -ActionMapMarkView -SettingsFile "D:\Java\.m2\settings.xml".
