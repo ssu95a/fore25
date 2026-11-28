@@ -5550,3 +5550,16 @@ Reproduce offline from repo root (IDEA Maven on PATH, script sets MAVEN_ARGS=-o 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File target/act-002/run-focused.ps1 -Label replay
 
 Exact native ASCII args, signed/hex exits, PID/time/stdout/stderr and failed attempt evidence: target/act-002/direct.csv and per-run directories. Tracked-runner recording: target/act-002/matrix.csv and run-01..05. Exact ABI and reference inventory from ACT-001 remain in target/act-001. STOP after this Reply; ACT-003 not assigned.
+
+
+---
+
+## Reply ACT-003
+
+DONE. Baseline 515d01fd20ba491bc39044f939191b85229b7a08; final 0a97ffb8e1b53ca6c6d2e192e3af8e6cfa545b20. Added native ControlsFX model in unused reference namespace ru.inversion.fore.form.action. No legacy consumer changes. Five standard descriptors with localized captions and REFRESH F8; arbitrary custom action without standard type, graphic, shortcut or workflow objects. Uses existing TTFChar/FontAwesome and existing style/style.css font registration. Each view duplicates a vector Glyph via ControlsFX; no extra font or Node cache. A standalone Scene using these icons needs the existing font stylesheet or equivalent application registration.
+
+ForeAction adds only standard type, optional descriptor and immutable alternate list references to the ControlsFX base. No eager validator or engine/executor/Scene reference. Primary shortcut is actual accelerator; direct or bound accelerator update changes primary while alternates remain. setHotkeys replaces both and rolls back the alternatives on a rejected bound primary write. Immutable multi-key projection may allocate on read. No dispatcher yet. Legacy catalog REFRESH unchanged. Graphic uses the approved pragmatic Node exception.
+
+Maven compile, runner parse and diff check passed. Three fresh focused native/runner 0/0, fourth instrumented 0/0 and original official outer 0. Real Button/MenuItem graphics, actual stylesheet font, detached views, direct event and disabled dispatch checked. SceneKeyLookup/FormLifecycle/WrapButtonOwnership all 0/0. Original ACT-001 javap descriptors match, precompiled ACT-002 meta/bridge 0/0 without recompilation. Raw target/act-003/matrix.csv, direct.csv, legacy-abi.txt. External application ABI behavior outside selected artifacts remains UNKNOWN.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ForeActionModel -SettingsFile "D:\Java\.m2\settings.xml"
