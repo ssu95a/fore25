@@ -5139,3 +5139,22 @@ Use the remaining ACT-019 budget or a fresh bounded ceiling of 45 minutes for th
 
 Previously user-approved local target housekeeping may now proceed on the next Codex entry, as ACT-019 is FINAL GREEN/STOP and the user has reported independent acceptance. Follow original MAINT-001 instructions at a60f50a03a84ffe56a0c0dd2c194f9e4ee31c147 exactly, including safe path verification, pre-cleanup inventory, preservation of unique frozen bytecode, final isolated binary and measurement harnesses and evidence, archived failures, and all required rerun dependencies. No blanket clean, no tracked changes, no production commit, no unrelated task or refactor. Verify current state and no active processes; if unsafe defer. Append Reply MAINT-001 with before/after sizes, exact removed paths and retained material rationale; STOP.
 
+
+
+---
+
+## ACT-020 — simplify ActionMap key normalization
+
+**Status: USER APPROVED / ACTIVE.** After accepted Action Engine Phase II and completed MAINT-001, simplify ActionMap key semantics. User explicitly wants String, Enum and int (Integer) as the only directly supported types; every other non-null object, including Long, becomes its toString() value. An Action ID should be deliberately chosen, not an arbitrary typed numeric domain.
+
+Baseline exact production eabf4c6725fc984363c57d54ff8633a66ebef20d. Verify remote HEAD and clean working tree; preserve prior evidence. No competing work. Scope ActionMap normalization and necessary directly related callers/tests only.
+
+Contract:
+- Canonical types: String, Enum<?>, Integer. String identity remains case-insensitive; enum identity remains declaring class + ordinal (including constant-specific subclasses, not enum toString); Integer natural numeric identity. These three domains remain independent.
+- All other Object keys, including Long, Byte, Short, BigInteger, BigDecimal, UUID, non-Comparable objects, are canonicalized using exactly one key.toString() call per public operation, then String semantics. Thus 1L and "1" are identical, but 1 (Integer) is distinct from both; BigDecimal("1.0") and BigDecimal("1.00") differ. Original objects are not retained. No implicit trimming, numeric parsing, type prefixes or extra wrappers. Null toString result fails before map mutation; thrown toString exceptions propagate without mutation.
+- Add Object-accepting get/getLocal/put/remove. Preserve existing public Comparable<?> method descriptors as thin delegates to the Object path for ABI (architect default, no ABI removal authorized). Ensure one normalization even for put(key,null), and once before traversing parent hierarchy. Keep internal canonical keys Comparable<?> and existing forEachLocal contract unless concrete need dictates otherwise; comparator operates only on canonical values. Preserve null-key rules, lazy map allocation, put(key,null) local removal, return values, local-only clear/size, parent shadowing/cycles, retirement and current unsupported class-name collision policy. Keep valid-key lookup free of added allocation or wrappers.
+- Update ActionMapCoreSmoke to replace explicitly superseded numeric/rejection expectations with new contract; retain unrelated assertions. Cover Object not Comparable, UUID, Long/String aliasing across local and parent, Integer/String and distinct enum domains, enum with custom toString, case-insensitive aliases, put/get/getLocal/remove and put-null, counting toString called once per operation including inherited lookup, null/throwing toString failure atomicity, lifecycle. Check ActionKeyBinder shadowing uses canonical IDs across scopes; no separate hotkey semantics changes.
+- Run focused ActionMapCore in fresh JVMs and relevant ActionMapController, ActionMapAdapters, ActionKeyContext, ActionMapMarkView, ActionKeyUnified, then full supported regression gate, scoped ABI (old descriptors retained; Object overloads additions only), offline compile, parser and git diff --check. Reuse frozen fixtures only as appropriate; do not remove historical evidence or weaken unrelated assertions. Mandatory desktop preflight before focus-sensitive groups, actual native/outer exit, timeout, PASS markers, raw logs and normal STOP rules. No unrelated refactor, performance framework or production changes outside scope.
+
+If GREEN, publish one task-scoped fast-forward commit and Reply ACT-020 with exact SHA, old/new identity semantics, evidence and independent rerun command(s); STOP. If blocked, preserve candidate/evidence and STOP. Ceiling 90 minutes, not an estimate.
+
