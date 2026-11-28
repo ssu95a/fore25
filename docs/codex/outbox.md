@@ -5802,3 +5802,170 @@ The original search still identifies 64 files and the current native engine adds
 - Worker, chained operations, and callback vs contextual keyboard registration are the residual authorities from ACT-007 and ACT-008. The application-interposed filter experiment gives distinct observable orders for the two legacy registrars, so adding another registry would leave multiple authorities. Controlled rebind and overlapping task ownership remain architecture decisions. The text area external editor, mark refresh and other backlog remain outside this assignment.
 
 The ACT-009 scoped runner at this exact source ran TableEditing, TextAreaToolbarOwnership, WrapButtonOwnership, FormLifecycle, SceneKeyLookup and all four tracked action modes with actual exits 0/0, plus the unchanged ABI and precompiled meta/bridge/keys/key-edges. These tests support the shared ordinary path and facade boundaries; there is no new migrated consumer to validate. Continue to the independent ACT-011 final gate.
+
+
+## Reply ACT-011
+
+**Disposition:** GREEN for the final regression and scoped ABI gate. Architecture migration **PARTIAL**. Production `62cb0ec44f0e958455f775d6c26e20ed208c7bb4`. ACT-011 is read-only and has no production commit.
+
+### Package disposition
+
+| Task | Outcome | Production commit |
+|---|---|---|
+| ACT-003 | Implemented, independent ControlsFX action model, standard descriptors, existing glyph resources | `0a97ffb8e1b53ca6c6d2e192e3af8e6cfa545b20` |
+| ACT-004 | Implemented, shared stateless synchronous invocation | `7160b0f907a9b30b98159da6ccbe65fd2138639a` |
+| ACT-005 | Implemented, ordinary legacy actions share invocation core. First mandatory gate 66/66 | `2443a651a326c6c68a91d9876536579558ade853` |
+| ACT-006 | Implemented, shared admission primitive and legacy presentation mapping | `33478bb8b05522c747eb2a5a444c4ec4bf86c64e` |
+| ACT-007 | BLOCKED, parallel ownership cleanup requires explicit contract | — |
+| ACT-008 | BLOCKED, dispatcher consolidation requires an ordering contract. Second mandatory gate 67/67 | — |
+| ACT-009 | Implemented, factory and builder compatibility route consolidated | `62cb0ec44f0e958455f775d6c26e20ed208c7bb4` |
+| ACT-010 | PARTIAL/BLOCKED, complete consumer inventory and remaining routes reported | — |
+| ACT-011 | GREEN, exact-chain, ABI, precompiled and regression verification | — |
+
+Verified the remote production chain from `515d01fd20ba491bc39044f939191b85229b7a08`. The five production commits change only the Action model, associated resources, legacy action/presentation/factory paths and focused probes. Production and the separate baseline worktree have clean tracked trees. Baseline and final compilation, PowerShell parser and Git diff checks passed. Reference was inspected at `c34fffdc7f48c791cd2ec47a14b76915aa61565c` via Git objects.
+
+### Architecture and residual contracts
+
+```mermaid
+flowchart LR
+    N["ControlsFX Button and MenuItem"] --> F["ForeAction"]
+    F --> C["ActionInvocation.invoke"]
+    V["Legacy controls, factories and controller/FXML"] --> L["IAction / JInvAction facade"]
+    L -->|ordinary handler| C
+    L -->|parallel and nextAction| W["Legacy worker/task paths"]
+    K["SceneKeyManager"] --> L
+    K --> A["ActionInvocation.admit"]
+    L --> A
+    B["SceneKeyBinder"] --> P["Independent legacy callbacks"]
+    X["JavaFX Scene"] --> K
+    X --> B
+    X --> D["Native accelerators"]
+```
+
+In the migrated paths, control/facade code owns actions and their compatibility behavior. ControlsFX binds and detaches presentation through ActionUtils for native views. Legacy JInvButton/JInvMenuItem retain their event, security projection, and tooltip contracts. The native core has no legacy dependency. No production caller directly constructs a ForeAction outside the new API implementation. A single ordinary synchronous invocation primitive is established. Parallel/next dispatch, custom IAction and the two legacy keyboard registrations still require distinct compatibility routes.
+
+- Mutable legacy catalog, writable legacy enabled property, caller event identity and virtual dispatch, wrapped menu events, and legacy REFRESH without F8 are preserved. Native REFRESH uses F8 and native view text/tooltip are live. Legacy keyboard denial leaves the event unconsumed, and the configured native accelerator runs independently in its covered scenario.
+- Ordinary worker start/finish, failure/cancel and bound-message cleanup were tested locally. The expected edge assertions reproduced premature WAIT/message release with overlapping runs and a leak after executor rejection. Prior evidence also shows a caller-rebound message property can be unbound at task completion. Define the same-action concurrency and message/progress ownership contracts first, including non-FX CallerRuns, before changing cleanup.
+- The contextual action manager and the callback binder have different observable order relative to an application filter. Existing public mutable list/map identity and removal affect dispatch and native accelerator fallback. Define which order must hold around outside handlers or preserve independent adapters. No new dispatcher was added.
+- Factory-created JInvButton handler identity and concrete casts are used by controller, table and FXML integration. Move specific consumers only after their wiring and presentation contracts are covered. The ACT-010 inventory records remaining paths. Corporate TaskContext authorization, real export/transaction flows, full MDI and external FXML/production app behavior remain unverified. Scoped ABI and fixtures support compatibility for the tested surface. Prior editor, table, skin and alert backlog stays outside this package.
+
+### ABI and precompiled consumers
+
+Original ACT-001 `javap -protected -s` inventory matches the final inventory, including descriptors, inheritance, constructors, fields, nested types and enum constants in declaration order. Separately compared the public/protected signatures and descriptors of JInvButton and JInvMenuItem with the original build. The six ACT-002 compiled fixture classes matched their saved copies by SHA-256 and ran unchanged, with no recompilation.
+
+| Frozen fixture mode | JVM signed (hex) | Runner | Timeout | Result |
+|---|---:|---:|---|---|
+| meta | 0 (0x00000000) | 0 | False | PASS |
+| bridge | 0 (0x00000000) | 0 | False | PASS |
+| keys | 0 (0x00000000) | 0 | False | PASS |
+| key-edges | 0 (0x00000000) | 0 | False | PASS |
+| worker | 0 (0x00000000) | 0 | False | PASS |
+| worker-edges | 0 (0x00000000) | 0 | False | PASS |
+
+### Measured footprint
+
+Allocated bytes on the FX thread for 400 operations, JDK 25 / JavaFX 25 / ControlsFX 11.2.6, fixed 256 MiB heap, same dependencies, eight warm-up batches and nine measured batches in each fresh JVM. View measurements include construction and configuration with the same resource classpath and no scene CSS/layout. Bind/unbind measures the legacy enabled property and its source. Registration adds/removes a legacy action on one pre-initialized scene map. Parallel submit runs through the real pool, confirms all handler calls occur off FX with the original event, and measures only FX submission allocations. JInvTask construction is measured separately. Values are median [min..max] per process.
+
+| Path | Baseline pair 1 | Final pair 1 | Baseline pair 2 | Final pair 2 |
+|---|---:|---:|---:|---:|
+| Action without views | 214400 [214400..214400] | 214400 [214400..214400] | 214400 [214400..214400] | 214400 [214400..214400] |
+| Action + Button | 12464392 [12393744..12525664] | 12464000 [12403504..12525208] | 12512200 [12451200..12525200] | 12468512 [12429088..12496208] |
+| Action + MenuItem | 2147200 [2147200..2147608] | 2124800 [2124800..2149024] | 2147200 [2147200..2148096] | 2147200 [2147200..2148312] |
+| One action + both views | 14444800 [14419368..14486560] | 14412800 [14400000..14464232] | 14422400 [14376032..14519008] | 14499744 [14441920..14518648] |
+| Existing action, sync no-op | 0 [0..112] | 0 [0..744] | 0 [0..0] | 0 [0..744] |
+| Enabled bind and unbind | 9600 [9600..9600] | 9600 [9600..9600] | 9600 [9600..10280] | 9600 [9600..10376] |
+| Legacy scene add and remove | 9600 [9600..10336] | 9600 [9600..10336] | 9600 [9600..9600] | 9600 [9600..9672] |
+| JInvTask construction | 227200 [227200..227408] | 227200 [227200..227360] | 227200 [227200..227360] | 227200 [227200..227360] |
+| Real parallel submission on FX | 243648 [243424..249544] | 243232 [243200..248320] | 243712 [243264..249416] | 243552 [243424..250080] |
+
+All 38 measurement JVMs had exit 0, and their enclosing recorders returned 0.
+
+The equivalent action-only and lifecycle setup probes give equal medians. Menu/combined-view and enqueue results vary between fresh pairs, so there is no established package-wide allocation gain. Measured shallow object sizes via `Instrumentation.getObjectSize` were action/Button/MenuItem **96/688/88 bytes** both before and after for the legacy path and **72/680/80 bytes** for the final native iconless action with stock ControlsFX-configured views. The two APIs have different behavior and object graphs. These numbers cover only each measured object itself. Worker-thread allocations, full live/retained graphs, CSS/layout allocations and corporate throughput were outside this measurement.
+
+### Final regression matrix
+
+63 original modes plus four new tracked action modes, in 67 separate JVM runs. Signed and hexadecimal child exit, outer runner exit, timeout and assertion marker are recorded below.
+
+| Mode | JVM signed (hex) | Runner | Timeout | Assertion marker |
+|---|---:|---:|---|---|
+| ActionSecurityAdmission | 0 (0x00000000) | 0 | False | ACT-006 PASS |
+| LegacyActionFacade | 0 (0x00000000) | 0 | False | ACT-005 PASS |
+| ForeActionInvocation | 0 (0x00000000) | 0 | False | ACT-004 PASS |
+| ForeActionModel | 0 (0x00000000) | 0 | False | ACT-003 PASS |
+| FEButtonConstruction | 0 (0x00000000) | 0 | False | ARCH-006 PASS (construction, dialog, overflow and skin lifecycle) |
+| TextFieldInnerButtonOwnership | 0 (0x00000000) | 0 | False | ARCH-003 PASS (control selection and wrapper lifecycle) |
+| ButtonTargetAssociation | 0 (0x00000000) | 0 | False | ARCH-002 PASS (target association and legacy configuration) |
+| FEActionDelegation | 0 (0x00000000) | 0 | False | ARCH-001 PASS (real dialog, FE routing and legacy configured button) |
+| TextFieldContextMenuLifecycle | 0 (0x00000000) | 0 | False | PERF-014 PASS (control-owned context menu lifecycle) |
+| TextAreaContextMenuLifecycle | 0 (0x00000000) | 0 | False | PERF-015 PASS (control-owned context menu lifecycle) |
+| TableAdapterBulkMarkErrorDelivery | 0 (0x00000000) | 0 | False | CTRL-104 PASS |
+| TableAdapterBulkMarkClose | 0 (0x00000000) | 0 | False | CTRL-105 PASS |
+| TableAdapterRowRefreshClose | 0 (0x00000000) | 0 | False | CTRL-106 PASS |
+| TableAdapterQueuedClose | 0 (0x00000000) | 0 | False | CTRL-077 PASS |
+| TableEditRowIdentity | 0 (0x00000000) | 0 | False | CTRL-075 PASS |
+| TableEditing | 0 (0x00000000) | 0 | False | GUI-005 PASS |
+| TableCancel | 0 (0x00000000) | 0 | False | GUI-006 PASS |
+| DataBinding | 0 (0x00000000) | 0 | False | GUI-009 PASS |
+| TextFieldSkinDisposal | 0 (0x00000000) | 0 | False | CTRL-049 PASS |
+| TextFields | 0 (0x00000000) | 0 | False | GUI-012 PASS (tested matrix) |
+| ValueFields | 0 (0x00000000) | 0 | False | VF-001 PASS |
+| LovIntegration | 0 (0x00000000) | 0 | False | CTRL-031 PASS |
+| BoundLovSetter | 0 (0x00000000) | 0 | False | CTRL-044 PASS |
+| LovBindingInterleaving | 0 (0x00000000) | 0 | False | CTRL-045 PASS |
+| ExternalLovReadOnly | 0 (0x00000000) | 0 | False | CTRL-061 PASS |
+| WrapButtonOwnership | 0 (0x00000000) | 0 | False | CTRL-055 PASS |
+| CurrencyLovDelayedCompletion | 0 (0x00000000) | 0 | False | CTRL-091 PASS |
+| MoneyDecimal | 0 (0x00000000) | 0 | False | NUM-001 PASS (tested invariants) |
+| FormLifecycle | 0 (0x00000000) | 0 | False | GUI-010 PASS (standalone production FXML/controller and SDI close) |
+| Default | 0 (0x00000000) | 0 | False | GUI-001 PASS |
+| TableAdapterSearchMissDelivery | 0 (0x00000000) | 0 | False | CTRL-098 PASS |
+| TableAdapterSearchWorkerClose | 0 (0x00000000) | 0 | False | CTRL-093 PASS |
+| TableAdapterBulkWorkerClose | 0 (0x00000000) | 0 | False | CTRL-092 PASS |
+| TableAdapterSearchListener | 0 (0x00000000) | 0 | False | CTRL-081 PASS |
+| TextAreaToolbarOwnership | 0 (0x00000000) | 0 | False | CTRL-066 PASS |
+| TableAdapterBulkClose | 0 (0x00000000) | 0 | False | CTRL-076 PASS |
+| TextFieldLovDelayedCompletion | 0 (0x00000000) | 0 | False | CTRL-078 PASS |
+| TableAdapterPagingClose | 0 (0x00000000) | 0 | False | CTRL-065 PASS |
+| TextAreaLovDelayedCompletion | 0 (0x00000000) | 0 | False | CTRL-062 PASS |
+| TabPaneSkinListeners | 0 (0x00000000) | 0 | False | CTRL-054 PASS |
+| TextAreaSkinDisposal | 0 (0x00000000) | 0 | False | CTRL-053 PASS |
+| ValidatorSubchanges | 0 (0x00000000) | 0 | False | CTRL-052 PASS |
+| TableAdapterClose | 0 (0x00000000) | 0 | False | CTRL-051 PASS |
+| TextAreaLovLifecycle | 0 (0x00000000) | 0 | False | CTRL-050 PASS |
+| WrapButtonDeferred | 0 (0x00000000) | 0 | False | CTRL-043 PASS |
+| Editors | 0 (0x00000000) | 0 | False | GUI-004 PASS |
+| EditorReentry | 0 (0x00000000) | 0 | False | GUI-007 PASS |
+| FormCancel | 0 (0x00000000) | 0 | False | CTRL-022 PASS |
+| SceneKeyLookup | 0 (0x00000000) | 0 | False | CTRL-024 PASS |
+| LovListenerLifecycle | 0 (0x00000000) | 0 | False | CTRL-026 PASS |
+| LovDefaultValidation | 0 (0x00000000) | 0 | False | CTRL-027 PASS |
+| SingletonCloseVeto | 0 (0x00000000) | 0 | False | CTRL-032 PASS |
+| SingletonLifecycleMatrix | 0 (0x00000000) | 0 | False | CTRL-035 PASS |
+| ValidatorScopedUnbind | 0 (0x00000000) | 0 | False | CTRL-033 PASS |
+| ValidatorMultiControl | 0 (0x00000000) | 0 | False | CTRL-036 PASS |
+| ValueLifecycle | 0 (0x00000000) | 0 | False | VF-002 PASS (custom listener ownership) |
+| DatePickerBinding | 0 (0x00000000) | 0 | False | CTRL-002 PASS |
+| NodeTraversal | 0 (0x00000000) | 0 | False | CTRL-003 PASS |
+| RadioReadOnly | 0 (0x00000000) | 0 | False | CTRL-006 PASS |
+| ComboReadOnly | 0 (0x00000000) | 0 | False | CTRL-007 PASS |
+| CheckBoxReadOnly | 0 (0x00000000) | 0 | False | CTRL-009 PASS |
+| ValueChangedFlag | 0 (0x00000000) | 0 | False | CTRL-013 PASS |
+| ControlsFollowup | 0 (0x00000000) | 0 | False | CTRL-CONTROLS-FOLLOWUP PASS |
+| ChoiceAdapter | 0 (0x00000000) | 0 | False | CTRL-015 PASS |
+| BinderChoiceNull | 0 (0x00000000) | 0 | False | CTRL-017 PASS |
+| ChoiceNullLookup | 0 (0x00000000) | 0 | False | CTRL-018 PASS |
+| ChoiceNonNullSet | 0 (0x00000000) | 0 | False | CTRL-019 PASS |
+
+Independent Windows re-run from the production checkout with JDK 25 and Maven available:
+
+```powershell
+$env:JAVA_HOME = 'C:\Program Files\Java\jdk-25'
+$runner = 'src/test/probes/Test-LegacyGuiSmoke.ps1'
+$settings = 'D:\Java\.m2\settings.xml'
+foreach ($mode in @('ForeActionModel', 'ForeActionInvocation', 'LegacyActionFacade', 'ActionSecurityAdmission')) {
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner "-$mode" -SettingsFile $settings
+    if ($LASTEXITCODE -ne 0) { throw "$mode failed with exit $LASTEXITCODE" }
+}
+```
+
+Raw runner CSV, stdout/stderr, ABI and footprint probes/results are in ignored `target/act-011`. Earlier gate matrices are published in Reply ACT-005 and Reply ACT-008. STOP after publication.
