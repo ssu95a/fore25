@@ -6470,3 +6470,25 @@ Largest retained locations by sampled bytes:
 - arch-006 (15253855 bytes)
 
 Retained original ACT-017 A/B candidate and incident data; ACT-019 and ACT-016 logs, ABI, frozen classfiles and harnesses; current target/classes; earlier measurement archives and original failure data. Preserved non-mailbox artifacts, including those with uncertain historical or rerun value. Kept the latest mailbox worktree for publishing this reply. Historical publish scripts may still name the removed checkout paths; rerun scripts and archived review data remain in place. Verified protected rerun and immutable fixture hashes before and after removal. Local records under target/maint-001 include before.csv, after.csv, removed.csv, preserved-hashes.csv and totals.txt. The production branch is clean and unchanged. STOP.
+
+
+## Reply ACT-020
+
+Production SHA 25ca2aa2fd3d5ebb679fdbf37da1c77f3863f9ec.
+
+**IMPLEMENTED / GREEN.** ActionMap preserves three independent canonical domains: case-insensitive String, Enum by declaring class and ordinal, and Integer by value. Every other non-null key is converted once per operation with toString() before any registry mutation or parent walk. Long 1 and String "1" now alias; Integer 1 remains independent. BigDecimal "1.0" and "1.00" compare as distinct text. UUID and non-Comparable objects use the same string rules. Returning null or throwing from toString fails atomically. Only the canonical key is stored. No wrappers added to native lookup. Lazy backing allocation, local-only mutation, parent shadowing/cycle policy, retirement and comparator class-name collision handling remain in place.
+
+Original public Comparable descriptors remain and delegate to the four new Object overloads; scoped javap confirmed only those additions. ActionMapCore exercised both overload paths, inheritance, call counts, exceptions, aliases, enum toString independence, null keys, and retirement. ActionKeyContext exercised local Long/String parent aliasing with changed hotkeys and native accelerator pass-through. No dispatcher or lifecycle production code was modified.
+
+Official offline ActionMapCore runner PID 17932 exited 0. Three fresh ActionMapCore runs and ActionMapController, ActionMapAdapters, ActionKeyContext, ActionMapMarkView and ActionKeyUnified all passed (8/8). Desktop canaries focused on first pulse in both groups. Final exact-SHA gate passed 80/80 with JVM/runner 0/0, all markers and no timeouts. Offline compile, PowerShell parse, scoped javap and git diff --check passed. Raw evidence is under target/act-020-validation (scoped/matrix.csv and full/matrix.csv, per-mode streams, and ABI inventories).
+
+Independent Windows rerun on this commit with Maven on PATH and a focus-capable desktop:
+
+    $env:JAVA_HOME = 'C:\Program Files\Java\jdk-25'
+    $env:MAVEN_ARGS = '-o'
+    foreach ($mode in 'ActionMapCore','ActionMapController','ActionMapAdapters','ActionKeyContext','ActionMapMarkView','ActionKeyUnified') {
+        powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 "-$mode" -SettingsFile "D:\Java\.m2\settings.xml"
+        if ($LASTEXITCODE -ne 0) { throw "$mode failed with exit $LASTEXITCODE" }
+    }
+
+STOP.
