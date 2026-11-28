@@ -1,5 +1,6 @@
 package ru.inversion.fx.form;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -14,6 +15,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.slf4j.Logger;
@@ -147,7 +149,7 @@ public class Alerts {
             if (contentText instanceof Node) {
                 setNode4Content((Node) contentText, alert);
             } else {
-                setTextArea4Content(contentText.toString(), alert);
+                setTextArea4Content(contentText.toString(), alert, screenFor(window));
             }
         }
         String expandText = null;
@@ -170,12 +172,8 @@ public class Alerts {
         if (expandText != null) {
             //Label label = new Label("Подробности:");
 
-            TextArea textArea = new TextArea(expandText);
-            textArea.setEditable(false);
-            textArea.setWrapText(true);
-
-            textArea.setMaxWidth(Double.MAX_VALUE);
-            textArea.setMaxHeight(Double.MAX_VALUE);
+            TextArea textArea = messageArea(screenFor(window));
+            textArea.setText(expandText);
             GridPane.setVgrow(textArea, Priority.ALWAYS);
             GridPane.setHgrow(textArea, Priority.ALWAYS);
 
@@ -189,6 +187,42 @@ public class Alerts {
         localizeDialog(alert.getDialogPane());
         installEnterHandler(alert);
         return window;
+    }
+
+    private static Screen screenFor(Window window) {
+        if (window != null) {
+            var screens = Screen.getScreensForRectangle(
+                    window.getX(), window.getY(), window.getWidth(), window.getHeight());
+            if (!screens.isEmpty()) {
+                return screens.getFirst();
+            }
+        }
+        return Screen.getPrimary();
+    }
+
+    private static TextArea messageArea(Screen screen) {
+        var area = new TextArea();
+        area.setWrapText(true);
+        area.setEditable(false);
+        var bounds = screen.getVisualBounds();
+        // Оставляем место для второй текстовой области, заголовка и кнопок.
+        double heightLimit = bounds.getHeight() / 3;
+        double widthLimit = bounds.getWidth() * 0.8;
+        area.setMaxHeight(heightLimit);
+        area.setMaxWidth(widthLimit);
+        var measure = new Text();
+        measure.fontProperty().bind(area.fontProperty());
+        measure.textProperty().bind(area.textProperty());
+        measure.wrappingWidthProperty().bind(Bindings.createDoubleBinding(() -> {
+            double width = area.getWidth() > 0 ? area.getWidth() : Math.min(area.prefWidth(-1), widthLimit);
+            return Math.max(1, width - area.getInsets().getLeft() - area.getInsets().getRight()
+                    - 2 * area.getFont().getSize());
+        }, area.widthProperty(), area.insetsProperty(), area.fontProperty()));
+        area.prefHeightProperty().bind(Bindings.createDoubleBinding(
+                () -> Math.min(heightLimit, measure.getLayoutBounds().getHeight()
+                        + 2 * area.getFont().getSize()),
+                measure.layoutBoundsProperty(), area.fontProperty()));
+        return area;
     }
 
     private static void installEnterHandler(Alert alert) {
@@ -249,7 +283,7 @@ public class Alerts {
      * @param contentText
      * @param alert
      */
-    private static void setTextArea4Content(String contentText, Alert alert) {
+    private static void setTextArea4Content(String contentText, Alert alert, Screen screen) {
 
         if( contentText != null && !contentText.isEmpty() ) {
 
@@ -258,21 +292,11 @@ public class Alerts {
             VBox vbox = new VBox();
             vbox.setPadding(new Insets(5));
 
-            TextArea textArea = new TextArea();
+            TextArea textArea = messageArea(screen);
             vbox.getChildren().add(textArea);
             VBox.setVgrow(textArea, Priority.ALWAYS);
-            textArea.setWrapText(true);
-            textArea.setEditable(false);
-
-            final Text text = new Text( textArea.textProperty().get() );
-            text.textProperty().bind(textArea.textProperty());
-            text.layoutBoundsProperty().addListener((observable, oldValue, newValue) -> {
-                textArea.setPrefHeight(text.getLayoutBounds().getHeight() + 30);
-            });
-            //textArea.setPrefHeight( text.getLayoutBounds().getHeight() + 20 );
             alert.getDialogPane().setContent(vbox);
             textArea.textProperty().bind(alert.contentTextProperty());
-            //textArea.setMaxHeight( 550 );
         }
     }
 
@@ -462,6 +486,16 @@ public class Alerts {
         default IAlertMaker sound(boolean enabled) {
             throw new UnsupportedOperationException();
         }
+
+        /** Задает начальное состояние области подробностей. */
+        default IAlertMaker expanded(boolean expanded) {
+            throw new UnsupportedOperationException();
+        }
+
+        /** Разрешает изменение размеров окна пользователем. */
+        default IAlertMaker resizable(boolean resizable) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     private static final class AlertMaker implements IAlertMaker {
@@ -476,6 +510,8 @@ public class Alerts {
         private ButtonType[] buttons;
         private ButtonType defaultButton;
         private boolean sound = true;
+        private Boolean expanded;
+        private boolean resizable = true;
 
         @Override
         public IAlertMaker window(Object window) {
@@ -553,6 +589,18 @@ public class Alerts {
             return this;
         }
 
+        @Override
+        public IAlertMaker expanded(boolean expanded) {
+            this.expanded = expanded;
+            return this;
+        }
+
+        @Override
+        public IAlertMaker resizable(boolean resizable) {
+            this.resizable = resizable;
+            return this;
+        }
+
         /** Результат совместимого обобщенного метода имеет тип ButtonType. */
         @Override
         @SuppressWarnings("unchecked")
@@ -566,6 +614,10 @@ public class Alerts {
             Alert alert = new Alert(type, "", buttons);
             Window owner = configure(alert, window, type, title, headerText,
                     content, detail, graphic, modality);
+            alert.setResizable(resizable);
+            if (expanded != null) {
+                alert.getDialogPane().setExpanded(expanded);
+            }
             if (defaultButton != null) {
                 var pane = alert.getDialogPane();
                 if (!pane.getButtonTypes().contains(defaultButton)) {
