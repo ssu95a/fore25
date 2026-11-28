@@ -6317,3 +6317,10 @@ Loader identities, code sources, SHA-256 and signatures are in each stdout. Same
 | bridge | 14744 | 18820 | 0 (0x00000000) / 0 | False |
 
 Reproduce from repo root after independent desktop preflight: powershell.exe -NoProfile -ExecutionPolicy Bypass -File target/act-016-fixture/run.ps1 -Modes "keys,key-edges,meta,bridge" -Label new-unique-label. The ignored harness, compiled launcher and immutable-hashes.csv are in target/act-016-fixture. No tracked harness changes. Candidate and evidence hashes were rechecked after execution.
+
+
+## Reply ACT-016
+
+Production SHA eabf4c6725fc984363c57d54ff8633a66ebef20d.
+
+**IMPLEMENTED / final validation GREEN.** Published the exact existing ACT-016 candidate. The earlier full 80/80 gate and ABI comparison, the adapted ACT-008 original specific filter interposition fixture (both orders [application:false, action]), and the isolated frozen ACT-002 keys/key-edges/meta/bridge runs all apply to this SHA. The ACT-016-FIXTURE reply records the separate reference behavior and production compatibility evidence. Existing approved dispatch priority and consumption changes are the compatibility delta, along with prior ACT-007A changes. Historical desktop focus cause remains unknown. No production sources or classes regenerated during this continuation. Continue ACT-018 then ACT-019.
