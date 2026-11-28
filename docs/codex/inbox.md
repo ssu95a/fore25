@@ -5010,3 +5010,12 @@ Approved dispatch delta for eventual ACT-016 continuation:
 - Update original ACT-008/016 ordering characterization only for the expressly approved deltas; retain unchanged precompiled consumers where compatible, test both registration orders, third-party filters before/after, consumed input, enabled/disabled/denied/missing action, callback consume/no-consume, native text/accelerators, live map edits, phases and lifecycle. Mandatory full gate and original stop rules after implementation. Exact mechanism and internal result type left to Codex; no public DispatchResult requirement.
 
 This entry records architecture only. Do not resume ACT-016, ACT-017, ACT-018, ACT-019, run further GUI diagnostics or change production until separately authorized. No self-assignment.
+
+
+---
+
+## DECISION ACT-017-DIAG — interactive desktop continuation
+
+**Status: DIAGNOSTIC RESUME ACTIVE, conditional on preflight.** User clarified that Codex was previously working in the background; now the user is deliberately yielding keyboard/mouse and leaving Codex in the foreground. This is a new test condition, not proof of the original failure cause or of current focus availability.
+
+Resume only the previously authorized ACT-017-DIAG (original decision f583a436cb3bf80191fe5587c0e71910f696d84c) from the exact preserved A/B worktrees and artifacts in Reply ACT-017-DIAG at 1a205703ab4e55292851c997844d5f59fd279075. Verify original candidate hashes and unchanged production 655b7287728b8f2ab4d4a6adafc7844f066cee1d. Repeat independent focus canary under the new interactive condition; record current foreground/focus/FX pulses and actual child/outer exit. If it obtains focus and other preconditions pass, immediately execute the already prepared controlled A/B/B/A GUI-005 sequence with unchanged assertions/timeout and matching environments, no further confirmation required. If preflight fails, STOP and report, do not run GUI-005. Use remaining diagnostic budget or a fresh ceiling of 90 min for this continuation; no arbitrary retries. No forced focus workaround or simulated user input to manufacture a passing test. Preserve all previous and new evidence in separate outputs. Passing pairs do not by themselves establish the original cause. Publish continuation Reply ACT-017-DIAG with results and recommended next gate; STOP. No production edits or push, no regression waiver, no activation of ACT-016/017 implementation/018/019 by this entry. Approved keyboard contract remains queued.
