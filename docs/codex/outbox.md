@@ -6240,3 +6240,23 @@ Isolated A is a clean detached worktree at 655b7287728b8f2ab4d4a6adafc7844f066ce
 The original GUI-005 startup prints the Java/JavaFX and class location before the table/Stage setup. Its edit path starts only after focusedProperty becomes true and a queued FX callback rechecks focus. The original artifact supplies no Stage/FX heartbeat observations that could distinguish a missing focus notification from FX dispatch or another stalled phase. The preflight on the current machine found RDP session 1 Active, process and input desktop both Default, and no foreground window on four observations. An independent JavaFX 25 desktop canary (JVM 11712, exit 0, no timeout) called ordinary Stage.show/requestFocus. It observed showing=true, 127 FX animation pulses and focused=false throughout. This establishes that the current canary window displayed and did not gain focus despite a live FX loop. It does not establish what happened in the original process.
 
 The fixed A/B/B/A runner stopped at preflight and launched zero GUI-005 JVMs. No A/B results exist, and no regression waiver, retry-to-green or automatic restart was granted. Evidence and runner are in ignored target/act-017-diag, with original evidence under target/act-017 and the original GUI-005 output directory identified by original-argfile-path.txt. The minimum next condition is a verified focus-capable interactive desktop. After a separate gate decision, run the fixed A/B/B/A sequence with the same offline Maven settings, unchanged GUI-005 assertions and native/outer capture. STOP.
+
+
+## Reply ACT-017-DIAG — interactive continuation
+
+**NOT_REPRODUCED in the authorized A/B/B/A matrix. Original root cause UNKNOWN. STOP.**
+
+A: detached clean published baseline 655b7287728b8f2ab4d4a6adafc7844f066cee1d. B: that SHA with the preserved candidate patch SHA-256 B529F722DB67E5DC267CF2051A3BF4D4961D953F7748B6B1D24FEDA3CC133D76 and untracked probe SHA-256 8679EE8A4EA400668C9BDC6FCBAF9DA0AA1C33C0689672C59F11ABF35567CD2A. Both use separate build outputs. Original candidate and incident metadata/artifacts were rechecked against saved hashes. The original GUI-005 child/outer 1/1 and probe-reported focus/FX queue timeout remain recorded.
+
+In the new interactive condition the canary Stage was shown and focused by the first FX pulse. Canary JVM PID 8012 and outer runner PID 2152 exited 0/0 with no timeout. The immediate matrix preflight recorded WindowsTerminal in the foreground (PID 7240). No forced focus or user-input simulation was added. The recorder used the tracked TableEditing runner logic with native PID/exit capture and read-only foreground sampling. All four runs used JDK 25.0.1, JavaFX 25, identical compiled GUI-005 probe bytes and dependency-list hashes, offline settings D:\Java\.m2\settings.xml, and unchanged GUI-005 assertions and 30-second verdict timeout.
+
+| Step | Side | JVM PID | Outer PID | JVM (hex) / outer | Recorder timeout | Marker |
+|---|---|---:|---:|---|---|---|
+| 1 | A | 18940 | 17880 | 0 (0x00000000) / 0 | False | GUI-005 PASS |
+| 2 | B | 18772 | 2088 | 0 (0x00000000) / 0 | False | GUI-005 PASS |
+| 3 | B | 7980 | 3892 | 0 (0x00000000) / 0 | False | GUI-005 PASS |
+| 4 | A | 10540 | 884 | 0 (0x00000000) / 0 | False | GUI-005 PASS |
+
+Both sides completed the visible edit, single-property commit, Enter navigation/focus and cancellation assertions twice. The fixed matrix provides no evidence of a reproducible candidate-only failure under this desktop condition. Passing pairs do not establish the cause of the historical failure. No extra trial or waiver was applied. Raw timestamps, process outcomes, streams, args, foreground samples and classpath equivalence are under target/act-017-diag/resume. Previous outputs remain under their original paths.
+
+Minimum next gate is a separately authorized ACT-017 validation on the exact preserved candidate with a verified focus-capable desktop and the required scoped regression and ABI checks. Production remains unchanged. ACT-017 implementation and ACT-018/019 were not resumed. STOP.
