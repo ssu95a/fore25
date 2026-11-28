@@ -6135,3 +6135,24 @@ Independent Windows rerun with Maven on PATH. Use the modes listed in the table 
     }
 
 STOP after this reply.
+
+## Reply ACT-007A
+
+**BLOCKED.** Verified starting and final production SHA 259f9887b95ee9cd7761a231e86bc57610325b88. No production edit or commit.
+
+The last combined assignment explicitly approves removing getWaitActions(), including its controller implementation and Set. It separately requires preserving the behavior of the remaining addWaitAction/removeWaitAction hooks where possible and reporting a blocker if an externally implemented form cannot be migrated safely. At this SHA, getWaitActions() is also the sole opt-in to the inherited hooks. An external form can implement only stateProperty/stateTextProperty and inherit a passive WAIT policy. Another external form can expose identical properties and enable automatic WAIT solely by overriding getWaitActions(). Both inherit the same add/remove methods.
+
+The frozen ExternalWaitContract fixture uses those two forms and never calls the removed getter directly. addWaitAction leaves the first ACTIVE and transitions the second to WAIT. After manually setting the first to WAIT, removeWaitAction preserves its WAIT and restores the second to ACTIVE. Three fresh JavaFX JVMs independently passed the same baseline assertions. Enabling the default hooks for all external forms changes the first class's behavior. Enabling them only for the framework controller changes the second's behavior. A new explicit opt-in does not migrate the existing compiled form by itself, and recognizing old overrides dynamically would retain a dependency on the contract slated for removal. The decision needed is whether an explicit new opt-in may replace the old one for external forms and what policy applies to an existing unmodified implementor.
+
+| Baseline evidence | JVM PID | JVM signed and hex | Runner PID and exit | Timeout |
+|---|---:|---|---|---|
+| Frozen ACT-002 worker | 17320 | 0 (0x00000000) | 11484 / 0 | False |
+| Frozen ACT-002 worker-edges | 17304 | 0 (0x00000000) | 8084 / 0 | False |
+| Frozen ACT-007 foreign rebind | 5632 | 0 (0x00000000) | 15664 / 0 | False |
+| External contract 1 | 7992 | 0 (0x00000000) | 10560 / 0 | False |
+| External contract 2 | 12516 | 0 (0x00000000) | 11944 / 0 | False |
+| External contract 3 | 6800 | 0 (0x00000000) | 3496 / 0 | False |
+
+The frozen worker probes still reproduce same-action premature cleanup, rejection leaving WAIT/message behind, and cleanup detaching a caller's replacement binding on the unchanged baseline. Prior worker success/failure/cancel and legacy nextAction controls remain in the frozen suites. ABI snapshot, source of the external fixture, PIDs, commands, and streams are under ignored target/act-007a. The mandatory post-implementation regression/ABI gate has no candidate and remains pending. The 73/73 gate from ALERT-007 is historical evidence for the same production SHA.
+
+STOP at the compatibility blocker. ACT-012 through ACT-019 are NOT_RUN for this execution.
