@@ -6271,3 +6271,16 @@ Production SHA b5bb8fb10be4fd574f8f86eb8e77c4aec90ef563.
 Canary JVM 5944 / runner 10740 focused on the first pulse, exits 0/0. Official ActionMapMarkView runner 2416 passed. Direct JVMs: focused 1764/14636/10416, GUI-005 18448, SceneKeyLookup 11792, ACT-015 18672, ACT-014 6716, ACT-013 11884, CTRL-104 6452 and CTRL-106 18132. All exit 0 (0x00000000) and no timeout. Offline compile, parser and staged diff passed. Scoped javap declarations/descriptors match after excluding blank formatting and the two additions DSFXAdapter.ACTION_MARK_CURRENT_ROW and invokeMarkCurrentRow(). Original candidate and incident hashes verified. Raw evidence under target/act-017-validation. Original GUI-005 cause remains UNKNOWN.
 
 Rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 -ActionMapMarkView -SettingsFile "D:\Java\.m2\settings.xml".
+
+
+## Reply ACT-016
+
+Production SHA b5bb8fb10be4fd574f8f86eb8e77c4aec90ef563.
+
+**BLOCKED before remaining binary-fixture checks by the mandatory desktop preflight. STOP.** Local candidate eabf4c6725fc984363c57d54ff8633a66ebef20d is clean and unpublished, parent b5bb8fb10be4fd574f8f86eb8e77c4aec90ef563. ACT-018 and ACT-019 are NOT_RUN.
+
+Candidate implements one unified Scene owner with FILTER/HANDLER hooks. Native contextual KEY_PRESSED in FILTER precedes legacy IAction and callback. Consumed events return at entry. Disabled and denied legacy actions shadow a callback without consuming; an admitted legacy action consumes, and callbacks still own consumption. Separate phase delivery remains possible for an unconsumed callback; focused fixture observed both callback and handler on that path. Existing collections, replacement and phase payloads were exercised. The focused after-state for both registration orders with same-type third-party ANY filters was [before, action, between:true, after:true]. The archived old ACT-008 fixture with specific KEY_PRESSED interposition recorded [action, application:true, callback] and [callback, application:false, action]. The adapted exact ACT-008 fixture and frozen ACT-002 binary fixtures remain unrun on this candidate.
+
+Official ActionKeyUnified runner 9812 and three fresh JVMs 19408/9100/17420 passed. Scoped CTRL-024, ACT-006 and ACT-017 passed. Original scoped action javap inventory matched the archived manifest exactly; package baseline showed only the previously authorized getWaitActions removals. Full exact-commit regression was 80/80, all JVM/outer 0/0, no timeout and all markers, including GUI-005 PID 3972. Gate preflight JVM 16968 and runner 8652 obtained focus at the first pulse (0/0).
+
+The following focus-sensitive fixture group was stopped before launch. Its independent preflight Stage (JVM 12736, runner 8004, 0/0, no timeout) was visible and received 127 FX pulses while remaining unfocused. Root cause of the focus availability change is unestablished. No retries, focus workaround or regression waiver. Raw evidence under target/act-016-validation, including gate/matrix.csv and frozen/canary.stdout. Preserve the local commit. Remaining validation requires a focus-capable desktop and an explicit continuation. No production push.
