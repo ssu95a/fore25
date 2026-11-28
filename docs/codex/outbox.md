@@ -6492,3 +6492,18 @@ Independent Windows rerun on this commit with Maven on PATH and a focus-capable 
     }
 
 STOP.
+
+
+## Reply ACT-021
+
+Production SHA 25ca2aa2fd3d5ebb679fdbf37da1c77f3863f9ec.
+
+**BLOCKED at mandatory ACT-021 regression gate.** Local candidate 2cabd4432ea2d30e2988514cc8266d31cea3a11c, direct parent 25ca2aa2fd3d5ebb679fdbf37da1c77f3863f9ec. The candidate is preserved locally. No production push.
+
+The expanded ActionWaitOwnership probe on the accepted baseline reproduced four failures: a throwing legacy caption getter prevents subsequent WAIT admission, a failed progress attach shadows the previous delivery, reentrant predicate replacement allows a stale write, and one WAIT registration invokes retirement twice. The same assertions passed after bounded changes to FormWait and ProgressDelivery. The probe retains actual worker overlap, reset generation, cancellation, caller binding, failure identity and rejected submission coverage. Offline Maven compile, PowerShell parser, git diff --check and public/protected javap descriptor comparison passed. Source review verified idle target entries are removed after the last delivery; backing capacity and retained heap were not measured. Worker scheduling and external property binding policy were unchanged.
+
+Full suite preflight measured an FX Stage showing and focused on its first pulse, JVM/runner exits 0/0. Full suite stopped after 58 clean modes. Mode 59/80 RadioReadOnly (CTRL-006) printed CTRL-006 PASS, then JVM PID 6080 returned -1073740791 (0xC0000409), runner PID 18448 returned 1, timeout False. The failing process exit makes this mode RED; root cause UNKNOWN. No retries, waiver or continuation. Modes 60–80 and the fresh frozen fixture group remain pending. ACT-022, ACT-023A, ACT-023B and ACT-023G were not started.
+
+Evidence: target/act-021-validation/baseline and candidate (official probe streams and outer exits), full-preflight (focus canary), full/matrix.csv, full/run-59.stdout, full/run-59.stderr, full/run-59.child-pid and full/run-59.child-exit. The initial sandboxed setup attempt fell back to the Maven wrapper before launching a JavaFX probe; the installed offline Maven then completed the recorded baseline and candidate runs.
+
+STOP under the agreed regression rule.
