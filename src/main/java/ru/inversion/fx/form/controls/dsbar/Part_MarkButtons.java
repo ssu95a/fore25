@@ -86,7 +86,7 @@ public class Part_MarkButtons extends AbstractPartBase {
 
     public void markRow() {
         if (dsAdapter.isEnableMark()) {
-            dsAdapter.revertMarkCurrentRow();
+            dsAdapter.invokeMarkCurrentRow();
         }
     }
 

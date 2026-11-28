@@ -1,5 +1,8 @@
 package ru.inversion.dataset.fx;
 import ru.inversion.fore.form.action.ActionMap;
+import ru.inversion.fore.form.action.ActionInvocation;
+import ru.inversion.fore.form.action.ForeAction;
+import ru.inversion.fore.form.action.ForeActions;
 
 import javafx.application.Platform;
 import javafx.beans.property.*;
@@ -75,6 +78,7 @@ import static ru.inversion.fx.form.controls.JInvTableColumn.*;
  * @param <T> тип записи
  */
 public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListener, IDataSetMarkListener<T> {
+    public static final String ACTION_MARK_CURRENT_ROW = "mark-current-row";
     private AdapterActionScope actionScope;
 
     /** Реестр операций адаптера текущей привязки. */
@@ -784,6 +788,36 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         } catch (Throwable th) {
             JInvErrorService.handleException(getTable().getScene().getWindow(), th);
         }
+    }
+
+    /** Вызывает пометку текущей строки через общий реестр операций представлений. */
+    public void invokeMarkCurrentRow() {
+        TableView<T> view = tableView;
+        if (view == null) {
+            revertMarkCurrentRow();
+            return;
+        }
+        IDataSet<T> attachment = dataSet;
+        long revision = workerAttachmentRevision;
+        if (!ownsMarkAttachment(view, attachment, revision)) {
+            return;
+        }
+        ActionMap actions = getActionMap();
+        ForeAction operation = actions.getLocal(ACTION_MARK_CURRENT_ROW);
+        if (operation == null) {
+            operation = ForeActions.custom(bundle.getString("MARK"), event -> {
+                if (ownsMarkAttachment(view, attachment, revision)) {
+                    revertMarkCurrentRow();
+                }
+            });
+            actions.put(ACTION_MARK_CURRENT_ROW, operation);
+        }
+        ActionInvocation.invoke(operation, ForeAction::handle, null);
+    }
+
+    private boolean ownsMarkAttachment(TableView<T> view, IDataSet<T> attachment, long revision) {
+        return attachment != null && dataSet == attachment && tableView == view && workerAttachmentRevision == revision
+                && view.getProperties().get(PROPERTY_DATA_SET_ADAPTER) == this;
     }
 
     /** */

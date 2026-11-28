@@ -631,7 +631,7 @@ public class JInvTable<S> extends TableView<S> implements IJInvControl, IChoiceC
                 if( !this.getSelectionModel().isCellSelectionEnabled() )
                 {
                     DSFXAdapter adapter = Controls.getDsAdapterFromControl(this);
-                    adapter.revertMarkCurrentRow();
+                    adapter.invokeMarkCurrentRow();
                 }
             }
 
