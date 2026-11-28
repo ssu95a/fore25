@@ -16,13 +16,23 @@ public final class ForeAction extends Action {
     private List<KeyCombination> alternatives = List.of();
 
     ForeAction(StandardAction type, String text, Consumer<ActionEvent> handler) {
-        super(text, Objects.requireNonNull(handler, "handler"));
+        super(text, adapt(handler));
         standardType = type;
         if (type != null) {
             setLongText(type.tooltip());
             setIcon(type.icon());
             setHotkeys(type.hotkeys());
         }
+    }
+
+    /** Заменяет функциональный обработчик, не меняя состояние представления. */
+    public void setHandler(Consumer<ActionEvent> handler) {
+        setEventHandler(adapt(handler));
+    }
+
+    private static Consumer<ActionEvent> adapt(Consumer<ActionEvent> handler) {
+        Objects.requireNonNull(handler, "handler");
+        return event -> ActionInvocation.invoke(handler, Consumer::accept, event);
     }
 
     /** Возвращает стандартный тип или null для пользовательской операции. */
