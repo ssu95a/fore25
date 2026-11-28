@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'ActionKeyUnified')]
+    [switch] $ActionKeyUnified,
     [Parameter(ParameterSetName = 'ActionMapMarkView')]
     [switch] $ActionMapMarkView,
     [Parameter(ParameterSetName = 'ActionKeyContext')]
@@ -167,7 +169,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($ActionMapMarkView) {
+if ($ActionKeyUnified) {
+    $probeId = 'ACT-016'
+    $probeClass = 'ActionKeyUnifiedSmoke'
+} elseif ($ActionMapMarkView) {
     $probeId = 'ACT-017'
     $probeClass = 'ActionMapMarkViewSmoke'
 } elseif ($ActionKeyContext) {

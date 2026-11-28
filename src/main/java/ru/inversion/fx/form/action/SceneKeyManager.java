@@ -8,21 +8,15 @@ package ru.inversion.fx.form.action;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Control;
 import javafx.scene.input.KeyEvent;
 import org.slf4j.Logger;
-import ru.inversion.fore.form.action.ActionInvocation;
-import ru.inversion.dataset.fx.DSFXAdapter;
+import ru.inversion.fore.form.action.ActionKeyBinder;
 import ru.inversion.fx.app.BaseApp;
 import ru.inversion.fx.form.action.JInvEvent.PlaceType;
-import ru.inversion.fx.form.controls.Controls;
-import ru.inversion.fx.form.controls.IJInvControl;
 import ru.inversion.utils.Pair;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 
 import static java.lang.invoke.MethodHandles.lookup;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -33,8 +27,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class SceneKeyManager {
     private final static Logger logger = getLogger(lookup().lookupClass());
-    static final public String KEYBOARD_CALLBACK_FILTER = "ru.inversion.ActionMapFilter";
-    static final public String KEYBOARD_CALLBACK_HANDLER = "ru.inversion.ActionMapHandler";
+    static final public String KEYBOARD_CALLBACK_FILTER = ActionKeyBinder.ACTION_FILTER;
+    static final public String KEYBOARD_CALLBACK_HANDLER = ActionKeyBinder.ACTION_HANDLER;
 
     public static void addAction(Scene scene, IAction action, PlaceType type) {
         addAction(scene.getRoot(), action, type);
@@ -72,98 +66,8 @@ public class SceneKeyManager {
         actions.add(new Pair<>(node, action));
     }
 
-    private static IAction getActionRecursive(Node node, KeyEvent event, List<Pair<Node, IAction>> map) {
-
-        IAction action = map.stream()
-                .filter( ( Pair<Node, IAction> t ) -> t.first.equals( node ) )
-                .map( ( Pair<Node, IAction> t ) -> t.second )
-                .filter(actionFilter(event))
-                .findFirst()
-                .orElse( null );
-
-        if( action == null )
-        {
-            if( node.hasProperties() && node.getProperties().getOrDefault( Controls.CONTROL_PARENT, null) != null )
-            {
-                return getActionRecursive( (Node) node.getProperties().get(Controls.CONTROL_PARENT), event, map );
-            }
-            else if( node.getParent() != null )
-            {
-                return getActionRecursive( node.getParent(), event, map );
-            }
-            else
-            {
-                return null;
-            }
-        }
-        else
-        {
-            return action;
-        }
-    }
-
-    /**
-     Для экшнов, не зависящих от конкретного контрола
-     */
-    private static IAction getActionNonRecursive( final KeyEvent event, final List<Pair<Node, IAction>> map ) {
-        return map.stream()
-                .map( ( Pair<Node, IAction> t ) -> t.second )
-                .filter(actionFilter(event))
-                .findFirst()
-                .orElse( null );
-    }
-
-    private static Predicate<IAction> actionFilter(KeyEvent event) {
-        return (IAction t) -> {
-            return t.getHotKey()
-                    .stream()
-                    .anyMatch(keyCodeCombination -> keyCodeCombination != null && keyCodeCombination.match(event))
-                    && t.getKeyEventType() == event.getEventType();
-        };
-    }
-
     static protected void doAction(KeyEvent event, PlaceType placeType) {
-        if (event.isConsumed()){
-            return;
-        }
-//        logger.trace("doAction:\n{}/{}", event, placeType);
-        Object source = event.getSource();
-
-        if (source instanceof Scene)
-        {
-            List<Pair<Node, IAction>> map = getActionMap((Scene) source, placeType);
-
-            if (((Scene) source).getFocusOwner() instanceof Control) {
-
-                Node control = (Control) ((Scene) source).getFocusOwner();
-
-                IAction action = getActionRecursive(control, event, map);
-
-                if ( action == null )
-                {
-                    if (control instanceof IJInvControl)
-                    {
-                        DSFXAdapter<Object> dsfx = ((IJInvControl) control).getDataSetAdapter();
-                        if (dsfx != null && dsfx.getTable() != null){
-                            action = getActionRecursive(dsfx.getTable(), event, map);
-                        }
-                    }
-                }
-
-                if( action == null ){
-                    action = getActionNonRecursive( event, map );
-                }
-                if (action != null && ActionInvocation.admit(action, IAction::isEnabled, IAction::isEnabledBySecurity)
-                        == ActionInvocation.Admission.ALLOWED) {
-//                    logger.trace("eventType={}, actionKeyEventType={}",event.getEventType(),action.getKeyEventType());
-                    if (event.getEventType().equals(action.getKeyEventType())){
-                        action.handle(new JInvEvent(control, placeType, event));
-                        event.consume();
-//                        logger.trace("consumed event {}", event);
-                    }
-                }
-            }
-        }
+        ActionKeyBinder.dispatchRegistered(event, placeType == PlaceType.FILTER);
     }
 
     static public void filterHandler(KeyEvent event) {
@@ -175,34 +79,8 @@ public class SceneKeyManager {
     }
 
     static public List<Pair<Node, IAction>> getActionMap(Scene scene, PlaceType type) {
-
-        List<Pair<Node, IAction>> result = null;
-        if (type == PlaceType.FILTER) {
-            result = (List<Pair<Node, IAction>>) scene.getProperties().get(KEYBOARD_CALLBACK_FILTER);
-            if (result == null) {
-//                // установка обработчиков клавиатуры
-                scene.addEventFilter(KeyEvent.ANY, (event) -> filterHandler(event));
-                scene.addEventFilter(KeyEvent.KEY_PRESSED, (event) -> filterHandler(event));
-                scene.addEventFilter(KeyEvent.KEY_RELEASED, (event) -> filterHandler(event));
-                scene.addEventFilter(KeyEvent.KEY_TYPED, (event) -> filterHandler(event));
-                result = new ArrayList<>();
-                scene.getProperties().put(KEYBOARD_CALLBACK_FILTER, result);
-            }
-        } else {
-            result = (List<Pair<Node, IAction>>) scene.getProperties().get(KEYBOARD_CALLBACK_HANDLER);
-            if (result == null) {
-//                // установка обработчиков клавиатуры
-                scene.addEventHandler(KeyEvent.ANY, (event) -> eventHandler(event));
-                scene.addEventHandler(KeyEvent.KEY_PRESSED, (event) -> eventHandler(event));
-                scene.addEventHandler(KeyEvent.KEY_RELEASED, (event) -> eventHandler(event));
-                scene.addEventHandler(KeyEvent.KEY_TYPED, (event) -> eventHandler(event));
-                result = new ArrayList<>();
-                scene.getProperties().put(KEYBOARD_CALLBACK_HANDLER, result);
-            }
-        }
-        return result;
+        return ActionKeyBinder.legacyActions(scene, type == PlaceType.FILTER);
     }
-
     private static Scene getSceneFromNode(Node node) {
 
         Scene scene = node.getScene();

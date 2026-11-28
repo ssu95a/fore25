@@ -143,13 +143,10 @@ public final class ActionKeyContextSmoke {
 
             SceneKeyManager.getActionMap(scene, JInvEvent.PlaceType.FILTER);
             press(right, KeyCode.F5, false);
-            require(nativeCalls.get() == 2 && observed.size() == 8, "legacy attach detaches native binder");
-            try {
-                ActionKeyBinder.attach(scene, action -> true);
-                throw new AssertionError("legacy Scene accepted native binder");
-            } catch (IllegalStateException expected) {
-                // Свойства старых регистраторов резервируют сцену.
-            }
+            require(nativeCalls.get() == 1 && observed.size() == 9, "legacy registration shares native dispatcher");
+            binder.close();
+            press(right, KeyCode.F5, false);
+            require(nativeCalls.get() == 2 && observed.size() == 9, "close releases native shortcut");
         } finally {
             adapter.close();
             stage.close();

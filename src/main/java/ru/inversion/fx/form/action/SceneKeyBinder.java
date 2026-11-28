@@ -6,7 +6,7 @@
 package ru.inversion.fx.form.action;
 
 import javafx.scene.Scene;
-import javafx.scene.control.Control;
+import ru.inversion.fore.form.action.ActionKeyBinder;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Callback;
@@ -20,8 +20,8 @@ import java.util.HashMap;
  */
 public class SceneKeyBinder{
     
-    static final public String KEYBOARD_CALLBACK_FILTER = "ru.inversion.KeyBoardCallBackFilter";
-    static final public String KEYBOARD_CALLBACK_HANDLER = "ru.inversion.KeyBoardCallBackHandler";
+    static final public String KEYBOARD_CALLBACK_FILTER = ActionKeyBinder.CALLBACK_FILTER;
+    static final public String KEYBOARD_CALLBACK_HANDLER = ActionKeyBinder.CALLBACK_HANDLER;
     
     
     
@@ -40,58 +40,19 @@ public class SceneKeyBinder{
     
     
     static protected void doAction(KeyEvent event, PlaceType placeType) {
-        Object obj = event.getSource();
-        Callback clbk = null;
-        
-        
-        if(obj instanceof Scene) {
-            HashMap<KeyCodeCombination,Callback<JInvActionEvent<KeyEvent>,Object>> hm = getCallBackMap((Scene)obj,placeType);
-            
-            for(KeyCodeCombination kcc:hm.keySet()) {
-                if(kcc.match(event)) {
-                    Control control = (Control)((Scene)obj).getFocusOwner();
-                    clbk = hm.get(kcc);
-                    if(clbk != null) {
-                        clbk.call(new JInvActionEvent(control,placeType, event));
-                    }
-                    break;
-                }
-            }
-        }
+        ActionKeyBinder.dispatchRegistered(event, placeType == PlaceType.FILTER);
     }
-    
+
     static public void filterHandler(KeyEvent event) {
-        doAction(event,PlaceType.FILTER);
+        doAction(event, PlaceType.FILTER);
     }
-    
+
     static public void eventHandler(KeyEvent event) {
-        doAction(event,PlaceType.HANDLER);
+        doAction(event, PlaceType.HANDLER);
     }
-    
-    static public HashMap<KeyCodeCombination,Callback<JInvActionEvent<KeyEvent>,Object>> getCallBackMap(Scene scene, PlaceType type) {
-        
-        HashMap<KeyCodeCombination,Callback<JInvActionEvent<KeyEvent>,Object>> callbackMap = null;
-        if(type == PlaceType.FILTER) {
-            callbackMap = (HashMap<KeyCodeCombination, Callback<JInvActionEvent<KeyEvent>,Object>>) scene.getProperties().get(KEYBOARD_CALLBACK_FILTER);
-            if(callbackMap == null) {
-                // установка обработчиков клавиатуры
-                scene.addEventFilter(KeyEvent.KEY_PRESSED, (event)->filterHandler(event));
-                
-                callbackMap = new HashMap<>();
-                scene.getProperties().put(KEYBOARD_CALLBACK_FILTER, callbackMap);
-            }
-        } else {
-            callbackMap = (HashMap<KeyCodeCombination, Callback<JInvActionEvent<KeyEvent>,Object>>) scene.getProperties().get(KEYBOARD_CALLBACK_HANDLER);
-            if(callbackMap == null) {
-                // установка обработчиков клавиатуры
-                
-                scene.addEventHandler(KeyEvent.KEY_PRESSED, (event)->eventHandler(event));
-                callbackMap = new HashMap<>();
-                scene.getProperties().put(KEYBOARD_CALLBACK_HANDLER, callbackMap);
-            }
-        }
-        
-        return callbackMap;
+
+    static public HashMap<KeyCodeCombination,Callback<JInvActionEvent<KeyEvent>,Object>> getCallBackMap(
+            Scene scene, PlaceType type) {
+        return ActionKeyBinder.legacyCallbacks(scene, type == PlaceType.FILTER);
     }
-    
 }
