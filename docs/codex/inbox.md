@@ -4825,3 +4825,131 @@ For each task publish separate Reply ALERT-nnn; separate validated fast-forward 
 Accepted focused scope: AlertsMaker (ALERT-002), AlertsKeyboard (ALERT-003), AlertsLifecycle (ALERT-004), AlertsLayout (ALERT-005), AlertsCheckbox (ALERT-006), AlertsFacade (ALERT-007). Agent final full regression 73/73 native/outer 0/0, scoped original ABI compatibility (24 static signatures), unchanged precompiled consumer and six fast-forward production commits remain separate evidence. JInvAlert and AlertBuilder source unchanged. Existing synchronous static signatures/results retained; IAlertMaker additive API, typed ButtonType and AlertResult terminals, service/functional checkbox, Supplier<Boolean> OK-only validator. Arbitrary programmatic supplier dependency changes are not observable; no polling or additional validation framework. Nonblocking show and general resultConverter not implemented; physical input, corporate sound/login, OS stacking, DPI/small-screen rendering remain unverified. ALERT-001 partial characterization, ALERT-002…007 implemented. Acceptance is bounded to tested scope.
 
 Package completed; STOP remains in force. ACT-007 continuation (WAIT/progress ownership) and ACT-012…019 (ActionMap/contextual keyboard architecture) are separate future assignments, not activated by this acceptance. Other unresolved backlog unchanged. No production authorization or new work from this entry.
+
+
+---
+
+## DECISION — WAIT/Progress and ActionMap combined package ACT-007A + ACT-012…ACT-019
+
+**Status:** USER APPROVED / ACTIVE. Execute all nine tasks in order autonomously within approved scope, not parallel production edits.
+**Repo:** ssu95a/fore25; production migration/java25-correctness; mailbox agent/codex-mailbox.
+**Starting baseline:** 259f9887b95ee9cd7761a231e86bc57610325b88 (ALERT-007 final 73/73 agent GREEN, six focused tests user accepted at f3d8009e).
+**Prior evidence:** ACT-001/002, ACT-007/008/010/011 (final Action Reply fb2c8c1452953b9de5ad6a39827ef2e1f40958eb); preserve target/act-001 ABI, target/act-002 compiled consumer fixtures, target/act-007 WorkerOwnershipAudit and target/act-008 ShortcutOrderAudit. Reference fore26_Arch c34fffdc7f48c791cd2ec47a14b76915aa61565c READ-ONLY. Reopen current source at actual baseline. All necessary Git/GitHub operations within this approved package authorized.
+**Order/ceilings:** ACT-007A 150; ACT-012 60; ACT-013 90; ACT-014 120; ACT-015 150; ACT-016 150; ACT-017 120; ACT-018 90; ACT-019 90 minutes. Total 1020 minutes (17h), ceilings not estimates/minimums. STOP after ACT-019 or blocking condition.
+
+### Binding architectural decisions
+
+Control owns behavior. Skin owns presentation. ForeAction is a compact operation container/bridge, not execution orchestration or GUI owner. Retain ControlsFX 11.2.6 inheritance and existing icon compromise; no icon cache/composition rewrite. New core ru.inversion.fore.form.action does not import legacy facade. Existing ActionInvocation remains shared ordinary execution/admission primitive. Do not add eager Action/ActionMap/manager per simple control, duplicate state per view or global Scene/Task registries.
+
+WAIT belongs to the form; progress belongs to a particular execution. User EXPLICITLY authorizes deletion of public IFormStateListener.getWaitActions() and AbstractBaseController's implementation/backing Set<JInvAction> as the intentional exception to original ABI preservation. No fake deprecated empty Set. Existing addWaitAction(JInvAction)/removeWaitAction(JInvAction) signatures not separately authorized for deletion; inventory actual consumers and retain compatible facade where feasible; internal execution must not use action identity as sole WAIT ownership. If exact semantics of these legacy hooks cannot be maintained without separate decision, report blocker; do not invent no-op or remove more API. Independent overlapping executions of same Action permitted, each owns its own WAIT lifetime. Explicit setState(ACTIVE) resets old wait session; late old releases must not affect a new session. No mandatory extra token object if existing task/invocation can own identity. Preserve form close/veto lifecycle, distinguish GUI WAIT release from actual worker/transaction completion.
+
+Progress USER APPROVED: external StringProperty belongs to caller. Framework publishes values on FX thread only while target is unbound; NEVER bind/unbind caller-owned property. Only detach exact listeners owned by execution. Intentional observable change: supplied property no longer becomes bound during framework execution. Do not overwrite or remove caller's replacement binding. Capture exact target/owner per invocation, retire obsolete delivery on replacement/close/reset; no stale write to a new target. Latest started still-active execution owns progress; when it ends, resume previous still-active source; when none, stop publishing. Apply to shared actual presentation sink, including stateTextProperty, without allowing an older completion to clear newer WAIT/progress. Preserve distinct legacy messageProperty (Task progress target) and stateMessageProperty (WAIT caption source); do not silently equate their semantics. If target already bound, leave untouched; report any incompatible external usage. No global serialization, cancellation or rollback promise. Preserve ThreadPoolManager submission policy incl non-FX CallerRuns and FX saturation rejection, no blocking work under lifecycle lock or on FX. New ForeAction excludes nextAction/chaining entirely; existing legacy methods and virtual callback semantics retained via facade. No unapproved change to deferred sequence or admitted handler semantics.
+
+ActionMap owns operation registry; ActionKeyBinder resolves keyboard invocation; ActionInvocation executes operation. ActionMap has no Node/Scene/KeyEvent/security/Task/WAIT responsibilities. Each form controller owns its map (lazy materialization allowed), DSFXAdapter and TSFXAdapter are mini-controllers and own their data-operation maps; tables/trees are views, not owners of CRUD/REFRESH/MARK. Optional map only for complex controls' own operations, never mandatory map per simple field. Parent hierarchy: adapter -> owning form controller -> optional application scope; complex control local scope only as needed. Reuse existing Controls.CONTROL_PARENT, PROPERTY_DATA_SET_ADAPTER, IJInvControl.getController/getDataSetAdapter, actual TSFXAdapter attachment, controller lifecycle; no parallel GUI context tree or table button search for data operation. No new application-global mutable registry unless real ownership/lifecycle already supported. Do not create ActionMap merely for lookup on unused control.
+
+User-provided ActionMap.java (ru.vmls.view.ActionMap) design reference: Map<Comparable,BgAction> backed by TreeMap comparator, same runtime type compared naturally except String compareToIgnoreCase; different types separated by class name; nullable parent; put(key,null) removes local; get(null) returns null; get(key) local then parent; remove/clear/size local; setParent/getParent. Adapt to ForeAction, not BgAction. Proposed new API Comparable<?> keys including own enum/String/numeric types, case-insensitive strings as source; retain semantics for intended supported keys, document comparator identity (including enum declaring class and compareTo equality) and reject unsupported/colliding type contracts rather than unsafe casts. User approved package/direction; exact key domain was proposed, not separately mandated for arbitrary Comparable implementations. Keep small, do not add type hierarchy for ActionId. Add getLocal, iterative parent traversal, cycle rejection and lazy backing collection; no synchronization for FX-owned usage. No second InputMap unless measured/functional necessity established and separately approved. Native key matching should not allocate full hotkeys list per event; current ForeAction primary accelerator + alternatives contract preserved.
+
+New dispatcher design target: most specific functional context wins; a local ActionId shadows ancestor same ID entirely even if hotkey changed or action disabled. For new/native registrations, selected matching action reserves its key even when disabled or denied; consume and do not fall back to another action/native accelerator. No match -> normal JavaFX dispatch. Same hotkey allowed across scopes; within same effective scope ambiguous matches must have explicit deterministic conflict behavior (prefer reject configuration where possible; dynamic changes must not execute arbitrary conflicting action). Do not globally capture native editing keys unless explicit command/navigation contract applies. One dispatcher owner per Scene, potentially own FILTER/HANDLER hooks, no competing permanent engines. Legacy keyboard behavior: ACT-008 showed observable callback-vs-action registration interleaving with external filters. User approved direction toward unified ActionMap but did NOT separately approve breaking those observed legacy phase/consumption/priority contracts or deleting public getActionMap/getCallBackMap. Preserve existing legacy behavior or report exact blocker requiring decision; don't silently impose native reserve policy on legacy or declare consolidation complete if residual routes remain. Preserve public mutable collection identity/updates, event payload, registered KEY_PRESSED/RELEASED/TYPED, logical owner, dataset fallback, existing accelerators and external filters. No new native dispatcher competing with active old registrars on same Scene. Explicit attach/close ownership; detached Node must not silently create a Scene or be registered to wrong main Scene for new API.
+
+### Common execution protocol
+
+Verify fresh refs and clean tracked checkout before each task/reply. Preserve all original public/protected API/ABI except specifically approved getWaitActions removal and approved progress binding behavior; document intentional changes, compare exact original and package-baseline descriptors, run unchanged precompiled fixtures where applicable. If fixture directly calls intentionally removed method, explicitly identify expected incompatibility and use targeted new characterization only for removed contract; do not weaken unrelated ABI assertions. Existing test assertions expecting old erroneous WAIT/progress behavior may be changed only for these approved corrections, show exact before/after. No other public signature deletions, silent security or behavioral changes. Main, JInvCommon, fore26_Arch read-only. No destructive Git/force push, dependency upgrade, private JavaFX access/reflection, actual corporate DB/security changes, external editor processes, arbitrary sleeps, forced successful exit or retry-to-green. Russian Java comments. JDK25/FX25, offline Maven settings D:\Java\.m2\settings.xml. Use exact old probes and faithful ignored recorder for true native child signed/hex, independent outer exit, timeout, PID/timestamps/stdout/stderr; preserve all failed attempts. For defects deterministic baseline RED and candidate GREEN; refactor characterization/equivalence. Three fresh focused JVMs + unchanged official focused runner, applicable scoped regression, Maven -Pbuild compile, PowerShell parse, git diff --check. One isolated validated fast-forward commit per implemented task, remote SHA verified, clean tree and separate Reply per task. No incomplete/unvalidated push. Read-only/NO_CHANGE no production commit. Mandatory intermediate full gate after ACT-007A (73 original modes plus new ones), another after ACT-016 (all supported modes), final ACT-019. Any shared unexplained nonzero/native/timeout, dirty/conflict/unexpected advancement or unreliable evidence: STOP, remaining NOT_RUN. No prior native incident waiver applies. Task-local BLOCKED: continue only independent work on clean verified green baseline; dependent tasks NOT_RUN/BLOCKED, never invent a contract. Timebox expiry report exact incomplete coverage; mandatory gate not skipped. User acceptance separate. No ARCH-005/CTRL-108/Alerts redesign or unrelated tasks. STOP after ACT-019.
+
+---
+
+## MESSAGE ACT-007A
+
+**Status:** ASSIGNED / ACTIVE.
+**Timebox:** 150 min.
+**Reply ID:** ACT-007A.
+**Task:** Implement approved WAIT/Progress ownership corrections and remove getWaitActions.
+
+Inventory actual IFormStateListener implementations, getWaitActions/addWaitAction/removeWaitAction/setState/stateTextProperty usages, JInvAction/JInvParallelAction/JInvTask/TaskHandler, ThreadPoolManager, AbstractBaseController, WAIT view callbacks and externally constructed public tasks. Preserve public nested JInvTask and legacy add/remove hooks unless separate explicit decision; remove getWaitActions and Set<JInvAction> only as approved. Implement compact form-owned waiting state with exact per-invocation identity, idempotent release, reset generation/retirement, no permanent global registry. Prefer existing execution/task state as token or minimal lazy form state. Retain separate explicit form state transitions/close/veto and independent manual WAIT semantics, no accidental transition to ACTIVE from other states. Capture form owner and progress target; no mutable action field lookup at late completion that affects new owner. Framework never binds/unbinds external StringProperty incl stateTextProperty; publish unbound values on FX, detach own source listeners, resume most recent remaining active source, preserve caller's binding and original exception. Handle rejection after partial acquisition, success/fail/cancel exactly once, reentrant observable callback/failure, actual Task cancellation vs worker still alive, directly constructed public JInvTask with no acquired token, same-action overlap, different actions/shared target, explicit ACTIVE reset then new run, target replacement/rebind, close/reopen. Preserve actual FX/non-FX caller admission and ThreadPoolManager CallerRuns (no lock across submit, no blocking FX wait) and legacy nextAction semantics. No new ForeAction chaining. Reproduce all three ACT-007 defects baseline (overlap, rejection, foreign binding), GREEN on exact meaningful assertions plus positive worker/TaskHandler/nextAction/cancel tests. If external custom form or direct task compatibility cannot safely be resolved, report exact bounded blocker; no unauthorized broad changes. ABI exception inventory; full 73+new mode mandatory gate on exact validated candidate and verify published SHA. No advancement after gate failure.
+
+---
+
+## MESSAGE ACT-012
+
+**Status:** ASSIGNED / ACTIVE after ACT-007A green or clean independent baseline.
+**Timebox:** 60 min.
+**Reply ID:** ACT-012.
+**Task:** Compact ActionMap core.
+
+Implement source-inspired ActionMap in ru.inversion.fore.form.action with ForeAction values, parent hierarchy, local lookup/removal/clear/size, put(key,null) removal, get(null) null, getLocal, cycle-safe setParent, lazy backing map. Exact minimal public API and documented key equality/case rules; support StandardAction, custom enum, String and numeric keys, avoid raw Comparable warnings/unsafe cross-type compare. No GUI imports except ForeAction dependency, no keyboard logic, no listeners/extra property objects. Choose simple collection preserving intended comparison semantics; do not claim HashMap equivalent to compareTo without proof. Parent lookup iterative, no temporary collection on ordinary get. Provide only necessary internal iteration for later dispatcher, don't expose writable backing map gratuitously. Test local shadowing/disabled no fallback, parent changes, cycle rejection atomicity, null/remove/clear/size, custom enum/type separation/case collisions, empty footprint. Measure only relevant object/lookup allocations. No consumer switch. One scoped commit.
+
+---
+
+## MESSAGE ACT-013
+
+**Status:** ASSIGNED / ACTIVE after ACT-012.
+**Timebox:** 90 min.
+**Reply ID:** ACT-013.
+**Task:** Controller-owned ActionMap.
+
+Integrate stable lazily created map in AbstractBaseController with minimal additive getActionMap/access path; avoid materialization during passive lookup if unused. Actual functional form ownership including controller construction, FXML before/after init, SDI close/veto/reopen, nested controllers/MDI as feasible. Parent linkage only to verified functional owner; optional application scope if actual lifecycle warrants, not new global cache. Close retires registrations and parent references only for owned context, no stale action invocation or clearing other owner's map. Preserve legacy action wiring unchanged until migration. Test independent controllers/maps, same IDs different forms, parent replacement/cycle, close/veto/failure initialization, old references and exact identity, no eager maps on simple controls. Scope controller and minimal new core bridges, no Binder redesign. One commit if verified.
+
+---
+
+## MESSAGE ACT-014
+
+**Status:** ASSIGNED / ACTIVE after ACT-013.
+**Timebox:** 120 min.
+**Reply ID:** ACT-014.
+**Task:** DSFXAdapter / TSFXAdapter mini-controller ActionMap ownership.
+
+Use actual adapter bind/close/afterInit and controller linkage; adapter owns data actions (CREATE/UPDATE/DELETE/REFRESH/MARK as applicable), table/tree is View, optional local complex control map only for its own functional view operations. Add stable lazy adapter map, parent to actual owning controller, use existing PROPERTY_DATA_SET_ADAPTER and bound controls lookup; do not create parallel context graph, eager per-field maps or call getTable() solely to resolve a data action. Do not invent CRUD implementations or bypass app security/transaction policy; register existing operations only when equivalent, otherwise infrastructure only with fixtures. Retire exact map/parent registration on close/rebind, guard original attachment, no stale actions after worker/queued delivery, preserve CTRL-051/064/065/076/077/092/093/098/104/105/106 and tree behavior. Test two adapters same form/different IDs and same IDs, field bound to correct dataset, table/tree, detached/replaced/closed adapter, parent fallback, independent controller scope, retained old reference and no foreign writes. Corporate DB writes forbidden. Verify TSFXAdapter actual lifecycle separately, no assumption it behaves identically to DSFXAdapter. One scoped commit.
+
+---
+
+## MESSAGE ACT-015
+
+**Status:** ASSIGNED / ACTIVE after ACT-012…014 as applicable.
+**Timebox:** 150 min.
+**Reply ID:** ACT-015.
+**Task:** New contextual ActionKeyBinder, no competing dispatchers.
+
+Build minimal per-Scene owned resolver/registration lifecycle on ActionMap, use existing context relationships and actual ForeAction primary accelerator/alternatives (avoid allocating hotkeys list for each key match). Native policy as above: exact local ID shadows parent even with different hotkeys; most-specific matching scope, explicit ambiguity handling within scope, reserved disabled/denied key consumes and does not fall back; no match passes native. Security via existing safe admission boundary; no bypass. Determine focus/control/logical owner/adapter/form context from actual relationships, guard loops/detached and no wrong Scene fallback. Preserve native text/clipboard/selection/accelerators and correct event type/target. One owner, exact filter/handler detach, no global map/cache. Can test isolated shown native Scene without legacy registrars; do not install competing production handler where legacy active until ACT-016 integration proven. Dynamic hotkey/accelerator change, duplicate/overlap modifiers, local override changed key, unrelated native accelerator, disabled, two sibling scopes, attached/reparent/close, repeated registration/no duplicate invocation, controller and adapter resolution, synthetic dispatch and real shown controls. No separate InputMap without decision. Report proposed vs verified scope order. One isolated additive commit if safe; no claim legacy unified yet.
+
+---
+
+## MESSAGE ACT-016
+
+**Status:** ASSIGNED / ACTIVE after ACT-015.
+**Timebox:** 150 min.
+**Reply ID:** ACT-016.
+**Task:** Legacy keyboard facade, dispatcher integration and mandatory gate.
+
+Inventory SceneKeyManager/SceneKeyBinder/JInvKeyboardManager public/protected and actual external-facing maps/constants, callbacks, virtual event phases. Reuse shared resolver/admission where compatible, adapt registration and dispatch without duplicate authority, preserve exact legacy observable behavior unless expressly approved otherwise. ACT-008 original blocker: application filter between legacy registrars sees action/application(true)/callback vs callback/application(false)/action depending registration order. Reproduce same fixtures; don't change ordering, consume semantics or public map identity silently. If one filter position cannot preserve third-party interleaving, propose minimal explicit policy change with exact impact, retain compatible existing dispatch positions or report BLOCKED; do not enable new competing binder or discard legacy map API. Distinguish shared resolution authority vs multiple compatibility hooks. Preserve original JInvEvent/JInvActionEvent control/place/key payload, disabled/denied shadowing, native accelerator interaction, logical parent, DataSet/table fallback, mutable collections, pressed/released/typed, filter/handler, no duplicate action or security recheck regression. Verify real shown offline cases, direct collection edits, callback identity/order, detached nodes, multiple scenes/MDI where feasible. Full 73+all new modes, original ABI except approved WAIT removal and precompiled fixture. Mandatory GREEN gate at exact candidate/current SHA even if integration BLOCKED; dependent migration cannot pretend completed. One scoped commit if safe.
+
+---
+
+## MESSAGE ACT-017
+
+**Status:** ASSIGNED / ACTIVE after relevant ActionMap/dispatcher gates.
+**Timebox:** 120 min.
+**Reply ID:** ACT-017.
+**Task:** Migrate standard functional operation consumers and presentation.
+
+Use updated ACT-010 inventory and actual new ActionMap ownership; select concrete representative internal routes (form and adapter/table/tree where supported, toolbar/menu/keyboard) that can share one functional operation without duplicate Action state, preserve legacy exact handler identity/custom overrides/return types/FXML/security/tooltip and legacy icon contract. Native ForeAction for new/internal supported use, compatibility facade for existing callers; do not wrap each IAction into eager ForeAction or manufacture unused map entries. Controller/adapter owns functional operation, view projects it. No broad migration where ACT-016 unresolved keyboard integration is required; independent programmatic/toolbar/menu routes only if exact compatibility evidence. Test actual operation identity, event/source, two views, lifecycle/replacement/close, adapter scope, denied operation, no duplicate invocations or retired delivery; no real DB writes. Quantify actual migrated vs remaining consumers and residual authorities. One scoped commit if safe, otherwise explicit PARTIAL/BLOCKED.
+
+---
+
+## MESSAGE ACT-018
+
+**Status:** ASSIGNED / ACTIVE after prior independent gate.
+**Timebox:** 90 min.
+**Reply ID:** ACT-018.
+**Task:** Investigate navigation simplification using JavaFX requestFocusTraversal.
+
+Read actual JInvKeyboardManager.initNaviationOnNode/fireForwardEvent/fireBackwardEvent and table/LOV/ValidMan commit/focus contracts. Existing TextArea uses public requestFocusTraversal(NEXT/PREVIOUS), others synthesize TAB; compare real shown traversal, focus order, validation veto/commit, text editing, Ctrl+Tab/Shift+Tab, table boundaries and editable cells, ComboBox popup, LOV completion, disabled/hidden controls, nested forms. No sweeping replacement, no native editing key interception or navigation semantic change. Use baseline/candidate characterization; implement only narrow proven equivalent public traversal path if it materially simplifies behavior, preserve old public API and event consumption; if external synthetic-event observers or validation behavior differ, NO_CHANGE/BLOCKED with exact evidence, no workaround by forced focus. Scope navigation only, no key registry rewrite or table model changes. Relevant regression and one validated commit at most.
+
+---
+
+## MESSAGE ACT-019
+
+**Status:** ASSIGNED / ACTIVE after previous dispositions.
+**Timebox:** 90 min.
+**Reply ID:** ACT-019.
+**Task:** Final read-only architecture, compatibility, lifecycle, correctness and footprint gate.
+
+Verify exact fast-forward production chain from 259f9887, clean tree, scope and disposition of all nine tasks including independent/blocked cases. Full 73 original + actual new supported modes, real child/outer exits, compile/parse/diff, scoped original and starting ABI checks with exactly documented getWaitActions removal and intentional progress change; unchanged precompiled fixtures except explicitly incompatible removed call/old erroneous assertions, no blanket waiver. Confirm actual WAIT overlap/reject/rebind/reset/cancel/close behavior and progress FX ownership; ActionMap context/parent cycle/lifecycle, controller/adapter ownership, real dispatcher/legacy hooks, native accelerator behavior and remaining duplicate authorities; no claim fully migrated if unresolved. Measure matched action/map construction, empty owner vs active map, lookup/dispatch and representative view lifecycle allocation/shallow state with same environment and ranges where practical; avoid per-event list allocations and eager per-simple-control state. Retained heap/corporate integration UNKNOWN unless measured. List exact SHAs, all task statuses, approved intentional incompatibilities, unresolved keyboard policy, external API impact and remaining backlog; independent Windows commands for new modes -SettingsFile D:\Java\.m2\settings.xml. STOP after Reply ACT-019; no self-assignment.
