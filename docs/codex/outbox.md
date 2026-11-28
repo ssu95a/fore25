@@ -6418,3 +6418,55 @@ Independent Windows rerun on this SHA, with Maven on PATH and a verified focus-c
     }
 
 The local frozen fixtures can be repeated after a fresh desktop preflight using target/act-019-validation/binary/run.ps1 -Modes "keys,key-edges,meta,bridge" -Label <new-unique-label>. The prepared footprint command is powershell.exe -NoProfile -ExecutionPolicy Bypass -File target/act-019-validation/measure.ps1; keep the original measurement artifacts when rerunning. Independent acceptance remains separate. MAINT-001 remains queued. STOP.
+
+
+## Reply MAINT-001
+
+Production SHA eabf4c6725fc984363c57d54ff8633a66ebef20d.
+
+**COMPLETED.** Performed target-only housekeeping at the accepted Action Engine Phase II checkpoint. No active Java or Maven process was found at removal. Verified canonical target paths, registered detached worktree status, no reparse points, no local or ignored files and published ancestry before removal. Used git worktree remove without force. Git objects, commits and published history remain reachable.
+
+| Inventory measurement | Bytes | Decimal MB |
+|---|---:|---:|
+| Before housekeeping | 624,604,858 | 624.60 |
+| After cleanup, before writing this reply | 443,911,331 | 443.91 |
+| Net reclaimed | 180,693,527 | 180.69 |
+| Gross file bytes removed | 180,991,396 | 180.99 |
+
+Measurements are sums of file lengths within target. Net includes local inventory and hash records and the retained mailbox worktree's fast-forward. Values do not measure physical filesystem allocation.
+
+Removed exactly these clean, reconstructible historical mailbox worktrees. All locations are relative to target:
+
+- act-016-fixture/mailbox (9322453 bytes, 82c6023fee05d92b0c5f83e857595c5fc3c1402c)
+- act-016-validation/resume-binary/mailbox (9311739 bytes, 6778d1378b41006ad0c285c77775ca3e04b87519)
+- act-017-diag/mailbox (9288764 bytes, 1a205703ab4e55292851c997844d5f59fd279075)
+- act-017-diag/resume/mailbox (9296979 bytes, f8d84462e0bbc857bf3f973766621e7f1e735a1e)
+- act-017-validation/mailbox (9305698 bytes, 784f1a6aa73891e1e0a2812a7a1e8bf5a3c84149)
+- act-019-validation/mailbox (9334812 bytes, cb2e39cc550db9ab354e8962f0deaab4ba2729fc)
+- mailbox-013 (8995774 bytes, 527d633ff37c6a9989f34db618cb9bc2e45575f0)
+- mailbox-067-074 (8662396 bytes, 7e3d6fe2d9d6bb87503a8fd641d668942b1cdfde)
+- mailbox-075-078 (8684566 bytes, bfaae9714c7c61fb31c9930361068128e9d8456e)
+- mailbox-079-090 (8709058 bytes, f669409b06028d734d61790c17e9bc099a997224)
+- mailbox-079a (8726396 bytes, e84e1110f4b37cef463ba2c8f30d319c8ecc7875)
+- mailbox-080-090 (8770604 bytes, e1e05d5120f1e529894af73fa4407c42b4e1b210)
+- mailbox-091-097 (8818368 bytes, 42fb0cb3b7c6f344b944420aefeb09d99f223934)
+- mailbox-098-103 (8869917 bytes, dde6e6fa20535d86d6ed1f09edf400d15a1c2097)
+- mailbox-104-perf (8932305 bytes, c5f6a2fd6364857b569647c2c51c8a76b31739b7)
+- mailbox-108-perf (8967451 bytes, dc818a7af890cb3fd89ac2168e781a63999b9e0e)
+- mailbox-act-next (9265213 bytes, 4cbb80922aa333b20f09e4d7cc09f09a0c7c79b7)
+- mailbox-act-resume (9280858 bytes, cf93ec2a31b5302e2b09e7a5fb7a6cdcc387b779)
+- mailbox-alerts (9235953 bytes, 8a6c2e0c88ba5e0970a9560f97b32b4015eac56f)
+- mailbox-architecture (9212092 bytes, fb2c8c1452953b9de5ad6a39827ef2e1f40958eb)
+
+Largest retained locations by sampled bytes:
+
+- perf-011 (45130031 bytes)
+- perf-005 (37070674 bytes)
+- act-017-diag (35822696 bytes)
+- perf-014a (19298318 bytes)
+- act-011 (18470135 bytes)
+- perf-014 (17000265 bytes)
+- perf-015 (15542364 bytes)
+- arch-006 (15253855 bytes)
+
+Retained original ACT-017 A/B candidate and incident data; ACT-019 and ACT-016 logs, ABI, frozen classfiles and harnesses; current target/classes; earlier measurement archives and original failure data. Preserved non-mailbox artifacts, including those with uncertain historical or rerun value. Kept the latest mailbox worktree for publishing this reply. Historical publish scripts may still name the removed checkout paths; rerun scripts and archived review data remain in place. Verified protected rerun and immutable fixture hashes before and after removal. Local records under target/maint-001 include before.csv, after.csv, removed.csv, preserved-hashes.csv and totals.txt. The production branch is clean and unchanged. STOP.
