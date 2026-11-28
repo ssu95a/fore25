@@ -5969,3 +5969,19 @@ foreach ($mode in @('ForeActionModel', 'ForeActionInvocation', 'LegacyActionFaca
 ```
 
 Raw runner CSV, stdout/stderr, ABI and footprint probes/results are in ignored `target/act-011`. Earlier gate matrices are published in Reply ACT-005 and Reply ACT-008. STOP after publication.
+
+## Reply ALERT-001
+
+Status: PARTIAL read-only characterization. Production baseline 62cb0ec44f0e958455f775d6c26e20ed208c7bb4. No production commit.
+
+| Contract | Evidence |
+|---|---|
+| API | 24 static overloads (four showAlert and five each for info/error/yesNo/yesNoCancel), 12 fluent interface methods, public Alerts.Builder and AlertBuilder retained in javap -protected -s capture. AlertBuilder.build descriptor ()Lru/inversion/fx/form/JInvAlert;. No repository IAlertMaker implementation or caller found. |
+| Defaults, owner, modality | Shown offline Windows JavaFX probe confirmed null buttons -> INFORMATION OK, empty buttons -> CONFIRMATION OK/CANCEL, default builder -> NONE with no buttons, scene-less Stage ignored, actual Scene-backed Stage used, default WINDOW_MODAL. Build already resets an always-on-top owner. |
+| Content | Actual custom TextArea/graphic identity and empty header preserved. List details join with newline in a collapsed read-only TextArea. Source also shows String and String[] conversion, Node details initially expanded, ignored unsupported detail types, bundle TITLE_<TYPE> and dialog button localization. |
+| Results | Actual NO and ESC -> CANCEL observed. Source shows static absent-result CANCEL, yesNo true only for YES, yesNoCancel YES true / NO false / otherwise empty. |
+| Keyboard and repeat | Targeted ENTER at actual custom TextArea reproduced ClassCastException. A second show of the same builder result reproduced NullPointerException in Alerts onShown because pane.getScene() was null. First probe JVM 3216 exited 1, timeout false, launch script exited 1. This is a production Java exception with a captured stack trace. |
+| Application lifecycle | No-app build reproduced NullPointerException in Alerts.initBeforeShow. Probe installs an offline pre-login BaseApp fixture without calling BaseApp.init. Source gates sound on isAfterLogin and invokes it during build. |
+| Consumers | JInvErrorService has AlertException/builder paths including APPLICATION_MODAL and direct static error paths. LoginManager uses static info and an INFORMATION builder. Other consumers include form controllers, Dataset adapter, keyboard/menu handlers, validation, LOV/filter and help code. |
+
+Offline Maven -Pbuild compile exited 0. Three fresh characterization JVMs (16124, 7760, 7632) each exited 0 (0x00000000), timeout false, and emitted ALERT-001 PASS. The outer script exited 0 and its marker-check invocation had positional PowerShell arguments reversed, generating diagnostic stderr. A separate read-only verification of each original stdout marker and child exit record passed. Original failing run, matrix, frozen compiled fixture and ABI are under ignored target/alert-001. Physical input, X-close, actual corporate sound, and full localization and content permutations remain UNKNOWN. The probe used synthetic JavaFX dispatch.
