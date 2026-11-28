@@ -6284,3 +6284,16 @@ Candidate implements one unified Scene owner with FILTER/HANDLER hooks. Native c
 Official ActionKeyUnified runner 9812 and three fresh JVMs 19408/9100/17420 passed. Scoped CTRL-024, ACT-006 and ACT-017 passed. Original scoped action javap inventory matched the archived manifest exactly; package baseline showed only the previously authorized getWaitActions removals. Full exact-commit regression was 80/80, all JVM/outer 0/0, no timeout and all markers, including GUI-005 PID 3972. Gate preflight JVM 16968 and runner 8652 obtained focus at the first pulse (0/0).
 
 The following focus-sensitive fixture group was stopped before launch. Its independent preflight Stage (JVM 12736, runner 8004, 0/0, no timeout) was visible and received 127 FX pulses while remaining unfocused. Root cause of the focus availability change is unestablished. No retries, focus workaround or regression waiver. Raw evidence under target/act-016-validation, including gate/matrix.csv and frozen/canary.stdout. Preserve the local commit. Remaining validation requires a focus-capable desktop and an explicit continuation. No production push.
+
+
+## Reply ACT-016 binary-fixture continuation
+
+Production SHA b5bb8fb10be4fd574f8f86eb8e77c4aec90ef563.
+
+**BLOCKED / STOP at frozen binary-fixture linkage.** Preserved local clean candidate eabf4c6725fc984363c57d54ff8633a66ebef20d. Previous exact-SHA gate 80/80 and normalized original ABI were rechecked. No production rebuild, edit or publication.
+
+Fresh canary JVM 10320 / runner 14672 focused on first FX pulse, exits 0/0, no timeout. Adapted exact ACT-008 ShortcutOrderAudit JVM 7704 exited 0 with no timeout: manager-first and binder-first both produced [application:false, action] with the original specific KEY_PRESSED interposition. Existing frozen ACT-002 meta (JVM 11484, runner 14792) and bridge (JVM 4720, runner 18632) passed 0/0. Frozen keys (JVM 19348, runner 19384) exited 1 (0x00000001) / 1 without timeout. key-edges was not launched.
+
+The keys launcher classpath puts target/act-003/legacy-fixture before target/classes. Both supply ru.inversion.fore.form.action.ActionKeyBinder. javap confirms the fixture binder lacks legacyActions(Scene, boolean), which production SceneKeyManager.getActionMap calls. keys therefore stopped in linkage before its keyboard assertions. The fixture also directly uses its reference binder, so reversing the classpath would change which implementation the frozen consumer exercises. This is a failure of the frozen fixture arrangement; the remaining compatibility evidence is incomplete. Minimum next gate is a separately approved isolation of the two binder classes in the harness while preserving frozen consumer bytecode and assertions, followed by the required checks. No retry or waiver applied.
+
+Prior evidence remains intact. New outputs are under target/act-016-validation/resume-binary and target/act-007a-resume/act016-resumed-*. ACT-018 and ACT-019 are NOT_RUN. STOP.
