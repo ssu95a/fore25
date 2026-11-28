@@ -44,6 +44,8 @@ param(
     [switch] $TableAdapterClose,
     [Parameter(ParameterSetName = 'TextAreaLovLifecycle')]
     [switch] $TextAreaLovLifecycle,
+    [Parameter(ParameterSetName = 'LegacyActionFacade')]
+    [switch] $LegacyActionFacade,
     [Parameter(ParameterSetName = 'ForeActionInvocation')]
     [switch] $ForeActionInvocation,
     [Parameter(ParameterSetName = 'ForeActionModel')]
@@ -206,6 +208,9 @@ if ($TextAreaToolbarOwnership) {
 } elseif ($TextAreaLovLifecycle) {
     $probeId = 'CTRL-050'
     $probeClass = 'TextAreaLovLifecycleSmoke'
+} elseif ($LegacyActionFacade) {
+    $probeId = 'ACT-005'
+    $probeClass = 'LegacyActionFacadeSmoke'
 } elseif ($ForeActionInvocation) {
     $probeId = 'ACT-004'
     $probeClass = 'ForeActionInvocationSmoke'

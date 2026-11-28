@@ -19,6 +19,7 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.inversion.fore.form.action.ActionInvocation;
 import ru.inversion.fx.app.BaseApp;
 import ru.inversion.fx.app.ThreadPoolManager;
 import ru.inversion.fx.app.es.JInvErrorService;
@@ -289,8 +290,8 @@ public class JInvAction implements IAction {
                 } else {
                     handlerWithNextAction.accept(event, nextAction);
                 }
-            } else if (handler != null) {
-                handler.handle(event);
+            } else {
+                ActionInvocation.invoke(handler, EventHandler::handle, event);
             }
         } catch (Exception e) {
             handleException(e);
