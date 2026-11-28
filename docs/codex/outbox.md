@@ -5678,3 +5678,86 @@ Safe ownership cannot be inferred from StringProperty.isBound: the same property
 Decision needed: agree a supported ownership boundary for writable/rebound progress targets and form text (including externally constructed Task), and specify the transition when the latest progress source retires while an earlier invocation remains. Real form close, TaskContext, concurrent caller replacement and saturation beyond source analysis UNKNOWN. Do not infer cancellation or rollback. See target/act-007/direct.csv, WorkerOwnershipAudit.java, precompiled-run.ps1/run-ownership.ps1 and per-attempt stdout/stderr. No unauthorized policy or partial commit. ACT-008 shortcut resolution is independent of this unresolved worker ownership and may proceed on the unchanged ACT-006 baseline; its mandatory gate remains in force.
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -TableAdapterBulkWorkerClose -SettingsFile "D:\Java\.m2\settings.xml"
+
+
+---
+
+## Reply ACT-008
+
+**BLOCKED dispatcher consolidation; GREEN mandatory regression/ABI gate on unchanged 33478bb8b05522c747eb2a5a444c4ec4bf86c64e.** Existing legacy contextual execution and callback APIs remain active positions. No native binder added and no production, permanent state or ABI delta.
+
+Actual shown ShortcutOrderAudit JVM/outer 0/0 produced manager-first [action, application:true, callback] and binder-first [callback, application:false, action], with the application's KEY_PRESSED filter deliberately registered between the two public APIs. Callback receives exact JInvActionEvent control/key and can observe the event even after action consumes it. Action gets separate JInvEvent payload. Accelerator did not run while contextual action consumed; after map mutation removed it, callback and accelerator both ran. Same underlying list and HashMap identities retained across repeated access. Existing registration/dispatch order is observable; collapsing both into one filter position cannot preserve these two public sequences and third-party interleaving. The original ANY/specific registrations also differ by phase and cannot be collapsed without a policy on observability/rechecks. No competing replacement dispatcher installed. Request a decision before changing interleaving/consumption or introducing new binder against the same scene; do not import reference conflict rules into legacy.
+
+Maven compile, PowerShell parse, diff and exact original javap ABI passed. Frozen precompiled meta/bridge/keys/key-edges all 0/0; contextual precedence, synthetic denied shadow, direct mutation, scope and accelerator previously characterized. Full gate 67/67 actual child and outer 0/0, no timeout. Actual external filters beyond fixture, MDI and corporate service UNKNOWN. Raw target/act-008/matrix.csv and direct.csv. Factory work ACT-009 is independent of keyboard and worker policy, with same unchanged GREEN baseline.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -SceneKeyLookup -SettingsFile "D:\Java\.m2\settings.xml"
+
+| Mode | JVM | Runner | Assertion |
+| --- | ---: | ---: | --- |
+| ActionSecurityAdmission | 0 | 0 | ACT-006 PASS |
+| LegacyActionFacade | 0 | 0 | ACT-005 PASS |
+| ForeActionInvocation | 0 | 0 | ACT-004 PASS |
+| ForeActionModel | 0 | 0 | ACT-003 PASS |
+| FEButtonConstruction | 0 | 0 | ARCH-006 PASS (construction, dialog, overflow and skin lifecycle) |
+| TextFieldInnerButtonOwnership | 0 | 0 | ARCH-003 PASS (control selection and wrapper lifecycle) |
+| ButtonTargetAssociation | 0 | 0 | ARCH-002 PASS (target association and legacy configuration) |
+| FEActionDelegation | 0 | 0 | ARCH-001 PASS (real dialog, FE routing and legacy configured button) |
+| TextFieldContextMenuLifecycle | 0 | 0 | PERF-014 PASS (control-owned context menu lifecycle) |
+| TextAreaContextMenuLifecycle | 0 | 0 | PERF-015 PASS (control-owned context menu lifecycle) |
+| TableAdapterBulkMarkErrorDelivery | 0 | 0 | CTRL-104 PASS |
+| TableAdapterBulkMarkClose | 0 | 0 | CTRL-105 PASS |
+| TableAdapterRowRefreshClose | 0 | 0 | CTRL-106 PASS |
+| TableAdapterQueuedClose | 0 | 0 | CTRL-077 PASS |
+| TableEditRowIdentity | 0 | 0 | CTRL-075 PASS |
+| TableEditing | 0 | 0 | GUI-005 PASS |
+| TableCancel | 0 | 0 | GUI-006 PASS |
+| DataBinding | 0 | 0 | GUI-009 PASS |
+| TextFieldSkinDisposal | 0 | 0 | CTRL-049 PASS |
+| TextFields | 0 | 0 | GUI-012 PASS (tested matrix) |
+| ValueFields | 0 | 0 | VF-001 PASS |
+| LovIntegration | 0 | 0 | CTRL-031 PASS |
+| BoundLovSetter | 0 | 0 | CTRL-044 PASS |
+| LovBindingInterleaving | 0 | 0 | CTRL-045 PASS |
+| ExternalLovReadOnly | 0 | 0 | CTRL-061 PASS |
+| WrapButtonOwnership | 0 | 0 | CTRL-055 PASS |
+| CurrencyLovDelayedCompletion | 0 | 0 | CTRL-091 PASS |
+| MoneyDecimal | 0 | 0 | NUM-001 PASS (tested invariants) |
+| FormLifecycle | 0 | 0 | GUI-010 PASS (standalone production FXML/controller and SDI close) |
+| Default | 0 | 0 | GUI-001 PASS |
+| TableAdapterSearchMissDelivery | 0 | 0 | CTRL-098 PASS |
+| TableAdapterSearchWorkerClose | 0 | 0 | CTRL-093 PASS |
+| TableAdapterBulkWorkerClose | 0 | 0 | CTRL-092 PASS |
+| TableAdapterSearchListener | 0 | 0 | CTRL-081 PASS |
+| TextAreaToolbarOwnership | 0 | 0 | CTRL-066 PASS |
+| TableAdapterBulkClose | 0 | 0 | CTRL-076 PASS |
+| TextFieldLovDelayedCompletion | 0 | 0 | CTRL-078 PASS |
+| TableAdapterPagingClose | 0 | 0 | CTRL-065 PASS |
+| TextAreaLovDelayedCompletion | 0 | 0 | CTRL-062 PASS |
+| TabPaneSkinListeners | 0 | 0 | CTRL-054 PASS |
+| TextAreaSkinDisposal | 0 | 0 | CTRL-053 PASS |
+| ValidatorSubchanges | 0 | 0 | CTRL-052 PASS |
+| TableAdapterClose | 0 | 0 | CTRL-051 PASS |
+| TextAreaLovLifecycle | 0 | 0 | CTRL-050 PASS |
+| WrapButtonDeferred | 0 | 0 | CTRL-043 PASS |
+| Editors | 0 | 0 | GUI-004 PASS |
+| EditorReentry | 0 | 0 | GUI-007 PASS |
+| FormCancel | 0 | 0 | CTRL-022 PASS |
+| SceneKeyLookup | 0 | 0 | CTRL-024 PASS |
+| LovListenerLifecycle | 0 | 0 | CTRL-026 PASS |
+| LovDefaultValidation | 0 | 0 | CTRL-027 PASS |
+| SingletonCloseVeto | 0 | 0 | CTRL-032 PASS |
+| SingletonLifecycleMatrix | 0 | 0 | CTRL-035 PASS |
+| ValidatorScopedUnbind | 0 | 0 | CTRL-033 PASS |
+| ValidatorMultiControl | 0 | 0 | CTRL-036 PASS |
+| ValueLifecycle | 0 | 0 | VF-002 PASS (custom listener ownership) |
+| DatePickerBinding | 0 | 0 | CTRL-002 PASS |
+| NodeTraversal | 0 | 0 | CTRL-003 PASS |
+| RadioReadOnly | 0 | 0 | CTRL-006 PASS |
+| ComboReadOnly | 0 | 0 | CTRL-007 PASS |
+| CheckBoxReadOnly | 0 | 0 | CTRL-009 PASS |
+| ValueChangedFlag | 0 | 0 | CTRL-013 PASS |
+| ControlsFollowup | 0 | 0 | CTRL-CONTROLS-FOLLOWUP PASS |
+| ChoiceAdapter | 0 | 0 | CTRL-015 PASS |
+| BinderChoiceNull | 0 | 0 | CTRL-017 PASS |
+| ChoiceNullLookup | 0 | 0 | CTRL-018 PASS |
+| ChoiceNonNullSet | 0 | 0 | CTRL-019 PASS |
