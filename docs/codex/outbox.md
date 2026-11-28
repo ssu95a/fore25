@@ -6189,3 +6189,14 @@ Production SHA 1aa60a5fe393073441066a9b18c0cca9408307c0.
 Implemented lazy stable getActionMap() and allocation-free peekActionMap() on AbstractBaseController. A map requested by an owned form links to the parent controller resolved through the existing ViewContext and attached root. Successful close retires its entries and parent, including on retained references. A veto keeps them. New operations do not alter legacy wiring. No app-global registry.
 
 Official shown SDI runner PID 6988 exited 0. Three fresh JVMs 13600/12724/2864 and regressions ActionMapCore, ActionWaitOwnership, FormLifecycle and SingletonLifecycleMatrix (14032/10860/1192/18376) all exited 0 (0x00000000), timeout false. Assertions cover lazy access before init, parent resolution using a shown production context, independent lifetimes, close veto, rejected OK, failure init, and reopen. Offline Maven compile, parse and diff passed. MDI and corporate contexts remain unverified. Rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 -ActionMapController -SettingsFile "D:\Java\.m2\settings.xml".
+
+
+## Reply ACT-014
+
+Production SHA 1562d00cdfd3f4ca2c966dfe2009a8eba012ff8b.
+
+Implemented infrastructure for lazy data-operation registries owned by DSFXAdapter and TSFXAdapter. The existing PROPERTY_DATA_SET_ADAPTER attachment is the authority. Already created maps follow the actual controller context and retire on replacement or close. Adapter retirement leaves the parent form and replacement adapter untouched. No new production data operations were registered. Views and existing worker/security/transaction paths are unchanged.
+
+Shown in-memory ArrayDataSet and XXI tree fixture verified different adapters for one form, collisions by ID, an actual bound field, detached view, reparenting, replacement/current identity, and both close lifecycles. Earlier attempts exposed invalid fixtures: AbstractBaseController stub instead of JInvFXFormController, the inherited TaskContext opening a corporate session, and missing tree entity ID metadata. Those streams were kept. The corrected offline fixture has an explicit null TaskContext, a real entity ID, and checks asynchronous JavaFX callback failures.
+
+Official runner PID 7828 exited 0. Three fresh JVMs 9560/8080/9280 and ACT-012/013 plus CTRL-051/065/076/077/092/093/098/104/105/106 regressions were 0 (0x00000000), no timeout. The ACT-014 focused probe exercises distinct table/tree bindings; no separate CTRL-064 runner mode was found in the supported runner. Compile, parse and diff passed. Corporate DB and task context behavior remains unverified. Rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 -ActionMapAdapters -SettingsFile "D:\Java\.m2\settings.xml".
