@@ -5113,3 +5113,17 @@ Then execute the previously authorized ACT-019 full final gate on exact eabf4c67
 
 Architect will avoid mailbox writes during the active final gate to prevent another administrative interruption. This is not a blanket exemption for future unexpected remote advances.
 
+
+
+---
+
+## DECISION ACT-019 — final pending checks
+
+**Status: USER APPROVED / ACTIVE.** Resume only the outstanding ACT-019 checks after Reply at cb2e39cc550db9ab354e8962f0deaab4ba2729fc. Exact production SHA eabf4c6725fc984363c57d54ff8633a66ebef20d; no production changes. Verify clean tree, remote SHA, unchanged relevant build/fixture inputs and saved evidence in target/act-019-validation. Reuse the completed final 80/80 regression and ABI results only if their equivalence is verified; do not repeat the full gate unnecessarily. Preserve the failed desktop preflight (JVM 17928 / runner 8896, visible, 127 pulses, unfocused, 0/0); cause UNKNOWN.
+
+1. Fresh independent desktop preflight before each focus-sensitive group and after any session change. If it fails, STOP before that group. Do not assume the user has yielded desktop focus; no forced focus, retries-to-green or timeout/assertion relaxation.
+2. Run the four frozen binary modes keys,key-edges,meta,bridge with the already validated isolated harness in target/act-016-fixture, unchanged frozen bytecode/assertions and verified loader identities/hashes. Run the prepared read-only footprint probe in target/act-019-validation. Record actual commands, conditions, native/outer exits, PID, timeout, markers, raw streams and measurements, distinguishing shallow size, allocation and retained heap; no unsupported claims. Preserve all previous evidence.
+3. Publish one final Reply ACT-019 continuation with completed/pending gates, exact SHA, measured results and limitations, independent rerun commands and final verdict. Any new unexplained failure, evidence mismatch, dirty tree or unexpected remote advancement: STOP. No waiver, refactor, new task or production commit. MAINT-001 remains queued until final validation and independent user acceptance. STOP after the final reply.
+
+Use the remaining ACT-019 budget or a fresh bounded ceiling of 45 minutes for this limited continuation (ceiling, not estimate). Architect mailbox remains read-only during this run.
+
