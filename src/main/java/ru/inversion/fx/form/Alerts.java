@@ -116,6 +116,16 @@ public class Alerts {
             final ButtonType... buttons
     ) {
         JInvAlert alert = new JInvAlert( alertType, "", buttons );
+        Window window = configure(alert, windowContainer, alertType, title, headerText,
+                contentText, detailText, graphic, modality);
+        initBeforeShow(alertType, alert, window);
+        return alert;
+    }
+
+    private static Window configure(
+            Alert alert, Object windowContainer, Alert.AlertType alertType, String title,
+            String headerText, Object contentText, Object detailText, Node graphic, Modality modality
+    ) {
         alert.setResizable(true);
         Window window = ViewContext.tryGetWindow(windowContainer);
 
@@ -173,8 +183,9 @@ public class Alerts {
             expContent.add(textArea, 0, 1);
             alert.getDialogPane().setExpandableContent(expContent);
         }//end if
-        initBeforeShow( alertType, alert, window, modality );
-        return alert;
+        alert.initModality(modality);
+        localizeDialog(alert.getDialogPane());
+        return window;
     }
 
     public class Builder{
@@ -185,12 +196,7 @@ public class Alerts {
     /**
      Общий код инициализации алертов перед показом
      */
-    private static void initBeforeShow( final Alert.AlertType alertType, final Alert alert, final Window window, Modality modality ) {
-        alert.initModality( modality );
-
-        //localize
-        localizeDialog( alert.getDialogPane() );
-
+    private static void initBeforeShow( final Alert.AlertType alertType, final Alert alert, final Window window ) {
         //fix enter
         //Enter прошит как ответ "Да", поэтому гасим его событие и нажимаем нужную кнопку сами
         alert.setOnShown( event -> {
@@ -400,6 +406,10 @@ public class Alerts {
     }
 
     /** fluent zone */
+    public static IAlertMaker maker() {
+        return new AlertMaker();
+    }
+
     public interface IAlertMaker {
         /** */
         IAlertMaker window( Object w );
@@ -425,6 +435,100 @@ public class Alerts {
         IAlertMaker buttons( ButtonType... buttons );
         /** */
         <T> Optional<T> showAndWait();
+
+        /** Возвращает фактически выбранную кнопку. */
+        default Optional<ButtonType> showButtonAndWait() {
+            throw new UnsupportedOperationException();
+        }
     }
 
+    private static final class AlertMaker implements IAlertMaker {
+        private Object window;
+        private Alert.AlertType type = Alert.AlertType.INFORMATION;
+        private String title;
+        private String headerText;
+        private Object content;
+        private Object detail;
+        private Node graphic;
+        private Modality modality = Modality.WINDOW_MODAL;
+        private ButtonType[] buttons;
+
+        @Override
+        public IAlertMaker window(Object window) {
+            this.window = window;
+            return this;
+        }
+
+        @Override
+        public IAlertMaker type(Alert.AlertType type) {
+            this.type = java.util.Objects.requireNonNull(type);
+            return this;
+        }
+
+        @Override
+        public IAlertMaker title(String title) {
+            this.title = title;
+            return this;
+        }
+
+        @Override
+        public IAlertMaker headerText(String headerText) {
+            this.headerText = headerText;
+            return this;
+        }
+
+        @Override
+        public IAlertMaker content(Object content) {
+            this.content = content;
+            return this;
+        }
+
+        @Override
+        public IAlertMaker contentText(String contentText) {
+            return content(contentText);
+        }
+
+        @Override
+        public IAlertMaker detail(Object detail) {
+            this.detail = detail;
+            return this;
+        }
+
+        @Override
+        public IAlertMaker checkBoxText(String text) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public IAlertMaker graphic(Node graphic) {
+            this.graphic = graphic;
+            return this;
+        }
+
+        @Override
+        public IAlertMaker modality(Modality modality) {
+            this.modality = java.util.Objects.requireNonNull(modality);
+            return this;
+        }
+
+        @Override
+        public IAlertMaker buttons(ButtonType... buttons) {
+            this.buttons = buttons == null ? null : buttons.clone();
+            return this;
+        }
+
+        /** Результат совместимого обобщенного метода имеет тип ButtonType. */
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> Optional<T> showAndWait() {
+            return (Optional<T>) showButtonAndWait();
+        }
+
+        @Override
+        public Optional<ButtonType> showButtonAndWait() {
+            Alert alert = new Alert(type, "", buttons);
+            configure(alert, window, type, title, headerText, content, detail, graphic, modality);
+            return alert.showAndWait();
+        }
+    }
 }
