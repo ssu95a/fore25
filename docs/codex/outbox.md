@@ -6333,3 +6333,36 @@ Production SHA eabf4c6725fc984363c57d54ff8633a66ebef20d.
 **NO_CHANGE.** The shown-stage comparison used production JInvKeyboardManager with the legacy event filter and directly compared requestFocusTraversal(NEXT). The legacy forward call and Ctrl+Tab both emitted an observable TAB that the application filter consumed, keeping focus on the original field. The direct traversal skipped a hidden and a disabled field and moved to TextArea without calling that filter. The existing TextArea branches continued to perform direct previous/next traversal. The observable veto difference blocks a general substitution, and no independently meaningful equivalent replacement was established. Retained existing event semantics. No production commit.
 
 Desktop canary JVM 18420 / runner 1484 focused at first pulse (0/0). TraversalContract JVM 8608 exited 0, no timeout, and emitted ACT-018 PASS. The ignored source, invocation and streams are under target/act-018-validation. Synthetic JavaFX dispatch was used. Actual business validation, table boundaries, ComboBox popup and LOV completion were not all re-characterized here; relevant existing modes are included in the final full gate. Continue read-only ACT-019.
+
+
+## Reply ACT-019
+
+Production SHA eabf4c6725fc984363c57d54ff8633a66ebef20d.
+
+**PARTIAL / BLOCKED at the separate binary-fixture desktop preflight. STOP.** Fresh final regression gate on this exact clean production SHA passed 80/80 (73 original modes plus seven ACT modes), with actual JVM signed and hex zero, runner zero, all markers and no timeouts. Offline Maven -Pbuild compile reported up to date, PowerShell parse and git diff --check passed. Gate canary JVM 12440 / runner 11956 obtained focus on the first FX pulse (0/0). GUI-005 fresh JVM 9992 passed. The separate canary before the final binary group (JVM 17928 / runner 8896, 0/0, no timeout) was visibly showing with 127 FX pulses and remained unfocused. Mandatory STOP took effect before any fresh binary-fixture or footprint processes. Cause of focus availability change is unknown. No retry, waiver, production write or MAINT-001 cleanup.
+
+ACT-018 saved NO_CHANGE reply was published once at 1dd57c0 after confirming the intervening commits were inbox-only and checking saved source, invocation, preflight, exit and marker. ACT-018 was not repeated.
+
+ABI and binary evidence: the original action inventory matched exactly (including the original nested manifest), Alerts ABI matched the previous inventory, and the scoped package inventory showed only the authorized getWaitActions removals. Prior isolated ACT-002 keys/key-edges/meta/bridge on this exact production SHA remain green as recorded in ACT-016-FIXTURE. Their frozen classes, production fixture inputs, and archived failure files matched the saved hashes during this final gate. That is earlier same-SHA binary evidence. The fresh binary rerun and fresh footprint measurements remain pending.
+
+Lifecycle and architecture findings from the fresh modes and source: form-owned automatic WAIT and invocation-owned progress were exercised through overlap, cancellation, reset, failure, rejection and foreign binding. Form and adapter registries are lazy and retire at tested lifecycle boundaries. Table/toolbar current-row mark routes share the adapter operation; keyboard, other table/tree/form operations and mark-all retain legacy paths where documented. Unified dispatch selects native FILTER command, legacy IAction, then the legacy callback within the applicable phase. The tested case of unconsumed callback followed by handler remains supported. Public legacy list/map identity, payload, admission and hotkey semantics are covered by the fresh suites and prior frozen evidence, with the approved relative interleaving and consumed-callback deltas. Source-review findings remain the ProgressDelivery static sink index (idle removal, retained capacity and reentrancy deserve review) and per-event Match allocation when a native scope is found. Retained heap, full corporate integration, physical input and the original GUI-005 incident cause remain unknown. No separate ACT-018 or ACT-019 production commit.
+
+Verified production chain (commit, parent, subject):
+    eabf4c6725fc984363c57d54ff8633a66ebef20d b5bb8fb10be4fd574f8f86eb8e77c4aec90ef563 ACT-016 Unify contextual and legacy shortcut dispatch
+    b5bb8fb10be4fd574f8f86eb8e77c4aec90ef563 655b7287728b8f2ab4d4a6adafc7844f066cee1d ACT-017 Share current-row mark operation across dataset views
+    655b7287728b8f2ab4d4a6adafc7844f066cee1d 1562d00cdfd3f4ca2c966dfe2009a8eba012ff8b ACT-015 Resolve contextual native shortcuts in an isolated Scene
+    1562d00cdfd3f4ca2c966dfe2009a8eba012ff8b 1aa60a5fe393073441066a9b18c0cca9408307c0 ACT-014 Give dataset mini-controllers scoped ActionMaps
+    1aa60a5fe393073441066a9b18c0cca9408307c0 832f0719be55f5e0b73352a4d600f9f51a99b469 ACT-013 Give form controllers lifecycle-owned ActionMaps
+    832f0719be55f5e0b73352a4d600f9f51a99b469 4818c7a7060ab53d7273d1cea0100c8b347bbc45 ACT-012 Add compact parent-aware ActionMap
+    4818c7a7060ab53d7273d1cea0100c8b347bbc45 259f9887b95ee9cd7761a231e86bc57610325b88 ACT-007A Own automatic WAIT by form and progress by execution
+
+Raw results are under target/act-019-validation (matrix.csv, per-mode native/outer evidence and streams, compile, inventories and the blocked binary/preflight logs). A read-only footprint probe is prepared there. The seven new supported modes can be rerun independently from the exact production SHA with JDK 25, Maven on PATH, and a verified focus-capable desktop:
+
+    $env:JAVA_HOME = 'C:\Program Files\Java\jdk-25'
+    $env:MAVEN_ARGS = '-o'
+    foreach ($mode in 'ActionWaitOwnership','ActionMapCore','ActionMapController','ActionMapAdapters','ActionKeyContext','ActionMapMarkView','ActionKeyUnified') {
+        powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 "-$mode" -SettingsFile "D:\Java\.m2\settings.xml"
+        if ($LASTEXITCODE -ne 0) { throw "$mode failed with exit $LASTEXITCODE" }
+    }
+
+Pending gate: a separately authorized continuation with a verified focus-capable desktop, unchanged isolated fixtures and measurements on this SHA. MAINT-001 remains queued. STOP.
