@@ -5574,3 +5574,83 @@ DONE. Baseline 0a97ffb8e1b53ca6c6d2e192e3af8e6cfa545b20, final 7160b0f907a9b30b9
 Focused shown actual Button/MenuItem, repeated direct calls, null and identity, disabled, replacement, original failure identity passed in three fresh JVMs and extra instrumented 0/0, unchanged official runner 0. ForeActionModel, FEActionDelegation, SceneKeyLookup and FormLifecycle 0/0. Maven compile, PowerShell parse, diff check, exact legacy ABI and frozen precompiled ACT-002 metadata/bridge 0/0. Evidence target/act-004/matrix.csv, direct.csv and legacy-abi.txt. No worker, security, shortcut or FXML contract change.
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ForeActionInvocation -SettingsFile "D:\Java\.m2\settings.xml"
+
+
+---
+
+## Reply ACT-005
+
+**GREEN, mandatory regression/ABI gate.** Baseline 7160b0f907a9b30b98159da6ccbe65fd2138639a, final 2443a651a326c6c68a91d9876536579558ade853. JInvAction's ordinary handler branch delegates to ActionInvocation after the unchanged requested-enabled/security checks. It preserves caller thread, handler object, nullable/identity event, virtual override and original catch/error policy. The secured ordinary handler enters the same final call only after the original real admission. Parallel and nextAction branches and arbitrary custom IAction bodies remain on existing execution routes. No new instance state, ForeAction facade object, extra per-invocation allocation, property change or ABI change.
+
+Exact ACT-001 javap ABI match and frozen ACT-002 metadata/bridge JVM and runner 0/0 without recompilation. Focused three fresh and extra instrumented 0/0, official runner 0. Full gate on the exact committed candidate 66/66 child/runner 0/0, no timeout, compile/parse/diff 0. Streams, child signed/hex, outer exits, PID and timestamps in target/act-005/matrix.csv. External client compatibility still only bounded by selected compiled fixture. Continue ACT-006 under approved scope.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -LegacyActionFacade -SettingsFile "D:\Java\.m2\settings.xml"
+
+| Mode | JVM | Runner | Assertion |
+| --- | ---: | ---: | --- |
+| LegacyActionFacade | 0 | 0 | ACT-005 PASS |
+| ForeActionInvocation | 0 | 0 | ACT-004 PASS |
+| ForeActionModel | 0 | 0 | ACT-003 PASS |
+| FEButtonConstruction | 0 | 0 | ARCH-006 PASS (construction, dialog, overflow and skin lifecycle) |
+| TextFieldInnerButtonOwnership | 0 | 0 | ARCH-003 PASS (control selection and wrapper lifecycle) |
+| ButtonTargetAssociation | 0 | 0 | ARCH-002 PASS (target association and legacy configuration) |
+| FEActionDelegation | 0 | 0 | ARCH-001 PASS (real dialog, FE routing and legacy configured button) |
+| TextFieldContextMenuLifecycle | 0 | 0 | PERF-014 PASS (control-owned context menu lifecycle) |
+| TextAreaContextMenuLifecycle | 0 | 0 | PERF-015 PASS (control-owned context menu lifecycle) |
+| TableAdapterBulkMarkErrorDelivery | 0 | 0 | CTRL-104 PASS |
+| TableAdapterBulkMarkClose | 0 | 0 | CTRL-105 PASS |
+| TableAdapterRowRefreshClose | 0 | 0 | CTRL-106 PASS |
+| TableAdapterQueuedClose | 0 | 0 | CTRL-077 PASS |
+| TableEditRowIdentity | 0 | 0 | CTRL-075 PASS |
+| TableEditing | 0 | 0 | GUI-005 PASS |
+| TableCancel | 0 | 0 | GUI-006 PASS |
+| DataBinding | 0 | 0 | GUI-009 PASS |
+| TextFieldSkinDisposal | 0 | 0 | CTRL-049 PASS |
+| TextFields | 0 | 0 | GUI-012 PASS (tested matrix) |
+| ValueFields | 0 | 0 | VF-001 PASS |
+| LovIntegration | 0 | 0 | CTRL-031 PASS |
+| BoundLovSetter | 0 | 0 | CTRL-044 PASS |
+| LovBindingInterleaving | 0 | 0 | CTRL-045 PASS |
+| ExternalLovReadOnly | 0 | 0 | CTRL-061 PASS |
+| WrapButtonOwnership | 0 | 0 | CTRL-055 PASS |
+| CurrencyLovDelayedCompletion | 0 | 0 | CTRL-091 PASS |
+| MoneyDecimal | 0 | 0 | NUM-001 PASS (tested invariants) |
+| FormLifecycle | 0 | 0 | GUI-010 PASS (standalone production FXML/controller and SDI close) |
+| Default | 0 | 0 | GUI-001 PASS |
+| TableAdapterSearchMissDelivery | 0 | 0 | CTRL-098 PASS |
+| TableAdapterSearchWorkerClose | 0 | 0 | CTRL-093 PASS |
+| TableAdapterBulkWorkerClose | 0 | 0 | CTRL-092 PASS |
+| TableAdapterSearchListener | 0 | 0 | CTRL-081 PASS |
+| TextAreaToolbarOwnership | 0 | 0 | CTRL-066 PASS |
+| TableAdapterBulkClose | 0 | 0 | CTRL-076 PASS |
+| TextFieldLovDelayedCompletion | 0 | 0 | CTRL-078 PASS |
+| TableAdapterPagingClose | 0 | 0 | CTRL-065 PASS |
+| TextAreaLovDelayedCompletion | 0 | 0 | CTRL-062 PASS |
+| TabPaneSkinListeners | 0 | 0 | CTRL-054 PASS |
+| TextAreaSkinDisposal | 0 | 0 | CTRL-053 PASS |
+| ValidatorSubchanges | 0 | 0 | CTRL-052 PASS |
+| TableAdapterClose | 0 | 0 | CTRL-051 PASS |
+| TextAreaLovLifecycle | 0 | 0 | CTRL-050 PASS |
+| WrapButtonDeferred | 0 | 0 | CTRL-043 PASS |
+| Editors | 0 | 0 | GUI-004 PASS |
+| EditorReentry | 0 | 0 | GUI-007 PASS |
+| FormCancel | 0 | 0 | CTRL-022 PASS |
+| SceneKeyLookup | 0 | 0 | CTRL-024 PASS |
+| LovListenerLifecycle | 0 | 0 | CTRL-026 PASS |
+| LovDefaultValidation | 0 | 0 | CTRL-027 PASS |
+| SingletonCloseVeto | 0 | 0 | CTRL-032 PASS |
+| SingletonLifecycleMatrix | 0 | 0 | CTRL-035 PASS |
+| ValidatorScopedUnbind | 0 | 0 | CTRL-033 PASS |
+| ValidatorMultiControl | 0 | 0 | CTRL-036 PASS |
+| ValueLifecycle | 0 | 0 | VF-002 PASS (custom listener ownership) |
+| DatePickerBinding | 0 | 0 | CTRL-002 PASS |
+| NodeTraversal | 0 | 0 | CTRL-003 PASS |
+| RadioReadOnly | 0 | 0 | CTRL-006 PASS |
+| ComboReadOnly | 0 | 0 | CTRL-007 PASS |
+| CheckBoxReadOnly | 0 | 0 | CTRL-009 PASS |
+| ValueChangedFlag | 0 | 0 | CTRL-013 PASS |
+| ControlsFollowup | 0 | 0 | CTRL-CONTROLS-FOLLOWUP PASS |
+| ChoiceAdapter | 0 | 0 | CTRL-015 PASS |
+| BinderChoiceNull | 0 | 0 | CTRL-017 PASS |
+| ChoiceNullLookup | 0 | 0 | CTRL-018 PASS |
+| ChoiceNonNullSet | 0 | 0 | CTRL-019 PASS |
