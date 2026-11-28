@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'ActionMapAdapters')]
+    [switch] $ActionMapAdapters,
     [Parameter(ParameterSetName = 'ActionMapController')]
     [switch] $ActionMapController,
     [Parameter(ParameterSetName = 'ActionMapCore')]
@@ -161,7 +163,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($ActionMapController) {
+if ($ActionMapAdapters) {
+    $probeId = 'ACT-014'
+    $probeClass = 'ActionMapAdaptersSmoke'
+} elseif ($ActionMapController) {
     $probeId = 'ACT-013'
     $probeClass = 'SingletonCloseVetoSmoke'
     $probeArgs = @('action-map')

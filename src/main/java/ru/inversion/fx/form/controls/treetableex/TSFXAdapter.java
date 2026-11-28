@@ -14,7 +14,9 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Window;
 import ru.inversion.dataset.DataSetEvent;
 import ru.inversion.dataset.DataSetRowEvent;
+import ru.inversion.dataset.fx.AdapterActionScope;
 import ru.inversion.dataset.fx.ICellValueChangeListener;
+import ru.inversion.fore.form.action.ActionMap;
 import ru.inversion.dataset.mark.IMarkable;
 import ru.inversion.fx.app.AppException;
 import ru.inversion.fx.app.BaseApp;
@@ -160,6 +162,22 @@ public class TSFXAdapter<P>
 
     /** */
     final private JInvTreeTableEx<P> treeTableView;
+    private AdapterActionScope actionScope;
+
+    /** Реестр операций адаптера текущей привязки. */
+    public ActionMap getActionMap() {
+        if (actionScope == null) {
+            if (getTreeDataSet() == null) {
+                throw new IllegalStateException("Tree adapter is closed");
+            }
+            actionScope = new AdapterActionScope(treeTableView, this);
+        }
+        return actionScope.actions(true);
+    }
+
+    public ActionMap peekActionMap() {
+        return actionScope == null ? null : actionScope.actions(false);
+    }
 
     /** */
     private boolean insideInSetCurrentRow = false;
@@ -775,6 +793,9 @@ public class TSFXAdapter<P>
     @Override
     public void close()
     {
+        if (actionScope != null) {
+            actionScope.retire();
+        }
         final ITreeDataSet<P> dataSet = getTreeDataSet();
 
         if( dataSet == null )

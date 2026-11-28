@@ -1,4 +1,5 @@
 package ru.inversion.dataset.fx;
+import ru.inversion.fore.form.action.ActionMap;
 
 import javafx.application.Platform;
 import javafx.beans.property.*;
@@ -74,6 +75,22 @@ import static ru.inversion.fx.form.controls.JInvTableColumn.*;
  * @param <T> тип записи
  */
 public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListener, IDataSetMarkListener<T> {
+    private AdapterActionScope actionScope;
+
+    /** Реестр операций адаптера текущей привязки. */
+    public ActionMap getActionMap() {
+        if (actionScope == null) {
+            if (dataSet == null || tableView == null) {
+                throw new IllegalStateException("Table adapter is not bound");
+            }
+            actionScope = new AdapterActionScope(tableView, this);
+        }
+        return actionScope.actions(true);
+    }
+
+    public ActionMap peekActionMap() {
+        return actionScope == null ? null : actionScope.actions(false);
+    }
 
     //static zone
 
@@ -402,6 +419,7 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
         if( this.dataSet != null )
             throw new IllegalStateException("dataSet already binded!");
 
+        actionScope = null;
         this.dataSet = dataSet;
         this.dataSet.addRowListener(this);
         this.dataSet.addNavigationListener(this);
@@ -505,6 +523,9 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
     /** */
     @Override
     public void close() {
+        if (actionScope != null) {
+            actionScope.retire();
+        }
         if (dataSet != null) workerAttachmentRevision++;
         markAllAction = null;
         unMarkAllAction = null;
@@ -1556,6 +1577,9 @@ public class DSFXAdapter<T> extends DSControlAdapter<T> implements IDataSetListe
      * В частности после первого executeQuery
      */
     public void afterInit() {
+        if (actionScope != null) {
+            actionScope.actions(false);
+        }
 
         if( !isControlsWithOrderAdded() ) {
             changeControlsOrderFromSceneGraph();
