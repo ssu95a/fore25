@@ -5563,3 +5563,14 @@ ForeAction adds only standard type, optional descriptor and immutable alternate 
 Maven compile, runner parse and diff check passed. Three fresh focused native/runner 0/0, fourth instrumented 0/0 and original official outer 0. Real Button/MenuItem graphics, actual stylesheet font, detached views, direct event and disabled dispatch checked. SceneKeyLookup/FormLifecycle/WrapButtonOwnership all 0/0. Original ACT-001 javap descriptors match, precompiled ACT-002 meta/bridge 0/0 without recompilation. Raw target/act-003/matrix.csv, direct.csv, legacy-abi.txt. External application ABI behavior outside selected artifacts remains UNKNOWN.
 
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ForeActionModel -SettingsFile "D:\Java\.m2\settings.xml"
+
+
+---
+
+## Reply ACT-004
+
+DONE. Baseline 0a97ffb8e1b53ca6c6d2e192e3af8e6cfa545b20, final 7160b0f907a9b30b98159da6ccbe65fd2138639a. Stateless ActionInvocation shares the original-event synchronous call entry point without legacy imports or per-invocation objects. ForeAction adapts ControlsFX Consumer and exposes replacement of its handler; native final handle retains its disabled guard and propagates the same RuntimeException. One capturing adapter per constructed/replaced native handler is necessary at this integration boundary; no extra field or execution context, legacy routes unchanged in this slice.
+
+Focused shown actual Button/MenuItem, repeated direct calls, null and identity, disabled, replacement, original failure identity passed in three fresh JVMs and extra instrumented 0/0, unchanged official runner 0. ForeActionModel, FEActionDelegation, SceneKeyLookup and FormLifecycle 0/0. Maven compile, PowerShell parse, diff check, exact legacy ABI and frozen precompiled ACT-002 metadata/bridge 0/0. Evidence target/act-004/matrix.csv, direct.csv and legacy-abi.txt. No worker, security, shortcut or FXML contract change.
+
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\src\test\probes\Test-LegacyGuiSmoke.ps1 -ForeActionInvocation -SettingsFile "D:\Java\.m2\settings.xml"
