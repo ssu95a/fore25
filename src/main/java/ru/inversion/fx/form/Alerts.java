@@ -2,7 +2,7 @@ package ru.inversion.fx.form;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBase;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
@@ -185,7 +185,25 @@ public class Alerts {
         }//end if
         alert.initModality(modality);
         localizeDialog(alert.getDialogPane());
+        installEnterHandler(alert);
         return window;
+    }
+
+    private static void installEnterHandler(Alert alert) {
+        var pane = alert.getDialogPane();
+        // Enter на кнопке диалога должен выбрать именно эту кнопку.
+        pane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() != KeyCode.ENTER || !(event.getTarget() instanceof Button button)) {
+                return;
+            }
+            for (ButtonType type : pane.getButtonTypes()) {
+                if (pane.lookupButton(type) == button) {
+                    event.consume();
+                    button.fire();
+                    return;
+                }
+            }
+        });
     }
 
     public class Builder{
@@ -197,21 +215,6 @@ public class Alerts {
      Общий код инициализации алертов перед показом
      */
     private static void initBeforeShow( final Alert.AlertType alertType, final Alert alert, final Window window ) {
-        //fix enter
-        //Enter прошит как ответ "Да", поэтому гасим его событие и нажимаем нужную кнопку сами
-        alert.setOnShown( event -> {
-            alert.getDialogPane().getScene().addEventFilter(
-            KeyEvent.KEY_PRESSED, (KeyEvent ke) -> {
-                if (ke.getCode() == KeyCode.ENTER) {
-                    ke.consume();
-                    ButtonBase button = (ButtonBase) ke.getTarget();
-                    if ( button != null ){
-                        button.fire();
-                    }
-                }
-            });
-        } );
-
         //play sound
         if ( BaseApp.APP().isAfterLogin() ) {
             SoundPlayer.playSound( alertType );
@@ -440,6 +443,11 @@ public class Alerts {
         default Optional<ButtonType> showButtonAndWait() {
             throw new UnsupportedOperationException();
         }
+
+        /** Назначает кнопку по умолчанию из списка кнопок диалога. */
+        default IAlertMaker defaultButton(ButtonType button) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     private static final class AlertMaker implements IAlertMaker {
@@ -452,6 +460,7 @@ public class Alerts {
         private Node graphic;
         private Modality modality = Modality.WINDOW_MODAL;
         private ButtonType[] buttons;
+        private ButtonType defaultButton;
 
         @Override
         public IAlertMaker window(Object window) {
@@ -517,6 +526,12 @@ public class Alerts {
             return this;
         }
 
+        @Override
+        public IAlertMaker defaultButton(ButtonType button) {
+            defaultButton = java.util.Objects.requireNonNull(button);
+            return this;
+        }
+
         /** Результат совместимого обобщенного метода имеет тип ButtonType. */
         @Override
         @SuppressWarnings("unchecked")
@@ -528,6 +543,15 @@ public class Alerts {
         public Optional<ButtonType> showButtonAndWait() {
             Alert alert = new Alert(type, "", buttons);
             configure(alert, window, type, title, headerText, content, detail, graphic, modality);
+            if (defaultButton != null) {
+                var pane = alert.getDialogPane();
+                if (!pane.getButtonTypes().contains(defaultButton)) {
+                    throw new IllegalArgumentException("Default button is absent from the dialog");
+                }
+                for (ButtonType choice : pane.getButtonTypes()) {
+                    ((Button) pane.lookupButton(choice)).setDefaultButton(choice == defaultButton);
+                }
+            }
             return alert.showAndWait();
         }
     }

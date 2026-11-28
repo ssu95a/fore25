@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'AlertsKeyboard')]
+    [switch] $AlertsKeyboard,
     [Parameter(ParameterSetName = 'AlertsMaker')]
     [switch] $AlertsMaker,
     [Parameter(ParameterSetName = 'TableAdapterRowRefreshClose')]
@@ -145,7 +147,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($AlertsMaker) {
+if ($AlertsKeyboard) {
+    $probeId = 'ALERT-003'
+    $probeClass = 'AlertsKeyboardSmoke'
+} elseif ($AlertsMaker) {
     $probeId = 'ALERT-002'
     $probeClass = 'AlertsMakerSmoke'
 } elseif ($TextAreaToolbarOwnership) {
