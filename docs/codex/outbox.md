@@ -6297,3 +6297,23 @@ Fresh canary JVM 10320 / runner 14672 focused on first FX pulse, exits 0/0, no t
 The keys launcher classpath puts target/act-003/legacy-fixture before target/classes. Both supply ru.inversion.fore.form.action.ActionKeyBinder. javap confirms the fixture binder lacks legacyActions(Scene, boolean), which production SceneKeyManager.getActionMap calls. keys therefore stopped in linkage before its keyboard assertions. The fixture also directly uses its reference binder, so reversing the classpath would change which implementation the frozen consumer exercises. This is a failure of the frozen fixture arrangement; the remaining compatibility evidence is incomplete. Minimum next gate is a separately approved isolation of the two binder classes in the harness while preserving frozen consumer bytecode and assertions, followed by the required checks. No retry or waiver applied.
 
 Prior evidence remains intact. New outputs are under target/act-016-validation/resume-binary and target/act-007a-resume/act016-resumed-*. ACT-018 and ACT-019 are NOT_RUN. STOP.
+
+
+## Reply ACT-016-FIXTURE
+
+Production SHA b5bb8fb10be4fd574f8f86eb8e77c4aec90ef563.
+
+**GREEN. Harness-only isolation.** The original flat classpath put the ACT-002 reference ActionKeyBinder before the production class with the same name. Production SceneKeyManager invoked legacyActions(Scene, boolean), absent on the reference implementation. The original keys failure (JVM 19348 / runner 19384, 1/1, no timeout) and argfile remain intact.
+
+The narrow URLClassLoader loads the frozen ActionAudit and the existing frozen Fore/FormTools classfiles child-first. Production SceneKeyManager/SceneKeyBinder and production ActionKeyBinder stay on the app loader. JavaFX Scene/KeyEvent, ControlsFX Action and legacy IAction are shared from the parent. The reference binder's package-private ForeAction hotkey-validator access requires its original Fore siblings in the same runtime package/loader. No fixture definitions are on the parent classpath. No recompilation or substitution of consumer/reference bytes. Reflection invokes only the unchanged consumer main and checks class identities/signatures; original API calls execute from frozen bytecode. Reversing a flat classpath would select the wrong binder for the frozen new/bind calls. Splitting the runs would lose their same-Scene interaction.
+
+Loader identities, code sources, SHA-256 and signatures are in each stdout. Same-Scene keys asserted [local, second, logical, parent, remote, reference] and accelerator=1, proving the production facade routes and the original reference bind/close path both execute. Key-edges asserted production denied shadowing, handler phase and live list cleanup. Meta and bridge were repeated in the changed loader arrangement. Focus canary JVM 1636 / runner 18776 passed on first pulse, 0/0. Original assertions and timeouts remain. Frozen worker expectations specific to old WAIT and binding are intentionally superseded by ACT-007A, as previously recorded.
+
+| Mode | JVM PID | Runner PID | JVM (hex) / runner | Timeout |
+|---|---:|---:|---|---|
+| keys | 18980 | 13164 | 0 (0x00000000) / 0 | False |
+| key-edges | 5824 | 17384 | 0 (0x00000000) / 0 | False |
+| meta | 9768 | 18332 | 0 (0x00000000) / 0 | False |
+| bridge | 14744 | 18820 | 0 (0x00000000) / 0 | False |
+
+Reproduce from repo root after independent desktop preflight: powershell.exe -NoProfile -ExecutionPolicy Bypass -File target/act-016-fixture/run.ps1 -Modes "keys,key-edges,meta,bridge" -Label new-unique-label. The ignored harness, compiled launcher and immutable-hashes.csv are in target/act-016-fixture. No tracked harness changes. Candidate and evidence hashes were rechecked after execution.
