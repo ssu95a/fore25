@@ -6571,3 +6571,10 @@ Production SHA 2cabd4432ea2d30e2988514cc8266d31cea3a11c.
 A decision is needed on which native commands may use shortcuts, how a protected command supplies its grant and correct TaskContext, and what to do when that metadata is absent. A shared MDI activation would also need a concrete Scene owner if that production path exists outside this checkout. Generic opt-in or deny-all would not provide the requested production behavior, since a matching native action reserves the key even on denial.
 
 No source changes, test substitution, or activation claim. Recent production SDI lifecycle and synthetic native dispatcher checks are in the exact-SHA ACT-021 matrix, but they do not validate fresh production activation or a corporate/MDI authorization path. No ACT-022 focused/full gate was launched because there is no candidate to validate. ACT-023A, ACT-023B and ACT-023G were not started. STOP per the approved security rule.
+
+
+## Reply SEC-001
+
+Production SHA 2cabd4432ea2d30e2988514cc8266d31cea3a11c.
+
+**FOCUSED GREEN / LOCAL ONLY.** Candidate 9aeb20e0e06eef814ccf1db41edf717272a19f1d. ForeAction declares a nullable corporate grant independent of ActionMap ID and StandardAction. New protected declarations start UNKNOWN, grant replacement revokes the decision, and null explicitly marks unrestricted. No provider or database dependency in this metadata step. Installed ControlsFX 11.2.6 has final handle(ActionEvent) and a virtual protected setEventHandler, called by its constructor. ForeAction guards the consumer installed at that setter. ForeActionModel passed in a fresh desktop-preflight group (runner 11192, outer 0, no timeout, ACT-003 PASS). This focused recorder did not independently capture child PID/signed exit. Raw offline compile and probe outputs are in target/sec-001-validation. Atomic publication deferred pending full security validation.
