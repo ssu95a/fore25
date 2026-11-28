@@ -5761,3 +5761,24 @@ Maven compile, PowerShell parse, diff and exact original javap ABI passed. Froze
 | BinderChoiceNull | 0 | 0 | CTRL-017 PASS |
 | ChoiceNullLookup | 0 | 0 | CTRL-018 PASS |
 | ChoiceNonNullSet | 0 | 0 | CTRL-019 PASS |
+
+
+## Reply ACT-009
+
+**Disposition:** IMPLEMENTED / GREEN. Production `62cb0ec44f0e958455f775d6c26e20ed208c7bb4`.
+
+Explicit synchronous and parallel construction, the deprecated typed overload, and runtime copies from the mutable catalog share the same legacy builder path. Ordinary handlers already delegate through the synchronous core from ACT-005. The bare custom overload still uses builder defaults. Shared mutable catalog instances, exact public/protected signatures and return types, enum order, icon descriptors and resources, legacy REFRESH without F8, key list aliasing, tooltip decoration and snapshots remain compatible. JInvButton and JInvMenuItem keep their own graphic and their original respective direct and wrapped event forms. Legacy view projection, FXML controls, registered shortcuts and custom overrides still go through the original public adapters. The copy constructors and mutable builder-result alias are preserved.
+
+Validation on the frozen pre-change classes and on the candidate used the same assertions for catalog mutation, independent actions, null inputs, synchronous/parallel choice, metadata, two different views, exact event source and enabled state. Compilation and diff passed. Three fresh focused JVM runs, instrumented official and ordinary official, and 10/10 scoped regressions passed. Recorded JVM exit 0 (0x00000000) and runner exit 0 for the instrumented runs, ordinary official runner 0. Unchanged ABI and precompiled meta, bridge, keys and key-edges all passed with JVM/runner 0/0. Lifecycle coverage includes FormLifecycle, TextAreaToolbarOwnership, WrapButtonOwnership and existing keyboard detach checks. Corporate login/icon preference and a complete external FXML consumer inventory were outside the local runtime.
+
+FX-thread allocated bytes per 400 operations, eight warm-up batches and nine measured batches, JDK 25, JavaFX 25, fixed 256 MiB heap, fresh JVM per mode, same jar classpath. Values are median [min..max].
+
+| Path | Before ACT-009 | After ACT-009 |
+|---|---:|---:|
+| Action | 214400 [214400..214400] | 214400 [214400..214400] |
+| Action + Button | 12486400 [12486400..12525264] | 12487104 [12486400..12525192] |
+| Action + MenuItem | 2147200 [2147200..2148160] | 2176000 [2176000..2176712] |
+| One action + both views | 14505600 [14387200..14512320] | 14499984 [14467200..14518608] |
+| Existing action, sync no-op | 0 [0..744] | 0 [0..744] |
+
+All ten measurement children and the recorder exited zero. The menu-only median was 28800 bytes higher per 400 in this pair, with a single JVM per variant and overlapping ranges for the shared two-view path. No allocation saving established. The factory consolidation is a compatibility refactor. Raw results and runner are in ignored `target/act-009`.
