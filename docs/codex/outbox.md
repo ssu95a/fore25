@@ -6027,3 +6027,111 @@ Implemented at 1a14e2b015d9ad3b7299adfd0aedaeea9b2c3576 (parent 00beabbee8626194
 The maker's checkBoxText, checkBoxSelected, requireCheckBox and showResultAndWait methods support service and explicitly gated checkboxes. AlertResult carries the actual button and selected state. Missing checkbox or absent gated button fails before showing. Gated cancel results cannot be synthesized while the checkbox is clear. Validator(Supplier<Boolean>) affects ButtonType.OK only. It runs initially, after key release, mouse release and input-method text change, and at OK action dispatch. True permits. Null and false block. Runtime exceptions block and surface in the application log. No universal observation of arbitrary programmatic dependencies. Checkbox and validator restrictions are conjunctive. Dialog-owned event filters and bindings are released at terminal cleanup.
 
 Official AlertsCheckbox runner PID 17076 exited 0, no timeout. Focused JVMs 13540/10320/1164 and all four predecessor Alerts regressions (6888/6876/16316/9656) exited 0 (0x00000000), no timeout. The expected validator exception is present in captured stdout. Probes cover service toggles, specified YES versus independent APPLY and CANCEL, absent OK, shown TextField key dispatch, disabled and enabled default ENTER, final recheck, null/exception, reuse, typed cancellation and invalid configuration. Clipboard and physical input are unverified. Maven compile, parser, baseline ABI and diff check passed. Rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 -AlertsCheckbox -SettingsFile "D:\Java\.m2\settings.xml".
+
+
+## Reply ALERT-007
+
+Implemented and verified at 259f9887b95ee9cd7761a231e86bc57610325b88 (parent 1a14e2b015d9ad3b7299adfd0aedaeea9b2c3576). The static facade and fluent maker share configuration and the synchronous show path with standard JavaFX Alert. The package-private getAlert and public AlertBuilder.build() still produce JInvAlert through the legacy bridge. All 24 original static signatures and descriptors match the baseline. AlertBuilder and JInvAlert source blobs are identical to baseline.
+
+| Task | Disposition | Production commit |
+|---|---|---|
+| ALERT-001 | Read-only baseline characterization, partial coverage | 62cb0ec44f0e958455f775d6c26e20ed208c7bb4 (baseline) |
+| ALERT-002 | Fluent maker and typed button result | f2bbdb6f57157c0e64cafc836522fd00697a2f0a |
+| ALERT-003 | Focused Enter, native content and explicit default button | f3ddcedfe86e3ece5d7415fd4beed147544e6b7e |
+| ALERT-004 | Owner, modality, FX lifecycle and sound policy | f37b8b5c0530f7e7f5bf01079f273aec5c1a4ad4 |
+| ALERT-005 | Wrapped text and layout options | 00beabbee86261949d0b1c1826e1cd8e9e6b4053 |
+| ALERT-006 | Service and functional checkbox, typed state and OK validator | 1a14e2b015d9ad3b7299adfd0aedaeea9b2c3576 |
+| ALERT-007 | Static delegation and final gate | 259f9887b95ee9cd7761a231e86bc57610325b88 |
+
+The baseline-compiled consumer ran unchanged against both classpaths. Baseline JVM PID 5644 and final PID 18048 exited 0 without timeout. The fixture covers static info/error, both yesNo results, yesNoCancel with YES, NO and a synthetic WINDOW_CLOSE_REQUEST, showAlert Node/graphic/default button paths, and the legacy build descriptor and APPLICATION_MODAL result. The official AlertsFacade runner PID 7692 exited 0 and printed ALERT-007 PASS. Three fresh focused JVMs (16420, 7324, 2196) and the five predecessor Alerts modes passed. Offline Maven compile, PowerShell parse, javap compatibility comparison, clean workspace and diff check passed.
+
+The changes cover safe no-app/pre-login execution, preservation of the owner's always-on-top flag, scoped Enter handling, width/font-aware wrapped text, and maker configuration options. Actual corporate login and audio, OS stacking, physical keyboard/mouse, screen DPI and small-monitor rendering remain unverified. Programmatic changes in supplier dependencies are reevaluated on supported subsequent input events and at OK action dispatch.
+
+The final matrix covers the exact commit. The runner used the tracked mode selection and probe commands with one Maven-built classpath. Actual JVM and outer process exits were recorded in separate runs. Raw logs and ABI evidence are under target/alert-007.
+
+| Mode | JVM PID | JVM signed and hex | Runner | Timeout | Marker |
+|---|---:|---|---:|---|---|
+| ActionSecurityAdmission | 9360 | 0 (0x00000000) | 0 | False | ACT-006 PASS |
+| LegacyActionFacade | 17628 | 0 (0x00000000) | 0 | False | ACT-005 PASS |
+| ForeActionInvocation | 1684 | 0 (0x00000000) | 0 | False | ACT-004 PASS |
+| ForeActionModel | 6160 | 0 (0x00000000) | 0 | False | ACT-003 PASS |
+| FEButtonConstruction | 1660 | 0 (0x00000000) | 0 | False | ARCH-006 PASS (construction, dialog, overflow and skin lifecycle) |
+| TextFieldInnerButtonOwnership | 11624 | 0 (0x00000000) | 0 | False | ARCH-003 PASS (control selection and wrapper lifecycle) |
+| ButtonTargetAssociation | 11920 | 0 (0x00000000) | 0 | False | ARCH-002 PASS (target association and legacy configuration) |
+| FEActionDelegation | 9660 | 0 (0x00000000) | 0 | False | ARCH-001 PASS (real dialog, FE routing and legacy configured button) |
+| TextFieldContextMenuLifecycle | 15436 | 0 (0x00000000) | 0 | False | PERF-014 PASS (control-owned context menu lifecycle) |
+| TextAreaContextMenuLifecycle | 17140 | 0 (0x00000000) | 0 | False | PERF-015 PASS (control-owned context menu lifecycle) |
+| TableAdapterBulkMarkErrorDelivery | 11540 | 0 (0x00000000) | 0 | False | CTRL-104 PASS |
+| TableAdapterBulkMarkClose | 6336 | 0 (0x00000000) | 0 | False | CTRL-105 PASS |
+| TableAdapterRowRefreshClose | 9052 | 0 (0x00000000) | 0 | False | CTRL-106 PASS |
+| TableAdapterQueuedClose | 4008 | 0 (0x00000000) | 0 | False | CTRL-077 PASS |
+| TableEditRowIdentity | 8704 | 0 (0x00000000) | 0 | False | CTRL-075 PASS |
+| TableEditing | 14360 | 0 (0x00000000) | 0 | False | GUI-005 PASS |
+| TableCancel | 8648 | 0 (0x00000000) | 0 | False | GUI-006 PASS |
+| DataBinding | 11092 | 0 (0x00000000) | 0 | False | GUI-009 PASS |
+| TextFieldSkinDisposal | 16752 | 0 (0x00000000) | 0 | False | CTRL-049 PASS |
+| TextFields | 3228 | 0 (0x00000000) | 0 | False | GUI-012 PASS (tested matrix) |
+| ValueFields | 16796 | 0 (0x00000000) | 0 | False | VF-001 PASS |
+| LovIntegration | 16416 | 0 (0x00000000) | 0 | False | CTRL-031 PASS |
+| BoundLovSetter | 2984 | 0 (0x00000000) | 0 | False | CTRL-044 PASS |
+| LovBindingInterleaving | 3324 | 0 (0x00000000) | 0 | False | CTRL-045 PASS |
+| ExternalLovReadOnly | 10220 | 0 (0x00000000) | 0 | False | CTRL-061 PASS |
+| WrapButtonOwnership | 6796 | 0 (0x00000000) | 0 | False | CTRL-055 PASS |
+| CurrencyLovDelayedCompletion | 14672 | 0 (0x00000000) | 0 | False | CTRL-091 PASS |
+| MoneyDecimal | 1108 | 0 (0x00000000) | 0 | False | NUM-001 PASS (tested invariants) |
+| FormLifecycle | 2944 | 0 (0x00000000) | 0 | False | GUI-010 PASS (standalone production FXML/controller and SDI close) |
+| Default | 8740 | 0 (0x00000000) | 0 | False | GUI-001 PASS |
+| TableAdapterSearchMissDelivery | 8288 | 0 (0x00000000) | 0 | False | CTRL-098 PASS |
+| TableAdapterSearchWorkerClose | 12272 | 0 (0x00000000) | 0 | False | CTRL-093 PASS |
+| TableAdapterBulkWorkerClose | 6856 | 0 (0x00000000) | 0 | False | CTRL-092 PASS |
+| TableAdapterSearchListener | 5276 | 0 (0x00000000) | 0 | False | CTRL-081 PASS |
+| TextAreaToolbarOwnership | 10848 | 0 (0x00000000) | 0 | False | CTRL-066 PASS |
+| TableAdapterBulkClose | 16692 | 0 (0x00000000) | 0 | False | CTRL-076 PASS |
+| TextFieldLovDelayedCompletion | 4384 | 0 (0x00000000) | 0 | False | CTRL-078 PASS |
+| TableAdapterPagingClose | 16564 | 0 (0x00000000) | 0 | False | CTRL-065 PASS |
+| TextAreaLovDelayedCompletion | 5664 | 0 (0x00000000) | 0 | False | CTRL-062 PASS |
+| TabPaneSkinListeners | 18132 | 0 (0x00000000) | 0 | False | CTRL-054 PASS |
+| TextAreaSkinDisposal | 2564 | 0 (0x00000000) | 0 | False | CTRL-053 PASS |
+| ValidatorSubchanges | 12088 | 0 (0x00000000) | 0 | False | CTRL-052 PASS |
+| TableAdapterClose | 5908 | 0 (0x00000000) | 0 | False | CTRL-051 PASS |
+| TextAreaLovLifecycle | 17984 | 0 (0x00000000) | 0 | False | CTRL-050 PASS |
+| WrapButtonDeferred | 14708 | 0 (0x00000000) | 0 | False | CTRL-043 PASS |
+| Editors | 12336 | 0 (0x00000000) | 0 | False | GUI-004 PASS |
+| EditorReentry | 12776 | 0 (0x00000000) | 0 | False | GUI-007 PASS |
+| FormCancel | 7072 | 0 (0x00000000) | 0 | False | CTRL-022 PASS |
+| SceneKeyLookup | 11788 | 0 (0x00000000) | 0 | False | CTRL-024 PASS |
+| LovListenerLifecycle | 15932 | 0 (0x00000000) | 0 | False | CTRL-026 PASS |
+| LovDefaultValidation | 7748 | 0 (0x00000000) | 0 | False | CTRL-027 PASS |
+| SingletonCloseVeto | 4412 | 0 (0x00000000) | 0 | False | CTRL-032 PASS |
+| SingletonLifecycleMatrix | 3380 | 0 (0x00000000) | 0 | False | CTRL-035 PASS |
+| ValidatorScopedUnbind | 3252 | 0 (0x00000000) | 0 | False | CTRL-033 PASS |
+| ValidatorMultiControl | 14288 | 0 (0x00000000) | 0 | False | CTRL-036 PASS |
+| ValueLifecycle | 11612 | 0 (0x00000000) | 0 | False | VF-002 PASS (custom listener ownership) |
+| DatePickerBinding | 1916 | 0 (0x00000000) | 0 | False | CTRL-002 PASS |
+| NodeTraversal | 15228 | 0 (0x00000000) | 0 | False | CTRL-003 PASS |
+| RadioReadOnly | 11484 | 0 (0x00000000) | 0 | False | CTRL-006 PASS |
+| ComboReadOnly | 17212 | 0 (0x00000000) | 0 | False | CTRL-007 PASS |
+| CheckBoxReadOnly | 1136 | 0 (0x00000000) | 0 | False | CTRL-009 PASS |
+| ValueChangedFlag | 2244 | 0 (0x00000000) | 0 | False | CTRL-013 PASS |
+| ControlsFollowup | 4532 | 0 (0x00000000) | 0 | False | CTRL-CONTROLS-FOLLOWUP PASS |
+| ChoiceAdapter | 6968 | 0 (0x00000000) | 0 | False | CTRL-015 PASS |
+| BinderChoiceNull | 15960 | 0 (0x00000000) | 0 | False | CTRL-017 PASS |
+| ChoiceNullLookup | 12388 | 0 (0x00000000) | 0 | False | CTRL-018 PASS |
+| ChoiceNonNullSet | 13152 | 0 (0x00000000) | 0 | False | CTRL-019 PASS |
+| AlertsMaker | 10644 | 0 (0x00000000) | 0 | False | ALERT-002 PASS |
+| AlertsKeyboard | 1000 | 0 (0x00000000) | 0 | False | ALERT-003 PASS |
+| AlertsLifecycle | 15384 | 0 (0x00000000) | 0 | False | ALERT-004 PASS |
+| AlertsLayout | 9692 | 0 (0x00000000) | 0 | False | ALERT-005 PASS |
+| AlertsCheckbox | 15416 | 0 (0x00000000) | 0 | False | ALERT-006 PASS |
+| AlertsFacade | 17812 | 0 (0x00000000) | 0 | False | ALERT-007 PASS |
+
+Independent Windows rerun with Maven on PATH. Use the modes listed in the table in order for the full gate, with no mode switch for Default. The six new modes can be run together.
+
+    $env:JAVA_HOME = 'C:\Program Files\Java\jdk-25'
+    $env:MAVEN_ARGS = '-o'
+    foreach ($mode in 'AlertsMaker','AlertsKeyboard','AlertsLifecycle','AlertsLayout','AlertsCheckbox','AlertsFacade') {
+        powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 "-$mode" -SettingsFile "D:\Java\.m2\settings.xml"
+        if ($LASTEXITCODE -ne 0) { throw "$mode failed with exit $LASTEXITCODE" }
+    }
+
+STOP after this reply.
