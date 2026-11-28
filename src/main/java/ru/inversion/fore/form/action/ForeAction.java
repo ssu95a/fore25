@@ -2,6 +2,7 @@ package ru.inversion.fore.form.action;
 
 import javafx.event.ActionEvent;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import org.controlsfx.control.action.Action;
 
 import java.util.ArrayList;
@@ -63,6 +64,19 @@ public final class ForeAction extends Action {
         keys.add(primary);
         keys.addAll(alternatives);
         return List.copyOf(keys);
+    }
+
+    boolean matches(KeyEvent event) {
+        KeyCombination primary = getAccelerator();
+        if (primary != null && primary.match(event)) {
+            return true;
+        }
+        for (int index = 0; index < alternatives.size(); index++) {
+            if (alternatives.get(index).match(event)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Первая клавиша задаёт accelerator. Прямая запись accelerator меняет только первую клавишу. */

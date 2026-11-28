@@ -34,7 +34,7 @@ public final class AdapterActionScope {
 
     public ActionMap actions(boolean createParent) {
         refresh(createParent);
-        return actions;
+        return retired && !createParent ? null : actions;
     }
 
     private boolean isAttached() {

@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'ActionKeyContext')]
+    [switch] $ActionKeyContext,
     [Parameter(ParameterSetName = 'ActionMapAdapters')]
     [switch] $ActionMapAdapters,
     [Parameter(ParameterSetName = 'ActionMapController')]
@@ -163,7 +165,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($ActionMapAdapters) {
+if ($ActionKeyContext) {
+    $probeId = 'ACT-015'
+    $probeClass = 'ActionKeyContextSmoke'
+} elseif ($ActionMapAdapters) {
     $probeId = 'ACT-014'
     $probeClass = 'ActionMapAdaptersSmoke'
 } elseif ($ActionMapController) {
