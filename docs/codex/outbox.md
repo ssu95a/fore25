@@ -6180,3 +6180,12 @@ Production SHA 832f0719be55f5e0b73352a4d600f9f51a99b469.
 Implemented the local ForeAction registry and iterative parent lookup. Supported keys are String, enums (including StandardAction and enum constants with bodies), primitive numeric wrappers, BigInteger and BigDecimal. Strings are case-insensitive, same-type numbers compare naturally and enum keys are distinguished by declaring type and ordinal. Unsupported/colliding types and cycles are rejected. Backing TreeMap is created on first insertion and released when empty. Existing consumers and public API are untouched.
 
 Official ActionMapCore runner PID 1616 and fresh JVMs 16532/5780/18504 passed. ActionWaitOwnership and ForeActionModel regressions (864/692) passed. Direct JVM exits 0 (0x00000000), no timeout. Offline Maven compile, PowerShell parse and diff passed. Current-thread allocation for 1 million alternating inherited string hits/misses was 480 bytes first and 0 bytes in each of the next three batches (JDK 25). This is an allocation sample for that lookup shape. Rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 -ActionMapCore -SettingsFile "D:\Java\.m2\settings.xml".
+
+
+## Reply ACT-013
+
+Production SHA 1aa60a5fe393073441066a9b18c0cca9408307c0.
+
+Implemented lazy stable getActionMap() and allocation-free peekActionMap() on AbstractBaseController. A map requested by an owned form links to the parent controller resolved through the existing ViewContext and attached root. Successful close retires its entries and parent, including on retained references. A veto keeps them. New operations do not alter legacy wiring. No app-global registry.
+
+Official shown SDI runner PID 6988 exited 0. Three fresh JVMs 13600/12724/2864 and regressions ActionMapCore, ActionWaitOwnership, FormLifecycle and SingletonLifecycleMatrix (14032/10860/1192/18376) all exited 0 (0x00000000), timeout false. Assertions cover lazy access before init, parent resolution using a shown production context, independent lifetimes, close veto, rejected OK, failure init, and reopen. Offline Maven compile, parse and diff passed. MDI and corporate contexts remain unverified. Rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 -ActionMapController -SettingsFile "D:\Java\.m2\settings.xml".
