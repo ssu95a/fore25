@@ -5158,3 +5158,11 @@ Contract:
 
 If GREEN, publish one task-scoped fast-forward commit and Reply ACT-020 with exact SHA, old/new identity semantics, evidence and independent rerun command(s); STOP. If blocked, preserve candidate/evidence and STOP. Ceiling 90 minutes, not an estimate.
 
+
+
+---
+
+## USER ACCEPTANCE — ACT-020
+
+**Status: USER ACCEPTED / CLOSED in tested scope.** User independently reported exactly "ALL SIX TESTS PASSED" following the ACT-020 rerun instructions for ActionMapCore, ActionMapController, ActionMapAdapters, ActionKeyContext, ActionMapMarkView and ActionKeyUnified. Intended checkpoint and verified remote production SHA: 25ca2aa2fd3d5ebb679fdbf37da1c77f3863f9ec. User-reported acceptance is distinct from agent evidence; no independent local user SHA, per-mode exit codes or raw logs were supplied. Reply ACT-020 at 7bb4ed3fa8c41a09fc859abd91c544c9ed8b1b62 reports focused 8/8 and full 80/80 GREEN, original Comparable descriptors retained, four Object overloads added. Architect verified the one-commit fast-forward and scoped source/test diff. Canonical domains String (case-insensitive), Enum (declaring class + ordinal), Integer; other non-null objects normalize once via toString(). No new task activated by this checkpoint. STOP remains in force.
+
