@@ -6585,3 +6585,10 @@ Production SHA 2cabd4432ea2d30e2988514cc8266d31cea3a11c.
 Production SHA 2cabd4432ea2d30e2988514cc8266d31cea3a11c.
 
 **FOCUSED GREEN / LOCAL ONLY.** Candidate 2db0a47b1133fefdb2b79ea28f22c7850602cea0. The explicit local-scope manager batches distinct grants, rejects ambiguous cross-scope identity sharing, checks complete responses before applying, and discards stale permission results after grant or registration changes. Its default provider delegates lazily to the existing isActList helper with CommonTaskContext. The helper validates positional length and nulls before copying values, preserving legacy nonzero semantics and signatures. The fake-provider probe exercised one call for 100 distinct grants, alias and grant deduplication, empty maps, independent forms, refresh and reopening, unresolved late registration, partial and failed batch, and stale results after grant change and retirement. ACT-003 PASS, runner 4220 outer 0, no timeout. Child PID/signed exit was not independently recorded by the focused wrapper. Real corporate SQL and physical round trips remain unverified. Raw artifacts are in target/sec-002-validation. Atomic publication deferred.
+
+
+## Reply SEC-003
+
+Production SHA 2cabd4432ea2d30e2988514cc8266d31cea3a11c.
+
+**FOCUSED GREEN / LOCAL ONLY.** Candidate ea5d3fcb0e0c7d278273fc7da1a096115e39e9d1. Direct handle, replacement handler, ControlsFX Button/MenuItem and contextual keyboard share the guarded ControlsFX consumer. The additional attach predicate cannot override an unresolved or denied grant. Native match reservation and functional disabled behavior passed. ERROR_ON_ACTION localizes the existing access message and uses the application alert path without SQL; no real dialog assertion was run at this step. ACT-004 and ACT-015 PASS after a fresh focus preflight (runner PIDs 10700 and 18092, outer 0/0, no timeout, independent child PID/signed exits not captured by the focused wrapper). Raw artifacts are in target/sec-003-validation. Atomic publication deferred.
