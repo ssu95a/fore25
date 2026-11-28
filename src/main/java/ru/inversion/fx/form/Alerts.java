@@ -1,4 +1,5 @@
 package ru.inversion.fx.form;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -115,6 +116,7 @@ public class Alerts {
             final Modality modality,
             final ButtonType... buttons
     ) {
+        requireFxThread();
         JInvAlert alert = new JInvAlert( alertType, "", buttons );
         Window window = configure(alert, windowContainer, alertType, title, headerText,
                 contentText, detailText, graphic, modality);
@@ -215,23 +217,30 @@ public class Alerts {
      Общий код инициализации алертов перед показом
      */
     private static void initBeforeShow( final Alert.AlertType alertType, final Alert alert, final Window window ) {
-        //play sound
-        if ( BaseApp.APP().isAfterLogin() ) {
-            SoundPlayer.playSound( alertType );
-        }
+        playSoundIfLoggedIn(alertType);
+        bringOwnerForward(window);
+    }
 
-        //logger.trace("Alert '{}': type={}, window={}", alert, alertType, window);
-        //maximize if minimized
-        U.callIfNotNull(w -> {
-            if ( w instanceof Stage ) {
-                Stage stage = (Stage) w;
-//                logger.info("#1 Stage {}: iconified={}, aot={}, showing={}",stage,stage.isIconified(),stage.isAlwaysOnTop(), stage.isShowing());
-                stage.setAlwaysOnTop(true);
-                stage.setAlwaysOnTop(false);
-                stage.setIconified  ( false );
-//                logger.info("#2 Stage {}: iconified={}, aot={}, showing={}",stage,stage.isIconified(),stage.isAlwaysOnTop(), stage.isShowing());
+    private static void playSoundIfLoggedIn(Alert.AlertType type) {
+        BaseApp app = BaseApp.APP();
+        if (app != null && app.isAfterLogin()) {
+            SoundPlayer.playSound(type);
+        }
+    }
+
+    private static void bringOwnerForward(Window window) {
+        if (window instanceof Stage stage) {
+            stage.setIconified(false);
+            if (stage.isShowing()) {
+                stage.toFront();
             }
-        }, window );
+        }
+    }
+
+    private static void requireFxThread() {
+        if (!Platform.isFxApplicationThread()) {
+            throw new IllegalStateException("Alerts must be shown on the JavaFX Application Thread");
+        }
     }
 
     /**
@@ -448,6 +457,11 @@ public class Alerts {
         default IAlertMaker defaultButton(ButtonType button) {
             throw new UnsupportedOperationException();
         }
+
+        /** Управляет воспроизведением звука с учетом настроек приложения. */
+        default IAlertMaker sound(boolean enabled) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     private static final class AlertMaker implements IAlertMaker {
@@ -461,6 +475,7 @@ public class Alerts {
         private Modality modality = Modality.WINDOW_MODAL;
         private ButtonType[] buttons;
         private ButtonType defaultButton;
+        private boolean sound = true;
 
         @Override
         public IAlertMaker window(Object window) {
@@ -532,6 +547,12 @@ public class Alerts {
             return this;
         }
 
+        @Override
+        public IAlertMaker sound(boolean enabled) {
+            sound = enabled;
+            return this;
+        }
+
         /** Результат совместимого обобщенного метода имеет тип ButtonType. */
         @Override
         @SuppressWarnings("unchecked")
@@ -541,8 +562,10 @@ public class Alerts {
 
         @Override
         public Optional<ButtonType> showButtonAndWait() {
+            requireFxThread();
             Alert alert = new Alert(type, "", buttons);
-            configure(alert, window, type, title, headerText, content, detail, graphic, modality);
+            Window owner = configure(alert, window, type, title, headerText,
+                    content, detail, graphic, modality);
             if (defaultButton != null) {
                 var pane = alert.getDialogPane();
                 if (!pane.getButtonTypes().contains(defaultButton)) {
@@ -552,6 +575,10 @@ public class Alerts {
                     ((Button) pane.lookupButton(choice)).setDefaultButton(choice == defaultButton);
                 }
             }
+            if (sound) {
+                alert.setOnShown(event -> playSoundIfLoggedIn(alert.getAlertType()));
+            }
+            bringOwnerForward(owner);
             return alert.showAndWait();
         }
     }

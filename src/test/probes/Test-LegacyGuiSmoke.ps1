@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'AlertsLifecycle')]
+    [switch] $AlertsLifecycle,
     [Parameter(ParameterSetName = 'AlertsKeyboard')]
     [switch] $AlertsKeyboard,
     [Parameter(ParameterSetName = 'AlertsMaker')]
@@ -147,7 +149,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($AlertsKeyboard) {
+if ($AlertsLifecycle) {
+    $probeId = 'ALERT-004'
+    $probeClass = 'AlertsLifecycleSmoke'
+} elseif ($AlertsKeyboard) {
     $probeId = 'ALERT-003'
     $probeClass = 'AlertsKeyboardSmoke'
 } elseif ($AlertsMaker) {
