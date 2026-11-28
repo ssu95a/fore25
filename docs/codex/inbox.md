@@ -5127,3 +5127,15 @@ Architect will avoid mailbox writes during the active final gate to prevent anot
 
 Use the remaining ACT-019 budget or a fresh bounded ceiling of 45 minutes for this limited continuation (ceiling, not estimate). Architect mailbox remains read-only during this run.
 
+
+
+---
+
+## USER ACCEPTANCE — Action Engine Phase II
+
+**Status: USER ACCEPTANCE / 7 of 7 PASS; ACT-019 FINAL GREEN; implementation package complete in tested scope.** User independently reported exactly "ALL SEVEN TESTS PASSED" after receiving the seven-mode rerun instructions for ActionWaitOwnership, ActionMapCore, ActionMapController, ActionMapAdapters, ActionKeyContext, ActionMapMarkView and ActionKeyUnified. This is user-reported acceptance, distinct from Codex evidence; no separately observed local user SHA, per-mode native exits or raw logs were supplied. Intended checkpoint and verified remote production: eabf4c6725fc984363c57d54ff8633a66ebef20d. Final ACT-019 Reply at mailbox 45b2c5a14bb5c441e47bf028ce5fc6b2918d3a32 reports 80/80 regression, 4/4 unchanged frozen modes with isolation proof, nine measurement JVMs/runner 0, ABI and other mandatory gates GREEN. ACT-018 NO_CHANGE. Architect verified remote fast-forward comparison from Alerts checkpoint 259f9887b95ee9cd7761a231e86bc57610325b88: seven commits ahead, zero behind. Historical incident causes and untested corporate integration/retained heap remain UNKNOWN; no additional waiver. This checkpoint is not a claim of independent raw-log or complete source review.
+
+## MAINT-001 — activation at accepted checkpoint
+
+Previously user-approved local target housekeeping may now proceed on the next Codex entry, as ACT-019 is FINAL GREEN/STOP and the user has reported independent acceptance. Follow original MAINT-001 instructions at a60f50a03a84ffe56a0c0dd2c194f9e4ee31c147 exactly, including safe path verification, pre-cleanup inventory, preservation of unique frozen bytecode, final isolated binary and measurement harnesses and evidence, archived failures, and all required rerun dependencies. No blanket clean, no tracked changes, no production commit, no unrelated task or refactor. Verify current state and no active processes; if unsafe defer. Append Reply MAINT-001 with before/after sizes, exact removed paths and retained material rationale; STOP.
+
