@@ -1,5 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Default')]
 param(
+    [Parameter(ParameterSetName = 'ActionMapCore')]
+    [switch] $ActionMapCore,
     [Parameter(ParameterSetName = 'ActionWaitOwnership')]
     [switch] $ActionWaitOwnership,
     [Parameter(ParameterSetName = 'AlertsFacade')]
@@ -157,7 +159,10 @@ param(
 $probeId = 'GUI-001'
 $probeClass = 'LegacyGuiSmoke'
 $probeArgs = @()
-if ($ActionWaitOwnership) {
+if ($ActionMapCore) {
+    $probeId = 'ACT-012'
+    $probeClass = 'ActionMapCoreSmoke'
+} elseif ($ActionWaitOwnership) {
     $probeId = 'ACT-007A'
     $probeClass = 'ActionWaitOwnershipSmoke'
 } elseif ($AlertsFacade) {
