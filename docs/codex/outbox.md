@@ -6000,3 +6000,12 @@ Implemented at f3ddcedfe86e3ece5d7415fd4beed147544e6b7e (parent f2bbdb6f57157c0e
 The Enter filter is installed once on the DialogPane and handles the current dialog buttons only. Focused NO selects NO once, disabled NO leaves the dialog open, and TextArea handles its own newline. Caller onShown remains usable. Explicit maker defaultButton(ButtonType) requires an existing button and allows native default ENTER. Legacy implicit default flags remain native.
 
 The original ALERT-001 baseline captured ClassCastException on ENTER in a custom TextArea and NullPointerException in onShown on repeat. On the candidate, official AlertsKeyboard runner PID 4408 exited 0 with ALERT-003 PASS. Three fresh JVMs (2232, 5276, 5592) and AlertsMaker regression (6432) exited 0 (0x00000000), timeout false. Maven offline compile, PowerShell parse, ABI and diff check passed. Physical keyboard, native X and custom TextField/CheckBox behavior were not exercised. Rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 -AlertsKeyboard -SettingsFile "D:\Java\.m2\settings.xml".
+
+
+## Reply ALERT-004
+
+Implemented at f37b8b5c0530f7e7f5bf01079f273aec5c1a4ad4 (parent f3ddcedfe86e3ece5d7415fd4beed147544e6b7e).
+
+The legacy builder still performs pre-show owner and sound work during build. Missing BaseApp and pre-login now skip sound safely. Scene-less Stage remains excluded from initOwner. Stages are deiconified and shown stages brought forward through toFront without touching alwaysOnTop. Sync calls require the FX Application Thread. The maker sound(boolean) defaults to enabled and checks existing application settings through SoundPlayer at the native shown event. Actual corporate audio and OS window stacking were not measured.
+
+The ALERT-001 baseline reproduced the no-app exception and persistent always-on-top mutation. AlertsLifecycle official runner PID 11888 exited 0, with no timeout and ALERT-004 PASS. Three fresh JVMs (13024, 9716, 11976), AlertsMaker (3168) and AlertsKeyboard (16392) exited 0 (0x00000000), without timeout. Assertions cover visible no-app, detached node, scene-less and Scene-backed Stage, application/window modality, owner state, pre-login show calls and mute. Offline compile, parse, diff check and legacy ABI comparison passed. Rerun: powershell.exe -NoProfile -ExecutionPolicy Bypass -File src/test/probes/Test-LegacyGuiSmoke.ps1 -AlertsLifecycle -SettingsFile "D:\Java\.m2\settings.xml".
