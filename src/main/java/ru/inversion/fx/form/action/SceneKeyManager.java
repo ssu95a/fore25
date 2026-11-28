@@ -11,6 +11,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Control;
 import javafx.scene.input.KeyEvent;
 import org.slf4j.Logger;
+import ru.inversion.fore.form.action.ActionInvocation;
 import ru.inversion.dataset.fx.DSFXAdapter;
 import ru.inversion.fx.app.BaseApp;
 import ru.inversion.fx.form.action.JInvEvent.PlaceType;
@@ -152,7 +153,8 @@ public class SceneKeyManager {
                 if( action == null ){
                     action = getActionNonRecursive( event, map );
                 }
-                if (action != null && action.isEnabled() && action.isEnabledBySecurity()) {
+                if (action != null && ActionInvocation.admit(action, IAction::isEnabled, IAction::isEnabledBySecurity)
+                        == ActionInvocation.Admission.ALLOWED) {
 //                    logger.trace("eventType={}, actionKeyEventType={}",event.getEventType(),action.getKeyEventType());
                     if (event.getEventType().equals(action.getKeyEventType())){
                         action.handle(new JInvEvent(control, placeType, event));

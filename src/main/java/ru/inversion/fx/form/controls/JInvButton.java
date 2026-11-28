@@ -224,20 +224,10 @@ public class JInvButton extends Button implements IJInvControl {
 
         boolean isEnabledOnInit = action.isEnabledBySecurity();
 
-        if (getId() != null && !isEnabledOnInit){
-            switch (strategy) {
-                case DISABLE: {
-                    setDisable(true);
-                    break;
-                }
-                case HIDE: {
-                    setVisible(false);
-                    break;
-                }
-                default:
-                    //do nothing for ERROR_ON_ACTION, check will be performed in runtime
-                    break;
-            }
+        switch (ActionSecurityPresentation.effect(getId(), isEnabledOnInit, strategy)) {
+            case DISABLE -> setDisable(true);
+            case HIDE -> setVisible(false);
+            case NONE -> { }
         }
 
         setOnAction(action);

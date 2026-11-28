@@ -263,13 +263,13 @@ public class JInvAction implements IAction {
     public void handle(ActionEvent event) {
         try {
 
-            //validate
-            if (!isEnabled()){
+            var admission = ActionInvocation.admit(this, JInvAction::isEnabled, JInvAction::isEnabledBySecurity);
+            if (admission == ActionInvocation.Admission.DISABLED) {
                 logger.warn("action {} isn't enabled, aborting handle", this);
                 return;
             }
 
-            if ( !isEnabledBySecurity() ){
+            if (admission == ActionInvocation.Admission.DENIED) {
                 throw new SecurityException(String.format(bundle.getString("ERROR_SECURITY_ACTION"), getId()));
             }
 
